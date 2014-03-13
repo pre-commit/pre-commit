@@ -1,0 +1,10 @@
+*.pyc
+.pydevproject
+.project
+.coverage
+/py_env
+*.db
+.idea
+build
+dist
+*.egg-info

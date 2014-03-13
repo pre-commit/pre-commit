@@ -1,0 +1,10 @@
+argparse
+pyyaml
+simplejson
+
+# Testing requirements
+coverage
+ipdb
+mock
+pyflakes
+pytest

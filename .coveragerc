@@ -1,0 +1,19 @@
+[report]
+exclude_lines =
+    # Don't complain about defensive assertions
+    raise NotImplementedError
+    raise AssertionError
+
+    # Don't complain about non-runnable code
+    if __name__ == .__main__.:
+
+omit =
+    /usr/*
+    py_env/*
+    */__init__.py
+
+    # Ignore test coverage
+    tests/*
+
+    # Don't complain about our pre-commit file
+    pre-commit.py
