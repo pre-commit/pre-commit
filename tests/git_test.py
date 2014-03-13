@@ -1,27 +1,8 @@
 
-import contextlib
 import os
-import pytest
 
 from plumbum import local
 from pre_commit import git
-
-
-
-@contextlib.contextmanager
-def in_dir(dir):
-    old_path = local.cwd.getpath()
-    local.cwd.chdir(dir)
-    try:
-        yield
-    finally:
-        local.cwd.chdir(old_path)
-
-@pytest.yield_fixture
-def empty_git_dir(tmpdir):
-    with in_dir(tmpdir.strpath):
-        local['git']['init']()
-        yield tmpdir.strpath
 
 
 def test_get_root(empty_git_dir):
@@ -30,7 +11,7 @@ def test_get_root(empty_git_dir):
     foo = local.path('foo')
     foo.mkdir()
 
-    with in_dir(foo):
+    with local.cwd(foo):
         assert git.get_root() == empty_git_dir
 
 

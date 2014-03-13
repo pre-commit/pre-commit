@@ -3,7 +3,9 @@ import __builtin__
 import jsonschema
 import pytest
 import mock
+from plumbum import local
 
+import pre_commit.constants as C
 from pre_commit.clientlib.validate_manifest import check_is_valid_manifest
 from pre_commit.clientlib.validate_manifest import InvalidManifestError
 from pre_commit.clientlib.validate_manifest import run
@@ -45,6 +47,18 @@ def test_returns_1_for_valid_yaml_file_but_invalid_manifest(print_mock):
 def test_returns_0_for_valid_manifest():
     valid_manifest = 'example_manifest.yaml'
     ret = run(['--filename', valid_manifest])
+    assert ret == 0
+
+
+def test_uses_default_manifest_file_at_root_of_git(empty_git_dir):
+    local.path(C.MANIFEST_FILE).write("""
+hooks:
+    -
+        id: foo
+        name: Foo
+        entry: foo
+    """)
+    ret = run([])
     assert ret == 0
 
 

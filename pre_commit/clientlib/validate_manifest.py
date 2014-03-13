@@ -8,6 +8,7 @@ import os.path
 import yaml
 
 import pre_commit.constants as C
+from pre_commit import git
 
 
 class InvalidManifestError(ValueError): pass
@@ -69,8 +70,7 @@ def run(argv):
     args = parser.parse_args(argv)
 
     if args.filename is None:
-        # TODO: filename = git.get_root() + C.MANIFEST_FILE
-        raise NotImplementedError
+        filename = os.path.join(git.get_root(), C.MANIFEST_FILE)
     else:
         filename = args.filename
 
