@@ -55,7 +55,11 @@ def test_defaults_to_backup_filename(noop_validator):
 
 def test_raises_for_failing_schema(array_validator):
     with pytest.raises(ValueError):
-        array_validator('tests/data/non_parseable_yaml_file.yaml')
+        array_validator('tests/data/valid_yaml_but_invalid_manifest.yaml')
+
+
+def test_passes_array_schema(array_validator):
+    array_validator('tests/data/array_yaml_file.yaml')
 
 
 def test_raises_when_additional_validation_fails(additional_validator):
