@@ -11,31 +11,25 @@ class InvalidManifestError(ValueError): pass
 
 
 MANIFEST_JSON_SCHEMA = {
-    'type': 'object',
-    'properties': {
-        'hooks': {
-            'type': 'array',
-            'minItems': 1,
-            'items': {
-                'type': 'object',
-                'properties': {
-                    'id': {'type': 'string'},
-                    'name': {'type': 'string'},
-                    'description': {'type': 'string'},
-                    'entry': {'type': 'string'},
-                    'language': {'type': 'string'},
-                    'expected_return_value': {'type': 'number'},
-                },
-                'required': ['id', 'name', 'entry'],
-            },
+    'type': 'array',
+    'minItems': 1,
+    'items': {
+        'type': 'object',
+        'properties': {
+            'id': {'type': 'string'},
+            'name': {'type': 'string'},
+            'description': {'type': 'string'},
+            'entry': {'type': 'string'},
+            'language': {'type': 'string'},
+            'expected_return_value': {'type': 'number'},
         },
+        'required': ['id', 'name', 'entry'],
     },
-    'required': ['hooks'],
 }
 
 
 def additional_manifest_check(obj):
-    for hook_config in obj['hooks']:
+    for hook_config in obj:
         language = hook_config.get('language')
 
         if language is not None and not any(
