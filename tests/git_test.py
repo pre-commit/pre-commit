@@ -1,5 +1,4 @@
 
-import contextlib
 import os
 import pytest
 
@@ -7,22 +6,20 @@ from plumbum import local
 from pre_commit import git
 
 
-
-@contextlib.contextmanager
-def in_dir(dir):
-    old_path = local.cwd.getpath()
-    local.cwd.chdir(dir)
-    try:
-        yield
-    finally:
-        local.cwd.chdir(old_path)
-
 @pytest.yield_fixture
 def empty_git_dir(tmpdir):
-    with in_dir(tmpdir.strpath):
+    with local.cwd(tmpdir.strpath):
         local['git']['init']()
         yield tmpdir.strpath
 
+
+@pytest.yield_fixture
+def dummy_git_repo(empty_git_dir):
+    local['touch']['dummy']()
+    local['git']['add', 'dummy']()
+    local['git']['commit', '-m', 'dummy commit']()
+
+    yield empty_git_dir
 
 def test_get_root(empty_git_dir):
     assert git.get_root() == empty_git_dir
@@ -30,7 +27,7 @@ def test_get_root(empty_git_dir):
     foo = local.path('foo')
     foo.mkdir()
 
-    with in_dir(foo):
+    with local.cwd(foo):
         assert git.get_root() == empty_git_dir
 
 
@@ -52,3 +49,7 @@ def test_remove_pre_commit(empty_git_dir):
     git.remove_pre_commit()
 
     assert not os.path.exists(git.get_pre_commit_path())
+
+
+def test_create_repo_in_env(empty_git_dir, dummy_git_repo):
+    git.create_repo_in_env('pre-commit', dummy_git_repo)

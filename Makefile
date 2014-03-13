@@ -30,7 +30,7 @@ coverage: py_env
 		coverage run `which py.test` tests $(TEST_TARGETS) && \
 		coverage report -m'
 
-py_env: requirements.txt
+py_env: requirements.txt setup.py
 	rm -rf py_env
 	virtualenv py_env
 	bash -c 'source py_env/bin/activate && \
