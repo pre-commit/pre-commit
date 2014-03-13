@@ -1,5 +1,8 @@
 import os
 import pkg_resources
+import contextlib
+
+import pre_commit.constants as C
 from plumbum import local
 
 
@@ -11,11 +14,11 @@ def get_pre_commit_path():
     return os.path.join(get_root(), '.git/hooks/pre-commit')
 
 
-def get_env_path():
-    return os.path.join(get_root(), '.pre-commit')
+def get_pre_commit_dir_path():
+    return os.path.join(get_root(), C.PRE_COMMIT_DIR)
 
 def create_pre_commit_package_dir():
-    local.path(get_root() + '/.pre-commit').mkdir()
+    local.path(get_pre_commit_dir_path()).mkdir()
 
 def create_pre_commit():
     path = get_pre_commit_path()
@@ -26,11 +29,40 @@ def create_pre_commit():
 def remove_pre_commit():
     local.path(get_pre_commit_path()).delete()
 
-def create_repo_in_env(name, git_repo_path):
-    create_pre_commit_package_dir()
 
-    env_path = get_env_path()
+class PreCommitProject(object):
 
-    with local.cwd(env_path):
-        local['git']['clone', git_repo_path, name]()
-        print local.cwd.getpath()
+    def __init__(self, git_repo_path, sha):
+        self.git_repo_path = git_repo_path
+        self.sha = sha
+
+    @contextlib.contextmanager
+    def in_checkout(self):
+        with local.cwd(get_pre_commit_dir_path()):
+            with local.cwd(self.sha):
+                yield
+
+    def create(self):
+        create_pre_commit_package_dir()
+
+        with local.cwd(get_pre_commit_dir_path()):
+            local['git']['clone', self.git_repo_path, self.sha]()
+            with self.in_checkout():
+                local['git']['checkout', self.sha]()
+
+    def install(self):
+        with self.in_checkout():
+            if local.path('setup.py').exists():
+                local['virtualenv']['py_env']()
+                local['bash'][local['pip']['install', '.']]
+
+def create_repo_in_env(git_repo_path, sha):
+    project = PreCommitProject(git_repo_path, sha)
+    project.create()
+
+def install_pre_commit(git_repo_path, sha):
+    project = PreCommitProject(git_repo_path, sha)
+    project.create()
+    project.install()
+
+
