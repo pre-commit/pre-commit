@@ -79,11 +79,6 @@ TESTS = [
         "All   - No tabs",
         True, 'testtabs',
     ),
-    Test(
-        "make test",
-        "Py    - Tests",
-        False, 'testtests',
-    ),
 ]
 
 def get_git_config(config_name):
