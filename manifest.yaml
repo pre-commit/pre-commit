@@ -1,0 +1,8 @@
+
+hooks:
+    -
+        id: validate_manifest
+        name: Validate Manifest
+        description: This validator validates a pre-commit hooks manifest file
+        entry: validate-manifest
+        language: python

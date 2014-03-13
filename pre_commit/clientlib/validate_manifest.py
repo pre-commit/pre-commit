@@ -61,8 +61,8 @@ validate_manifest = get_validator(
 def run(argv):
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        '--filename',
-        required=False, default=None,
+        'filename',
+        nargs='?', default=None,
         help='Manifest filename.  Defaults to {0} at root of git repo'.format(
             C.MANIFEST_FILE,
         )
