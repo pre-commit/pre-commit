@@ -16,14 +16,6 @@ def get_sha(git_repo):
     with local.cwd(git_repo):
         return (local['git']['log', '--format="%H"'] | local['head']['-n1'])().strip('"\n')
 
-
-@pytest.yield_fixture
-def empty_git_dir(tmpdir):
-    with local.cwd(tmpdir.strpath):
-        local['git']['init']()
-        yield tmpdir.strpath
-
-
 @pytest.yield_fixture
 def dummy_git_repo(empty_git_dir):
     local['touch']['dummy']()

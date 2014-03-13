@@ -1,86 +1,62 @@
 
-import __builtin__
 import jsonschema
+import jsonschema.exceptions
 import pytest
-import mock
 
-from pre_commit.clientlib.validate_manifest import check_is_valid_manifest
+from pre_commit.clientlib.validate_manifest import additional_manifest_check
 from pre_commit.clientlib.validate_manifest import InvalidManifestError
+from pre_commit.clientlib.validate_manifest import MANIFEST_JSON_SCHEMA
 from pre_commit.clientlib.validate_manifest import run
 
 
-@pytest.yield_fixture
-def print_mock():
-    with mock.patch.object(__builtin__, 'print', autospec=True) as print_mock_obj:
-        yield print_mock_obj
-
-
-def test_run_returns_1_for_non_existent_module(print_mock):
-    non_existent_filename = 'file_that_does_not_exist'
-    ret = run(['--filename', non_existent_filename])
-    assert ret == 1
-    print_mock.assert_called_once_with(
-        'File {0} does not exist'.format(non_existent_filename),
-    )
-
-
-def test_run_returns_1_for_non_yaml_file(print_mock):
-    non_parseable_filename = 'tests/data/non_parseable_yaml_file.yaml'
-    ret = run(['--filename', non_parseable_filename])
-    assert ret == 1
-    print_mock.assert_any_call(
-        'File {0} is not a valid yaml file'.format(non_parseable_filename),
-    )
-
-
-def test_returns_1_for_valid_yaml_file_but_invalid_manifest(print_mock):
-    invalid_manifest = 'tests/data/valid_yaml_but_invalid_manifest.yaml'
-    ret = run(['--filename', invalid_manifest])
-    assert ret == 1
-    print_mock.assert_any_call(
-        'File {0} is not a valid manifest file'.format(invalid_manifest)
-    )
-
-
 def test_returns_0_for_valid_manifest():
-    valid_manifest = 'example_manifest.yaml'
-    ret = run(['--filename', valid_manifest])
-    assert ret == 0
+    assert run(['example_manifest.yaml']) == 0
 
 
-@pytest.mark.parametrize(('manifest', 'expected_exception_type'), (
+def test_returns_0_for_our_manifest():
+    assert run([]) == 0
+
+
+def test_returns_1_for_failing():
+    assert run(['tests/data/valid_yaml_but_invalid_manifest.yaml']) == 1
+
+
+def test_additional_manifest_check_raises_for_bad_language():
+    with pytest.raises(InvalidManifestError):
+        additional_manifest_check([{'id': 'foo', 'language': 'not valid'}])
+
+
+@pytest.mark.parametrize(('obj'), (
+    [{}],
+    [{'language': 'python'}],
+    [{'language': 'python>2.6'}],
+))
+def test_additional_manifest_check_is_ok_with_missing_language(obj):
+    additional_manifest_check(obj)
+
+
+def is_valid_according_to_schema(obj, schema):
+    try:
+        jsonschema.validate(obj, schema)
+        return True
+    except jsonschema.exceptions.ValidationError:
+        return False
+
+
+@pytest.mark.parametrize(('manifest_obj', 'expected'), (
+    ([], False),
+    ([{'id': 'a', 'name': 'b', 'entry': 'c'}], True),
     (
-        """
-hooks:
-    -
-        id: foo
-        entry: foo
-        """,
-        jsonschema.exceptions.ValidationError,
-    ),
-    (
-        """
-hooks:
-    -
-        id: foo
-        name: Foo
-        language: Not a Language lol
-        entry: foo
-        """,
-        InvalidManifestError,
+        [{
+             'id': 'a',
+             'name': 'b',
+             'entry': 'c',
+             'language': 'python',
+             'expected_return_value': 0,
+        }],
+        True,
     ),
 ))
-def test_check_invalid_manifests(manifest, expected_exception_type):
-    with pytest.raises(expected_exception_type):
-        check_is_valid_manifest(manifest)
-
-
-def test_valid_manifest_is_valid():
-    check_is_valid_manifest("""
-hooks:
-    -
-        id: foo
-        name: Foo
-        entry: foo
-        language: python>2.6
-    """)
+def test_is_valid_according_to_schema(manifest_obj, expected):
+    ret = is_valid_according_to_schema(manifest_obj, MANIFEST_JSON_SCHEMA)
+    assert ret is expected

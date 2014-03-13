@@ -54,7 +54,8 @@ class PreCommitProject(object):
         with self.in_checkout():
             if local.path('setup.py').exists():
                 local['virtualenv']['py_env']()
-                local['bash'][local['pip']['install', '.']]
+                local['bash']['-c', 'source py_env/bin/activate && pip install .']()
+                print local.cwd.getpath()
 
 def create_repo_in_env(git_repo_path, sha):
     project = PreCommitProject(git_repo_path, sha)
