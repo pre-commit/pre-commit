@@ -12,8 +12,10 @@ setup(
         'pyyaml',
         'simplejson',
     ],
-    scripts=[
-        'scripts/pre-commit.py',
-        'scripts/validate-manifest.py',
-    ],
+    entry_points={
+        'console_scripts': [
+            'pre-commit = pre_commit.entry_points:pre_commit_func',
+            'validate-manifest = pre_commit.entry_points:validate_manifest_func',
+        ],
+    }
 )

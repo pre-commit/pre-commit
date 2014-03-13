@@ -35,8 +35,8 @@ def run(argv):
     args = parser.parse_args(argv)
 
     if args.install:
-        install()
+        return install()
     elif args.uninstall:
-        uninstall()
+        return uninstall()
     else:
-        run_hooks(args)
+        return run_hooks(args)

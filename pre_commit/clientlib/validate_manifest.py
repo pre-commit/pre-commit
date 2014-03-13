@@ -57,7 +57,6 @@ def check_is_valid_manifest(file_contents):
             )
 
 
-
 def run(argv):
     parser = argparse.ArgumentParser()
     parser.add_argument(
