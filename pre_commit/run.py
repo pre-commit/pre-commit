@@ -1,11 +1,10 @@
 
 import argparse
-
+from pre_commit import git
 
 def install():
     """Install the pre-commit hook."""
-    raise NotImplementedError
-
+    git.create_pre_commit()
 
 def uninstall():
     """Uninstall the pre-commit hook."""
