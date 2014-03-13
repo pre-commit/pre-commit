@@ -8,6 +8,7 @@ setup(
     install_requires=[
         'argparse',
         'jsonschema',
+        'plumbum',
         'pyyaml',
         'simplejson',
     ],
