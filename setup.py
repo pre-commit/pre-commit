@@ -3,7 +3,7 @@ from setuptools import setup
 
 setup(
     name='pre_commit',
-    version='0.3.4',
+    version='0.0.0',
     packages=find_packages('.', exclude=('tests*', 'testing*')),
     install_requires=[
         'argparse',
