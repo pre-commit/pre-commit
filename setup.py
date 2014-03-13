@@ -7,9 +7,12 @@ setup(
     packages=find_packages('.', exclude=('tests*', 'testing*')),
     install_requires=[
         'argparse',
+        'jsonschema',
+        'pyyaml',
         'simplejson',
     ],
     scripts=[
         'scripts/pre-commit.py',
+        'scripts/validate-manifest.py',
     ],
 )
