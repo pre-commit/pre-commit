@@ -2,13 +2,9 @@
 from __future__ import print_function
 
 import argparse
-import jsonschema
-import jsonschema.exceptions
-import os.path
-import yaml
 
 import pre_commit.constants as C
-from pre_commit import git
+from pre_commit.clientlib.validate_base import get_validator
 
 
 class InvalidManifestError(ValueError): pass
@@ -38,12 +34,8 @@ MANIFEST_JSON_SCHEMA = {
 }
 
 
-def check_is_valid_manifest(file_contents):
-    file_objects = yaml.load(file_contents)
-
-    jsonschema.validate(file_objects, MANIFEST_JSON_SCHEMA)
-
-    for hook_config in file_objects['hooks']:
+def additional_manifest_check(obj):
+    for hook_config in obj['hooks']:
         language = hook_config.get('language')
 
         if language is not None and not any(
@@ -58,6 +50,14 @@ def check_is_valid_manifest(file_contents):
             )
 
 
+validate_manifest = get_validator(
+    C.MANIFEST_FILE,
+    MANIFEST_JSON_SCHEMA,
+    InvalidManifestError,
+    additional_manifest_check,
+)
+
+
 def run(argv):
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -69,29 +69,14 @@ def run(argv):
     )
     args = parser.parse_args(argv)
 
-    if args.filename is None:
-        filename = os.path.join(git.get_root(), C.MANIFEST_FILE)
-    else:
-        filename = args.filename
-
-    if not os.path.exists(filename):
-        print('File {0} does not exist'.format(filename))
-        return 1
-
-    file_contents = open(filename, 'r').read()
-
     try:
-        yaml.load(file_contents)
-    except Exception as e:
-        print('File {0} is not a valid yaml file'.format(filename))
-        print(str(e))
-        return 1
-
-    try:
-        check_is_valid_manifest(file_contents)
-    except (jsonschema.exceptions.ValidationError, InvalidManifestError) as e:
-        print('File {0} is not a valid manifest file'.format(filename))
-        print(str(e))
+        validate_manifest(args.filename)
+    except InvalidManifestError as e:
+        print(e.args[0])
+        # If we have more than one exception argument print the stringified
+        # version
+        if len(e.args) > 1:
+            print(str(e.args[1]))
         return 1
 
     return 0

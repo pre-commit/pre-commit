@@ -1,14 +1,12 @@
 
 import __builtin__
-import jsonschema
 import pytest
 import mock
 from plumbum import local
 
 import pre_commit.constants as C
-from pre_commit.clientlib.validate_manifest import check_is_valid_manifest
-from pre_commit.clientlib.validate_manifest import InvalidManifestError
-from pre_commit.clientlib.validate_manifest import run
+from pre_commit.clientlib.validate_manifest import run, InvalidManifestError, \
+    additional_manifest_check
 
 
 @pytest.yield_fixture
@@ -40,7 +38,7 @@ def test_returns_1_for_valid_yaml_file_but_invalid_manifest(print_mock):
     ret = run(['--filename', invalid_manifest])
     assert ret == 1
     print_mock.assert_any_call(
-        'File {0} is not a valid manifest file'.format(invalid_manifest)
+        'File {0} is not a valid file'.format(invalid_manifest)
     )
 
 
@@ -62,39 +60,17 @@ hooks:
     assert ret == 0
 
 
-@pytest.mark.parametrize(('manifest', 'expected_exception_type'), (
-    (
-        """
-hooks:
-    -
-        id: foo
-        entry: foo
-        """,
-        jsonschema.exceptions.ValidationError,
-    ),
-    (
-        """
-hooks:
-    -
-        id: foo
-        name: Foo
-        language: Not a Language lol
-        entry: foo
-        """,
-        InvalidManifestError,
-    ),
+def test_additional_manifest_check_raises_for_bad_language():
+    with pytest.raises(InvalidManifestError):
+        additional_manifest_check(
+            {'hooks': [{'id': 'foo', 'language': 'not valid'}]}
+        )
+
+
+@pytest.mark.parametrize(('obj'), (
+    {'hooks': [{}]},
+    {'hooks': [{'language': 'python'}]},
+    {'hooks': [{'language': 'python>2.6'}]},
 ))
-def test_check_invalid_manifests(manifest, expected_exception_type):
-    with pytest.raises(expected_exception_type):
-        check_is_valid_manifest(manifest)
-
-
-def test_valid_manifest_is_valid():
-    check_is_valid_manifest("""
-hooks:
-    -
-        id: foo
-        name: Foo
-        entry: foo
-        language: python>2.6
-    """)
+def test_additional_manifest_check_is_ok_with_missing_language(obj):
+    additional_manifest_check(obj)
