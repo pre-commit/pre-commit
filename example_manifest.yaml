@@ -1,0 +1,31 @@
+
+# Hooks are set up as follows
+# hooks:
+#     -
+#         id: hook_id
+#         name: 'Readable name'
+#         entry: my_hook_executable
+#
+#         # Optional
+#         description: 'Longer description of the hook'
+#
+#         # Optional, for now 'python[optional version]', 'ruby #.#.#', 'node'
+#         language: 'python'
+#
+#         # Optional, defaults to zero
+#         expected_return_value: 0
+
+hooks:
+    -
+        id: my_hook
+        name: My Simple Hook
+        description: This is my simple hook that does blah
+        entry: my-simple-hook.py
+        language: python
+        expected_return_value: 0
+    -
+        id: my_grep_based_hook
+        name: My Bash Based Hook
+        description: This is a hook that uses grep to validate some stuff
+        entry: ./my_grep_based_hook.sh
+        expected_return_value: 1
