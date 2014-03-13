@@ -9,4 +9,7 @@ setup(
         'argparse',
         'simplejson',
     ],
+    scripts=[
+        'scripts/pre-commit.py',
+    ],
 )
