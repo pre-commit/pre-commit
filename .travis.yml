@@ -6,3 +6,8 @@ python:
 
 install: pip install virtualenv
 script: make
+
+
+before_install:
+  - git config --global user.name "Travis CI"
+  - git config --global user.email "user@example.com"

@@ -33,3 +33,5 @@ def test_remove_pre_commit(empty_git_dir):
     git.remove_pre_commit()
 
     assert not os.path.exists(git.get_pre_commit_path())
+
+
