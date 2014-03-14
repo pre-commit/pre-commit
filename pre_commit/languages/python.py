@@ -2,6 +2,7 @@
 import contextlib
 from plumbum import local
 from plumbum.machines.session import ShellSession
+from pre_commit.languages import helpers
 
 PY_ENV = 'py_env'
 
@@ -30,7 +31,4 @@ def install_environment():
 def run_hook(hook, file_args):
     with in_env() as env:
         # TODO: batch filenames
-        return env.run(
-            ' '.join([hook['entry']] + hook.get('args', []) + list(file_args)),
-            retcode=None,
-        )
+        return helpers.run_hook(env, hook, file_args)
