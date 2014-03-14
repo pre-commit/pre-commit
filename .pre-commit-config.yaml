@@ -6,3 +6,14 @@
         -
             id: pyflakes
             files: '\.py$'
+
+-
+    repo: git@github.com:pre-commit/pre-commit
+    sha: c77d65d9cbbcf30e2be005f5ba8b63447deedc1e
+    hooks:
+        -
+            id: validate_manifest
+            files: manifest.yaml
+        -
+            id: validate_config
+            files: .pre-commit-config.yaml
