@@ -5,7 +5,7 @@ from plumbum import local
 from pre_commit.hooks_workspace import in_hooks_workspace
 
 
-class RepoInstaller(object):
+class Repository(object):
     def __init__(self, repo_config):
         self.repo_config = repo_config
 
