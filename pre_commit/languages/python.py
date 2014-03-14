@@ -15,6 +15,10 @@ def in_env():
 
 def install_environment():
     assert local.path('setup.py').exists()
+    # Return immediately if we already have a virtualenv
+    if local.path('py_env').exists():
+        return
+
     # Install a virtualenv
     local['virtualenv'][PY_ENV]()
 

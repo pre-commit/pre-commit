@@ -1,5 +1,6 @@
 *.pyc
 .pydevproject
+.pre-commit-files
 .project
 .coverage
 /py_env
