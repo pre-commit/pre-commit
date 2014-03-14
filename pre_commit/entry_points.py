@@ -1,6 +1,7 @@
 
 import functools
 
+import pre_commit.clientlib.validate_config
 import pre_commit.clientlib.validate_manifest
 import pre_commit.run
 
@@ -21,3 +22,4 @@ def make_entry_point(entry_point_func):
 
 pre_commit_func = make_entry_point(pre_commit.run.run)
 validate_manifest_func = make_entry_point(pre_commit.clientlib.validate_manifest.run)
+validate_config_func = make_entry_point(pre_commit.clientlib.validate_config.run)

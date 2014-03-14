@@ -1,0 +1,8 @@
+
+-
+    repo: git@github.com:pre-commit/pre-commit-hooks
+    sha: cd74dc150c142c3be70b24eaf0b02cae9d235f37
+    hooks:
+        -
+            id: pyflakes
+            files: '*.py'
