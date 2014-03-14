@@ -1,4 +1,8 @@
 
+import functools
+import os
+
+
 class cached_property(object):
     """Like @property, but caches the value."""
 
@@ -14,3 +18,19 @@ class cached_property(object):
         value = self._func(obj)
         obj.__dict__[self.__name__] = value
         return value
+
+
+def memoize_by_cwd(func):
+    """Memoize a function call based on os.getcwd()."""
+    cache = {}
+    @functools.wraps(func)
+    def wrapper(*args):
+        cwd = os.getcwd()
+        key = (cwd,) + args
+        try:
+            return cache[key]
+        except KeyError:
+            ret = cache[key] = func(*args)
+            return ret
+
+    return wrapper
