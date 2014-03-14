@@ -1,6 +1,7 @@
 
-import contexlib
+import contextlib
 from plumbum import local
+from pre_commit.languages import helpers
 
 PY_ENV = 'py_env'
 
@@ -9,22 +10,11 @@ class PythonEnv(object):
     def __init__(self):
         self.env_prefix = '. {0}/bin/activate &&'.format(PY_ENV)
 
-    def run(self, cmd):
-        return local['bash']['-c', ' '.join([self.env_prefix, cmd])]()
+    def run(self, cmd, **kwargs):
+        return local['bash']['-c', ' '.join([self.env_prefix, cmd])].run(**kwargs)
 
 
-NODE_ENV = 'node_env'
-
-class NodeEnv(object):
-    def __init__(self, py_env):
-        self.py_env = py_env
-        self.env_prefix = '. {0}/bin/activate &&'.format(NODE_ENV)
-
-    def run(self, cmd):
-        return self.py_env.run(' '.join(self.env_prefix, cmd))
-
-
-@contexlib.contextmanager
+@contextlib.contextmanager
 def in_env():
     yield PythonEnv()
 
@@ -44,6 +34,4 @@ def install_environment():
 def run_hook(hook, file_args):
     # TODO: batch filenames
     with in_env() as env:
-        env = env
-        # MAGIC
-        pass
+        return helpers.run_hook(env, hook, file_args)
