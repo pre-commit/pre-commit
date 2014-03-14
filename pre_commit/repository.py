@@ -8,6 +8,27 @@ from pre_commit.hooks_workspace import in_hooks_workspace
 from pre_commit.util import cached_property
 
 
+def install_python(repo):
+    assert local.path('setup.py').exists()
+    local['virtualenv']['py_env']()
+    local['bash']['-c', 'source py_env/bin/activate && pip install .']()
+
+
+def install_ruby(repo):
+    raise NotImplementedError
+
+
+def install_node(repo):
+    raise NotImplementedError
+
+
+language_to_repo_setup_strategy = {
+    'python': install_python,
+    'ruby': install_ruby,
+    'node': install_node,
+}
+
+
 class Repository(object):
     def __init__(self, repo_config):
         self.repo_config = repo_config
@@ -59,25 +80,8 @@ class Repository(object):
             with self.in_checkout():
                 local['git']['checkout', self.sha]()
 
-    # TODO: make this shit polymorphic
-
-    def _install_python(self):
-        assert local.path('setup.py').exists()
-        local['virtualenv']['py_env']()
-        local['bash']['-c', 'source py_env/bin/activate && pip install .']()
-
-    def _install_ruby(self):
-        raise NotImplementedError
-
-    def _install_node(self):
-        raise NotImplementedError
-
     def install(self):
-        # Create if we have not already
-        self.create()
-        # TODO: need to take in the config here and determine if we actually
-        # need to run any installers (and what languages to install)
         with self.in_checkout():
-            if local.path('setup.py').exists():
-                local['virtualenv']['py_env']()
-                local['bash']['-c', 'source py_env/bin/activate && pip install .']()
+            for language in C.SUPPORTED_LANGUAGES:
+                if language in self.languages:
+                    language_to_repo_setup_strategy[language](self)
