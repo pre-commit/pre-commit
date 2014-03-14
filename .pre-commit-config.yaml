@@ -14,3 +14,11 @@
         -
             id: jshint
             files: '*.js'
+
+-
+    repo: git@github.com:pre-commit/scss-lint
+    sha: 425536b1b77d9e836068edde4fb3101bea6e7dd8
+    hooks:
+        -
+            id: scss-lint
+            files: '*.scss'

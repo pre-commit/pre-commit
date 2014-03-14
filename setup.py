@@ -23,5 +23,8 @@ setup(
             'validate-config = pre_commit.entry_points:validate_config_func',
             'validate-manifest = pre_commit.entry_points:validate_manifest_func',
         ],
-    }
+    },
+    scripts=[
+        'scripts/__rvm-env.sh',
+    ],
 )
