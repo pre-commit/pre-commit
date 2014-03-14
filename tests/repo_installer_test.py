@@ -1,12 +1,13 @@
+import os
+
 import jsonschema
 import pytest
-import os
 from plumbum import local
 
 import pre_commit.constants as C
 from pre_commit.clientlib.validate_config import CONFIG_JSON_SCHEMA
-from pre_commit.installer.repo_installer import create_repo_in_env
-from pre_commit.installer.repo_installer import install_pre_commit
+from pre_commit.repo_installer import create_repo_in_env
+from pre_commit.repo_installer import install_pre_commit
 
 
 def get_sha(git_repo):

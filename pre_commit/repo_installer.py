@@ -3,8 +3,8 @@ import contextlib
 from plumbum import local
 from pre_commit import git
 
-class RepoInstaller(object):
 
+class RepoInstaller(object):
     def __init__(self, git_repo_path, sha):
         self.git_repo_path = git_repo_path
         self.sha = sha
@@ -28,6 +28,8 @@ class RepoInstaller(object):
                 local['git']['checkout', self.sha]()
 
     def install(self):
+        # TODO: need to take in the config here and determine if we actually
+        # need to run any installers (and what languages to install)
         with self.in_checkout():
             if local.path('setup.py').exists():
                 local['virtualenv']['py_env']()
