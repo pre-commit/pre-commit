@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 
 import jsonschema
+import simplejson
 import pytest
 import time
 from plumbum import local
@@ -73,6 +74,59 @@ def func():
     add_and_commit()
 
     yield dummy_git_repo
+
+
+@pytest.yield_fixture
+def node_pre_commit_git_repo(dummy_git_repo):
+    local.path(C.MANIFEST_FILE).write("""
+-
+    id: foo
+    name: Foo
+    entry: foo
+    language: node
+    """)
+
+    add_and_commit()
+
+    local.path('package.json').write(simplejson.dumps({
+        'name': 'foo',
+        'version': '0.0.1',
+        'bin': {
+            'foo': './bin/main.js'
+        },
+    }))
+
+    bin_dir = local.path('bin')
+
+    bin_dir.mkdir()
+
+    with local.cwd(bin_dir):
+        local.path('main.js').write(
+"""#!/usr/bin/env node
+
+console.log('Hello World');
+""")
+
+    add_and_commit()
+
+    yield dummy_git_repo
+
+
+@pytest.fixture
+def config_for_node_pre_commit_git_repo(node_pre_commit_git_repo):
+    config = {
+        'repo': node_pre_commit_git_repo,
+        'sha': git.get_head_sha(node_pre_commit_git_repo),
+        'hooks': [{
+            'id': 'foo',
+            'files': '*.js',
+        }],
+    }
+
+    jsonschema.validate([config], CONFIG_JSON_SCHEMA)
+
+    return config
+
 
 
 @pytest.fixture

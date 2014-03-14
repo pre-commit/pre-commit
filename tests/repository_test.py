@@ -43,7 +43,7 @@ def test_install_python_repo_in_env(python_pre_commit_git_repo, config_for_pytho
 
 
 @pytest.mark.integration
-def test_run_a_hook_omg(config_for_python_pre_commit_git_repo):
+def test_run_a_python_hook(config_for_python_pre_commit_git_repo):
     repo = Repository(config_for_python_pre_commit_git_repo)
     repo.install()
     ret = repo.run_hook('foo', [])
@@ -51,6 +51,15 @@ def test_run_a_hook_omg(config_for_python_pre_commit_git_repo):
     assert ret[0] == 0
     assert ret[1] == 'Hello World\n'
 
+
+@pytest.mark.skipif(True, reason="TODO: make this test not super slow")
+def test_run_a_node_hook(config_for_node_pre_commit_git_repo):
+    repo = Repository(config_for_node_pre_commit_git_repo)
+    repo.install()
+    ret = repo.run_hook('foo', [])
+
+    assert ret[0] == 0
+    assert ret[1] == 'Hello World\n'
 
 @pytest.fixture
 def mock_repo_config():
@@ -82,4 +91,6 @@ def test_sha(mock_repo_config):
 def test_languages(config_for_python_pre_commit_git_repo):
     repo = Repository(config_for_python_pre_commit_git_repo)
     assert repo.languages == set(['python'])
+
+
 
