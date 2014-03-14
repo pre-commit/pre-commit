@@ -1,14 +1,16 @@
 import os
 import pkg_resources
-
 from plumbum import local
 
+from pre_commit.util import memoize_by_cwd
 
-# TODO: optimization: memoize based on local.cwd.getpath()
+
+@memoize_by_cwd
 def get_root():
     return local['git']['rev-parse', '--show-toplevel']().strip()
 
 
+@memoize_by_cwd
 def get_pre_commit_path():
     return os.path.join(get_root(), '.git/hooks/pre-commit')
 
