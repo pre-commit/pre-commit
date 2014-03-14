@@ -1,4 +1,5 @@
 import os
+import re
 import pkg_resources
 from plumbum import local
 
@@ -27,4 +28,31 @@ def remove_pre_commit():
 
 def get_head_sha(git_repo_path):
     with local.cwd(git_repo_path):
-        return (local['git']['rev-parse', 'HEAD'])().strip()
+        return local['git']['rev-parse', 'HEAD']().strip()
+
+
+@memoize_by_cwd
+def get_staged_files():
+    return local['git']['diff', '--staged', '--name-only']().splitlines()
+
+
+@memoize_by_cwd
+def get_staged_files_matching(expr):
+    regex = re.compile(expr)
+    return set(
+        filename for filename in get_staged_files() if regex.search(filename)
+    )
+
+
+@memoize_by_cwd
+def get_all_files():
+    return local['git']['ls-files']().splitlines()
+
+
+# Smell: this is duplicated above
+@memoize_by_cwd
+def get_all_files_matching(expr):
+    regex = re.compile(expr)
+    return set(
+        filename for filename in get_all_files() if regex.search(filename)
+    )

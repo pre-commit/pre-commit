@@ -5,7 +5,7 @@
     hooks:
         -
             id: pyflakes
-            files: '*.py'
+            files: '\.py$'
 
 -
     repo: git@github.com:pre-commit/jshint
@@ -13,7 +13,7 @@
     hooks:
         -
             id: jshint
-            files: '*.js'
+            files: '\.js$'
 
 -
     repo: git@github.com:pre-commit/scss-lint
@@ -21,4 +21,4 @@
     hooks:
         -
             id: scss-lint
-            files: '*.scss'
+            files: '\.scss$'
