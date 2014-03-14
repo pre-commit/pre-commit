@@ -14,7 +14,7 @@ def empty_git_dir(tmpdir):
 
 def add_and_commit():
     local['git']['add', '.']()
-    local['git']['commit', '-m', 'random commit', '--author', 'A U Thor <author@example.com>']()
+    local['git']['commit', '-m', 'random commit']()
 
 
 @pytest.yield_fixture
