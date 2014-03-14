@@ -1,46 +1,44 @@
-import contextlib
 
+import contextlib
 from plumbum import local
-from pre_commit import git
+
+from pre_commit.hooks_workspace import in_hooks_workspace
 
 
 class RepoInstaller(object):
-    def __init__(self, git_repo_path, sha):
-        self.git_repo_path = git_repo_path
-        self.sha = sha
+    def __init__(self, repo_config):
+        self.repo_config = repo_config
+
+    @property
+    def repo_url(self):
+        return self.repo_config['repo']
+
+    @property
+    def sha(self):
+        return self.repo_config['sha']
 
     @contextlib.contextmanager
     def in_checkout(self):
-        with local.cwd(git.get_pre_commit_dir_path()):
+        with in_hooks_workspace():
             with local.cwd(self.sha):
                 yield
 
     def create(self):
-        git.create_pre_commit_package_dir()
-
-        with local.cwd(git.get_pre_commit_dir_path()):
+        with in_hooks_workspace():
             if local.path(self.sha).exists():
                 # Project already exists, no reason to re-create it
                 return
 
-            local['git']['clone', self.git_repo_path, self.sha]()
+            local['git']['clone', self.repo_url, self.sha]()
             with self.in_checkout():
                 local['git']['checkout', self.sha]()
 
     def install(self):
+        # Create if we have not already
+        self.create()
         # TODO: need to take in the config here and determine if we actually
         # need to run any installers (and what languages to install)
         with self.in_checkout():
             if local.path('setup.py').exists():
                 local['virtualenv']['py_env']()
                 local['bash']['-c', 'source py_env/bin/activate && pip install .']()
-
-
-def create_repo_in_env(git_repo_path, sha):
-    project = RepoInstaller(git_repo_path, sha)
-    project.create()
-
-def install_pre_commit(git_repo_path, sha):
-    project = RepoInstaller(git_repo_path, sha)
-    project.create()
-    project.install()

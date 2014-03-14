@@ -16,7 +16,9 @@ def test_get_root(empty_git_dir):
 
 
 def test_get_pre_commit_path(empty_git_dir):
-    assert git.get_pre_commit_path() == '{0}/.git/hooks/pre-commit'.format(empty_git_dir)
+    assert git.get_pre_commit_path() == '{0}/.git/hooks/pre-commit'.format(
+        empty_git_dir,
+    )
 
 
 def test_create_pre_commit(empty_git_dir):

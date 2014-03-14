@@ -1,7 +1,7 @@
 
 CONFIG_FILE = '.pre-commit-config.yaml'
 
-PRE_COMMIT_DIR = '.pre-commit-files'
+HOOKS_WORKSPACE = '.pre-commit-files'
 
 MANIFEST_FILE = 'manifest.yaml'
 
