@@ -65,3 +65,8 @@ def test_passes_array_schema(array_validator):
 def test_raises_when_additional_validation_fails(additional_validator):
     with pytest.raises(AdditionalValidatorError):
         additional_validator()
+
+
+def test_returns_object_after_validating(noop_validator):
+    ret = noop_validator('tests/data/array_yaml_file.yaml')
+    assert ret == ['foo', 'bar']

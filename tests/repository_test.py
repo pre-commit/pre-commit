@@ -1,9 +1,10 @@
 import os
-
+import jsonschema
 import pytest
-from pre_commit import git
 
 import pre_commit.constants as C
+from pre_commit import git
+from pre_commit.clientlib.validate_config import CONFIG_JSON_SCHEMA
 from pre_commit.repository import Repository
 
 
@@ -40,3 +41,36 @@ def test_install_python_repo_in_env(python_pre_commit_git_repo, config_for_pytho
             'py_env',
         ),
     )
+
+
+@pytest.fixture
+def mock_repo_config():
+    config = {
+        'repo': 'git@github.com:pre-commit/pre-commit-hooks',
+        'sha': '5e713f8878b7d100c0e059f8cc34be4fc2e8f897',
+        'hooks': [{
+            'id': 'pyflakes',
+            'files': '*.py',
+        }],
+    }
+
+    jsonschema.validate([config], CONFIG_JSON_SCHEMA)
+
+    return config
+
+
+def test_repo_url(mock_repo_config):
+    repo = Repository(mock_repo_config)
+    assert repo.repo_url == 'git@github.com:pre-commit/pre-commit-hooks'
+
+
+def test_sha(mock_repo_config):
+    repo = Repository(mock_repo_config)
+    assert repo.sha == '5e713f8878b7d100c0e059f8cc34be4fc2e8f897'
+
+
+@pytest.mark.integration
+def test_languages(config_for_python_pre_commit_git_repo):
+    repo = Repository(config_for_python_pre_commit_git_repo)
+    assert repo.languages == set(['python'])
+

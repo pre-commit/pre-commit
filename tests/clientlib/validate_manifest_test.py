@@ -29,7 +29,7 @@ def test_additional_manifest_check_raises_for_bad_language():
 @pytest.mark.parametrize(('obj'), (
     [{}],
     [{'language': 'python'}],
-    [{'language': 'python>2.6'}],
+    [{'language': 'ruby'}],
 ))
 def test_additional_manifest_check_is_ok_with_missing_language(obj):
     additional_manifest_check(obj)

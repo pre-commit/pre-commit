@@ -3,6 +3,8 @@ TEST_TARGETS =
 ITEST_TARGETS = -m integration
 UTEST_TARGETS = -m "not(integration)"
 
+DEBUG=
+
 all: _tests
 
 integration:
@@ -19,7 +21,7 @@ itests: itest
 itest: integration _tests
 
 _tests: py_env
-	bash -c 'source py_env/bin/activate && py.test tests $(TEST_TARGETS)'
+	bash -c 'source py_env/bin/activate && py.test tests $(TEST_TARGETS) $(DEBUG)'
 
 ucoverage: unit coverage
 icoverage: integration coverage

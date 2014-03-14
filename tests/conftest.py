@@ -31,22 +31,17 @@ def dummy_git_repo(empty_git_dir):
 
 
 @pytest.yield_fixture
-def dummy_pre_commit_hooks_git_repo(dummy_git_repo):
+def python_pre_commit_git_repo(dummy_git_repo):
     local.path(C.MANIFEST_FILE).write("""
-hooks:
-    -
-        id: foo
-        name: Foo
-        entry: foo
-        language: python>2.6
+-
+    id: foo
+    name: Foo
+    entry: foo
+    language: python
     """)
 
     add_and_commit()
 
-    yield dummy_git_repo
-
-@pytest.yield_fixture
-def python_pre_commit_git_repo(dummy_pre_commit_hooks_git_repo):
     local.path('setup.py').write("""
 from setuptools import find_packages
 from setuptools import setup
@@ -61,8 +56,7 @@ setup(
         ],
     }
 )
-"""
-    )
+    """)
 
     foo_module = local.path('foo')
 
@@ -73,12 +67,11 @@ setup(
         local.path('main.py').write("""
 def func():
     return 0
-"""
-        )
+    """)
 
     add_and_commit()
 
-    yield dummy_pre_commit_hooks_git_repo
+    yield dummy_git_repo
 
 
 @pytest.fixture

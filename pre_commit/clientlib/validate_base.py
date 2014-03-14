@@ -48,4 +48,6 @@ def get_validator(
 
         additional_validation_strategy(obj)
 
+        return obj
+
     return validate
