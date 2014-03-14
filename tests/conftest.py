@@ -56,7 +56,7 @@ setup(
         ],
     }
 )
-    """)
+""")
 
     foo_module = local.path('foo')
 
@@ -68,7 +68,7 @@ setup(
 def func():
     print 'Hello World'
     return 0
-    """)
+""")
 
     add_and_commit()
 
