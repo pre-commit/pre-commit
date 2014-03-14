@@ -6,8 +6,22 @@ from plumbum import local
 from pre_commit.util import memoize_by_cwd
 
 
+def _get_root_original():
+    return local['git']['rev-parse', '--show-toplevel']().strip()
+
+def _get_root_new():
+    path = os.getcwd()
+    while len(path) > 1:
+        if os.path.exists(os.path.join(path, '.git')):
+            return path
+        else:
+            path = os.path.normpath(os.path.join(path, '../'))
+    raise AssertionError('called from outside of the gits')
+
+
 @memoize_by_cwd
 def get_root():
+    return _get_root_new()
     return local['git']['rev-parse', '--show-toplevel']().strip()
 
 
