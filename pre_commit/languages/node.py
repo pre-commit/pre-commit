@@ -32,7 +32,7 @@ def install_environment():
 
     with python.in_env() as python_env:
         python_env.run('pip install nodeenv')
-        python_env.run('nodeenv {0}'.format(NODE_ENV))
+        python_env.run('nodeenv --jobs 4 {0}'.format(NODE_ENV))
 
         with in_env(python_env) as node_env:
             node_env.run('npm install -g')
