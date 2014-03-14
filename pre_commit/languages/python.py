@@ -27,7 +27,7 @@ def run_hook(hook, file_args):
     )
     ret = process.communicate()
 
-    return (0,) + ret
+    return (process.returncode,) + ret
 
     return local['bash'][
         '-c', ' '.join(
