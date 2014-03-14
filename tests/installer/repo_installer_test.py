@@ -1,8 +1,10 @@
+import jsonschema
 import pytest
 import os
+from plumbum import local
 
 import pre_commit.constants as C
-from plumbum import local
+from pre_commit.clientlib.validate_config import CONFIG_JSON_SCHEMA
 from pre_commit.installer.repo_installer import create_repo_in_env
 from pre_commit.installer.repo_installer import install_pre_commit
 
@@ -26,9 +28,8 @@ def test_install_python_repo_in_env(empty_git_dir, python_pre_commit_git_repo):
     assert os.path.exists(os.path.join(python_pre_commit_git_repo, C.PRE_COMMIT_DIR, sha, 'py_env'))
 
 
-@pytest.mark.integration
-def test_install_config(empty_git_dir, python_pre_commit_git_repo):
-
+@pytest.fixture
+def simple_config(python_pre_commit_git_repo):
     config = [
         {
             'repo': python_pre_commit_git_repo,
@@ -36,17 +37,24 @@ def test_install_config(empty_git_dir, python_pre_commit_git_repo):
             'hooks': [
                 {
                     'id': 'foo',
-                    'args': [
-                        {
-                            'type': 'files',
-                            'opt': '*.py'
-                        },
-                        ]
-                }
+                    'files': '*.py',
+                    }
             ],
-            },
-        ]
-    for repo in config:
+        },
+    ]
+    jsonschema.validate(config, CONFIG_JSON_SCHEMA)
+    return config
+
+
+@pytest.mark.integration
+def test_install_config(empty_git_dir, python_pre_commit_git_repo, simple_config):
+    for repo in simple_config:
         install_pre_commit(repo['repo'], repo['sha'])
 
-    assert os.path.exists(os.path.join(python_pre_commit_git_repo, C.PRE_COMMIT_DIR, config[0]['sha'], 'py_env'))
+    assert os.path.exists(
+        os.path.join(
+            python_pre_commit_git_repo,
+            C.PRE_COMMIT_DIR, simple_config[0]['sha'],
+            'py_env',
+        ),
+    )

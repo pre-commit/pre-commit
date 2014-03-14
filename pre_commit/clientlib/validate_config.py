@@ -41,7 +41,7 @@ CONFIG_JSON_SCHEMA = {
 }
 
 
-validate_manifest = get_validator(
+validate_config = get_validator(
     C.CONFIG_FILE,
     CONFIG_JSON_SCHEMA,
     InvalidConfigError,
@@ -60,7 +60,7 @@ def run(argv):
     args = parser.parse_args(argv)
 
     try:
-        validate_manifest(args.filename)
+        validate_config(args.filename)
     except InvalidConfigError as e:
         print(e.args[0])
         # If we have more than one exception argument print the stringified
