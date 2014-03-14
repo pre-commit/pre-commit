@@ -1,6 +1,5 @@
 
 from plumbum import local
-import subprocess
 
 PY_ENV = 'py_env'
 
@@ -17,18 +16,6 @@ def install_environment():
 
 
 def run_hook(hook, file_args):
-    # TODO: batch filenames
-    process = subprocess.Popen(
-        ['bash', '-c', ' '.join(
-            ['source {0}/bin/activate &&'.format(PY_ENV)] +
-            [hook['entry']] + hook.get('args', []) + list(file_args)
-        )],
-        stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-    )
-    ret = process.communicate()
-
-    return (process.returncode,) + ret
-
     return local['bash'][
         '-c', ' '.join(
             ['source {0}/bin/activate &&'.format(PY_ENV)] +
