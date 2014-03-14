@@ -9,6 +9,8 @@ import pre_commit.constants as C
 
 def add_and_commit():
     local['git']['add', '.']()
+    local['git']['config', 'user.email', 'ken@struys.ca']
+    local['git']['config', 'user.name', 'Ken Struys']
     local['git']['commit', '-m', 'random commit']()
 
 
@@ -115,31 +117,34 @@ def test_create_repo_in_env(empty_git_dir, dummy_git_repo):
     assert os.path.exists(os.path.join(dummy_git_repo, C.PRE_COMMIT_DIR, sha))
 
 
+@pytest.mark.integration
 def test_install_python_repo_in_env(empty_git_dir, python_pre_commit_git_repo):
     sha = get_sha(python_pre_commit_git_repo)
     git.install_pre_commit(python_pre_commit_git_repo,  sha)
     assert os.path.exists(os.path.join(python_pre_commit_git_repo, C.PRE_COMMIT_DIR, sha, 'py_env'))
 
+@pytest.mark.integration
+def test_install_config(empty_git_dir, python_pre_commit_git_repo):
 
-# def install_config():
-#     config = [
-#         {
-#             'repo': 'repo1',
-#             'sha': 'dsfjksljfslkf',
-#             'hooks': [
-#                 {
-#                     'id': 'script',
-#                     'args': [
-#                         {
-#                             'type': 'files',
-#                             'opt': '*.py'
-#                         },
-#                     ]
-#                 }
-#             ],
-#         },
-#     ]
-#     for repo in config:
-#         clone(repo)
-#         for
 
+    config = [
+        {
+            'repo': python_pre_commit_git_repo,
+            'sha': get_sha(python_pre_commit_git_repo),
+            'hooks': [
+                {
+                    'id': 'foo',
+                    'args': [
+                        {
+                            'type': 'files',
+                            'opt': '*.py'
+                        },
+                    ]
+                }
+            ],
+        },
+    ]
+    for repo in config:
+        git.install_pre_commit(repo['repo'], repo['sha'])
+
+    print python_pre_commit_git_repo
