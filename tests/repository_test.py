@@ -30,7 +30,6 @@ def test_create_repo_in_env(dummy_repo_config, dummy_git_repo):
 @pytest.mark.integration
 def test_install_python_repo_in_env(python_pre_commit_git_repo, config_for_python_pre_commit_git_repo):
     repo = Repository(config_for_python_pre_commit_git_repo)
-    # TODO: do we need create here?
     repo.install()
 
     assert os.path.exists(
@@ -41,6 +40,16 @@ def test_install_python_repo_in_env(python_pre_commit_git_repo, config_for_pytho
             'py_env',
         ),
     )
+
+
+@pytest.mark.integration
+def test_run_a_hook_omg(config_for_python_pre_commit_git_repo):
+    repo = Repository(config_for_python_pre_commit_git_repo)
+    repo.install()
+    ret = repo.run_hook('foo', [])
+
+    assert ret[0] == 0
+    assert ret[1] == 'Hello World\n'
 
 
 @pytest.fixture

@@ -66,6 +66,7 @@ setup(
         local.path('__init__.py').write('')
         local.path('main.py').write("""
 def func():
+    print 'Hello World'
     return 0
     """)
 
