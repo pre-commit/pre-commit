@@ -42,9 +42,9 @@ def test_remove_pre_commit(empty_git_dir):
 def get_files_matching_func():
     def get_filenames():
         return (
-            'foo.py',
-            'bar/baz.py',
-            'tests/baz_test.py',
+            'pre_commit/run.py',
+            'pre_commit/git.py',
+            'im_a_file_that_doesnt_exist.py',
             'manifest.yaml',
         )
 
@@ -54,9 +54,8 @@ def get_files_matching_func():
 def test_get_files_matching_base(get_files_matching_func):
     ret = get_files_matching_func('')
     assert ret == set([
-        'foo.py',
-        'bar/baz.py',
-        'tests/baz_test.py',
+        'pre_commit/run.py',
+        'pre_commit/git.py',
         'manifest.yaml',
     ])
 
@@ -64,12 +63,16 @@ def test_get_files_matching_base(get_files_matching_func):
 def test_get_files_matching_total_match(get_files_matching_func):
     ret = get_files_matching_func('^.*\.py$')
     assert ret == set([
-        'foo.py',
-        'bar/baz.py',
-        'tests/baz_test.py',
+        'pre_commit/run.py',
+        'pre_commit/git.py',
     ])
 
 
 def test_does_search_instead_of_match(get_files_matching_func):
     ret = get_files_matching_func('\.yaml$')
     assert ret == set(['manifest.yaml'])
+
+
+def test_does_not_include_deleted_fileS(get_files_matching_func):
+    ret = get_files_matching_func('exist.py')
+    assert ret == set()

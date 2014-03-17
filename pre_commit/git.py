@@ -1,5 +1,6 @@
 import functools
 import os
+import os.path
 import pkg_resources
 import re
 from plumbum import local
@@ -57,13 +58,12 @@ def get_files_matching(all_file_list_strategy):
     @memoize_by_cwd
     def wrapper(expr):
         regex = re.compile(expr)
-        return set(
+        return set(filter(os.path.exists, (
             filename
             for filename in all_file_list_strategy()
             if regex.search(filename)
-        )
+        )))
     return wrapper
-
 
 
 get_staged_files_matching = get_files_matching(get_staged_files)
