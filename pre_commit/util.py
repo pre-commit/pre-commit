@@ -22,15 +22,16 @@ class cached_property(object):
 
 def memoize_by_cwd(func):
     """Memoize a function call based on os.getcwd()."""
-    cache = {}
     @functools.wraps(func)
     def wrapper(*args):
         cwd = os.getcwd()
         key = (cwd,) + args
         try:
-            return cache[key]
+            return wrapper._cache[key]
         except KeyError:
-            ret = cache[key] = func(*args)
+            ret = wrapper._cache[key] = func(*args)
             return ret
+
+    wrapper._cache = {}
 
     return wrapper

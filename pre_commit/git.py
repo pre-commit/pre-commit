@@ -1,13 +1,11 @@
+import functools
 import os
-import re
 import pkg_resources
+import re
 from plumbum import local
 
 from pre_commit.util import memoize_by_cwd
 
-
-def _get_root_original():
-    return local['git']['rev-parse', '--show-toplevel']().strip()
 
 def _get_root_new():
     path = os.getcwd()
@@ -22,7 +20,6 @@ def _get_root_new():
 @memoize_by_cwd
 def get_root():
     return _get_root_new()
-    return local['git']['rev-parse', '--show-toplevel']().strip()
 
 
 @memoize_by_cwd
@@ -51,22 +48,23 @@ def get_staged_files():
 
 
 @memoize_by_cwd
-def get_staged_files_matching(expr):
-    regex = re.compile(expr)
-    return set(
-        filename for filename in get_staged_files() if regex.search(filename)
-    )
-
-
-@memoize_by_cwd
 def get_all_files():
     return local['git']['ls-files']().splitlines()
 
 
-# Smell: this is duplicated above
-@memoize_by_cwd
-def get_all_files_matching(expr):
-    regex = re.compile(expr)
-    return set(
-        filename for filename in get_all_files() if regex.search(filename)
-    )
+def get_files_matching(all_file_list_strategy):
+    @functools.wraps(all_file_list_strategy)
+    @memoize_by_cwd
+    def wrapper(expr):
+        regex = re.compile(expr)
+        return set(
+            filename
+            for filename in all_file_list_strategy()
+            if regex.search(filename)
+        )
+    return wrapper
+
+
+
+get_staged_files_matching = get_files_matching(get_staged_files)
+get_all_files_matching = get_files_matching(get_all_files)
