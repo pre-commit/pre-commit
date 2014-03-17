@@ -1,7 +1,8 @@
 
 import os
-
+import pytest
 from plumbum import local
+
 from pre_commit import git
 
 
@@ -37,3 +38,38 @@ def test_remove_pre_commit(empty_git_dir):
     assert not os.path.exists(git.get_pre_commit_path())
 
 
+@pytest.fixture
+def get_files_matching_func():
+    def get_filenames():
+        return (
+            'foo.py',
+            'bar/baz.py',
+            'tests/baz_test.py',
+            'manifest.yaml',
+        )
+
+    return git.get_files_matching(get_filenames)
+
+
+def test_get_files_matching_base(get_files_matching_func):
+    ret = get_files_matching_func('')
+    assert ret == set([
+        'foo.py',
+        'bar/baz.py',
+        'tests/baz_test.py',
+        'manifest.yaml',
+    ])
+
+
+def test_get_files_matching_total_match(get_files_matching_func):
+    ret = get_files_matching_func('^.*\.py$')
+    assert ret == set([
+        'foo.py',
+        'bar/baz.py',
+        'tests/baz_test.py',
+    ])
+
+
+def test_does_search_instead_of_match(get_files_matching_func):
+    ret = get_files_matching_func('\.yaml$')
+    assert ret == set(['manifest.yaml'])
