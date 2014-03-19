@@ -3,6 +3,7 @@ import os
 import os.path
 import pkg_resources
 import re
+import stat
 from plumbum import local
 
 from pre_commit.util import memoize_by_cwd
@@ -32,6 +33,8 @@ def create_pre_commit():
     path = get_pre_commit_path()
     pre_commit_file = pkg_resources.resource_filename('pre_commit', 'resources/pre-commit.sh')
     local.path(path).write(local.path(pre_commit_file).read())
+    original_mode = os.stat(path).st_mode
+    os.chmod(path, original_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
 
 
 def remove_pre_commit():

@@ -1,6 +1,7 @@
 
 import os
 import pytest
+import stat
 from plumbum import local
 
 from pre_commit import git
@@ -25,6 +26,10 @@ def test_get_pre_commit_path(empty_git_dir):
 def test_create_pre_commit(empty_git_dir):
     git.create_pre_commit()
     assert len(open(git.get_pre_commit_path(), 'r').read()) > 0
+    stat_result = os.stat(git.get_pre_commit_path())
+    assert stat_result.st_mode & stat.S_IXUSR
+    assert stat_result.st_mode & stat.S_IXGRP
+    assert stat_result.st_mode & stat.S_IXOTH
 
 
 def test_remove_pre_commit(empty_git_dir):
