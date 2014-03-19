@@ -2,6 +2,7 @@
 import argparse
 import os.path
 import subprocess
+import sys
 
 from pre_commit import git
 from pre_commit.clientlib.validate_config import validate_config
@@ -12,16 +13,6 @@ RED = '\033[41m'
 GREEN = '\033[42m'
 NORMAL = '\033[0m'
 COLS = int(subprocess.Popen(['tput', 'cols'], stdout=subprocess.PIPE).communicate()[0])
-
-
-def install():
-    """Install the pre-commit hook."""
-    git.create_pre_commit()
-
-
-def uninstall():
-    """Uninstall the pre-commit hook."""
-    git.remove_pre_commit()
 
 
 def _run_single_hook(repository, hook_id, run_all_the_things=False):
@@ -95,7 +86,7 @@ def run_single_hook(hook_id, configs=None, run_all_the_things=False):
                 run_all_the_things=run_all_the_things,
             )
     else:
-        print "No hook with id {0}".format(hook_id)
+        print 'No hook with id {0}'.format(hook_id)
         return 1
 
 
@@ -114,8 +105,7 @@ def run(argv):
         help='Uninstall the pre-commit script.',
     )
     group.add_argument(
-        '-r', '--run',
-        help='Run a hook'
+        '-r', '--run', metavar='HOOK', help='Run a single hook.',
     )
 
     parser.add_argument(
@@ -126,10 +116,18 @@ def run(argv):
     args = parser.parse_args(argv)
 
     if args.install:
-        return install()
+        git.create_pre_commit()
+        print 'pre-commit installed at {0}'.format(git.get_pre_commit_path())
+        return 0
     elif args.uninstall:
-        return uninstall()
+        git.remove_pre_commit()
+        print 'pre-commit uninstalled'
+        return 0
     elif args.run:
         return run_single_hook(args.run, run_all_the_things=args.run_fucking_everything)
     else:
         return run_hooks(run_all_the_things=args.run_fucking_everything)
+
+
+if __name__ == '__main__':
+    run(sys.argv[1:])
