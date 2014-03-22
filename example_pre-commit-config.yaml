@@ -5,10 +5,10 @@
     hooks:
         -
             id: pyflakes
-            files: '*.py'
+            files: '\.py$'
         -
             id: jslint
-            files: '*.js'
+            files: '\.js$'
         -
             id: trim_trailing_whitespace
-            files: '*.py'
+            files: '\.py$'

@@ -2,6 +2,7 @@
 from __future__ import print_function
 
 import argparse
+import re
 
 import pre_commit.constants as C
 from pre_commit.clientlib.validate_base import get_validator
@@ -41,10 +42,24 @@ CONFIG_JSON_SCHEMA = {
 }
 
 
+def validate_config_extra(config):
+    for repo in config:
+        for hook in repo['hooks']:
+            try:
+                re.compile(hook['files'])
+            except re.error:
+                raise InvalidConfigError(
+                    'Invalid file regex at {0}, {1}: {2}'.format(
+                        repo['repo'], hook['id'], hook['files'],
+                    )
+                )
+
+
 validate_config = get_validator(
     C.CONFIG_FILE,
     CONFIG_JSON_SCHEMA,
     InvalidConfigError,
+    additional_validation_strategy=validate_config_extra,
 )
 
 
