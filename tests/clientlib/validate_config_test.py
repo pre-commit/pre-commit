@@ -4,7 +4,9 @@ import jsonschema.exceptions
 import pytest
 
 from pre_commit.clientlib.validate_config import CONFIG_JSON_SCHEMA
+from pre_commit.clientlib.validate_config import InvalidConfigError
 from pre_commit.clientlib.validate_config import run
+from pre_commit.clientlib.validate_config import validate_config_extra
 
 
 def test_returns_0_for_valid_config():
@@ -17,6 +19,7 @@ def test_returns_0_for_out_manifest():
 
 def test_returns_1_for_failing():
     assert run(['tests/data/valid_yaml_but_invalid_config.yaml']) == 1
+
 
 def is_valid_according_to_schema(obj, schema):
     try:
@@ -59,3 +62,17 @@ def is_valid_according_to_schema(obj, schema):
 def test_is_valid_according_to_schema(manifest_obj, expected):
     ret = is_valid_according_to_schema(manifest_obj, CONFIG_JSON_SCHEMA)
     assert ret is expected
+
+
+def test_config_with_failing_regexes_fails():
+    with pytest.raises(InvalidConfigError):
+        # Note the regex '(' is invalid (unbalanced parens)
+        validate_config_extra(
+            [{'repo': 'foo', 'hooks': [{'id': 'hook_id', 'files': '('}]}]
+        )
+
+
+def test_config_with_ok_regexes_passes():
+    validate_config_extra(
+        [{'repo': 'foo', 'hooks': [{'id': 'hook_id', 'files': '\.py$'}]}]
+    )
