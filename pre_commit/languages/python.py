@@ -6,12 +6,10 @@ from pre_commit.languages import helpers
 PY_ENV = 'py_env'
 
 
-class PythonEnv(object):
-    def __init__(self):
-        self.env_prefix = '. {0}/bin/activate &&'.format(PY_ENV)
-
-    def run(self, cmd, **kwargs):
-        return local['bash']['-c', ' '.join([self.env_prefix, cmd])].run(**kwargs)
+class PythonEnv(helpers.Environment):
+    @property
+    def env_prefix(self):
+        return '. {0}/bin/activate &&'.format(PY_ENV)
 
 
 @contextlib.contextmanager
