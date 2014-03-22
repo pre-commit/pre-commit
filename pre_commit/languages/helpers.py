@@ -1,16 +1,11 @@
 
-from plumbum import local
+import subprocess
 
 
 def run_hook(env, hook, file_args):
     return env.run(
-        ' '.join([hook['entry']] + hook.get('args', []) + list(file_args)),
-        retcode=None,
-    )
-    return env.run(
-        ' '.join(['xargs |', hook['entry']] + hook.get('args', [])),
-        retcode=None,
-        stdin='\n'.join(file_args) + '\n',
+        ' '.join(['xargs', hook['entry']] + hook.get('args', [])),
+        stdin='\n'.join(list(file_args) + ['']),
     )
 
 
@@ -29,9 +24,14 @@ class Environment(object):
         """
         raise NotImplementedError
 
-    def run(self, cmd, **kwargs):
+    def run(self, cmd, stdin=None, **kwargs):
         """Returns (returncode, stdout, stderr)."""
-        return local['bash'][
-            '-c',
-            ' '.join([self.env_prefix, cmd])
-        ].run(**kwargs)
+        proc = subprocess.Popen(
+            ['bash', '-c', ' '.join([self.env_prefix, cmd])],
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        stdout, stderr = proc.communicate(stdin)
+
+        return proc.returncode, stdout, stderr
