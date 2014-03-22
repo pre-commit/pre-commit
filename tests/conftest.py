@@ -67,6 +67,8 @@ setup(
         local.path('__init__.py').write('')
         local.path('main.py').write("""
 def func():
+    import sys
+    print repr(sys.argv[1:])
     print 'Hello World'
     return 0
 """)
