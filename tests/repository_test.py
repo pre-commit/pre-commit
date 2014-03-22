@@ -46,13 +46,25 @@ def test_install_python_repo_in_env(python_pre_commit_git_repo, config_for_pytho
 def test_run_a_python_hook(config_for_python_pre_commit_git_repo):
     repo = Repository(config_for_python_pre_commit_git_repo)
     repo.install()
-    ret = repo.run_hook('foo', [])
+    ret = repo.run_hook('foo', ['/dev/null'])
 
     assert ret[0] == 0
-    assert ret[1] == 'Hello World\n'
+    assert ret[1] == "['/dev/null']\nHello World\n"
 
 
-@pytest.mark.skipif(True, reason="TODO: make this test not super slow")
+@pytest.mark.integration
+def test_run_a_hook_lots_of_files(config_for_python_pre_commit_git_repo):
+    repo = Repository(config_for_python_pre_commit_git_repo)
+    repo.install()
+    ret = repo.run_hook('foo', ['/dev/null'] * 15000)
+
+    assert ret[0] == 0
+
+
+@pytest.mark.skipif(
+    os.environ.get('slowtests', None) == 'false',
+    reason="TODO: make this test not super slow",
+)
 def test_run_a_node_hook(config_for_node_pre_commit_git_repo):
     repo = Repository(config_for_node_pre_commit_git_repo)
     repo.install()
