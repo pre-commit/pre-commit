@@ -1,11 +1,7 @@
 
--
-    repo: git@github.com:pre-commit/pre-commit-hooks
+-   repo: git@github.com:pre-commit/pre-commit-hooks
     hooks:
-        -
-            id: pyflakes
-        -
-            id: jslint
-        -
-            id: trim_trailing_whitespace
+        -   id: pyflakes
+        -   id: jslint
+        -   id: trim_trailing_whitespace
             files: '*.py'
