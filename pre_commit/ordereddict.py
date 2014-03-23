@@ -5,6 +5,6 @@ from __future__ import absolute_import
 try:
     from collections import OrderedDict
 except ImportError:
-    from orderddict import OrderedDict
+    from ordereddict import OrderedDict
 
 __all__ = (OrderedDict.__name__,)

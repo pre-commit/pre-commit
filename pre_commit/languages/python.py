@@ -30,6 +30,5 @@ def install_environment():
 
 
 def run_hook(hook, file_args):
-    # TODO: batch filenames
     with in_env() as env:
         return helpers.run_hook(env, hook, file_args)
