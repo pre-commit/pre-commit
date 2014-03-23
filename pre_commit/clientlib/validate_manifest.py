@@ -46,7 +46,7 @@ def additional_manifest_check(obj):
             )
 
 
-validate_manifest = get_validator(
+load_manifest = get_validator(
     C.MANIFEST_FILE,
     MANIFEST_JSON_SCHEMA,
     InvalidManifestError,
@@ -58,25 +58,28 @@ validate_manifest = get_validator(
 def run(argv):
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        'filename',
-        nargs='?', default=None,
-        help='Manifest filename.  Defaults to {0} at root of git repo'.format(
+        'filenames',
+        nargs='*', default=None,
+        help='Manifest filenames.  Defaults to {0} at root of git repo'.format(
             C.MANIFEST_FILE,
         )
     )
     args = parser.parse_args(argv)
 
-    try:
-        validate_manifest(args.filename)
-    except InvalidManifestError as e:
-        print(e.args[0])
-        # If we have more than one exception argument print the stringified
-        # version
-        if len(e.args) > 1:
-            print(str(e.args[1]))
-        return 1
+    filenames = args.filenames or [C.MANIFEST_FILE]
+    retval = 0
 
-    return 0
+    for filename in filenames:
+        try:
+            load_manifest(filename)
+        except InvalidManifestError as e:
+            print(e.args[0])
+            # If we have more than one exception argument print the stringified
+            # version
+            if len(e.args) > 1:
+                print(str(e.args[1]))
+            retval = 1
+    return retval
 
 
 if __name__ == '__main__':

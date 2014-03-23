@@ -19,4 +19,4 @@
         -   id: validate_manifest
             files: '^manifest.yaml$'
         -   id: validate_config
-            files: '^\.pre-commit-config.yaml$'
+            files: \.pre-commit-config.yaml

@@ -28,13 +28,13 @@ def test_create_repo_in_env(dummy_repo_config, dummy_git_repo):
     )
 
 @pytest.mark.integration
-def test_install_python_repo_in_env(python_pre_commit_git_repo, config_for_python_pre_commit_git_repo):
-    repo = Repository(config_for_python_pre_commit_git_repo)
+def test_install_python_repo_in_env(python_hooks_repo, config_for_python_hooks_repo):
+    repo = Repository(config_for_python_hooks_repo)
     repo.install()
 
     assert os.path.exists(
         os.path.join(
-            python_pre_commit_git_repo,
+            python_hooks_repo,
             C.HOOKS_WORKSPACE,
             repo.sha,
             'py_env',
@@ -43,8 +43,8 @@ def test_install_python_repo_in_env(python_pre_commit_git_repo, config_for_pytho
 
 
 @pytest.mark.integration
-def test_run_a_python_hook(config_for_python_pre_commit_git_repo):
-    repo = Repository(config_for_python_pre_commit_git_repo)
+def test_run_a_python_hook(config_for_python_hooks_repo):
+    repo = Repository(config_for_python_hooks_repo)
     repo.install()
     ret = repo.run_hook('foo', ['/dev/null'])
 
@@ -53,8 +53,8 @@ def test_run_a_python_hook(config_for_python_pre_commit_git_repo):
 
 
 @pytest.mark.integration
-def test_run_a_hook_lots_of_files(config_for_python_pre_commit_git_repo):
-    repo = Repository(config_for_python_pre_commit_git_repo)
+def test_run_a_hook_lots_of_files(config_for_python_hooks_repo):
+    repo = Repository(config_for_python_hooks_repo)
     repo.install()
     ret = repo.run_hook('foo', ['/dev/null'] * 15000)
 
@@ -66,8 +66,8 @@ def test_run_a_hook_lots_of_files(config_for_python_pre_commit_git_repo):
     reason="TODO: make this test not super slow",
 )
 @pytest.mark.integration
-def test_run_a_node_hook(config_for_node_pre_commit_git_repo):
-    repo = Repository(config_for_node_pre_commit_git_repo)
+def test_run_a_node_hook(config_for_node_hooks_repo):
+    repo = Repository(config_for_node_hooks_repo)
     repo.install()
     ret = repo.run_hook('foo', [])
 
@@ -101,6 +101,6 @@ def test_sha(mock_repo_config):
 
 
 @pytest.mark.integration
-def test_languages(config_for_python_pre_commit_git_repo):
-    repo = Repository(config_for_python_pre_commit_git_repo)
+def test_languages(config_for_python_hooks_repo):
+    repo = Repository(config_for_python_hooks_repo)
     assert repo.languages == set(['python'])

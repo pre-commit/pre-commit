@@ -57,7 +57,7 @@ def validate_config_extra(config):
                 )
 
 
-validate_config = get_validator(
+load_config = get_validator(
     C.CONFIG_FILE,
     CONFIG_JSON_SCHEMA,
     InvalidConfigError,
@@ -69,25 +69,28 @@ validate_config = get_validator(
 def run(argv):
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        'filename',
-        nargs='?', default=None,
-        help='Config filename.  Defaults to {0} at root of git repo'.format(
+        'filenames',
+        nargs='*', default=None,
+        help='Config filenames.  Defaults to {0} at root of git repo'.format(
             C.CONFIG_FILE,
         )
     )
     args = parser.parse_args(argv)
 
-    try:
-        validate_config(args.filename)
-    except InvalidConfigError as e:
-        print(e.args[0])
-        # If we have more than one exception argument print the stringified
-        # version
-        if len(e.args) > 1:
-            print(str(e.args[1]))
-        return 1
+    filenames = args.filenames or [C.CONFIG_FILE]
+    retval = 0
 
-    return 0
+    for filename in filenames:
+        try:
+            load_config(filename)
+        except InvalidConfigError as e:
+            print(e.args[0])
+            # If we have more than one exception argument print the stringified
+            # version
+            if len(e.args) > 1:
+                print(str(e.args[1]))
+            retval = 1
+    return retval
 
 
 if __name__ == '__main__':

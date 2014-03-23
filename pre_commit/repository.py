@@ -3,7 +3,7 @@ import contextlib
 from plumbum import local
 
 import pre_commit.constants as C
-from pre_commit.clientlib.validate_manifest import validate_manifest
+from pre_commit.clientlib.validate_manifest import load_manifest
 from pre_commit.hooks_workspace import in_hooks_workspace
 from pre_commit.languages.all import languages
 from pre_commit.ordereddict import OrderedDict
@@ -40,7 +40,7 @@ class Repository(object):
         with self.in_checkout():
             return dict(
                 (hook['id'], hook)
-                for hook in validate_manifest(C.MANIFEST_FILE)
+                for hook in load_manifest(C.MANIFEST_FILE)
             )
 
     @contextlib.contextmanager
