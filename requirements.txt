@@ -1,8 +1,4 @@
-argparse
-jsonschema
-plumbum
-pyyaml
-simplejson
+-e .
 
 # Testing requirements
 coverage
