@@ -56,7 +56,7 @@ class Repository(object):
                 # Project already exists, no reason to re-create it
                 return
 
-            local['git']['clone', self.repo_url, self.sha]()
+            local['git']['clone', '--no-checkout', self.repo_url, self.sha]()
             with self.in_checkout():
                 local['git']['checkout', self.sha]()
 
