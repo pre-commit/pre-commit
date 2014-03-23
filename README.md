@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/pre-commit/pre-commit-hooks.png?branch=master)](https://travis-ci.org/pre-commit/pre-commit-hooks)
+[![Build Status](https://travis-ci.org/pre-commit/pre-commit.svg?branch=master)](https://travis-ci.org/pre-commit/pre-commit)
 
 pre-commit
 ==========
