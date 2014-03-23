@@ -19,9 +19,9 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'pre-commit = pre_commit.entry_points:pre_commit_func',
-            'validate-config = pre_commit.entry_points:validate_config_func',
-            'validate-manifest = pre_commit.entry_points:validate_manifest_func',
+            'pre-commit = pre_commit.run:run',
+            'validate-config = pre_commit.clientlib.validate_config:run',
+            'validate-manifest = pre_commit.clientlib.validate_manifest:run',
         ],
     },
     scripts=[

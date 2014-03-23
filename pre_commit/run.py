@@ -2,11 +2,11 @@
 import argparse
 import os.path
 import subprocess
-import sys
 
 from pre_commit import git
 from pre_commit.clientlib.validate_config import validate_config
 from pre_commit.repository import Repository
+from pre_commit.util import entry
 
 
 RED = '\033[41m'
@@ -90,6 +90,7 @@ def run_single_hook(hook_id, configs=None, run_all_the_things=False):
         return 1
 
 
+@entry
 def run(argv):
     parser = argparse.ArgumentParser()
 
@@ -130,4 +131,4 @@ def run(argv):
 
 
 if __name__ == '__main__':
-    run(sys.argv[1:])
+    run()

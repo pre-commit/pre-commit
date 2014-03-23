@@ -5,6 +5,7 @@ import argparse
 
 import pre_commit.constants as C
 from pre_commit.clientlib.validate_base import get_validator
+from pre_commit.util import entry
 
 
 class InvalidManifestError(ValueError): pass
@@ -52,6 +53,7 @@ validate_manifest = get_validator(
 )
 
 
+@entry
 def run(argv):
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -74,3 +76,7 @@ def run(argv):
         return 1
 
     return 0
+
+
+if __name__ == '__main__':
+    run()
