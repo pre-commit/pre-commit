@@ -104,6 +104,3 @@ def test_sha(mock_repo_config):
 def test_languages(config_for_python_pre_commit_git_repo):
     repo = Repository(config_for_python_pre_commit_git_repo)
     assert repo.languages == set(['python'])
-
-
-
