@@ -6,6 +6,7 @@ import pre_commit.constants as C
 from pre_commit.clientlib.validate_manifest import validate_manifest
 from pre_commit.hooks_workspace import in_hooks_workspace
 from pre_commit.languages.all import languages
+from pre_commit.ordereddict import OrderedDict
 from pre_commit.util import cached_property
 
 
@@ -29,7 +30,7 @@ class Repository(object):
 
     @cached_property
     def hooks(self):
-        return dict(
+        return OrderedDict(
             (hook['id'], dict(hook, **self.manifest[hook['id']]))
             for hook in self.repo_config['hooks']
         )
