@@ -2,6 +2,7 @@
 import argparse
 import os.path
 import subprocess
+import sys
 
 from pre_commit import git
 from pre_commit.clientlib.validate_config import validate_config
@@ -131,4 +132,4 @@ def run(argv):
 
 
 if __name__ == '__main__':
-    run()
+    sys.exit(run())

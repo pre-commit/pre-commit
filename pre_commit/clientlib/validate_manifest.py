@@ -2,6 +2,7 @@
 from __future__ import print_function
 
 import argparse
+import sys
 
 import pre_commit.constants as C
 from pre_commit.clientlib.validate_base import get_validator
@@ -79,4 +80,4 @@ def run(argv):
 
 
 if __name__ == '__main__':
-    run()
+    sys.exit(run())
