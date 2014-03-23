@@ -5,8 +5,7 @@ import subprocess
 import sys
 
 from pre_commit import git
-from pre_commit.clientlib.validate_config import validate_config
-from pre_commit.repository import Repository
+from pre_commit.runner import Runner
 from pre_commit.util import entry
 
 
@@ -14,6 +13,8 @@ RED = '\033[41m'
 GREEN = '\033[42m'
 NORMAL = '\033[0m'
 COLS = int(subprocess.Popen(['tput', 'cols'], stdout=subprocess.PIPE).communicate()[0])
+
+PASS_FAIL_LENGTH = 6
 
 
 def _run_single_hook(repository, hook_id, run_all_the_things=False):
@@ -25,6 +26,13 @@ def _run_single_hook(repository, hook_id, run_all_the_things=False):
         get_filenames = git.get_staged_files_matching
 
     hook = repository.hooks[hook_id]
+
+    # Print the hook and the dots first in case the hook takes hella long to
+    # run.
+    print '{0}{1}'.format(
+        hook['name'],
+        '.' * (COLS - len(hook['name']) - PASS_FAIL_LENGTH - 6),
+    ),
 
     retcode, stdout, stderr = repository.run_hook(
         hook_id,
@@ -43,13 +51,7 @@ def _run_single_hook(repository, hook_id, run_all_the_things=False):
         pass_fail = 'Passed'
 
 
-    print '{0}{1}{2}{3}{4}'.format(
-        hook['name'],
-        '.' * (COLS - len(hook['name']) - len(pass_fail) - 6),
-        color,
-        pass_fail,
-        NORMAL,
-    )
+    print '{0}{1}{2}'.format(color, pass_fail, NORMAL)
 
     if output:
         print
@@ -63,9 +65,8 @@ def run_hooks(run_all_the_things=False):
     """Actually run the hooks."""
     retval = 0
 
-    configs = validate_config([])
-    for config in configs:
-        repo = Repository(config)
+    runner = Runner.create()
+    for repo in runner.repositories:
         for hook_id in repo.hooks:
             retval |= _run_single_hook(
                 repo,
@@ -76,10 +77,9 @@ def run_hooks(run_all_the_things=False):
     return retval
 
 
-def run_single_hook(hook_id, configs=None, run_all_the_things=False):
-    configs = configs or validate_config([])
-    for config in configs:
-        repo = Repository(config)
+def run_single_hook(hook_id, run_all_the_things=False):
+    runner = Runner.create()
+    for repo in runner.repositories:
         if hook_id in repo.hooks:
             return _run_single_hook(
                 repo,

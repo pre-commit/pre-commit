@@ -1,14 +1,15 @@
 from __future__ import absolute_import
 
 import jsonschema
-import simplejson
 import pytest
 import time
 from plumbum import local
 
-import pre_commit.constants as C
 from pre_commit import git
 from pre_commit.clientlib.validate_config import CONFIG_JSON_SCHEMA
+from pre_commit.clientlib.validate_config import validate_config_extra
+from testing.util import copy_tree_to_path
+from testing.util import get_resource_path
 
 
 @pytest.yield_fixture
@@ -25,123 +26,69 @@ def add_and_commit():
 
 @pytest.yield_fixture
 def dummy_git_repo(empty_git_dir):
+    # This is needed otherwise there is no `HEAD`
     local['touch']['dummy']()
     add_and_commit()
-
     yield empty_git_dir
 
 
 @pytest.yield_fixture
-def python_pre_commit_git_repo(dummy_git_repo):
-    local.path(C.MANIFEST_FILE).write("""
--
-    id: foo
-    name: Foo
-    entry: foo
-    language: python
-    """)
-
+def python_hooks_repo(dummy_git_repo):
+    copy_tree_to_path(
+        get_resource_path('python_hooks_repo'),
+        dummy_git_repo,
+    )
     add_and_commit()
-
-    local.path('setup.py').write("""
-from setuptools import find_packages
-from setuptools import setup
-
-setup(
-    name='Foo',
-    version='0.0.0',
-    packages=find_packages('.'),
-    entry_points={
-        'console_scripts': [
-            'foo = foo.main:func'
-        ],
-    }
-)
-""")
-
-    foo_module = local.path('foo')
-
-    foo_module.mkdir()
-
-    with local.cwd(foo_module):
-        local.path('__init__.py').write('')
-        local.path('main.py').write("""
-def func():
-    import sys
-    print repr(sys.argv[1:])
-    print 'Hello World'
-    return 0
-""")
-
-    add_and_commit()
-
     yield dummy_git_repo
 
 
 @pytest.yield_fixture
-def node_pre_commit_git_repo(dummy_git_repo):
-    local.path(C.MANIFEST_FILE).write("""
--
-    id: foo
-    name: Foo
-    entry: foo
-    language: node
-    """)
-
+def node_hooks_repo(dummy_git_repo):
+    copy_tree_to_path(
+        get_resource_path('node_hooks_repo'),
+        dummy_git_repo,
+    )
     add_and_commit()
+    yield dummy_git_repo
 
-    local.path('package.json').write(simplejson.dumps({
-        'name': 'foo',
-        'version': '0.0.1',
-        'bin': {
-            'foo': './bin/main.js'
-        },
-    }))
 
-    bin_dir = local.path('bin')
-
-    bin_dir.mkdir()
-
-    with local.cwd(bin_dir):
-        local.path('main.js').write(
-"""#!/usr/bin/env node
-
-console.log('Hello World');
-""")
-
+@pytest.yield_fixture
+def consumer_repo(dummy_git_repo):
+    copy_tree_to_path(
+        get_resource_path('consumer_repo'),
+        dummy_git_repo,
+    )
     add_and_commit()
-
     yield dummy_git_repo
 
 
 @pytest.fixture
-def config_for_node_pre_commit_git_repo(node_pre_commit_git_repo):
+def config_for_node_hooks_repo(node_hooks_repo):
     config = {
-        'repo': node_pre_commit_git_repo,
-        'sha': git.get_head_sha(node_pre_commit_git_repo),
+        'repo': node_hooks_repo,
+        'sha': git.get_head_sha(node_hooks_repo),
         'hooks': [{
             'id': 'foo',
-            'files': '*.js',
+            'files': '\.js$',
         }],
     }
-
     jsonschema.validate([config], CONFIG_JSON_SCHEMA)
+    validate_config_extra([config])
 
     return config
 
 
-
 @pytest.fixture
-def config_for_python_pre_commit_git_repo(python_pre_commit_git_repo):
+def config_for_python_hooks_repo(python_hooks_repo):
     config = {
-        'repo': python_pre_commit_git_repo,
-        'sha': git.get_head_sha(python_pre_commit_git_repo),
+        'repo': python_hooks_repo,
+        'sha': git.get_head_sha(python_hooks_repo),
         'hooks': [{
             'id': 'foo',
-            'files': '*.py',
+            'files': '\.py$',
         }],
     }
-
     jsonschema.validate([config], CONFIG_JSON_SCHEMA)
+    validate_config_extra([config])
 
     return config
