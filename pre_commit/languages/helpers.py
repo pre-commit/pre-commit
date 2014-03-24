@@ -24,7 +24,7 @@ class Environment(object):
         """
         raise NotImplementedError
 
-    def run(self, cmd, stdin=None, **kwargs):
+    def run(self, cmd, stdin=None):
         """Returns (returncode, stdout, stderr)."""
         proc = subprocess.Popen(
             ['bash', '-c', ' '.join([self.env_prefix, cmd])],

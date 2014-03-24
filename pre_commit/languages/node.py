@@ -31,13 +31,12 @@ def install_environment():
     with python.in_env() as python_env:
         python_env.run('pip install nodeenv')
 
-        try:
-            # Try and use the system level node executable first
-            python_env.run('nodeenv -n system {0}'.format(NODE_ENV))
-        except Exception:
-            # TODO: log exception here
-            # cleanup
-            local.path(NODE_ENV).remove()
+        # Try and use the system level node executable first
+        retcode, _, _ = python_env.run('nodeenv -n system {0}'.format(NODE_ENV))
+        # TODO: log failure here
+        # cleanup
+        if retcode:
+            local.path(NODE_ENV).delete()
             python_env.run('nodeenv --jobs 4 {0}'.format(NODE_ENV))
 
         with in_env() as node_env:
