@@ -24,7 +24,7 @@ def get_validator(
             exception_type on failure.
     """
 
-    def validate(filename=None):
+    def validate(filename=None, load_strategy=yaml.load):
         filename = filename or os.path.join(git.get_root(), default_filename)
 
         if not os.path.exists(filename):
@@ -33,7 +33,7 @@ def get_validator(
         file_contents = open(filename, 'r').read()
 
         try:
-            obj = yaml.load(file_contents)
+            obj = load_strategy(file_contents)
         except Exception as e:
             raise exception_type(
                 'File {0} is not a valid yaml file'.format(filename), e,
