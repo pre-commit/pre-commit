@@ -127,13 +127,9 @@ def run(argv):
     runner = Runner.create()
 
     if args.command == 'install':
-        retval = commands.install(runner)
-        print 'pre-commit installed at {0}'.format(runner.pre_commit_path)
-        return retval
+        return commands.install(runner)
     elif args.command == 'uninstall':
-        retval = commands.uninstall(runner)
-        print 'pre-commit uninstalled'
-        return retval
+        return commands.uninstall(runner)
     elif args.command == 'run':
         if args.hook:
             return run_single_hook(runner, args.hook, all_files=args.all_files)

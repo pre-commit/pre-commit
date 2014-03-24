@@ -1,4 +1,6 @@
 
+from __future__ import print_function
+
 import os
 import pkg_resources
 import stat
@@ -15,6 +17,9 @@ def install(runner):
         runner.pre_commit_path,
         original_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH,
     )
+
+    print('pre-commit installed at {0}'.format(runner.pre_commit_path))
+
     return 0
 
 
@@ -22,4 +27,5 @@ def uninstall(runner):
     """Uninstall the pre-commit hooks."""
     if os.path.exists(runner.pre_commit_path):
         os.remove(runner.pre_commit_path)
+        print('pre-commit uninstalled')
     return 0
