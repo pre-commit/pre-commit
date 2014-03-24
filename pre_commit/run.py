@@ -17,10 +17,10 @@ COLS = int(subprocess.Popen(['tput', 'cols'], stdout=subprocess.PIPE).communicat
 PASS_FAIL_LENGTH = 6
 
 
-def _run_single_hook(repository, hook_id, run_all_the_things=False):
+def _run_single_hook(repository, hook_id, all_files=False):
     repository.install()
 
-    if run_all_the_things:
+    if all_files:
         get_filenames = git.get_all_files_matching
     else:
         get_filenames = git.get_staged_files_matching
@@ -61,30 +61,28 @@ def _run_single_hook(repository, hook_id, run_all_the_things=False):
     return retcode
 
 
-def run_hooks(run_all_the_things=False):
+def run_hooks(runner, all_files=False):
     """Actually run the hooks."""
     retval = 0
 
-    runner = Runner.create()
     for repo in runner.repositories:
         for hook_id in repo.hooks:
             retval |= _run_single_hook(
                 repo,
                 hook_id,
-                run_all_the_things=run_all_the_things,
+                all_files=all_files,
             )
 
     return retval
 
 
-def run_single_hook(hook_id, run_all_the_things=False):
-    runner = Runner.create()
+def run_single_hook(runner, hook_id, all_files=False):
     for repo in runner.repositories:
         if hook_id in repo.hooks:
             return _run_single_hook(
                 repo,
                 hook_id,
-                run_all_the_things=run_all_the_things,
+                all_files=all_files,
             )
     else:
         print 'No hook with id {0}'.format(hook_id)
@@ -95,40 +93,60 @@ def run_single_hook(hook_id, run_all_the_things=False):
 def run(argv):
     parser = argparse.ArgumentParser()
 
-    group = parser.add_mutually_exclusive_group(required=False)
-    group.add_argument(
-        '-i', '--install',
-        action='store_true',
-        help='Install the pre-commit script.',
+    subparsers = parser.add_subparsers(dest='command')
+
+    subparsers.add_parser('install', help='Intall the pre-commit script.')
+
+    subparsers.add_parser('uninstall', help='Uninstall the pre-commit script.')
+
+    execute_hook = subparsers.add_parser(
+        'execute-hook', help='Run a single hook.'
     )
-    group.add_argument(
-        '-u', '--uninstall',
-        action='store_true',
-        help='Uninstall the pre-commit script.',
-    )
-    group.add_argument(
-        '-r', '--run', metavar='HOOK', help='Run a single hook.',
+    execute_hook.add_argument('hook', help='The hook-id to run.')
+    execute_hook.add_argument(
+        '--all-files', '-a', action='store_true', default=False,
+        help='Run on all the files in the repo.',
     )
 
-    parser.add_argument(
-        '--run-fucking-everything', action='store_true', default=False,
-        help='Run on all the files in the repo',
+    run = subparsers.add_parser('run', help='Run hooks.')
+    run.add_argument('hook', nargs='?', help='A single hook-id to run'),
+    run.add_argument(
+        '--all-files', '-a', action='store_true', default=False,
+        help='Run on all the files in the repo.',
     )
 
+    help = subparsers.add_parser('help', help='Show help for a specific command.')
+    help.add_argument('help_cmd', nargs='?', help='Command to show help for.')
+
+    # Argparse doesn't really provide a way to use a `default` subparser
+    if len(argv) == 0:
+        argv = ['run']
     args = parser.parse_args(argv)
 
-    if args.install:
+    runner = Runner.create()
+
+    if args.command == 'install':
         git.create_pre_commit()
         print 'pre-commit installed at {0}'.format(git.get_pre_commit_path())
         return 0
-    elif args.uninstall:
+    elif args.command == 'uninstall':
         git.remove_pre_commit()
         print 'pre-commit uninstalled'
         return 0
-    elif args.run:
-        return run_single_hook(args.run, run_all_the_things=args.run_fucking_everything)
+    elif args.command == 'run':
+        if args.hook:
+            return run_single_hook(runner, args.hook, all_files=args.all_files)
+        else:
+            return run_hooks(runner, all_files=args.all_files)
+    elif args.command == 'help':
+        if args.help_cmd:
+            parser.parse_args([args.help_cmd, '--help'])
+        else:
+            parser.parse_args(['--help'])
     else:
-        return run_hooks(run_all_the_things=args.run_fucking_everything)
+        raise NotImplementedError(
+            'Command {0} not implemented.'.format(args.command)
+        )
 
 
 if __name__ == '__main__':
