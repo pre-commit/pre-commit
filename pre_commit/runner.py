@@ -40,3 +40,7 @@ class Runner(object):
         """Returns a tuple of the configured repositories."""
         config = load_config(self.config_file_path)
         return tuple(map(Repository, config))
+
+    @cached_property
+    def pre_commit_path(self):
+        return os.path.join(self.git_root, '.git/hooks/pre-commit')

@@ -4,6 +4,7 @@ import os.path
 import subprocess
 import sys
 
+from pre_commit import commands
 from pre_commit import git
 from pre_commit.runner import Runner
 from pre_commit.util import entry
@@ -126,13 +127,13 @@ def run(argv):
     runner = Runner.create()
 
     if args.command == 'install':
-        git.create_pre_commit()
-        print 'pre-commit installed at {0}'.format(git.get_pre_commit_path())
-        return 0
+        retval = commands.install(runner)
+        print 'pre-commit installed at {0}'.format(runner.pre_commit_path)
+        return retval
     elif args.command == 'uninstall':
-        git.remove_pre_commit()
+        retval = commands.uninstall(runner)
         print 'pre-commit uninstalled'
-        return 0
+        return retval
     elif args.command == 'run':
         if args.hook:
             return run_single_hook(runner, args.hook, all_files=args.all_files)
@@ -147,6 +148,10 @@ def run(argv):
         raise NotImplementedError(
             'Command {0} not implemented.'.format(args.command)
         )
+
+    raise AssertionError(
+        'Command {0} failed to exit with a returncode'.format(args.command)
+    )
 
 
 if __name__ == '__main__':

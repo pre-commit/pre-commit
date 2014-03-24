@@ -53,3 +53,9 @@ def test_repositories(consumer_repo):
         'git@github.com:pre-commit/pre-commit-hooks',
         'git@github.com:pre-commit/pre-commit',
     ]
+
+
+def test_pre_commit_path():
+    runner = Runner('foo/bar')
+    expected_path = os.path.join('foo/bar', '.git/hooks/pre-commit')
+    assert runner.pre_commit_path == expected_path
