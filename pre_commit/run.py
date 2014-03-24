@@ -100,14 +100,7 @@ def run(argv):
 
     subparsers.add_parser('uninstall', help='Uninstall the pre-commit script.')
 
-    execute_hook = subparsers.add_parser(
-        'execute-hook', help='Run a single hook.'
-    )
-    execute_hook.add_argument('hook', help='The hook-id to run.')
-    execute_hook.add_argument(
-        '--all-files', '-a', action='store_true', default=False,
-        help='Run on all the files in the repo.',
-    )
+    subparsers.add_parser('autoupdate', help='Auto-update hooks config.')
 
     run = subparsers.add_parser('run', help='Run hooks.')
     run.add_argument('hook', nargs='?', help='A single hook-id to run'),
@@ -130,6 +123,8 @@ def run(argv):
         return commands.install(runner)
     elif args.command == 'uninstall':
         return commands.uninstall(runner)
+    elif args.command == 'autoupdate':
+        return commands.autoupdate(runner)
     elif args.command == 'run':
         if args.hook:
             return run_single_hook(runner, args.hook, all_files=args.all_files)

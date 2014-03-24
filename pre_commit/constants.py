@@ -10,3 +10,9 @@ SUPPORTED_LANGUAGES = set([
     'ruby',
     'node',
 ])
+
+
+YAML_DUMP_KWARGS = {
+    'default_flow_style': False,
+    'indent': 4,
+}
