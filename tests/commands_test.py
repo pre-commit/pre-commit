@@ -8,15 +8,18 @@ import shutil
 import stat
 from plumbum import local
 
+import pre_commit.constants as C
 from pre_commit import git
 from pre_commit.clientlib.validate_config import CONFIG_JSON_SCHEMA
 from pre_commit.clientlib.validate_config import validate_config_extra
+from pre_commit.commands import autoupdate
 from pre_commit.commands import install
 from pre_commit.commands import RepositoryCannotBeUpdatedError
 from pre_commit.commands import uninstall
 from pre_commit.commands import _update_repository
 from pre_commit.ordereddict import OrderedDict
 from pre_commit.runner import Runner
+from pre_commit.yaml_extensions import ordered_dump
 from testing.auto_namedtuple import auto_namedtuple
 from testing.util import get_resource_path
 
@@ -54,10 +57,16 @@ def up_to_date_repo(python_hooks_repo):
     config = OrderedDict((
         ('repo', python_hooks_repo),
         ('sha', git.get_head_sha(python_hooks_repo)),
-        ('hooks', [{'id': 'foo', 'files': ''}]),
+        ('hooks', [OrderedDict((('id', 'foo'), ('files', '')))]),
     ))
     jsonschema.validate([config], CONFIG_JSON_SCHEMA)
     validate_config_extra([config])
+
+    with open(os.path.join(python_hooks_repo, C.CONFIG_FILE), 'w') as file_obj:
+        file_obj.write(
+            ordered_dump([config], **C.YAML_DUMP_KWARGS)
+        )
+
     yield auto_namedtuple(
         repo_config=config,
         python_hooks_repo=python_hooks_repo,
@@ -70,17 +79,32 @@ def test_up_to_date_repo(up_to_date_repo):
     assert ret['sha'] == input_sha
 
 
+def test_autoupdate_up_to_date_repo(up_to_date_repo):
+    before = open(C.CONFIG_FILE).read()
+    runner = Runner(up_to_date_repo.python_hooks_repo)
+    ret = autoupdate(runner)
+    after = open(C.CONFIG_FILE).read()
+    assert ret == 0
+    assert before == after
+
+
 @pytest.yield_fixture
 def out_of_date_repo(python_hooks_repo):
     config = OrderedDict((
         ('repo', python_hooks_repo),
         ('sha', git.get_head_sha(python_hooks_repo)),
-        ('hooks', [{'id': 'foo', 'files': ''}]),
+        ('hooks', [OrderedDict((('id', 'foo'), ('files', '')))]),
     ))
     jsonschema.validate([config], CONFIG_JSON_SCHEMA)
     validate_config_extra([config])
     local['git']['commit', '--allow-empty', '-m', 'foo']()
     head_sha = git.get_head_sha(python_hooks_repo)
+
+    with open(os.path.join(python_hooks_repo, C.CONFIG_FILE), 'w') as file_obj:
+        file_obj.write(
+            ordered_dump([config], **C.YAML_DUMP_KWARGS)
+        )
+
     yield auto_namedtuple(
         repo_config=config,
         head_sha=head_sha,
@@ -93,18 +117,34 @@ def test_out_of_date_repo(out_of_date_repo):
     assert ret['sha'] == out_of_date_repo.head_sha
 
 
+def test_autoupdate_out_of_date_repo(out_of_date_repo):
+    before = open(C.CONFIG_FILE).read()
+    runner = Runner(out_of_date_repo.python_hooks_repo)
+    ret = autoupdate(runner)
+    after = open(C.CONFIG_FILE).read()
+    assert ret == 0
+    assert before != after
+    assert out_of_date_repo.head_sha in after
+
+
 @pytest.yield_fixture
 def hook_disappearing_repo(python_hooks_repo):
     config = OrderedDict((
         ('repo', python_hooks_repo),
         ('sha', git.get_head_sha(python_hooks_repo)),
-        ('hooks', [{'id': 'foo', 'files': ''}]),
+        ('hooks', [OrderedDict((('id', 'foo'), ('files', '')))]),
     ))
     jsonschema.validate([config], CONFIG_JSON_SCHEMA)
     validate_config_extra([config])
-    shutil.copy(get_resource_path('manifest_without_foo.yaml'), 'manifest.yaml')
+    shutil.copy(get_resource_path('manifest_without_foo.yaml'), C.MANIFEST_FILE)
     local['git']['add', '.']()
     local['git']['commit', '-m', 'Remove foo']()
+
+    with open(os.path.join(python_hooks_repo, C.CONFIG_FILE), 'w') as file_obj:
+        file_obj.write(
+            ordered_dump([config], **C.YAML_DUMP_KWARGS)
+        )
+
     yield auto_namedtuple(
         repo_config=config,
         python_hooks_repo=python_hooks_repo,
@@ -114,3 +154,12 @@ def hook_disappearing_repo(python_hooks_repo):
 def test_hook_disppearing_repo_raises(hook_disappearing_repo):
     with pytest.raises(RepositoryCannotBeUpdatedError):
         _update_repository(hook_disappearing_repo.repo_config)
+
+
+def test_autoupdate_hook_disappearing_repo(hook_disappearing_repo):
+    before = open(C.CONFIG_FILE).read()
+    runner = Runner(hook_disappearing_repo.python_hooks_repo)
+    ret = autoupdate(runner)
+    after = open(C.CONFIG_FILE).read()
+    assert ret == 1
+    assert before == after

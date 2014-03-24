@@ -1,4 +1,5 @@
 
+import pre_commit.constants as C
 from pre_commit.ordereddict import OrderedDict
 from pre_commit.yaml_extensions import ordered_dump
 from pre_commit.yaml_extensions import ordered_load
@@ -25,7 +26,7 @@ def test_ordered_dump():
         OrderedDict(
             (('a', 'herp'), ('c', 'derp'), ('b', 'harp'), ('d', 'darp'))
         ),
-        default_flow_style=False,
+        **C.YAML_DUMP_KWARGS
     )
     assert ret == (
         'a: herp\n'

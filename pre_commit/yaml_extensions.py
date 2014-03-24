@@ -18,7 +18,7 @@ def ordered_load(s):
 
 
 def ordered_dump(s, **kwargs):
-    class OrderedDumper(yaml.dumper.Dumper): pass
+    class OrderedDumper(yaml.dumper.SafeDumper): pass
     def dict_representer(dumper, data):
         return dumper.represent_mapping(
             yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,

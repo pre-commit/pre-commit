@@ -6,8 +6,12 @@ import pkg_resources
 import stat
 from plumbum import local
 
+import pre_commit.constants as C
+from pre_commit.clientlib.validate_config import load_config
 from pre_commit.ordereddict import OrderedDict
 from pre_commit.repository import Repository
+from pre_commit.yaml_extensions import ordered_dump
+from pre_commit.yaml_extensions import ordered_load
 
 
 def install(runner):
@@ -75,4 +79,41 @@ def _update_repository(repo_config):
 
 def autoupdate(runner):
     """Auto-update the pre-commit config to the latest versions of repos."""
-    pass
+    retv = 0
+    output_configs = []
+    changed = False
+
+    input_configs = load_config(
+        runner.config_file_path,
+        load_strategy=ordered_load,
+    )
+
+    for repo_config in input_configs:
+        print('Updating {0}...'.format(repo_config['repo']), end='')
+        try:
+            new_repo_config = _update_repository(repo_config)
+        except RepositoryCannotBeUpdatedError as e:
+            print(e.args[0])
+            output_configs.append(repo_config)
+            retv = 1
+            continue
+
+        if new_repo_config['sha'] != repo_config['sha']:
+            changed = True
+            print(
+                'updating {0} -> {1}.'.format(
+                    repo_config['sha'], new_repo_config['sha'],
+                )
+            )
+            output_configs.append(new_repo_config)
+        else:
+            print('already up to date.')
+            output_configs.append(repo_config)
+
+    if changed:
+        with open(runner.config_file_path, 'w') as config_file:
+            config_file.write(
+                ordered_dump(output_configs, **C.YAML_DUMP_KWARGS)
+            )
+
+    return retv
