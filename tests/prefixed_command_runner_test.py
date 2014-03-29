@@ -1,4 +1,5 @@
 
+import os
 import mock
 import pytest
 import subprocess
@@ -55,14 +56,31 @@ def test_run_substitutes_prefix(popen_mock):
     )
 
 
-@pytest.mark.parametrize(('first_prefix', 'postfix', 'expected_output'), (
-    ('foo', '', 'foo/'),
-    ('foo', 'bar', 'foo/bar/'),
-    ('./', 'bar', './bar/'),
-))
-def test_from_command_runner(first_prefix, postfix, expected_output):
-    first = PrefixedCommandRunner(first_prefix)
-    second = PrefixedCommandRunner.from_command_runner(first, postfix)
+PATH_TESTS = (
+    ('foo', '', 'foo'),
+    ('foo', 'bar', 'foo/bar'),
+    ('foo/bar', '../baz', 'foo/baz'),
+    ('./', 'bar', 'bar'),
+    ('./', '', '.'),
+)
+
+
+@pytest.mark.parametrize(('prefix', 'path_end', 'expected_output'), PATH_TESTS)
+def test_path(prefix, path_end, expected_output):
+    instance = PrefixedCommandRunner(prefix)
+    ret = instance.path(path_end)
+    assert ret == expected_output
+
+
+@pytest.mark.parametrize(('prefix', 'path_end', 'expected_output'),
+    tuple(
+        (prefix, path_end, expected_output + os.sep)
+        for prefix, path_end, expected_output in PATH_TESTS
+    ),
+)
+def test_from_command_runner(prefix, path_end, expected_output):
+    first = PrefixedCommandRunner(prefix)
+    second = PrefixedCommandRunner.from_command_runner(first, path_end)
     assert second.prefix_dir == expected_output
 
 

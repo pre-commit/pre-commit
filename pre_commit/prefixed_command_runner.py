@@ -33,10 +33,13 @@ class PrefixedCommandRunner(object):
 
         return proc.returncode, stdout, stderr
 
+    def path(self, path_end):
+        path = os.path.join(self.prefix_dir, path_end)
+        return os.path.normpath(path)
+
     @classmethod
-    def from_command_runner(cls, command_runner, prefix_postfix):
+    def from_command_runner(cls, command_runner, path_end):
         """Constructs a new command runner from an existing one by appending
-        `prefix_postfix` to the command runner's prefix directory.
+        `path_end` to the command runner's prefix directory.
         """
-        new_prefix = os.path.join(command_runner.prefix_dir, prefix_postfix)
-        return cls(new_prefix, popen=command_runner.__popen)
+        return cls(command_runner.path(path_end), popen=command_runner.__popen)

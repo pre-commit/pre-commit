@@ -59,3 +59,9 @@ def test_pre_commit_path():
     runner = Runner('foo/bar')
     expected_path = os.path.join('foo/bar', '.git/hooks/pre-commit')
     assert runner.pre_commit_path == expected_path
+
+
+def test_workspace_runneR():
+    runner = Runner('foo/bar')
+    ret = runner.workspace_runner
+    assert ret.prefix_dir == C.HOOKS_WORKSPACE + '/'
