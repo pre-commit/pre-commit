@@ -4,6 +4,27 @@ import os.path
 import subprocess
 
 
+class CalledProcessError(RuntimeError):
+    def __init__(self, returncode, cmd, expected_returncode, output=None):
+        self.returncode = returncode
+        self.cmd = cmd
+        self.expected_returncode = expected_returncode
+        self.output = output
+
+    def __str__(self):
+        return (
+            'Command: {0!r}\n'
+            'Return code: {1}\n'
+            'Expected return code {2}\n',
+            'Output: {3!r}\n'.format(
+                self.cmd,
+                self.returncode,
+                self.expected_returncode,
+                self.output,
+            ),
+        )
+
+
 def _replace_cmd(cmd, **kwargs):
     return [part.format(**kwargs) for part in cmd]
 
@@ -40,8 +61,8 @@ class PrefixedCommandRunner(object):
         returncode = proc.returncode
 
         if retcode is not None and retcode != returncode:
-            raise subprocess.CalledProcessError(
-                returncode, replaced_cmd, output=(stdout, stderr),
+            raise CalledProcessError(
+                returncode, replaced_cmd, retcode, output=(stdout, stderr),
             )
 
         return proc.returncode, stdout, stderr

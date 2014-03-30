@@ -6,6 +6,7 @@ import subprocess
 from plumbum import local
 
 from pre_commit.prefixed_command_runner import _replace_cmd
+from pre_commit.prefixed_command_runner import CalledProcessError
 from pre_commit.prefixed_command_runner import PrefixedCommandRunner
 
 
@@ -129,7 +130,7 @@ def test_exists_does_exist(tmpdir):
 
 def test_raises_on_error(popen_mock, makedirs_mock):
     popen_mock.return_value.returncode = 1
-    with pytest.raises(subprocess.CalledProcessError):
+    with pytest.raises(CalledProcessError):
         instance = PrefixedCommandRunner(
             '.', popen=popen_mock, makedirs=makedirs_mock,
         )

@@ -1,8 +1,8 @@
 import contextlib
-import subprocess
 
 from pre_commit.languages import helpers
 from pre_commit.languages import python
+from pre_commit.prefixed_command_runner import CalledProcessError
 
 
 NODE_ENV = 'node_env'
@@ -38,7 +38,7 @@ def install_environment(repo_cmd_runner):
         # Try and use the system level node executable first
         try:
             python_env.run('nodeenv -n system {{prefix}}{0}'.format(NODE_ENV))
-        except subprocess.CalledProcessError:
+        except CalledProcessError:
             # TODO: log failure here
             # cleanup
             # TODO: local.path(NODE_ENV).delete()
