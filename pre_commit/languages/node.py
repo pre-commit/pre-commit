@@ -45,9 +45,7 @@ def install_environment(repo_cmd_runner):
             python_env.run('nodeenv --jobs 4 {{prefix}}{0}'.format(NODE_ENV))
 
         with in_env(repo_cmd_runner) as node_env:
-            node_env.run(
-                'cd {0} && npm install -g'.format(repo_cmd_runner.prefix_dir),
-            )
+            node_env.run('cd {prefix} && npm install -g')
 
 
 def run_hook(repo_cmd_runner, hook, file_args):

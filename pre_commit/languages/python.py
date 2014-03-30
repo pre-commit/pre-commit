@@ -27,7 +27,7 @@ def install_environment(repo_cmd_runner):
     # Install a virtualenv
     repo_cmd_runner.run(['virtualenv', '{{prefix}}{0}'.format(PY_ENV)])
     with in_env(repo_cmd_runner) as env:
-        env.run('cd {0} && pip install .'.format(repo_cmd_runner.prefix_dir))
+        env.run('cd {prefix} && pip install .')
 
 
 def run_hook(repo_cmd_runner, hook, file_args):

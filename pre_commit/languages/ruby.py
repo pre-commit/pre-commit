@@ -25,7 +25,7 @@ def install_environment(repo_cmd_runner):
 
     repo_cmd_runner.run(['__rvm-env.sh', '{{prefix}}{0}'.format(RVM_ENV)])
     with in_env(repo_cmd_runner) as env:
-        env.run('bundle install', cwd=repo_cmd_runner.prefix_dir)
+        env.run('cd {prefix} && bundle install')
 
 
 def run_hook(repo_cmd_runner, hook, file_args):
