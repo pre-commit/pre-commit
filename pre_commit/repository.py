@@ -82,9 +82,8 @@ class Repository(object):
         """
         self.require_created()
         repo_cmd_runner = self.get_cmd_runner(cmd_runner)
-        for language in C.SUPPORTED_LANGUAGES:
-            if language in self.languages:
-                languages[language].install_environment(repo_cmd_runner)
+        for language in self.languages:
+            languages[language].install_environment(repo_cmd_runner)
 
     @contextlib.contextmanager
     def in_checkout(self):

@@ -2,6 +2,8 @@
 from pre_commit.languages import node
 from pre_commit.languages import python
 from pre_commit.languages import ruby
+from pre_commit.languages import script
+from pre_commit.languages import system
 
 # A language implements the following two functions in its module:
 #
@@ -29,4 +31,9 @@ languages = {
     'node': node,
     'python': python,
     'ruby': ruby,
+    'script': script,
+    'system': system,
 }
+
+
+all_languages = languages.keys()

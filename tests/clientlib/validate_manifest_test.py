@@ -45,7 +45,7 @@ def is_valid_according_to_schema(obj, schema):
 
 @pytest.mark.parametrize(('manifest_obj', 'expected'), (
     ([], False),
-    ([{'id': 'a', 'name': 'b', 'entry': 'c'}], True),
+    ([{'id': 'a', 'name': 'b', 'entry': 'c', 'language': 'python'}], True),
     (
         [{
              'id': 'a',
