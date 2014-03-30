@@ -22,7 +22,7 @@ def get_files_matching_func():
             'pre_commit/run.py',
             'pre_commit/git.py',
             'im_a_file_that_doesnt_exist.py',
-            'manifest.yaml',
+            'hooks.yaml',
         )
 
     return git.get_files_matching(get_filenames)
@@ -33,7 +33,7 @@ def test_get_files_matching_base(get_files_matching_func):
     assert ret == set([
         'pre_commit/run.py',
         'pre_commit/git.py',
-        'manifest.yaml',
+        'hooks.yaml',
     ])
 
 
@@ -47,7 +47,7 @@ def test_get_files_matching_total_match(get_files_matching_func):
 
 def test_does_search_instead_of_match(get_files_matching_func):
     ret = get_files_matching_func('\.yaml$')
-    assert ret == set(['manifest.yaml'])
+    assert ret == set(['hooks.yaml'])
 
 
 def test_does_not_include_deleted_fileS(get_files_matching_func):
