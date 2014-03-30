@@ -1,6 +1,5 @@
 
 import argparse
-import os.path
 import subprocess
 import sys
 
@@ -18,9 +17,7 @@ COLS = int(subprocess.Popen(['tput', 'cols'], stdout=subprocess.PIPE).communicat
 PASS_FAIL_LENGTH = 6
 
 
-def _run_single_hook(repository, hook_id, all_files=False):
-    repository.install()
-
+def _run_single_hook(runner, repository, hook_id, all_files=False):
     if all_files:
         get_filenames = git.get_all_files_matching
     else:
@@ -36,8 +33,9 @@ def _run_single_hook(repository, hook_id, all_files=False):
     ),
 
     retcode, stdout, stderr = repository.run_hook(
+        runner.cmd_runner,
         hook_id,
-        map(os.path.abspath, get_filenames(hook['files'])),
+        get_filenames(hook['files']),
     )
 
     if retcode != repository.hooks[hook_id].get('expected_return_value', 0):
@@ -69,6 +67,7 @@ def run_hooks(runner, all_files=False):
     for repo in runner.repositories:
         for hook_id in repo.hooks:
             retval |= _run_single_hook(
+                runner,
                 repo,
                 hook_id,
                 all_files=all_files,
@@ -81,6 +80,7 @@ def run_single_hook(runner, hook_id, all_files=False):
     for repo in runner.repositories:
         if hook_id in repo.hooks:
             return _run_single_hook(
+                runner,
                 repo,
                 hook_id,
                 all_files=all_files,

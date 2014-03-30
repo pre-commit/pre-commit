@@ -5,13 +5,21 @@ from pre_commit.languages import ruby
 
 # A language implements the following two functions in its module:
 #
-# def install_environment():
+# def install_environment(repo_cmd_runner):
 #     """Installs a repository in the given repository.  Note that the current
 #     working directory will already be inside the repository.
+#
+#     Args:
+#         repo_cmd_runner - `PrefixedCommandRunner` bound to the repository.
 #     """
 #
-# def run_hook(hook, file_args):
+# def run_hook(repo_cmd_runner, hook, file_args):
 #     """Runs a hook and returns the returncode and output of running that hook.
+#
+#     Args:
+#         repo_cmd_runner - `PrefixedCommandRunner` bound to the repository.
+#         hook - Hook dictionary
+#         file_args - The files to be run
 #
 #     Returns:
 #         (returncode, stdout, stderr)

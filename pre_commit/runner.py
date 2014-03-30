@@ -5,6 +5,7 @@ import os.path
 import pre_commit.constants as C
 from pre_commit import git
 from pre_commit.clientlib.validate_config import load_config
+from pre_commit.prefixed_command_runner import PrefixedCommandRunner
 from pre_commit.repository import Repository
 from pre_commit.util import cached_property
 
@@ -44,3 +45,7 @@ class Runner(object):
     @cached_property
     def pre_commit_path(self):
         return os.path.join(self.git_root, '.git/hooks/pre-commit')
+
+    @cached_property
+    def cmd_runner(self):
+        return PrefixedCommandRunner(self.hooks_workspace_path)

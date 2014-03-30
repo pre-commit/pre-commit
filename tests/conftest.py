@@ -32,37 +32,33 @@ def dummy_git_repo(empty_git_dir):
     yield empty_git_dir
 
 
+def _make_repo(repo_path, repo_source):
+    copy_tree_to_path(get_resource_path(repo_source), repo_path)
+    add_and_commit()
+    return repo_path
+
+
 @pytest.yield_fixture
 def python_hooks_repo(dummy_git_repo):
-    copy_tree_to_path(
-        get_resource_path('python_hooks_repo'),
-        dummy_git_repo,
-    )
-    add_and_commit()
-    yield dummy_git_repo
+    yield _make_repo(dummy_git_repo, 'python_hooks_repo')
 
 
 @pytest.yield_fixture
 def node_hooks_repo(dummy_git_repo):
-    copy_tree_to_path(
-        get_resource_path('node_hooks_repo'),
-        dummy_git_repo,
-    )
-    add_and_commit()
-    yield dummy_git_repo
+    yield _make_repo(dummy_git_repo, 'node_hooks_repo')
 
 
 @pytest.yield_fixture
 def consumer_repo(dummy_git_repo):
-    copy_tree_to_path(
-        get_resource_path('consumer_repo'),
-        dummy_git_repo,
-    )
-    add_and_commit()
-    yield dummy_git_repo
+    yield _make_repo(dummy_git_repo, 'consumer_repo')
 
 
-@pytest.fixture
+@pytest.yield_fixture
+def prints_cwd_repo(dummy_git_repo):
+    yield _make_repo(dummy_git_repo, 'prints_cwd_repo')
+
+
+@pytest.yield_fixture
 def config_for_node_hooks_repo(node_hooks_repo):
     config = {
         'repo': node_hooks_repo,
@@ -74,11 +70,10 @@ def config_for_node_hooks_repo(node_hooks_repo):
     }
     jsonschema.validate([config], CONFIG_JSON_SCHEMA)
     validate_config_extra([config])
+    yield config
 
-    return config
 
-
-@pytest.fixture
+@pytest.yield_fixture
 def config_for_python_hooks_repo(python_hooks_repo):
     config = {
         'repo': python_hooks_repo,
@@ -90,5 +85,19 @@ def config_for_python_hooks_repo(python_hooks_repo):
     }
     jsonschema.validate([config], CONFIG_JSON_SCHEMA)
     validate_config_extra([config])
+    yield config
 
-    return config
+
+@pytest.yield_fixture
+def config_for_prints_cwd_repo(prints_cwd_repo):
+    config = {
+        'repo': prints_cwd_repo,
+        'sha': git.get_head_sha(prints_cwd_repo),
+        'hooks': [{
+            'id': 'prints_cwd',
+            'files': '\.py$',
+        }],
+    }
+    jsonschema.validate([config], CONFIG_JSON_SCHEMA)
+    validate_config_extra([config])
+    yield config
