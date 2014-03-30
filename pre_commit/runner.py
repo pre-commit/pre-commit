@@ -47,5 +47,5 @@ class Runner(object):
         return os.path.join(self.git_root, '.git/hooks/pre-commit')
 
     @cached_property
-    def workspace_runner(self):
-        return PrefixedCommandRunner(C.HOOKS_WORKSPACE)
+    def cmd_runner(self):
+        return PrefixedCommandRunner(self.hooks_workspace_path)

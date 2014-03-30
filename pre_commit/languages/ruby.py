@@ -1,6 +1,5 @@
 
 import contextlib
-from plumbum import local
 
 from pre_commit.languages import helpers
 
@@ -8,29 +7,27 @@ from pre_commit.languages import helpers
 RVM_ENV = 'rvm_env'
 
 
-class RubyEnv(object):
-    def __init__(self):
-        self.env_prefix = '. {0}/.rvm/scripts/rvm'.format(RVM_ENV)
-
-    def run(self, cmd, **kwargs):
-        return local['bash']['-c', ' '.join([self.env_prefix, cmd])].run(**kwargs)
+class RubyEnv(helpers.Environment):
+    @property
+    def env_prefix(self):
+        return '. {{prefix}}{0}/bin/activate &&'.format(RVM_ENV)
 
 
 @contextlib.contextmanager
-def in_env():
-    yield RubyEnv()
+def in_env(repo_cmd_runner):
+    yield RubyEnv(repo_cmd_runner)
 
 
-def install_environment():
+def install_environment(repo_cmd_runner):
     # Return immediately if we already have a virtualenv
-    if local.path(RVM_ENV).exists():
+    if repo_cmd_runner.exists(RVM_ENV):
         return
 
-    local['__rvm-env.sh'][RVM_ENV]()
-    with in_env() as env:
-        env.run('bundle install')
+    repo_cmd_runner.run(['__rvm-env.sh', '{{prefix}}{0}'.format(RVM_ENV)])
+    with in_env(repo_cmd_runner) as env:
+        env.run('bundle install', cwd=repo_cmd_runner.prefix_dir)
 
 
-def run_hook(hook, file_args):
-    with in_env() as env:
+def run_hook(repo_cmd_runner, hook, file_args):
+    with in_env(repo_cmd_runner) as env:
         return helpers.run_hook(env, hook, file_args)

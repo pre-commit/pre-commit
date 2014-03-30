@@ -3,6 +3,7 @@ import os
 import mock
 import pytest
 import subprocess
+from plumbum import local
 
 from pre_commit.prefixed_command_runner import _replace_cmd
 from pre_commit.prefixed_command_runner import PrefixedCommandRunner
@@ -10,9 +11,14 @@ from pre_commit.prefixed_command_runner import PrefixedCommandRunner
 
 @pytest.fixture
 def popen_mock():
-    popen = mock.Mock()
+    popen = mock.Mock(spec=subprocess.Popen)
     popen.return_value.communicate.return_value = (mock.Mock(), mock.Mock())
     return popen
+
+
+@pytest.fixture
+def makedirs_mock():
+    return mock.Mock(spec=os.makedirs)
 
 
 @pytest.mark.parametrize(('input', 'kwargs', 'expected_output'), (
@@ -40,9 +46,9 @@ def test_init_normalizes_path_endings(input, expected_prefix):
     assert instance.prefix_dir == expected_prefix
 
 
-def test_run_substitutes_prefix(popen_mock):
-    instance = PrefixedCommandRunner('prefix', popen=popen_mock)
-    ret = instance.run(['{prefix}bar', 'baz'])
+def test_run_substitutes_prefix(popen_mock, makedirs_mock):
+    instance = PrefixedCommandRunner('prefix', popen=popen_mock, makedirs=makedirs_mock)
+    ret = instance.run(['{prefix}bar', 'baz'], retcode=None)
     popen_mock.assert_called_once_with(
         ['prefix/bar', 'baz'],
         stdin=subprocess.PIPE,
@@ -72,6 +78,12 @@ def test_path(prefix, path_end, expected_output):
     assert ret == expected_output
 
 
+def test_path_multiple_args():
+    instance = PrefixedCommandRunner('foo')
+    ret = instance.path('bar', 'baz')
+    assert ret == 'foo/bar/baz'
+
+
 @pytest.mark.parametrize(('prefix', 'path_end', 'expected_output'),
     tuple(
         (prefix, path_end, expected_output + os.sep)
@@ -84,13 +96,41 @@ def test_from_command_runner(prefix, path_end, expected_output):
     assert second.prefix_dir == expected_output
 
 
-def test_from_command_runner_preserves_popen(popen_mock):
-    first = PrefixedCommandRunner('foo', popen=popen_mock)
+def test_from_command_runner_preserves_popen(popen_mock, makedirs_mock):
+    first = PrefixedCommandRunner('foo', popen=popen_mock, makedirs=makedirs_mock)
     second = PrefixedCommandRunner.from_command_runner(first, 'bar')
-    second.run(['foo/bar/baz'])
+    second.run(['foo/bar/baz'], retcode=None)
     popen_mock.assert_called_once_with(
         ['foo/bar/baz'],
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
     )
+
+
+def test_create_path_if_not_exists(tmpdir):
+    with local.cwd(tmpdir.strpath):
+        instance = PrefixedCommandRunner('foo')
+        assert not os.path.exists('foo')
+        instance._create_path_if_not_exists()
+        assert os.path.exists('foo')
+
+
+def test_exists_does_not_exist(tmpdir):
+    with local.cwd(tmpdir.strpath):
+        assert not PrefixedCommandRunner('.').exists('foo')
+
+
+def test_exists_does_exist(tmpdir):
+    with local.cwd(tmpdir.strpath):
+        os.mkdir('foo')
+        assert PrefixedCommandRunner('.').exists('foo')
+
+
+def test_raises_on_error(popen_mock, makedirs_mock):
+    popen_mock.return_value.returncode = 1
+    with pytest.raises(subprocess.CalledProcessError):
+        instance = PrefixedCommandRunner(
+            '.', popen=popen_mock, makedirs=makedirs_mock,
+        )
+        instance.run(['foo'])

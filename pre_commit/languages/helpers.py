@@ -1,15 +1,17 @@
 
-import subprocess
-
 
 def run_hook(env, hook, file_args):
     return env.run(
         ' '.join(['xargs', hook['entry']] + hook.get('args', [])),
         stdin='\n'.join(list(file_args) + ['']),
+        retcode=None,
     )
 
 
 class Environment(object):
+    def __init__(self, repo_cmd_runner):
+        self.repo_cmd_runner = repo_cmd_runner
+
     @property
     def env_prefix(self):
         """env_prefix is a value that is prefixed to the command that is run.
@@ -24,14 +26,8 @@ class Environment(object):
         """
         raise NotImplementedError
 
-    def run(self, cmd, stdin=None):
+    def run(self, cmd, **kwargs):
         """Returns (returncode, stdout, stderr)."""
-        proc = subprocess.Popen(
-            ['bash', '-c', ' '.join([self.env_prefix, cmd])],
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+        return self.repo_cmd_runner.run(
+            ['bash', '-c', ' '.join([self.env_prefix, cmd])], **kwargs
         )
-        stdout, stderr = proc.communicate(stdin)
-
-        return proc.returncode, stdout, stderr

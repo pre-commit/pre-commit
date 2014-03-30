@@ -61,7 +61,7 @@ def test_pre_commit_path():
     assert runner.pre_commit_path == expected_path
 
 
-def test_workspace_runneR():
+def test_cmd_runner():
     runner = Runner('foo/bar')
-    ret = runner.workspace_runner
-    assert ret.prefix_dir == C.HOOKS_WORKSPACE + '/'
+    ret = runner.cmd_runner
+    assert ret.prefix_dir == os.path.join('foo/bar', C.HOOKS_WORKSPACE) + '/'

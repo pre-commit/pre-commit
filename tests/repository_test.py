@@ -6,6 +6,7 @@ import pre_commit.constants as C
 from pre_commit import git
 from pre_commit.clientlib.validate_config import CONFIG_JSON_SCHEMA
 from pre_commit.clientlib.validate_config import validate_config_extra
+from pre_commit.prefixed_command_runner import PrefixedCommandRunner
 from pre_commit.repository import Repository
 
 
@@ -31,7 +32,7 @@ def test_create_repo_in_env(dummy_repo_config, dummy_git_repo):
 @pytest.mark.integration
 def test_install_python_repo_in_env(config_for_python_hooks_repo):
     repo = Repository(config_for_python_hooks_repo)
-    repo.install()
+    repo.install(PrefixedCommandRunner(C.HOOKS_WORKSPACE))
 
     assert os.path.exists(
         os.path.join(
@@ -43,11 +44,13 @@ def test_install_python_repo_in_env(config_for_python_hooks_repo):
     )
 
 
+@pytest.mark.herpderp
 @pytest.mark.integration
 def test_run_a_python_hook(config_for_python_hooks_repo):
     repo = Repository(config_for_python_hooks_repo)
-    repo.install()
-    ret = repo.run_hook('foo', ['/dev/null'])
+    ret = repo.run_hook(
+        PrefixedCommandRunner(C.HOOKS_WORKSPACE), 'foo', ['/dev/null'],
+    )
 
     assert ret[0] == 0
     assert ret[1] == "['/dev/null']\nHello World\n"
@@ -56,18 +59,19 @@ def test_run_a_python_hook(config_for_python_hooks_repo):
 @pytest.mark.integration
 def test_run_a_hook_lots_of_files(config_for_python_hooks_repo):
     repo = Repository(config_for_python_hooks_repo)
-    repo.install()
-    ret = repo.run_hook('foo', ['/dev/null'] * 15000)
+    ret = repo.run_hook(
+        PrefixedCommandRunner(C.HOOKS_WORKSPACE), 'foo', ['/dev/null'] * 15000,
+    )
 
     assert ret[0] == 0
 
 
-@pytest.mark.xfail
 @pytest.mark.integration
 def test_cwd_of_hook(config_for_prints_cwd_repo):
     repo = Repository(config_for_prints_cwd_repo)
-    repo.install()
-    ret = repo.run_hook('prints_cwd', [])
+    ret = repo.run_hook(
+        PrefixedCommandRunner(C.HOOKS_WORKSPACE), 'prints_cwd', [],
+    )
 
     assert ret[0] == 0
     assert ret[1] == '{0}\n'.format(repo.repo_url)
@@ -80,8 +84,7 @@ def test_cwd_of_hook(config_for_prints_cwd_repo):
 @pytest.mark.integration
 def test_run_a_node_hook(config_for_node_hooks_repo):
     repo = Repository(config_for_node_hooks_repo)
-    repo.install()
-    ret = repo.run_hook('foo', [])
+    ret = repo.run_hook(PrefixedCommandRunner(C.HOOKS_WORKSPACE), 'foo', [])
 
     assert ret[0] == 0
     assert ret[1] == 'Hello World\n'
