@@ -79,4 +79,8 @@ class PrefixedCommandRunner(object):
         """Constructs a new command runner from an existing one by appending
         `path_end` to the command runner's prefix directory.
         """
-        return cls(command_runner.path(path_end), popen=command_runner.__popen)
+        return cls(
+            command_runner.path(path_end),
+            popen=command_runner.__popen,
+            makedirs=command_runner.__makedirs,
+        )

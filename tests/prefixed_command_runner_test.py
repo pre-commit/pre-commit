@@ -107,6 +107,7 @@ def test_from_command_runner_preserves_popen(popen_mock, makedirs_mock):
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
     )
+    makedirs_mock.assert_called_once_with('foo/bar/')
 
 
 def test_create_path_if_not_exists(tmpdir):
