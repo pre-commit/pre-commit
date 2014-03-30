@@ -6,6 +6,7 @@ import sys
 
 import pre_commit.constants as C
 from pre_commit.clientlib.validate_base import get_validator
+from pre_commit.languages.all import all_languages
 from pre_commit.util import entry
 
 
@@ -25,7 +26,7 @@ MANIFEST_JSON_SCHEMA = {
             'language': {'type': 'string'},
             'expected_return_value': {'type': 'number'},
         },
-        'required': ['id', 'name', 'entry'],
+        'required': ['id', 'name', 'entry', 'language'],
     },
 }
 
@@ -35,13 +36,13 @@ def additional_manifest_check(obj):
         language = hook_config.get('language')
 
         if language is not None and not any(
-            language.startswith(lang) for lang in C.SUPPORTED_LANGUAGES
+            language.startswith(lang) for lang in all_languages
         ):
             raise InvalidManifestError(
                 'Expected language {0} for {1} to start with one of {2!r}'.format(
                     hook_config['id'],
                     hook_config['language'],
-                    C.SUPPORTED_LANGUAGES,
+                    all_languages,
                 )
             )
 

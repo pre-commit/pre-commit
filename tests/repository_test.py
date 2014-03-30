@@ -67,6 +67,7 @@ def test_run_a_hook_lots_of_files(config_for_python_hooks_repo):
 
 @pytest.mark.integration
 def test_cwd_of_hook(config_for_prints_cwd_repo):
+    # Note: this doubles as a test for `system` hooks
     repo = Repository(config_for_prints_cwd_repo)
     ret = repo.run_hook(
         PrefixedCommandRunner(C.HOOKS_WORKSPACE), 'prints_cwd', [],
@@ -87,6 +88,17 @@ def test_run_a_node_hook(config_for_node_hooks_repo):
 
     assert ret[0] == 0
     assert ret[1] == 'Hello World\n'
+
+
+@pytest.mark.integration
+def test_run_a_script_hook(config_for_script_hooks_repo):
+    repo = Repository(config_for_script_hooks_repo)
+    ret = repo.run_hook(
+        PrefixedCommandRunner(C.HOOKS_WORKSPACE), 'bash_hook', ['bar'],
+    )
+
+    assert ret[0] == 0
+    assert ret[1] == 'bar\nHello World\n'
 
 
 @pytest.fixture
