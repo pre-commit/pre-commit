@@ -44,7 +44,6 @@ def test_install_python_repo_in_env(config_for_python_hooks_repo):
     )
 
 
-@pytest.mark.herpderp
 @pytest.mark.integration
 def test_run_a_python_hook(config_for_python_hooks_repo):
     repo = Repository(config_for_python_hooks_repo)
