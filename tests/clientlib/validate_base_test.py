@@ -17,7 +17,7 @@ class AdditionalValidatorError(ValueError): pass
 
 @pytest.fixture
 def noop_validator():
-    return get_validator('example_manifest.yaml', {}, ValueError)
+    return get_validator('example_hooks.yaml', {}, ValueError)
 
 
 @pytest.fixture
@@ -31,7 +31,7 @@ def additional_validator():
         raise AdditionalValidatorError
 
     return get_validator(
-        'example_manifest.yaml',
+        'example_hooks.yaml',
         {},
         ValueError,
         additional_validation_strategy=raises_always,
@@ -52,7 +52,7 @@ def test_defaults_to_backup_filename(noop_validator):
     with mock.patch.object(__builtin__, 'open', side_effect=open) as mock_open:
         noop_validator()
         mock_open.assert_called_once_with(
-            os.path.join(git.get_root(), 'example_manifest.yaml'), 'r',
+            os.path.join(git.get_root(), 'example_hooks.yaml'), 'r',
         )
 
 

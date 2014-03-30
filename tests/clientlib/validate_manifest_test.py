@@ -10,7 +10,7 @@ from pre_commit.clientlib.validate_manifest import run
 
 
 def test_returns_0_for_valid_manifest():
-    assert run(['example_manifest.yaml']) == 0
+    assert run(['example_hooks.yaml']) == 0
 
 
 def test_returns_0_for_our_manifest():

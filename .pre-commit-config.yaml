@@ -1,5 +1,5 @@
 -   repo: git@github.com:pre-commit/pre-commit-hooks
-    sha: 8aa14d218d0fe5a2c486498269b3e37d3ba5aad2
+    sha: bec87f6c87284ea15dbcf7801810404c8036bab4
     hooks:
     -   id: pyflakes
         files: \.py$
@@ -12,9 +12,9 @@
     -   id: end-of-file-fixer
         files: \.(py|sh|yaml)$
 -   repo: git@github.com:pre-commit/pre-commit
-    sha: c695ee9a9a78ac73439c52e0085bafec8037bc2d
+    sha: c62c1a3b513ab9e057e85a5e950bd7c438371076
     hooks:
     -   id: validate_manifest
-        files: ^manifest.yaml$
+        files: ^hooks.yaml$
     -   id: validate_config
         files: ^\.pre-commit-config.yaml$
