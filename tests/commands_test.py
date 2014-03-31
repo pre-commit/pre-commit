@@ -13,6 +13,7 @@ from pre_commit import git
 from pre_commit.clientlib.validate_config import CONFIG_JSON_SCHEMA
 from pre_commit.clientlib.validate_config import validate_config_extra
 from pre_commit.commands import autoupdate
+from pre_commit.commands import clean
 from pre_commit.commands import install
 from pre_commit.commands import RepositoryCannotBeUpdatedError
 from pre_commit.commands import uninstall
@@ -163,3 +164,15 @@ def test_autoupdate_hook_disappearing_repo(hook_disappearing_repo):
     after = open(C.CONFIG_FILE).read()
     assert ret == 1
     assert before == after
+
+
+def test_clean(empty_git_dir):
+    os.mkdir(C.HOOKS_WORKSPACE)
+    clean(Runner(empty_git_dir))
+    assert not os.path.exists(C.HOOKS_WORKSPACE)
+
+
+def test_clean_empty(empty_git_dir):
+    assert not os.path.exists(C.HOOKS_WORKSPACE)
+    clean(Runner(empty_git_dir))
+    assert not os.path.exists(C.HOOKS_WORKSPACE)

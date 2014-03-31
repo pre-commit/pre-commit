@@ -100,6 +100,8 @@ def run(argv):
 
     subparsers.add_parser('uninstall', help='Uninstall the pre-commit script.')
 
+    subparsers.add_parser('clean', help='Clean out pre-commit files.')
+
     subparsers.add_parser('autoupdate', help='Auto-update hooks config.')
 
     run = subparsers.add_parser('run', help='Run hooks.')
@@ -123,6 +125,8 @@ def run(argv):
         return commands.install(runner)
     elif args.command == 'uninstall':
         return commands.uninstall(runner)
+    elif args.command == 'clean':
+        return commands.clean(runner)
     elif args.command == 'autoupdate':
         return commands.autoupdate(runner)
     elif args.command == 'run':
