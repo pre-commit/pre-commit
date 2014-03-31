@@ -3,6 +3,7 @@ from __future__ import print_function
 
 import os
 import pkg_resources
+import shutil
 import stat
 from plumbum import local
 
@@ -117,3 +118,10 @@ def autoupdate(runner):
             )
 
     return retv
+
+
+def clean(runner):
+    if os.path.exists(runner.hooks_workspace_path):
+        shutil.rmtree(runner.hooks_workspace_path)
+        print('Cleaned {0}.'.format(runner.hooks_workspace_path))
+    return 0
