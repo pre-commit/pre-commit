@@ -38,7 +38,7 @@ def _run_single_hook(runner, repository, hook_id, all_files=False):
         get_filenames(hook['files']),
     )
 
-    if retcode != repository.hooks[hook_id].get('expected_return_value', 0):
+    if retcode != repository.hooks[hook_id]['expected_return_value']:
         output = '\n'.join([stdout, stderr]).strip()
         retcode = 1
         color = RED

@@ -1,6 +1,5 @@
 from __future__ import absolute_import
 
-import jsonschema
 import pytest
 import time
 from plumbum import local
@@ -8,6 +7,7 @@ from plumbum import local
 from pre_commit import git
 from pre_commit.clientlib.validate_config import CONFIG_JSON_SCHEMA
 from pre_commit.clientlib.validate_config import validate_config_extra
+from pre_commit.jsonschema_extensions import apply_defaults
 from testing.util import copy_tree_to_path
 from testing.util import get_resource_path
 
@@ -69,9 +69,9 @@ def _make_config(path, hook_id, file_regex):
         'sha': git.get_head_sha(path),
         'hooks': [{'id': hook_id, 'files': file_regex}],
     }
-    jsonschema.validate([config], CONFIG_JSON_SCHEMA)
-    validate_config_extra([config])
-    return config
+    config_wrapped = apply_defaults([config], CONFIG_JSON_SCHEMA)
+    validate_config_extra(config_wrapped)
+    return config_wrapped[0]
 
 
 @pytest.yield_fixture

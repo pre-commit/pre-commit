@@ -27,11 +27,10 @@ def test_additional_manifest_check_raises_for_bad_language():
 
 
 @pytest.mark.parametrize(('obj'), (
-    [{}],
     [{'language': 'python'}],
     [{'language': 'ruby'}],
 ))
-def test_additional_manifest_check_is_ok_with_missing_language(obj):
+def test_additional_manifest_check_languages(obj):
     additional_manifest_check(obj)
 
 

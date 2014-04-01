@@ -1,11 +1,11 @@
 import os
-import jsonschema
 import pytest
 
 import pre_commit.constants as C
 from pre_commit import git
 from pre_commit.clientlib.validate_config import CONFIG_JSON_SCHEMA
 from pre_commit.clientlib.validate_config import validate_config_extra
+from pre_commit.jsonschema_extensions import apply_defaults
 from pre_commit.prefixed_command_runner import PrefixedCommandRunner
 from pre_commit.repository import Repository
 
@@ -111,9 +111,9 @@ def mock_repo_config():
             'files': '\.py$',
         }],
     }
-    jsonschema.validate([config], CONFIG_JSON_SCHEMA)
-    validate_config_extra([config])
-    return config
+    config_wrapped = apply_defaults([config], CONFIG_JSON_SCHEMA)
+    validate_config_extra(config_wrapped)
+    return config_wrapped[0]
 
 
 def test_repo_url(mock_repo_config):

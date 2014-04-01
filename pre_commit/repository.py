@@ -27,9 +27,7 @@ class Repository(object):
 
     @cached_property
     def languages(self):
-        return set(filter(None, (
-            hook.get('language') for hook in self.hooks.values()
-        )))
+        return set(hook['language'] for hook in self.hooks.values())
 
     @cached_property
     def hooks(self):

@@ -4,6 +4,8 @@ import jsonschema.exceptions
 import os.path
 import yaml
 
+from pre_commit.jsonschema_extensions import apply_defaults
+
 
 def get_validator(
     json_schema,
@@ -38,6 +40,8 @@ def get_validator(
             raise exception_type(
                 'File {0} is not a valid file'.format(filename), e,
             )
+
+        obj = apply_defaults(obj, json_schema)
 
         additional_validation_strategy(obj)
 

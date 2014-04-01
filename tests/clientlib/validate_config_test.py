@@ -7,6 +7,7 @@ from pre_commit.clientlib.validate_config import CONFIG_JSON_SCHEMA
 from pre_commit.clientlib.validate_config import InvalidConfigError
 from pre_commit.clientlib.validate_config import run
 from pre_commit.clientlib.validate_config import validate_config_extra
+from pre_commit.jsonschema_extensions import apply_defaults
 
 
 def test_returns_0_for_valid_config():
@@ -78,28 +79,50 @@ def test_is_valid_according_to_schema(manifest_obj, expected):
 def test_config_with_failing_regexes_fails():
     with pytest.raises(InvalidConfigError):
         # Note the regex '(' is invalid (unbalanced parens)
-        validate_config_extra([{
-            'repo': 'foo', 'hooks': [{'id': 'hook_id', 'files': '('}]
-        }])
+        config = apply_defaults(
+            [{
+                'repo': 'foo',
+                'sha': 'foo',
+                'hooks': [{'id': 'hook_id', 'files': '('}],
+            }],
+            CONFIG_JSON_SCHEMA,
+        )
+        validate_config_extra(config)
 
 
 def test_config_with_ok_regexes_passes():
-    validate_config_extra([{
-        'repo': 'foo', 'hooks': [{'id': 'hook_id', 'files': '\.py$'}],
-    }])
+    config = apply_defaults(
+        [{
+            'repo': 'foo',
+            'sha': 'foo',
+            'hooks': [{'id': 'hook_id', 'files': '\.py$'}],
+        }],
+        CONFIG_JSON_SCHEMA,
+    )
+    validate_config_extra(config)
 
 
 def test_config_with_invalid_exclude_regex_fails():
     with pytest.raises(InvalidConfigError):
-        # NOte the regex '(' is invalid (unbalanced parens)
-        validate_config_extra([{
-            'repo': 'foo',
-            'hooks': [{'id': 'hook_id', 'files': '', 'exclude': '('}],
-        }])
+        # Note the regex '(' is invalid (unbalanced parens)
+        config = apply_defaults(
+            [{
+                'repo': 'foo',
+                'sha': 'foo',
+                'hooks': [{'id': 'hook_id', 'files': '', 'exclude': '('}],
+            }],
+            CONFIG_JSON_SCHEMA,
+        )
+        validate_config_extra(config)
 
 
 def test_config_with_ok_exclude_regex_passes():
-    validate_config_extra([{
-        'repo': 'foo',
-        'hooks': [{'id': 'hook_id', 'files': '', 'exclude': '^vendor/'}],
-    }])
+    config = apply_defaults(
+        [{
+            'repo': 'foo',
+            'sha': 'foo',
+            'hooks': [{'id': 'hook_id', 'files': '', 'exclude': '^vendor/'}],
+        }],
+        CONFIG_JSON_SCHEMA,
+    )
+    validate_config_extra(config)
