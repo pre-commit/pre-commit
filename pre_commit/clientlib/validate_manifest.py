@@ -4,7 +4,6 @@ from __future__ import print_function
 import argparse
 import sys
 
-import pre_commit.constants as C
 from pre_commit.clientlib.validate_base import get_validator
 from pre_commit.languages.all import all_languages
 from pre_commit.util import entry
@@ -48,7 +47,6 @@ def additional_manifest_check(obj):
 
 
 load_manifest = get_validator(
-    C.MANIFEST_FILE,
     MANIFEST_JSON_SCHEMA,
     InvalidManifestError,
     additional_manifest_check,
@@ -58,19 +56,11 @@ load_manifest = get_validator(
 @entry
 def run(argv):
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        'filenames',
-        nargs='*', default=None,
-        help='Manifest filenames.  Defaults to {0} at root of git repo'.format(
-            C.MANIFEST_FILE,
-        )
-    )
+    parser.add_argument('filenames', nargs='*', help='Manifest filenames.')
     args = parser.parse_args(argv)
 
-    filenames = args.filenames or [C.MANIFEST_FILE]
     retval = 0
-
-    for filename in filenames:
+    for filename in args.filenames:
         try:
             load_manifest(filename)
         except InvalidManifestError as e:
