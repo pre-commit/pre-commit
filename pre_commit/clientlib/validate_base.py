@@ -4,11 +4,8 @@ import jsonschema.exceptions
 import os.path
 import yaml
 
-from pre_commit import git
-
 
 def get_validator(
-    default_filename,
     json_schema,
     exception_type,
     additional_validation_strategy=lambda obj: None,
@@ -16,17 +13,13 @@ def get_validator(
     """Returns a function which will validate a yaml file for correctness
 
     Args:
-        default_filename - Default filename to look for if none is specified
         json_schema - JSON schema to validate file with
         exception_type - Error type to raise on failure
         additional_validation_strategy - Strategy for additional validation of
             the object read from the file.  The function should either raise
             exception_type on failure.
     """
-
-    def validate(filename=None, load_strategy=yaml.load):
-        filename = filename or os.path.join(git.get_root(), default_filename)
-
+    def validate(filename, load_strategy=yaml.load):
         if not os.path.exists(filename):
             raise exception_type('File {0} does not exist'.format(filename))
 

@@ -5,7 +5,6 @@ import argparse
 import re
 import sys
 
-import pre_commit.constants as C
 from pre_commit.clientlib.validate_base import get_validator
 from pre_commit.util import entry
 
@@ -58,7 +57,6 @@ def validate_config_extra(config):
 
 
 load_config = get_validator(
-    C.CONFIG_FILE,
     CONFIG_JSON_SCHEMA,
     InvalidConfigError,
     additional_validation_strategy=validate_config_extra,
@@ -68,19 +66,11 @@ load_config = get_validator(
 @entry
 def run(argv):
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        'filenames',
-        nargs='*', default=None,
-        help='Config filenames.  Defaults to {0} at root of git repo'.format(
-            C.CONFIG_FILE,
-        )
-    )
+    parser.add_argument('filenames', nargs='*', help='Config filenames.')
     args = parser.parse_args(argv)
 
-    filenames = args.filenames or [C.CONFIG_FILE]
     retval = 0
-
-    for filename in filenames:
+    for filename in args.filenames:
         try:
             load_config(filename)
         except InvalidConfigError as e:
