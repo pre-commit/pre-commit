@@ -28,6 +28,7 @@ CONFIG_JSON_SCHEMA = {
                     'properties': {
                         'id': {'type': 'string'},
                         'files': {'type': 'string'},
+                        'exclude': {'type': 'string'},
                         'args': {
                             'type': 'array',
                             'minItems': 1,
@@ -43,17 +44,22 @@ CONFIG_JSON_SCHEMA = {
 }
 
 
+def try_regex(repo, hook, value, field_name):
+    try:
+        re.compile(value)
+    except re.error:
+        raise InvalidConfigError(
+            'Invalid {0} regex at {1}, {2}: {3}'.format(
+                field_name, repo, hook, value,
+            )
+        )
+
+
 def validate_config_extra(config):
     for repo in config:
         for hook in repo['hooks']:
-            try:
-                re.compile(hook['files'])
-            except re.error:
-                raise InvalidConfigError(
-                    'Invalid file regex at {0}, {1}: {2}'.format(
-                        repo['repo'], hook['id'], hook['files'],
-                    )
-                )
+            try_regex(repo, hook['id'], hook['files'], 'files')
+            try_regex(repo, hook['id'], hook.get('exclude', ''), 'exclude')
 
 
 load_config = get_validator(

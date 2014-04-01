@@ -35,28 +35,39 @@ def is_valid_according_to_schema(obj, schema):
         [{
           'repo': 'git@github.com:pre-commit/pre-commit-hooks',
           'sha': 'cd74dc150c142c3be70b24eaf0b02cae9d235f37',
-          'hooks': [
-              {
-                  'id': 'pyflakes',
-                  'files': '*.py',
-              }
-          ]
+          'hooks': [{'id': 'pyflakes', 'files': '\.py$'}],
         }],
         True,
     ),
     (
         [{
-          'repo': 'git@github.com:pre-commit/pre-commit-hooks',
-          'sha': 'cd74dc150c142c3be70b24eaf0b02cae9d235f37',
-          'hooks': [
-              {
-                  'id': 'pyflakes',
-                  'files': '*.py',
-                  'args': ['foo', 'bar', 'baz'],
-              }
-          ]
+            'repo': 'git@github.com:pre-commit/pre-commit-hooks',
+            'sha': 'cd74dc150c142c3be70b24eaf0b02cae9d235f37',
+            'hooks': [
+                {
+                    'id': 'pyflakes',
+                    'files': '\.py$',
+                    'args': ['foo', 'bar', 'baz'],
+                },
+            ],
         }],
         True,
+    ),
+    (
+        [{
+            'repo': 'git@github.com:pre-commit/pre-commit-hooks',
+            'sha': 'cd74dc150c142c3be70b24eaf0b02cae9d235f37',
+            'hooks': [
+                {
+                    'id': 'pyflakes',
+                    'files': '\.py$',
+                    # Exclude pattern must be a string
+                    'exclude': 0,
+                    'args': ['foo', 'bar', 'baz'],
+                },
+            ],
+        }],
+        False,
     ),
 ))
 def test_is_valid_according_to_schema(manifest_obj, expected):
@@ -67,12 +78,28 @@ def test_is_valid_according_to_schema(manifest_obj, expected):
 def test_config_with_failing_regexes_fails():
     with pytest.raises(InvalidConfigError):
         # Note the regex '(' is invalid (unbalanced parens)
-        validate_config_extra(
-            [{'repo': 'foo', 'hooks': [{'id': 'hook_id', 'files': '('}]}]
-        )
+        validate_config_extra([{
+            'repo': 'foo', 'hooks': [{'id': 'hook_id', 'files': '('}]
+        }])
 
 
 def test_config_with_ok_regexes_passes():
-    validate_config_extra(
-        [{'repo': 'foo', 'hooks': [{'id': 'hook_id', 'files': '\.py$'}]}]
-    )
+    validate_config_extra([{
+        'repo': 'foo', 'hooks': [{'id': 'hook_id', 'files': '\.py$'}],
+    }])
+
+
+def test_config_with_invalid_exclude_regex_fails():
+    with pytest.raises(InvalidConfigError):
+        # NOte the regex '(' is invalid (unbalanced parens)
+        validate_config_extra([{
+            'repo': 'foo',
+            'hooks': [{'id': 'hook_id', 'files': '', 'exclude': '('}],
+        }])
+
+
+def test_config_with_ok_exclude_regex_passes():
+    validate_config_extra([{
+        'repo': 'foo',
+        'hooks': [{'id': 'hook_id', 'files': '', 'exclude': '^vendor/'}],
+    }])
