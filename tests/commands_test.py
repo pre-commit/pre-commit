@@ -1,5 +1,4 @@
 
-import jsonschema
 import os
 import os.path
 import pkg_resources
@@ -18,6 +17,7 @@ from pre_commit.commands import install
 from pre_commit.commands import RepositoryCannotBeUpdatedError
 from pre_commit.commands import uninstall
 from pre_commit.commands import _update_repository
+from pre_commit.jsonschema_extensions import apply_defaults
 from pre_commit.ordereddict import OrderedDict
 from pre_commit.runner import Runner
 from pre_commit.yaml_extensions import ordered_dump
@@ -60,8 +60,9 @@ def up_to_date_repo(python_hooks_repo):
         ('sha', git.get_head_sha(python_hooks_repo)),
         ('hooks', [OrderedDict((('id', 'foo'), ('files', '')))]),
     ))
-    jsonschema.validate([config], CONFIG_JSON_SCHEMA)
-    validate_config_extra([config])
+    wrapped_config = apply_defaults([config], CONFIG_JSON_SCHEMA)
+    validate_config_extra(wrapped_config)
+    config = wrapped_config[0]
 
     with open(os.path.join(python_hooks_repo, C.CONFIG_FILE), 'w') as file_obj:
         file_obj.write(
@@ -96,8 +97,9 @@ def out_of_date_repo(python_hooks_repo):
         ('sha', git.get_head_sha(python_hooks_repo)),
         ('hooks', [OrderedDict((('id', 'foo'), ('files', '')))]),
     ))
-    jsonschema.validate([config], CONFIG_JSON_SCHEMA)
-    validate_config_extra([config])
+    config_wrapped = apply_defaults([config], CONFIG_JSON_SCHEMA)
+    validate_config_extra(config_wrapped)
+    config = config_wrapped[0]
     local['git']['commit', '--allow-empty', '-m', 'foo']()
     head_sha = git.get_head_sha(python_hooks_repo)
 
@@ -135,8 +137,9 @@ def hook_disappearing_repo(python_hooks_repo):
         ('sha', git.get_head_sha(python_hooks_repo)),
         ('hooks', [OrderedDict((('id', 'foo'), ('files', '')))]),
     ))
-    jsonschema.validate([config], CONFIG_JSON_SCHEMA)
-    validate_config_extra([config])
+    config_wrapped = apply_defaults([config], CONFIG_JSON_SCHEMA)
+    validate_config_extra(config_wrapped)
+    config = config_wrapped[0]
     shutil.copy(get_resource_path('manifest_without_foo.yaml'), C.MANIFEST_FILE)
     local['git']['add', '.']()
     local['git']['commit', '-m', 'Remove foo']()

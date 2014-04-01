@@ -35,10 +35,10 @@ def _run_single_hook(runner, repository, hook_id, all_files=False):
     retcode, stdout, stderr = repository.run_hook(
         runner.cmd_runner,
         hook_id,
-        get_filenames(hook['files']),
+        get_filenames(hook['files'], hook['exclude']),
     )
 
-    if retcode != repository.hooks[hook_id].get('expected_return_value', 0):
+    if retcode != repository.hooks[hook_id]['expected_return_value']:
         output = '\n'.join([stdout, stderr]).strip()
         retcode = 1
         color = RED

@@ -2,7 +2,7 @@
 
 def run_hook(env, hook, file_args):
     return env.run(
-        ' '.join(['xargs', hook['entry']] + hook.get('args', [])),
+        ' '.join(['xargs', hook['entry']] + hook['args']),
         stdin='\n'.join(list(file_args) + ['']),
         retcode=None,
     )

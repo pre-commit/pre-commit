@@ -20,10 +20,10 @@ MANIFEST_JSON_SCHEMA = {
         'properties': {
             'id': {'type': 'string'},
             'name': {'type': 'string'},
-            'description': {'type': 'string'},
+            'description': {'type': 'string', 'default': ''},
             'entry': {'type': 'string'},
             'language': {'type': 'string'},
-            'expected_return_value': {'type': 'number'},
+            'expected_return_value': {'type': 'number', 'default': 0},
         },
         'required': ['id', 'name', 'entry', 'language'],
     },
@@ -32,11 +32,9 @@ MANIFEST_JSON_SCHEMA = {
 
 def additional_manifest_check(obj):
     for hook_config in obj:
-        language = hook_config.get('language')
+        language = hook_config['language']
 
-        if language is not None and not any(
-            language.startswith(lang) for lang in all_languages
-        ):
+        if not any(language.startswith(lang) for lang in all_languages):
             raise InvalidManifestError(
                 'Expected language {0} for {1} to start with one of {2!r}'.format(
                     hook_config['id'],
