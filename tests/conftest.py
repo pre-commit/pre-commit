@@ -13,10 +13,15 @@ from testing.util import get_resource_path
 
 
 @pytest.yield_fixture
-def empty_git_dir(tmpdir):
+def in_tmpdir(tmpdir):
     with local.cwd(tmpdir.strpath):
-        local['git']['init']()
         yield tmpdir.strpath
+
+
+@pytest.yield_fixture
+def empty_git_dir(in_tmpdir):
+    local['git']['init']()
+    yield in_tmpdir
 
 
 def add_and_commit():

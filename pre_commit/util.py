@@ -1,6 +1,9 @@
 
+import contextlib
 import functools
 import os
+import os.path
+import shutil
 import sys
 
 
@@ -49,3 +52,14 @@ def entry(func):
             argv = sys.argv[1:]
         return func(argv)
     return wrapper
+
+
+@contextlib.contextmanager
+def clean_path_on_failure(path):
+    """Cleans up the directory on an exceptional failure."""
+    try:
+        yield
+    except BaseException:
+        if os.path.exists(path):
+            shutil.rmtree(path)
+        raise

@@ -3,7 +3,6 @@ import os
 import mock
 import pytest
 import subprocess
-from plumbum import local
 
 from pre_commit.prefixed_command_runner import _replace_cmd
 from pre_commit.prefixed_command_runner import CalledProcessError
@@ -110,23 +109,20 @@ def test_from_command_runner_preserves_popen(popen_mock, makedirs_mock):
     makedirs_mock.assert_called_once_with('foo/bar/')
 
 
-def test_create_path_if_not_exists(tmpdir):
-    with local.cwd(tmpdir.strpath):
-        instance = PrefixedCommandRunner('foo')
-        assert not os.path.exists('foo')
-        instance._create_path_if_not_exists()
-        assert os.path.exists('foo')
+def test_create_path_if_not_exists(in_tmpdir):
+    instance = PrefixedCommandRunner('foo')
+    assert not os.path.exists('foo')
+    instance._create_path_if_not_exists()
+    assert os.path.exists('foo')
 
 
-def test_exists_does_not_exist(tmpdir):
-    with local.cwd(tmpdir.strpath):
-        assert not PrefixedCommandRunner('.').exists('foo')
+def test_exists_does_not_exist(in_tmpdir):
+    assert not PrefixedCommandRunner('.').exists('foo')
 
 
-def test_exists_does_exist(tmpdir):
-    with local.cwd(tmpdir.strpath):
-        os.mkdir('foo')
-        assert PrefixedCommandRunner('.').exists('foo')
+def test_exists_does_exist(in_tmpdir):
+    os.mkdir('foo')
+    assert PrefixedCommandRunner('.').exists('foo')
 
 
 def test_raises_on_error(popen_mock, makedirs_mock):

@@ -2,6 +2,7 @@
 import contextlib
 
 from pre_commit.languages import helpers
+from pre_commit.util import clean_path_on_failure
 
 
 RVM_ENV = 'rvm_env'
@@ -23,9 +24,10 @@ def install_environment(repo_cmd_runner):
     if repo_cmd_runner.exists(RVM_ENV):
         return
 
-    repo_cmd_runner.run(['__rvm-env.sh', '{{prefix}}{0}'.format(RVM_ENV)])
-    with in_env(repo_cmd_runner) as env:
-        env.run('cd {prefix} && bundle install')
+    with clean_path_on_failure(repo_cmd_runner.path(RVM_ENV)):
+        repo_cmd_runner.run(['__rvm-env.sh', '{{prefix}}{0}'.format(RVM_ENV)])
+        with in_env(repo_cmd_runner) as env:
+            env.run('cd {prefix} && bundle install')
 
 
 def run_hook(repo_cmd_runner, hook, file_args):

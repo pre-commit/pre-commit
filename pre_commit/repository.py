@@ -9,6 +9,7 @@ from pre_commit.languages.all import languages
 from pre_commit.ordereddict import OrderedDict
 from pre_commit.prefixed_command_runner import PrefixedCommandRunner
 from pre_commit.util import cached_property
+from pre_commit.util import clean_path_on_failure
 
 
 class Repository(object):
@@ -62,9 +63,10 @@ class Repository(object):
                 # Project already exists, no reason to re-create it
                 return
 
-            local['git']['clone', '--no-checkout', self.repo_url, self.sha]()
-            with self.in_checkout():
-                local['git']['checkout', self.sha]()
+            with clean_path_on_failure(unicode(local.path(self.sha))):
+                local['git']['clone', '--no-checkout', self.repo_url, self.sha]()
+                with self.in_checkout():
+                    local['git']['checkout', self.sha]()
 
     def require_installed(self, cmd_runner):
         if self.__installed:

@@ -2,6 +2,7 @@
 import contextlib
 
 from pre_commit.languages import helpers
+from pre_commit.util import clean_path_on_failure
 
 
 PY_ENV = 'py_env'
@@ -25,9 +26,10 @@ def install_environment(repo_cmd_runner):
         return
 
     # Install a virtualenv
-    repo_cmd_runner.run(['virtualenv', '{{prefix}}{0}'.format(PY_ENV)])
-    with in_env(repo_cmd_runner) as env:
-        env.run('cd {prefix} && pip install .')
+    with clean_path_on_failure(repo_cmd_runner.path(PY_ENV)):
+        repo_cmd_runner.run(['virtualenv', '{{prefix}}{0}'.format(PY_ENV)])
+        with in_env(repo_cmd_runner) as env:
+            env.run('cd {prefix} && pip install .')
 
 
 def run_hook(repo_cmd_runner, hook, file_args):
