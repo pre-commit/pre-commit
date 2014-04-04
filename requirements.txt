@@ -2,6 +2,8 @@
 
 # Testing requirements
 coverage
+# Fuck you ipython
+ipython<2.0.0
 ipdb
 mock
 pyflakes

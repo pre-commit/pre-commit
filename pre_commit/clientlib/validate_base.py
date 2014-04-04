@@ -1,10 +1,14 @@
 
+from __future__ import print_function
+
+import argparse
 import jsonschema
 import jsonschema.exceptions
 import os.path
 import yaml
 
 from pre_commit.jsonschema_extensions import apply_defaults
+from pre_commit.util import entry
 
 
 def get_validator(
@@ -48,3 +52,25 @@ def get_validator(
         return obj
 
     return validate
+
+
+def get_run_function(filenames_help, validate_strategy, exception_cls):
+    @entry
+    def run(argv):
+        parser = argparse.ArgumentParser()
+        parser.add_argument('filenames', nargs='*', help=filenames_help)
+        args = parser.parse_args(argv)
+
+        retval = 0
+        for filename in args.filenames:
+            try:
+                validate_strategy(filename)
+            except exception_cls as e:
+                print(e.args[0])
+                # If there was an inner exception, print the stringified
+                # version of that.
+                if len(e.args) > 1:
+                    print(str(e.args[1]))
+                retval = 1
+        return retval
+    return run

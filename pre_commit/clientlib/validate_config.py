@@ -1,12 +1,9 @@
 
-from __future__ import print_function
-
-import argparse
 import re
 import sys
 
+from pre_commit.clientlib.validate_base import get_run_function
 from pre_commit.clientlib.validate_base import get_validator
-from pre_commit.util import entry
 
 
 class InvalidConfigError(ValueError): pass
@@ -69,24 +66,7 @@ load_config = get_validator(
 )
 
 
-@entry
-def run(argv):
-    parser = argparse.ArgumentParser()
-    parser.add_argument('filenames', nargs='*', help='Config filenames.')
-    args = parser.parse_args(argv)
-
-    retval = 0
-    for filename in args.filenames:
-        try:
-            load_config(filename)
-        except InvalidConfigError as e:
-            print(e.args[0])
-            # If we have more than one exception argument print the stringified
-            # version
-            if len(e.args) > 1:
-                print(str(e.args[1]))
-            retval = 1
-    return retval
+run = get_run_function('Config filenames.', load_config, InvalidConfigError)
 
 
 if __name__ == '__main__':
