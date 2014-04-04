@@ -9,3 +9,4 @@ from pre_commit.languages.all import languages
 def test_all_languages_support_interface(language):
     assert hasattr(languages[language], 'install_environment')
     assert hasattr(languages[language], 'run_hook')
+    assert hasattr(languages[language], 'ENVIRONMENT_DIR')

@@ -1,4 +1,6 @@
 
+from __future__ import print_function
+
 import contextlib
 from plumbum import local
 
@@ -63,6 +65,10 @@ class Repository(object):
                 # Project already exists, no reason to re-create it
                 return
 
+            # Checking out environment for the first time
+            print('Installing environment for {0}.'.format(self.repo_url))
+            print('Once installed this environment will be reused.')
+            print('This may take a few minutes...')
             with clean_path_on_failure(unicode(local.path(self.sha))):
                 local['git']['clone', '--no-checkout', self.repo_url, self.sha]()
                 with self.in_checkout():
@@ -73,6 +79,7 @@ class Repository(object):
             return
 
         self.install(cmd_runner)
+        self.__installed = True
 
     def install(self, cmd_runner):
         """Install the hook repository.
@@ -82,8 +89,15 @@ class Repository(object):
         """
         self.require_created()
         repo_cmd_runner = self.get_cmd_runner(cmd_runner)
-        for language in self.languages:
-            languages[language].install_environment(repo_cmd_runner)
+        for language_name in self.languages:
+            language = languages[language_name]
+            if (
+                language.ENVIRONMENT_DIR is None or
+                repo_cmd_runner.exists(language.ENVIRONMENT_DIR)
+            ):
+                # The language is already installed
+                continue
+            language.install_environment(repo_cmd_runner)
 
     @contextlib.contextmanager
     def in_checkout(self):

@@ -1,7 +1,9 @@
 
+ENVIRONMENT_DIR = None
+
+
 def install_environment(repo_cmd_runner):
     """Installation for script type is a noop."""
-    pass
 
 
 def run_hook(repo_cmd_runner, hook, file_args):

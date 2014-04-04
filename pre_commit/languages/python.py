@@ -5,13 +5,13 @@ from pre_commit.languages import helpers
 from pre_commit.util import clean_path_on_failure
 
 
-PY_ENV = 'py_env'
+ENVIRONMENT_DIR = 'py_env'
 
 
 class PythonEnv(helpers.Environment):
     @property
     def env_prefix(self):
-        return '. {{prefix}}{0}/bin/activate &&'.format(PY_ENV)
+        return '. {{prefix}}{0}/bin/activate &&'.format(ENVIRONMENT_DIR)
 
 
 @contextlib.contextmanager
@@ -21,13 +21,10 @@ def in_env(repo_cmd_runner):
 
 def install_environment(repo_cmd_runner):
     assert repo_cmd_runner.exists('setup.py')
-    # Return immediately if we already have a virtualenv
-    if repo_cmd_runner.exists(PY_ENV):
-        return
 
     # Install a virtualenv
-    with clean_path_on_failure(repo_cmd_runner.path(PY_ENV)):
-        repo_cmd_runner.run(['virtualenv', '{{prefix}}{0}'.format(PY_ENV)])
+    with clean_path_on_failure(repo_cmd_runner.path(ENVIRONMENT_DIR)):
+        repo_cmd_runner.run(['virtualenv', '{{prefix}}{0}'.format(ENVIRONMENT_DIR)])
         with in_env(repo_cmd_runner) as env:
             env.run('cd {prefix} && pip install .')
 

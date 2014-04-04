@@ -5,7 +5,10 @@ from pre_commit.languages import ruby
 from pre_commit.languages import script
 from pre_commit.languages import system
 
-# A language implements the following two functions in its module:
+# A language implements the following constant and two functions in its module:
+#
+# # Use None for no environment
+# ENVIRONMENT_DIR = 'foo_env'
 #
 # def install_environment(repo_cmd_runner):
 #     """Installs a repository in the given repository.  Note that the current
