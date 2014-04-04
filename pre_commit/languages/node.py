@@ -6,7 +6,7 @@ from pre_commit.prefixed_command_runner import CalledProcessError
 from pre_commit.util import clean_path_on_failure
 
 
-NODE_ENV = 'node_env'
+ENVIRONMENT_DIR = 'node_env'
 
 
 class NodeEnv(python.PythonEnv):
@@ -15,7 +15,7 @@ class NodeEnv(python.PythonEnv):
         base = super(NodeEnv, self).env_prefix
         return ' '.join([
             base,
-            '. {{prefix}}{0}/bin/activate &&'.format(NODE_ENV)]
+            '. {{prefix}}{0}/bin/activate &&'.format(ENVIRONMENT_DIR)]
         )
 
 
@@ -27,30 +27,26 @@ def in_env(repo_cmd_runner):
 def install_environment(repo_cmd_runner):
     assert repo_cmd_runner.exists('package.json')
 
-    # Return immediately if we already have a virtualenv
-    if repo_cmd_runner.exists(NODE_ENV):
-        return
-
-    with clean_path_on_failure(repo_cmd_runner.path(python.PY_ENV)):
+    with clean_path_on_failure(repo_cmd_runner.path(python.ENVIRONMENT_DIR)):
         repo_cmd_runner.run(
-            ['virtualenv', '{{prefix}}{0}'.format(python.PY_ENV)],
+            ['virtualenv', '{{prefix}}{0}'.format(python.ENVIRONMENT_DIR)],
         )
 
         with python.in_env(repo_cmd_runner) as python_env:
             python_env.run('pip install nodeenv')
 
-            with clean_path_on_failure(repo_cmd_runner.path(NODE_ENV)):
+            with clean_path_on_failure(repo_cmd_runner.path(ENVIRONMENT_DIR)):
                 # Try and use the system level node executable first
                 try:
                     python_env.run(
-                        'nodeenv -n system {{prefix}}{0}'.format(NODE_ENV),
+                        'nodeenv -n system {{prefix}}{0}'.format(ENVIRONMENT_DIR),
                     )
                 except CalledProcessError:
                     # TODO: log failure here
                     # cleanup
-                    # TODO: local.path(NODE_ENV).delete()
+                    # TODO: local.path(ENVIRONMENT_DIR).delete()
                     python_env.run(
-                        'nodeenv --jobs 4 {{prefix}}{0}'.format(NODE_ENV),
+                        'nodeenv --jobs 4 {{prefix}}{0}'.format(ENVIRONMENT_DIR),
                     )
 
                 with in_env(repo_cmd_runner) as node_env:

@@ -1,3 +1,5 @@
+import __builtin__
+import mock
 import os
 import pytest
 
@@ -130,3 +132,35 @@ def test_sha(mock_repo_config):
 def test_languages(config_for_python_hooks_repo):
     repo = Repository(config_for_python_hooks_repo)
     assert repo.languages == set(['python'])
+
+
+@pytest.yield_fixture
+def print_mock():
+    with mock.patch.object(__builtin__, 'print', autospec=True) as print_mock:
+        yield print_mock
+
+
+def test_prints_while_creating(config_for_python_hooks_repo, print_mock):
+    repo = Repository(config_for_python_hooks_repo)
+    repo.require_created()
+    print_mock.assert_called_with('This may take a few minutes...')
+    print_mock.reset_mock()
+    # Reinstall with same repo should not trigger another install
+    repo.require_created()
+    assert print_mock.call_count == 0
+    # Reinstall on another run should not trigger another install
+    repo = Repository(config_for_python_hooks_repo)
+    repo.require_created()
+    assert print_mock.call_count == 0
+
+
+def test_reinstall(config_for_python_hooks_repo):
+    repo = Repository(config_for_python_hooks_repo)
+    repo.require_installed(PrefixedCommandRunner(C.HOOKS_WORKSPACE))
+    # Reinstall with same repo should not trigger another install
+    # TODO: how to assert this?
+    repo.require_installed(PrefixedCommandRunner(C.HOOKS_WORKSPACE))
+    # Reinstall on another run should not trigger another install
+    # TODO: how to assert this?
+    repo = Repository(config_for_python_hooks_repo)
+    repo.require_installed(PrefixedCommandRunner(C.HOOKS_WORKSPACE))
