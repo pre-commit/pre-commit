@@ -1,11 +1,14 @@
 
 import mock
 import pytest
+import os
+import os.path
 import random
 import sys
 from plumbum import local
 
 from pre_commit.util import cached_property
+from pre_commit.util import clean_path_on_failure
 from pre_commit.util import entry
 from pre_commit.util import memoize_by_cwd
 
@@ -84,3 +87,35 @@ def test_no_arguments_passed_uses_argv(entry_func):
     with mock.patch.object(sys, 'argv', argv):
         ret = entry_func()
         assert ret == argv[1:]
+
+
+def test_clean_on_failure_noop(in_tmpdir):
+    with clean_path_on_failure('foo'): pass
+
+
+def test_clean_path_on_failure_does_nothing_when_not_raising(in_tmpdir):
+    with clean_path_on_failure('foo'):
+        os.mkdir('foo')
+    assert os.path.exists('foo')
+
+
+def test_clean_path_on_failure_cleans_for_normal_exception(in_tmpdir):
+    class MyException(Exception): pass
+
+    with pytest.raises(MyException):
+        with clean_path_on_failure('foo'):
+            os.mkdir('foo')
+            raise MyException
+
+    assert not os.path.exists('foo')
+
+
+def test_clean_path_on_failure_cleans_for_system_exit(in_tmpdir):
+    class MySystemExit(SystemExit): pass
+
+    with pytest.raises(MySystemExit):
+        with clean_path_on_failure('foo'):
+            os.mkdir('foo')
+            raise MySystemExit
+
+    assert not os.path.exists('foo')

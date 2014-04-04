@@ -3,6 +3,7 @@ import contextlib
 from pre_commit.languages import helpers
 from pre_commit.languages import python
 from pre_commit.prefixed_command_runner import CalledProcessError
+from pre_commit.util import clean_path_on_failure
 
 
 NODE_ENV = 'node_env'
@@ -30,22 +31,30 @@ def install_environment(repo_cmd_runner):
     if repo_cmd_runner.exists(NODE_ENV):
         return
 
-    repo_cmd_runner.run(['virtualenv', '{{prefix}}{0}'.format(python.PY_ENV)])
+    with clean_path_on_failure(repo_cmd_runner.path(python.PY_ENV)):
+        repo_cmd_runner.run(
+            ['virtualenv', '{{prefix}}{0}'.format(python.PY_ENV)],
+        )
 
-    with python.in_env(repo_cmd_runner) as python_env:
-        python_env.run('pip install nodeenv')
+        with python.in_env(repo_cmd_runner) as python_env:
+            python_env.run('pip install nodeenv')
 
-        # Try and use the system level node executable first
-        try:
-            python_env.run('nodeenv -n system {{prefix}}{0}'.format(NODE_ENV))
-        except CalledProcessError:
-            # TODO: log failure here
-            # cleanup
-            # TODO: local.path(NODE_ENV).delete()
-            python_env.run('nodeenv --jobs 4 {{prefix}}{0}'.format(NODE_ENV))
+            with clean_path_on_failure(repo_cmd_runner.path(NODE_ENV)):
+                # Try and use the system level node executable first
+                try:
+                    python_env.run(
+                        'nodeenv -n system {{prefix}}{0}'.format(NODE_ENV),
+                    )
+                except CalledProcessError:
+                    # TODO: log failure here
+                    # cleanup
+                    # TODO: local.path(NODE_ENV).delete()
+                    python_env.run(
+                        'nodeenv --jobs 4 {{prefix}}{0}'.format(NODE_ENV),
+                    )
 
-        with in_env(repo_cmd_runner) as node_env:
-            node_env.run('cd {prefix} && npm install -g')
+                with in_env(repo_cmd_runner) as node_env:
+                    node_env.run('cd {prefix} && npm install -g')
 
 
 def run_hook(repo_cmd_runner, hook, file_args):
