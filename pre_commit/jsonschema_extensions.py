@@ -5,30 +5,55 @@ import jsonschema.validators
 
 
 # From https://github.com/Julian/jsonschema/blob/master/docs/faq.rst
-def extend_with_default(validator_class):
-    validate_properties = validator_class.VALIDATORS["properties"]
+def extend_validator_cls(validator_cls, modify):
+    validate_properties = validator_cls.VALIDATORS['properties']
 
-    def set_defaults(validator, properties, instance, schema):
+    def new_properties(validator, properties, instance, schema):
         for error in validate_properties(
             validator, properties, instance, schema,
         ):
             yield error
 
-        for property, subschema in properties.iteritems():
-            if "default" in subschema:
-                instance.setdefault(
-                    property, copy.deepcopy(subschema["default"]),
-                )
+        modify(properties, instance)
 
     return jsonschema.validators.extend(
-        validator_class, {"properties" : set_defaults},
+        validator_cls, {'properties': new_properties},
     )
 
 
-DefaultingValidator = extend_with_default(jsonschema.Draft4Validator)
+
+def default_values(properties, instance):
+    for property, subschema in properties.iteritems():
+        if 'default' in subschema:
+            instance.setdefault(
+                property, copy.deepcopy(subschema['default']),
+            )
+
+
+def remove_default_values(properties, instance):
+    for property, subschema in properties.iteritems():
+        if (
+            'default' in subschema and
+            instance.get(property) == subschema['default']
+        ):
+            del instance[property]
+
+
+_AddDefaultsValidator = extend_validator_cls(
+    jsonschema.Draft4Validator, default_values,
+)
+_RemoveDefaultsValidator = extend_validator_cls(
+    jsonschema.Draft4Validator, remove_default_values,
+)
 
 
 def apply_defaults(obj, schema):
     obj = copy.deepcopy(obj)
-    DefaultingValidator(schema).validate(obj)
+    _AddDefaultsValidator(schema).validate(obj)
+    return obj
+
+
+def remove_defaults(obj, schema):
+    obj = copy.deepcopy(obj)
+    _RemoveDefaultsValidator(schema).validate(obj)
     return obj

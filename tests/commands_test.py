@@ -120,6 +120,12 @@ def test_out_of_date_repo(out_of_date_repo):
     assert ret['sha'] == out_of_date_repo.head_sha
 
 
+def test_removes_defaults(out_of_date_repo):
+    ret = _update_repository(out_of_date_repo.repo_config)
+    assert 'args' not in ret['hooks'][0]
+    assert 'expected_return_value' not in ret['hooks'][0]
+
+
 def test_autoupdate_out_of_date_repo(out_of_date_repo):
     before = open(C.CONFIG_FILE).read()
     runner = Runner(out_of_date_repo.python_hooks_repo)

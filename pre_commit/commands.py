@@ -8,7 +8,9 @@ import stat
 from plumbum import local
 
 import pre_commit.constants as C
+from pre_commit.clientlib.validate_config import CONFIG_JSON_SCHEMA
 from pre_commit.clientlib.validate_config import load_config
+from pre_commit.jsonschema_extensions import remove_defaults
 from pre_commit.ordereddict import OrderedDict
 from pre_commit.repository import Repository
 from pre_commit.yaml_extensions import ordered_dump
@@ -75,7 +77,7 @@ def _update_repository(repo_config):
             '{0}'.format(', '.join(sorted(hooks_missing)))
         )
 
-    return new_config
+    return remove_defaults([new_config], CONFIG_JSON_SCHEMA)[0]
 
 
 def autoupdate(runner):
