@@ -16,7 +16,9 @@ def extend_with_default(validator_class):
 
         for property, subschema in properties.iteritems():
             if "default" in subschema:
-                instance.setdefault(property, subschema["default"])
+                instance.setdefault(
+                    property, copy.deepcopy(subschema["default"]),
+                )
 
     return jsonschema.validators.extend(
         validator_class, {"properties" : set_defaults},

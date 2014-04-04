@@ -49,3 +49,10 @@ def test_apply_defaults_deep():
         },
     )
     assert ret == {'foo': {'bar': {'baz': 'herp'}}}
+
+
+def test_apply_defaults_copies():
+    schema = {'properties': {'foo': {'default': []}}}
+    ret1 = apply_defaults({}, schema)
+    ret2 = apply_defaults({}, schema)
+    assert ret1['foo'] is not ret2['foo']
