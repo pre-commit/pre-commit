@@ -39,7 +39,7 @@ def test_raises_for_non_existent_file(noop_validator):
 
 def test_raises_for_invalid_yaml_file(noop_validator):
     with pytest.raises(ValueError):
-        noop_validator(get_resource_path('non_parseable_yaml_file.yaml'))
+        noop_validator(get_resource_path('non_parseable_yaml_file.notyaml'))
 
 
 def test_raises_for_failing_schema(array_validator):
