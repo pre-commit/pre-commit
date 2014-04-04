@@ -17,7 +17,7 @@ COLS = int(subprocess.Popen(['tput', 'cols'], stdout=subprocess.PIPE).communicat
 PASS_FAIL_LENGTH = 6
 
 
-def _run_single_hook(runner, repository, hook_id, all_files=False):
+def _run_single_hook(runner, repository, hook_id, all_files=False, verbose=False):
     if all_files:
         get_filenames = git.get_all_files_matching
     else:
@@ -38,13 +38,12 @@ def _run_single_hook(runner, repository, hook_id, all_files=False):
         get_filenames(hook['files'], hook['exclude']),
     )
 
+    output = '\n'.join([stdout, stderr]).strip()
     if retcode != repository.hooks[hook_id]['expected_return_value']:
-        output = '\n'.join([stdout, stderr]).strip()
         retcode = 1
         color = RED
         pass_fail = 'Failed'
     else:
-        output = ''
         retcode = 0
         color = GREEN
         pass_fail = 'Passed'
@@ -52,7 +51,7 @@ def _run_single_hook(runner, repository, hook_id, all_files=False):
 
     print '{0}{1}{2}'.format(color, pass_fail, NORMAL)
 
-    if output:
+    if output and (retcode or verbose):
         print
         print output
         print
@@ -60,7 +59,7 @@ def _run_single_hook(runner, repository, hook_id, all_files=False):
     return retcode
 
 
-def run_hooks(runner, all_files=False):
+def run_hooks(runner, all_files=False, verbose=False):
     """Actually run the hooks."""
     retval = 0
 
@@ -71,12 +70,13 @@ def run_hooks(runner, all_files=False):
                 repo,
                 hook_id,
                 all_files=all_files,
+                verbose=verbose,
             )
 
     return retval
 
 
-def run_single_hook(runner, hook_id, all_files=False):
+def run_single_hook(runner, hook_id, all_files=False, verbose=False):
     for repo in runner.repositories:
         if hook_id in repo.hooks:
             return _run_single_hook(
@@ -84,6 +84,7 @@ def run_single_hook(runner, hook_id, all_files=False):
                 repo,
                 hook_id,
                 all_files=all_files,
+                verbose=verbose,
             )
     else:
         print 'No hook with id {0}'.format(hook_id)
@@ -110,6 +111,7 @@ def run(argv):
         '--all-files', '-a', action='store_true', default=False,
         help='Run on all the files in the repo.',
     )
+    run.add_argument('--verbose', '-v', action='store_true', default=False)
 
     help = subparsers.add_parser('help', help='Show help for a specific command.')
     help.add_argument('help_cmd', nargs='?', help='Command to show help for.')
@@ -131,9 +133,16 @@ def run(argv):
         return commands.autoupdate(runner)
     elif args.command == 'run':
         if args.hook:
-            return run_single_hook(runner, args.hook, all_files=args.all_files)
+            return run_single_hook(
+                runner,
+                args.hook,
+                all_files=args.all_files,
+                verbose=args.verbose,
+            )
         else:
-            return run_hooks(runner, all_files=args.all_files)
+            return run_hooks(
+                runner, all_files=args.all_files, verbose=args.verbose,
+            )
     elif args.command == 'help':
         if args.help_cmd:
             parser.parse_args([args.help_cmd, '--help'])
