@@ -19,8 +19,8 @@ COLS = int(subprocess.Popen(['tput', 'cols'], stdout=subprocess.PIPE).communicat
 PASS_FAIL_LENGTH = 6
 
 
-def _run_single_hook(runner, repository, hook_id, all_files=False, verbose=False):
-    if all_files:
+def _run_single_hook(runner, repository, hook_id, args):
+    if args.all_files:
         get_filenames = git.get_all_files_matching
     else:
         get_filenames = git.get_staged_files_matching
@@ -56,42 +56,37 @@ def _run_single_hook(runner, repository, hook_id, all_files=False, verbose=False
 
     print('{0}{1}{2}'.format(color, pass_fail, NORMAL))
 
-    if output and (retcode or verbose):
+    if output and (retcode or args.verbose):
         print('\n' + output)
 
     return retcode
 
 
-def run_hooks(runner, all_files=False, verbose=False):
+def run_hooks(runner, args):
     """Actually run the hooks."""
     retval = 0
 
     for repo in runner.repositories:
         for hook_id in repo.hooks:
-            retval |= _run_single_hook(
-                runner,
-                repo,
-                hook_id,
-                all_files=all_files,
-                verbose=verbose,
-            )
+            retval |= _run_single_hook(runner, repo, hook_id, args)
 
     return retval
 
 
-def run_single_hook(runner, hook_id, all_files=False, verbose=False):
+def run_single_hook(runner, hook_id, args):
     for repo in runner.repositories:
         if hook_id in repo.hooks:
-            return _run_single_hook(
-                runner,
-                repo,
-                hook_id,
-                all_files=all_files,
-                verbose=verbose,
-            )
+            return _run_single_hook(runner, repo, hook_id, args)
     else:
         print('No hook with id `{0}`'.format(hook_id))
         return 1
+
+
+def _run(runner, args):
+    if args.hook:
+        return run_single_hook(runner, args.hook, args)
+    else:
+        return run_hooks(runner, args)
 
 
 @entry
@@ -135,17 +130,7 @@ def run(argv):
     elif args.command == 'autoupdate':
         return commands.autoupdate(runner)
     elif args.command == 'run':
-        if args.hook:
-            return run_single_hook(
-                runner,
-                args.hook,
-                all_files=args.all_files,
-                verbose=args.verbose,
-            )
-        else:
-            return run_hooks(
-                runner, all_files=args.all_files, verbose=args.verbose,
-            )
+        return _run(runner, args)
     elif args.command == 'help':
         if args.help_cmd:
             parser.parse_args([args.help_cmd, '--help'])
