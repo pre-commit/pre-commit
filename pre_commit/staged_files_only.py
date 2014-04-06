@@ -45,7 +45,6 @@ def staged_files_only(cmd_runner):
                     'Stashed changes conflicted with hook auto-fixes... '
                     'Rolling back fixes...'
                 )
-                # TOOD: print a warning about rolling back changes made by hooks
                 # We failed to apply the patch, presumably due to fixes made
                 # by hooks.
                 # Roll back the changes made by hooks.
