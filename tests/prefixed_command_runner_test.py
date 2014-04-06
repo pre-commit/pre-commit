@@ -9,6 +9,16 @@ from pre_commit.prefixed_command_runner import CalledProcessError
 from pre_commit.prefixed_command_runner import PrefixedCommandRunner
 
 
+def test_CalledProcessError_str():
+    error = CalledProcessError(1, ['git', 'status'], 0, ('stdout', 'stderr'))
+    assert str(error) == (
+        "Command: ['git', 'status']\n"
+        "Return code: 1\n"
+        "Expected return code: 0\n"
+        "Output: ('stdout', 'stderr')\n"
+    )
+
+
 @pytest.fixture
 def popen_mock():
     popen = mock.Mock(spec=subprocess.Popen)
