@@ -1,4 +1,6 @@
 
+from __future__ import print_function
+
 import argparse
 import subprocess
 import sys
@@ -27,10 +29,13 @@ def _run_single_hook(runner, repository, hook_id, all_files=False, verbose=False
 
     # Print the hook and the dots first in case the hook takes hella long to
     # run.
-    print '{0}{1}'.format(
-        hook['name'],
-        '.' * (COLS - len(hook['name']) - PASS_FAIL_LENGTH - 6),
-    ),
+    print(
+        '{0}{1}'.format(
+            hook['name'],
+            '.' * (COLS - len(hook['name']) - PASS_FAIL_LENGTH - 6),
+        ),
+        end='',
+    )
 
     retcode, stdout, stderr = repository.run_hook(
         runner.cmd_runner,
@@ -49,12 +54,10 @@ def _run_single_hook(runner, repository, hook_id, all_files=False, verbose=False
         pass_fail = 'Passed'
 
 
-    print '{0}{1}{2}'.format(color, pass_fail, NORMAL)
+    print('{0}{1}{2}'.format(color, pass_fail, NORMAL))
 
     if output and (retcode or verbose):
-        print
-        print output
-        print
+        print('\n' + output)
 
     return retcode
 
@@ -87,7 +90,7 @@ def run_single_hook(runner, hook_id, all_files=False, verbose=False):
                 verbose=verbose,
             )
     else:
-        print 'No hook with id {0}'.format(hook_id)
+        print('No hook with id `{0}`'.format(hook_id))
         return 1
 
 
