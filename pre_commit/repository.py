@@ -1,7 +1,6 @@
 
-from __future__ import print_function
-
 import contextlib
+import logging
 from plumbum import local
 
 import pre_commit.constants as C
@@ -12,6 +11,9 @@ from pre_commit.ordereddict import OrderedDict
 from pre_commit.prefixed_command_runner import PrefixedCommandRunner
 from pre_commit.util import cached_property
 from pre_commit.util import clean_path_on_failure
+
+
+logger = logging.getLogger('pre_commit')
 
 
 class Repository(object):
@@ -66,9 +68,9 @@ class Repository(object):
                 return
 
             # Checking out environment for the first time
-            print('Installing environment for {0}.'.format(self.repo_url))
-            print('Once installed this environment will be reused.')
-            print('This may take a few minutes...')
+            logger.info('Installing environment for {0}.'.format(self.repo_url))
+            logger.info('Once installed this environment will be reused.')
+            logger.info('This may take a few minutes...')
             with clean_path_on_failure(unicode(local.path(self.sha))):
                 local['git']['clone', '--no-checkout', self.repo_url, self.sha]()
                 with self.in_checkout():

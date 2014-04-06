@@ -2,15 +2,20 @@
 from __future__ import print_function
 
 import argparse
+import logging
 import subprocess
 import sys
 
 from pre_commit import color
 from pre_commit import commands
 from pre_commit import git
+from pre_commit.logging_handler import LoggingHandler
 from pre_commit.runner import Runner
+from pre_commit.staged_files_only import staged_files_only
 from pre_commit.util import entry
 
+
+logger = logging.getLogger('pre_commit')
 
 COLS = int(subprocess.Popen(['tput', 'cols'], stdout=subprocess.PIPE).communicate()[0])
 
@@ -81,10 +86,15 @@ def run_single_hook(runner, hook_id, args):
 
 
 def _run(runner, args):
-    if args.hook:
-        return run_single_hook(runner, args.hook, args)
-    else:
-        return run_hooks(runner, args)
+    # Set up our logging handler
+    logger.addHandler(LoggingHandler(args.color))
+    logger.setLevel(logging.INFO)
+
+    with staged_files_only(runner.cmd_runner):
+        if args.hook:
+            return run_single_hook(runner, args.hook, args)
+        else:
+            return run_hooks(runner, args)
 
 
 @entry
