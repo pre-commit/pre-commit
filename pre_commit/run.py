@@ -5,15 +5,13 @@ import argparse
 import subprocess
 import sys
 
+from pre_commit import color
 from pre_commit import commands
 from pre_commit import git
 from pre_commit.runner import Runner
 from pre_commit.util import entry
 
 
-RED = '\033[41m'
-GREEN = '\033[42m'
-NORMAL = '\033[0m'
 COLS = int(subprocess.Popen(['tput', 'cols'], stdout=subprocess.PIPE).communicate()[0])
 
 PASS_FAIL_LENGTH = 6
@@ -46,15 +44,15 @@ def _run_single_hook(runner, repository, hook_id, args):
     output = '\n'.join([stdout, stderr]).strip()
     if retcode != repository.hooks[hook_id]['expected_return_value']:
         retcode = 1
-        color = RED
+        print_color = color.RED
         pass_fail = 'Failed'
     else:
         retcode = 0
-        color = GREEN
+        print_color = color.GREEN
         pass_fail = 'Passed'
 
 
-    print('{0}{1}{2}'.format(color, pass_fail, NORMAL))
+    print(color.format_color(pass_fail, print_color, args.color))
 
     if output and (retcode or args.verbose):
         print('\n' + output)
@@ -110,6 +108,10 @@ def run(argv):
         help='Run on all the files in the repo.',
     )
     run.add_argument('--verbose', '-v', action='store_true', default=False)
+    run.add_argument(
+        '--color', default='auto', type=color.use_color,
+        help='Whether to use color in output.  Defaults to `auto`',
+    )
 
     help = subparsers.add_parser('help', help='Show help for a specific command.')
     help.add_argument('help_cmd', nargs='?', help='Command to show help for.')

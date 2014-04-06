@@ -6,6 +6,9 @@ GREEN = '\033[42m'
 NORMAL = '\033[0m'
 
 
+class InvalidColorSetting(ValueError): pass
+
+
 def format_color(text, color, use_color):
     """Format text with color.
 
@@ -26,6 +29,9 @@ def use_color(setting):
     Args:
         setting - Either `auto`, `always`, or `never`
     """
+    if setting not in ('auto', 'always', 'never'):
+        raise InvalidColorSetting(setting)
+
     return (
         setting == 'always' or
         (setting == 'auto' and sys.stdout.isatty())

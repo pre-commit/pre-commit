@@ -5,6 +5,7 @@ import sys
 
 from pre_commit.color import format_color
 from pre_commit.color import GREEN
+from pre_commit.color import InvalidColorSetting
 from pre_commit.color import use_color
 
 
@@ -33,3 +34,8 @@ def test_use_color_no_tty():
 def test_use_color_tty():
     with mock.patch.object(sys.stdout, 'isatty', return_value=True):
         assert use_color('auto') is True
+
+
+def test_use_color_raises_if_given_shenanigans():
+    with pytest.raises(InvalidColorSetting):
+        use_color('herpaderp')
