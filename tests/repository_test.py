@@ -1,10 +1,10 @@
-import __builtin__
 import mock
 import os
 import pytest
 
 import pre_commit.constants as C
 from pre_commit import git
+from pre_commit import repository
 from pre_commit.clientlib.validate_config import CONFIG_JSON_SCHEMA
 from pre_commit.clientlib.validate_config import validate_config_extra
 from pre_commit.jsonschema_extensions import apply_defaults
@@ -135,23 +135,25 @@ def test_languages(config_for_python_hooks_repo):
 
 
 @pytest.yield_fixture
-def print_mock():
-    with mock.patch.object(__builtin__, 'print', autospec=True) as print_mock:
-        yield print_mock
+def logger_mock():
+    with mock.patch.object(
+        repository.logger, 'info', autospec=True,
+    ) as info_mock:
+        yield info_mock
 
 
-def test_prints_while_creating(config_for_python_hooks_repo, print_mock):
+def test_prints_while_creating(config_for_python_hooks_repo, logger_mock):
     repo = Repository(config_for_python_hooks_repo)
     repo.require_created()
-    print_mock.assert_called_with('This may take a few minutes...')
-    print_mock.reset_mock()
+    logger_mock.assert_called_with('This may take a few minutes...')
+    logger_mock.reset_mock()
     # Reinstall with same repo should not trigger another install
     repo.require_created()
-    assert print_mock.call_count == 0
+    assert logger_mock.call_count == 0
     # Reinstall on another run should not trigger another install
     repo = Repository(config_for_python_hooks_repo)
     repo.require_created()
-    assert print_mock.call_count == 0
+    assert logger_mock.call_count == 0
 
 
 def test_reinstall(config_for_python_hooks_repo):
