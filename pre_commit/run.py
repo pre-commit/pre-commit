@@ -11,6 +11,7 @@ from pre_commit import commands
 from pre_commit import git
 from pre_commit.logging_handler import LoggingHandler
 from pre_commit.runner import Runner
+from pre_commit.staged_files_only import staged_files_only
 from pre_commit.util import entry
 
 
@@ -89,10 +90,11 @@ def _run(runner, args):
     logger.addHandler(LoggingHandler(args.color))
     logger.setLevel(logging.INFO)
 
-    if args.hook:
-        return run_single_hook(runner, args.hook, args)
-    else:
-        return run_hooks(runner, args)
+    with staged_files_only(runner.cmd_runner):
+        if args.hook:
+            return run_single_hook(runner, args.hook, args)
+        else:
+            return run_hooks(runner, args)
 
 
 @entry

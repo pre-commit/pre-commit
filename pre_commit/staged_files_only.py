@@ -1,8 +1,12 @@
 
 import contextlib
+import logging
 import time
 
 from pre_commit.prefixed_command_runner import CalledProcessError
+
+
+logger = logging.getLogger('pre_commit')
 
 
 @contextlib.contextmanager
@@ -19,10 +23,12 @@ def staged_files_only(cmd_runner):
         retcode=None,
     )
     if retcode:
-        # TODO: print a warning message that unstaged things are being stashed
+        patch_filename = cmd_runner.path('patch{0}'.format(int(time.time())))
+        logger.warning('Unstaged files detected.')
+        logger.info(
+            'Stashing unstaged files to {0}.'.format(patch_filename),
+        )
         # Save the current unstaged changes as a patch
-        # TODO: use a more unique patch filename
-        patch_filename = cmd_runner.path('patch{0}'.format(time.time()))
         with open(patch_filename, 'w') as patch_file:
             cmd_runner.run(['git', 'diff', '--binary'], stdout=patch_file)
 
@@ -35,12 +41,17 @@ def staged_files_only(cmd_runner):
             try:
                 cmd_runner.run(['git', 'apply', patch_filename])
             except CalledProcessError:
+                logger.warning(
+                    'Stashed changes conflicted with hook auto-fixes... '
+                    'Rolling back fixes...'
+                )
                 # TOOD: print a warning about rolling back changes made by hooks
                 # We failed to apply the patch, presumably due to fixes made
                 # by hooks.
                 # Roll back the changes made by hooks.
                 cmd_runner.run(['git', 'checkout', '--', '.'])
                 cmd_runner.run(['git', 'apply', patch_filename])
+            logger.info('Restored changes from {0}.'.format(patch_filename))
     else:
         # There weren't any staged files so we don't need to do anything
         # special
