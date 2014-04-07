@@ -38,13 +38,12 @@ def install_environment(repo_cmd_runner):
             with clean_path_on_failure(repo_cmd_runner.path(ENVIRONMENT_DIR)):
                 # Try and use the system level node executable first
                 try:
-                    python_env.run(
-                        'nodeenv -n system {{prefix}}{0}'.format(ENVIRONMENT_DIR),
-                    )
+                    with clean_path_on_failure(repo_cmd_runner.path(ENVIRONMENT_DIR)):
+                        python_env.run(
+                            'nodeenv -n system {{prefix}}{0}'.format(ENVIRONMENT_DIR),
+                        )
                 except CalledProcessError:
                     # TODO: log failure here
-                    # cleanup
-                    # TODO: local.path(ENVIRONMENT_DIR).delete()
                     python_env.run(
                         'nodeenv --jobs 4 {{prefix}}{0}'.format(ENVIRONMENT_DIR),
                     )
