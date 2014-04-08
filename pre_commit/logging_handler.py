@@ -16,7 +16,7 @@ LOG_LEVEL_COLORS = {
 
 class LoggingHandler(logging.Handler):
     def __init__(self, use_color):
-        super(LoggingHandler, self).__init__()
+        logging.Handler.__init__(self)
         self.use_color = use_color
 
     def emit(self, record):
