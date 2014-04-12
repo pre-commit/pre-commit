@@ -1,19 +1,5 @@
-import sys
 from setuptools import find_packages
 from setuptools import setup
-
-
-install_requires = [
-    'argparse',
-    'jsonschema',
-    'plumbum',
-    'pyyaml',
-    'simplejson',
-]
-
-
-if sys.version_info < (2, 7):
-    install_requires.append('ordereddict')
 
 
 setup(
@@ -38,7 +24,15 @@ setup(
             'resources/pre-commit.sh'
         ]
     },
-    install_requires=install_requires,
+    install_requires=[
+        'argparse',
+        'asottile.ordereddict',
+        'asottile.yaml',
+        'jsonschema',
+        'plumbum',
+        'pyyaml',
+        'simplejson',
+    ],
     entry_points={
         'console_scripts': [
             'pre-commit = pre_commit.run:run',
