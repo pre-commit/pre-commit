@@ -1,12 +1,12 @@
 import contextlib
 import logging
+from asottile.ordereddict import OrderedDict
 from plumbum import local
 
 import pre_commit.constants as C
 from pre_commit.clientlib.validate_manifest import load_manifest
 from pre_commit.hooks_workspace import in_hooks_workspace
 from pre_commit.languages.all import languages
-from pre_commit.ordereddict import OrderedDict
 from pre_commit.prefixed_command_runner import PrefixedCommandRunner
 from pre_commit.util import cached_property
 from pre_commit.util import clean_path_on_failure

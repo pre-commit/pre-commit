@@ -4,7 +4,10 @@ import pkg_resources
 import pytest
 import shutil
 import stat
+from asottile.ordereddict import OrderedDict
+from asottile.yaml import ordered_dump
 from plumbum import local
+
 
 import pre_commit.constants as C
 from pre_commit import git
@@ -17,9 +20,7 @@ from pre_commit.commands import RepositoryCannotBeUpdatedError
 from pre_commit.commands import uninstall
 from pre_commit.commands import _update_repository
 from pre_commit.jsonschema_extensions import apply_defaults
-from pre_commit.ordereddict import OrderedDict
 from pre_commit.runner import Runner
-from pre_commit.yaml_extensions import ordered_dump
 from testing.auto_namedtuple import auto_namedtuple
 from testing.util import get_resource_path
 

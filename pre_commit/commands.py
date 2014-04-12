@@ -4,16 +4,16 @@ import os
 import pkg_resources
 import shutil
 import stat
+from asottile.ordereddict import OrderedDict
+from asottile.yaml import ordered_dump
+from asottile.yaml import ordered_load
 from plumbum import local
 
 import pre_commit.constants as C
 from pre_commit.clientlib.validate_config import CONFIG_JSON_SCHEMA
 from pre_commit.clientlib.validate_config import load_config
 from pre_commit.jsonschema_extensions import remove_defaults
-from pre_commit.ordereddict import OrderedDict
 from pre_commit.repository import Repository
-from pre_commit.yaml_extensions import ordered_dump
-from pre_commit.yaml_extensions import ordered_load
 
 
 def install(runner):

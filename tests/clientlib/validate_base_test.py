@@ -1,8 +1,8 @@
 import pytest
+from asottile.ordereddict import OrderedDict
+from asottile.yaml import ordered_load
 
 from pre_commit.clientlib.validate_base import get_validator
-from pre_commit.ordereddict import OrderedDict
-from pre_commit.yaml_extensions import ordered_load
 from testing.util import get_resource_path
 
 
