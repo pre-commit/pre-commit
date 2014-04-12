@@ -31,6 +31,7 @@ def test_create_repo_in_env(dummy_repo_config, dummy_git_repo):
         os.path.join(dummy_git_repo, C.HOOKS_WORKSPACE, repo.sha),
     )
 
+
 @pytest.mark.integration
 def test_install_python_repo_in_env(config_for_python_hooks_repo):
     repo = Repository(config_for_python_hooks_repo)
@@ -110,7 +111,7 @@ def mock_repo_config():
         'sha': '5e713f8878b7d100c0e059f8cc34be4fc2e8f897',
         'hooks': [{
             'id': 'pyflakes',
-            'files': '\.py$',
+            'files': '\\.py$',
         }],
     }
     config_wrapped = apply_defaults([config], CONFIG_JSON_SCHEMA)

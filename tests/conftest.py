@@ -81,12 +81,12 @@ def _make_config(path, hook_id, file_regex):
 
 @pytest.yield_fixture
 def config_for_node_hooks_repo(node_hooks_repo):
-    yield _make_config(node_hooks_repo, 'foo', '\.js$')
+    yield _make_config(node_hooks_repo, 'foo', '\\.js$')
 
 
 @pytest.yield_fixture
 def config_for_python_hooks_repo(python_hooks_repo):
-    yield _make_config(python_hooks_repo, 'foo', '\.py$')
+    yield _make_config(python_hooks_repo, 'foo', '\\.py$')
 
 
 @pytest.yield_fixture

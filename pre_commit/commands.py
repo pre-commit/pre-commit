@@ -1,4 +1,3 @@
-
 from __future__ import print_function
 
 import os
@@ -42,7 +41,8 @@ def uninstall(runner):
     return 0
 
 
-class RepositoryCannotBeUpdatedError(RuntimeError): pass
+class RepositoryCannotBeUpdatedError(RuntimeError):
+    pass
 
 
 def _update_repository(repo_config):
@@ -95,8 +95,8 @@ def autoupdate(runner):
         print('Updating {0}...'.format(repo_config['repo']), end='')
         try:
             new_repo_config = _update_repository(repo_config)
-        except RepositoryCannotBeUpdatedError as e:
-            print(e.args[0])
+        except RepositoryCannotBeUpdatedError as error:
+            print(error.args[0])
             output_configs.append(repo_config)
             retv = 1
             continue

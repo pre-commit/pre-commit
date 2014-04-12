@@ -1,4 +1,3 @@
-
 import pytest
 from plumbum import local
 
@@ -38,7 +37,7 @@ def test_get_files_matching_base(get_files_matching_func):
 
 
 def test_get_files_matching_total_match(get_files_matching_func):
-    ret = get_files_matching_func('^.*\.py$', '^$')
+    ret = get_files_matching_func('^.*\\.py$', '^$')
     assert ret == set([
         'pre_commit/run.py',
         'pre_commit/git.py',
@@ -46,7 +45,7 @@ def test_get_files_matching_total_match(get_files_matching_func):
 
 
 def test_does_search_instead_of_match(get_files_matching_func):
-    ret = get_files_matching_func('\.yaml$', '^$')
+    ret = get_files_matching_func('\\.yaml$', '^$')
     assert ret == set(['hooks.yaml'])
 
 
@@ -56,5 +55,5 @@ def test_does_not_include_deleted_fileS(get_files_matching_func):
 
 
 def test_exclude_removes_files(get_files_matching_func):
-    ret = get_files_matching_func('', '\.py$')
+    ret = get_files_matching_func('', '\\.py$')
     assert ret == set(['hooks.yaml'])

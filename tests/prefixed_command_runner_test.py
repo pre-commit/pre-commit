@@ -1,4 +1,3 @@
-
 import os
 import mock
 import pytest
@@ -94,7 +93,8 @@ def test_path_multiple_args():
     assert ret == 'foo/bar/baz'
 
 
-@pytest.mark.parametrize(('prefix', 'path_end', 'expected_output'),
+@pytest.mark.parametrize(
+    ('prefix', 'path_end', 'expected_output'),
     tuple(
         (prefix, path_end, expected_output + os.sep)
         for prefix, path_end, expected_output in PATH_TESTS

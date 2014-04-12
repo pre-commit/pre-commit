@@ -1,4 +1,3 @@
-
 import collections
 
 def auto_namedtuple(classname='auto_namedtuple', **kwargs):

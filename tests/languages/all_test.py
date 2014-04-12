@@ -1,4 +1,3 @@
-
 import pytest
 
 from pre_commit.languages.all import all_languages

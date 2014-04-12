@@ -1,4 +1,3 @@
-
 import mock
 import pytest
 import sys

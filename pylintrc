@@ -1,0 +1,19 @@
+[MESSAGES CONTROL]
+disable=missing-docstring,abstract-method,redefined-builtin,useless-else-on-loop,redefined-outer-name,invalid-name
+
+[REPORTS]
+output-format=colorized
+reports=no
+
+[BASIC]
+const-rgx=(([A-Za-z_][A-Za-z0-9_]*)|(__.*__))$
+
+[FORMAT]
+max-line-length=131
+
+[TYPECHECK]
+ignored-classes=pytest
+
+[DESIGN]
+min-public-methods=0
+

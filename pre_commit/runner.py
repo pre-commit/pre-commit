@@ -1,4 +1,3 @@
-
 import os
 import os.path
 
@@ -40,7 +39,7 @@ class Runner(object):
     def repositories(self):
         """Returns a tuple of the configured repositories."""
         config = load_config(self.config_file_path)
-        return tuple(map(Repository, config))
+        return tuple(Repository(x) for x in config)
 
     @cached_property
     def pre_commit_path(self):

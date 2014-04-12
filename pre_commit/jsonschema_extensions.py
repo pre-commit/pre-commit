@@ -1,4 +1,3 @@
-
 import copy
 import jsonschema
 import jsonschema.validators
@@ -19,7 +18,6 @@ def extend_validator_cls(validator_cls, modify):
     return jsonschema.validators.extend(
         validator_cls, {'properties': new_properties},
     )
-
 
 
 def default_values(properties, instance):

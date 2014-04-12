@@ -1,4 +1,3 @@
-
 import sys
 
 from pre_commit.clientlib.validate_base import get_run_function
@@ -6,7 +5,8 @@ from pre_commit.clientlib.validate_base import get_validator
 from pre_commit.languages.all import all_languages
 
 
-class InvalidManifestError(ValueError): pass
+class InvalidManifestError(ValueError):
+    pass
 
 
 MANIFEST_JSON_SCHEMA = {

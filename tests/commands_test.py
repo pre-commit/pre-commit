@@ -1,4 +1,3 @@
-
 import os
 import os.path
 import pkg_resources

@@ -1,4 +1,3 @@
-
 import re
 import sys
 
@@ -6,7 +5,8 @@ from pre_commit.clientlib.validate_base import get_run_function
 from pre_commit.clientlib.validate_base import get_validator
 
 
-class InvalidConfigError(ValueError): pass
+class InvalidConfigError(ValueError):
+    pass
 
 
 CONFIG_JSON_SCHEMA = {
