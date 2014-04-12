@@ -1,4 +1,3 @@
-
 from __future__ import print_function
 
 import argparse
@@ -56,7 +55,6 @@ def _run_single_hook(runner, repository, hook_id, args):
         print_color = color.GREEN
         pass_fail = 'Passed'
 
-
     print(color.format_color(pass_fail, print_color, args.color))
 
     if output and (retcode or args.verbose):
@@ -111,14 +109,14 @@ def run(argv):
 
     subparsers.add_parser('autoupdate', help='Auto-update hooks config.')
 
-    run = subparsers.add_parser('run', help='Run hooks.')
-    run.add_argument('hook', nargs='?', help='A single hook-id to run'),
-    run.add_argument(
+    run_parser = subparsers.add_parser('run', help='Run hooks.')
+    run_parser.add_argument('hook', nargs='?', help='A single hook-id to run')
+    run_parser.add_argument(
         '--all-files', '-a', action='store_true', default=False,
         help='Run on all the files in the repo.',
     )
-    run.add_argument('--verbose', '-v', action='store_true', default=False)
-    run.add_argument(
+    run_parser.add_argument('--verbose', '-v', action='store_true', default=False)
+    run_parser.add_argument(
         '--color', default='auto', type=color.use_color,
         help='Whether to use color in output.  Defaults to `auto`',
     )

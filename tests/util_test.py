@@ -1,4 +1,3 @@
-
 import mock
 import pytest
 import os
@@ -17,7 +16,7 @@ from pre_commit.util import memoize_by_cwd
 def class_with_cached_property():
     class Foo(object):
         @cached_property
-        def foo(self):
+        def my_property(self):
             return "Foo" + str(random.getrandbits(64))
 
     return Foo
@@ -25,14 +24,14 @@ def class_with_cached_property():
 
 def test_cached_property(class_with_cached_property):
     instance = class_with_cached_property()
-    val = instance.foo
-    val2 = instance.foo
+    val = instance.my_property
+    val2 = instance.my_property
     assert val is val2
 
 
 def test_unbound_cached_property(class_with_cached_property):
     # Make sure we don't blow up when accessing the property unbound
-    prop = class_with_cached_property.foo
+    prop = class_with_cached_property.my_property
     assert isinstance(prop, cached_property)
 
 
@@ -90,7 +89,8 @@ def test_no_arguments_passed_uses_argv(entry_func):
 
 
 def test_clean_on_failure_noop(in_tmpdir):
-    with clean_path_on_failure('foo'): pass
+    with clean_path_on_failure('foo'):
+        pass
 
 
 def test_clean_path_on_failure_does_nothing_when_not_raising(in_tmpdir):
@@ -100,7 +100,8 @@ def test_clean_path_on_failure_does_nothing_when_not_raising(in_tmpdir):
 
 
 def test_clean_path_on_failure_cleans_for_normal_exception(in_tmpdir):
-    class MyException(Exception): pass
+    class MyException(Exception):
+        pass
 
     with pytest.raises(MyException):
         with clean_path_on_failure('foo'):
@@ -111,7 +112,8 @@ def test_clean_path_on_failure_cleans_for_normal_exception(in_tmpdir):
 
 
 def test_clean_path_on_failure_cleans_for_system_exit(in_tmpdir):
-    class MySystemExit(SystemExit): pass
+    class MySystemExit(SystemExit):
+        pass
 
     with pytest.raises(MySystemExit):
         with clean_path_on_failure('foo'):

@@ -1,4 +1,3 @@
-
 import contextlib
 
 from pre_commit.languages import helpers
@@ -11,7 +10,7 @@ ENVIRONMENT_DIR = 'rvm_env'
 class RubyEnv(helpers.Environment):
     @property
     def env_prefix(self):
-        return '. {{prefix}}{0}/bin/activate &&'.format(ENVIRONMENT_DIR)
+        raise NotImplementedError
 
 
 @contextlib.contextmanager

@@ -1,6 +1,3 @@
-
-import jsonschema
-import jsonschema.exceptions
 import pytest
 
 from pre_commit.clientlib.validate_config import CONFIG_JSON_SCHEMA
@@ -8,6 +5,7 @@ from pre_commit.clientlib.validate_config import InvalidConfigError
 from pre_commit.clientlib.validate_config import run
 from pre_commit.clientlib.validate_config import validate_config_extra
 from pre_commit.jsonschema_extensions import apply_defaults
+from testing.util import is_valid_according_to_schema
 
 
 def test_returns_0_for_valid_config():
@@ -22,21 +20,13 @@ def test_returns_1_for_failing():
     assert run(['tests/data/valid_yaml_but_invalid_config.yaml']) == 1
 
 
-def is_valid_according_to_schema(obj, schema):
-    try:
-        jsonschema.validate(obj, schema)
-        return True
-    except jsonschema.exceptions.ValidationError:
-        return False
-
-
 @pytest.mark.parametrize(('manifest_obj', 'expected'), (
     ([], False),
     (
         [{
-          'repo': 'git@github.com:pre-commit/pre-commit-hooks',
-          'sha': 'cd74dc150c142c3be70b24eaf0b02cae9d235f37',
-          'hooks': [{'id': 'pyflakes', 'files': '\.py$'}],
+            'repo': 'git@github.com:pre-commit/pre-commit-hooks',
+            'sha': 'cd74dc150c142c3be70b24eaf0b02cae9d235f37',
+            'hooks': [{'id': 'pyflakes', 'files': '\\.py$'}],
         }],
         True,
     ),
@@ -47,7 +37,7 @@ def is_valid_according_to_schema(obj, schema):
             'hooks': [
                 {
                     'id': 'pyflakes',
-                    'files': '\.py$',
+                    'files': '\\.py$',
                     'args': ['foo', 'bar', 'baz'],
                 },
             ],
@@ -61,7 +51,7 @@ def is_valid_according_to_schema(obj, schema):
             'hooks': [
                 {
                     'id': 'pyflakes',
-                    'files': '\.py$',
+                    'files': '\\.py$',
                     # Exclude pattern must be a string
                     'exclude': 0,
                     'args': ['foo', 'bar', 'baz'],
@@ -95,7 +85,7 @@ def test_config_with_ok_regexes_passes():
         [{
             'repo': 'foo',
             'sha': 'foo',
-            'hooks': [{'id': 'hook_id', 'files': '\.py$'}],
+            'hooks': [{'id': 'hook_id', 'files': '\\.py$'}],
         }],
         CONFIG_JSON_SCHEMA,
     )

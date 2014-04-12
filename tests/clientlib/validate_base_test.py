@@ -1,4 +1,3 @@
-
 import pytest
 
 from pre_commit.clientlib.validate_base import get_validator
@@ -7,7 +6,8 @@ from pre_commit.yaml_extensions import ordered_load
 from testing.util import get_resource_path
 
 
-class AdditionalValidatorError(ValueError): pass
+class AdditionalValidatorError(ValueError):
+    pass
 
 
 @pytest.fixture
@@ -22,7 +22,7 @@ def array_validator():
 
 @pytest.fixture
 def additional_validator():
-    def raises_always(obj):
+    def raises_always(_):
         raise AdditionalValidatorError
 
     return get_validator(

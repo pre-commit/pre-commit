@@ -1,4 +1,3 @@
-
 import contextlib
 
 from pre_commit.languages import helpers

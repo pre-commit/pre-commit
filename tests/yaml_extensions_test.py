@@ -1,4 +1,3 @@
-
 import pre_commit.constants as C
 from pre_commit.ordereddict import OrderedDict
 from pre_commit.yaml_extensions import ordered_dump

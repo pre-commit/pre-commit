@@ -1,4 +1,3 @@
-
 import contextlib
 import os.path
 from plumbum import local

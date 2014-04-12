@@ -1,4 +1,3 @@
-
 from pre_commit.jsonschema_extensions import apply_defaults
 from pre_commit.jsonschema_extensions import remove_defaults
 

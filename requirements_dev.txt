@@ -1,0 +1,7 @@
+-e .
+
+coverage
+flake8
+mock
+pylint
+pytest

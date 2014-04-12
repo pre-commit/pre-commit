@@ -43,14 +43,15 @@ def get_files_matching(all_file_list_strategy):
     def wrapper(include_expr, exclude_expr):
         include_regex = re.compile(include_expr)
         exclude_regex = re.compile(exclude_expr)
-        return set(filter(os.path.exists, (
+        return set(
             filename
             for filename in all_file_list_strategy()
             if (
                 include_regex.search(filename) and
-                not exclude_regex.search(filename)
+                not exclude_regex.search(filename) and
+                os.path.exists(filename)
             )
-        )))
+        )
     return wrapper
 
 

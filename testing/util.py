@@ -1,4 +1,4 @@
-
+import jsonschema
 import os
 import os.path
 import shutil
@@ -27,3 +27,10 @@ def copy_tree_to_path(src_dir, dest_dir):
             shutil.copytree(srcname, destname)
         else:
             shutil.copy(srcname, destname)
+
+def is_valid_according_to_schema(obj, schema):
+    try:
+        jsonschema.validate(obj, schema)
+        return True
+    except jsonschema.exceptions.ValidationError:
+        return False
