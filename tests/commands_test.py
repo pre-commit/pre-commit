@@ -1,3 +1,4 @@
+import mock
 import os
 import os.path
 import pkg_resources
@@ -10,15 +11,10 @@ from plumbum import local
 
 
 import pre_commit.constants as C
+from pre_commit import commands
 from pre_commit import git
 from pre_commit.clientlib.validate_config import CONFIG_JSON_SCHEMA
 from pre_commit.clientlib.validate_config import validate_config_extra
-from pre_commit.commands import autoupdate
-from pre_commit.commands import clean
-from pre_commit.commands import install
-from pre_commit.commands import RepositoryCannotBeUpdatedError
-from pre_commit.commands import uninstall
-from pre_commit.commands import _update_repository
 from pre_commit.jsonschema_extensions import apply_defaults
 from pre_commit.runner import Runner
 from testing.auto_namedtuple import auto_namedtuple
@@ -27,7 +23,7 @@ from testing.util import get_resource_path
 
 def test_install_pre_commit(empty_git_dir):
     runner = Runner(empty_git_dir)
-    ret = install(runner)
+    ret = commands.install(runner)
     assert ret == 0
     assert os.path.exists(runner.pre_commit_path)
     pre_commit_contents = open(runner.pre_commit_path).read()
@@ -40,16 +36,16 @@ def test_install_pre_commit(empty_git_dir):
 
 def test_uninstall_pre_commit_does_not_blow_up_when_not_there(empty_git_dir):
     runner = Runner(empty_git_dir)
-    ret = uninstall(runner)
+    ret = commands.uninstall(runner)
     assert ret == 0
 
 
 def test_uninstall(empty_git_dir):
     runner = Runner(empty_git_dir)
     assert not os.path.exists(runner.pre_commit_path)
-    install(runner)
+    commands.install(runner)
     assert os.path.exists(runner.pre_commit_path)
-    uninstall(runner)
+    commands.uninstall(runner)
     assert not os.path.exists(runner.pre_commit_path)
 
 
@@ -77,14 +73,14 @@ def up_to_date_repo(python_hooks_repo):
 
 def test_up_to_date_repo(up_to_date_repo):
     input_sha = up_to_date_repo.repo_config['sha']
-    ret = _update_repository(up_to_date_repo.repo_config)
+    ret = commands._update_repository(up_to_date_repo.repo_config)
     assert ret['sha'] == input_sha
 
 
 def test_autoupdate_up_to_date_repo(up_to_date_repo):
     before = open(C.CONFIG_FILE).read()
     runner = Runner(up_to_date_repo.python_hooks_repo)
-    ret = autoupdate(runner)
+    ret = commands.autoupdate(runner)
     after = open(C.CONFIG_FILE).read()
     assert ret == 0
     assert before == after
@@ -116,12 +112,12 @@ def out_of_date_repo(python_hooks_repo):
 
 
 def test_out_of_date_repo(out_of_date_repo):
-    ret = _update_repository(out_of_date_repo.repo_config)
+    ret = commands._update_repository(out_of_date_repo.repo_config)
     assert ret['sha'] == out_of_date_repo.head_sha
 
 
 def test_removes_defaults(out_of_date_repo):
-    ret = _update_repository(out_of_date_repo.repo_config)
+    ret = commands._update_repository(out_of_date_repo.repo_config)
     assert 'args' not in ret['hooks'][0]
     assert 'expected_return_value' not in ret['hooks'][0]
 
@@ -129,7 +125,7 @@ def test_removes_defaults(out_of_date_repo):
 def test_autoupdate_out_of_date_repo(out_of_date_repo):
     before = open(C.CONFIG_FILE).read()
     runner = Runner(out_of_date_repo.python_hooks_repo)
-    ret = autoupdate(runner)
+    ret = commands.autoupdate(runner)
     after = open(C.CONFIG_FILE).read()
     assert ret == 0
     assert before != after
@@ -162,14 +158,14 @@ def hook_disappearing_repo(python_hooks_repo):
 
 
 def test_hook_disppearing_repo_raises(hook_disappearing_repo):
-    with pytest.raises(RepositoryCannotBeUpdatedError):
-        _update_repository(hook_disappearing_repo.repo_config)
+    with pytest.raises(commands.RepositoryCannotBeUpdatedError):
+        commands._update_repository(hook_disappearing_repo.repo_config)
 
 
 def test_autoupdate_hook_disappearing_repo(hook_disappearing_repo):
     before = open(C.CONFIG_FILE).read()
     runner = Runner(hook_disappearing_repo.python_hooks_repo)
-    ret = autoupdate(runner)
+    ret = commands.autoupdate(runner)
     after = open(C.CONFIG_FILE).read()
     assert ret == 1
     assert before == after
@@ -177,11 +173,105 @@ def test_autoupdate_hook_disappearing_repo(hook_disappearing_repo):
 
 def test_clean(empty_git_dir):
     os.mkdir(C.HOOKS_WORKSPACE)
-    clean(Runner(empty_git_dir))
+    commands.clean(Runner(empty_git_dir))
     assert not os.path.exists(C.HOOKS_WORKSPACE)
 
 
 def test_clean_empty(empty_git_dir):
     assert not os.path.exists(C.HOOKS_WORKSPACE)
-    clean(Runner(empty_git_dir))
+    commands.clean(Runner(empty_git_dir))
     assert not os.path.exists(C.HOOKS_WORKSPACE)
+
+
+def stage_a_file():
+    local['touch']['foo.py']()
+    local['git']['add', 'foo.py']()
+
+
+def get_write_mock_output(write_mock):
+    return ''.join(call[0][0] for call in write_mock.call_args_list)
+
+
+def test_run_all_hooks_passing(repo_with_passing_hook):
+    stage_a_file()
+    runner = Runner(repo_with_passing_hook)
+    args = auto_namedtuple(
+        all_files=False, color=False, verbose=False, hook=None,
+    )
+    write_mock = mock.Mock()
+    ret = commands.run(runner, args, write=write_mock)
+    assert ret == 0
+    printed = get_write_mock_output(write_mock)
+    assert 'Bash hook' in printed
+    assert 'Passed' in printed
+
+
+def test_verbose_prints_output(repo_with_passing_hook):
+    stage_a_file()
+    runner = Runner(repo_with_passing_hook)
+    args = auto_namedtuple(
+        all_files=False, color=False, verbose=True, hook=None,
+    )
+    write_mock = mock.Mock()
+    ret = commands.run(runner, args, write=write_mock)
+    assert ret == 0
+    printed = get_write_mock_output(write_mock)
+    assert 'foo.py\nHello World\n' in printed
+
+
+def test_run_all_hooks_failing(repo_with_failing_hook):
+    stage_a_file()
+    runner = Runner(repo_with_failing_hook)
+    args = auto_namedtuple(
+        all_files=False, color=False, verbose=False, hook=None,
+    )
+    write_mock = mock.Mock()
+    ret = commands.run(runner, args, write=write_mock)
+    assert ret == 1
+    printed = get_write_mock_output(write_mock)
+    assert 'Failing hook' in printed
+    assert 'Failed' in printed
+    assert 'Fail\nfoo.py\n' in printed
+
+
+def test_run_a_specific_hook(repo_with_passing_hook):
+    stage_a_file()
+    runner = Runner(repo_with_passing_hook)
+    args = auto_namedtuple(
+        all_files=False, color=False, verbose=False, hook='bash_hook',
+    )
+    write_mock = mock.Mock()
+    ret = commands.run(runner, args, write=write_mock)
+    assert ret == 0
+    printed = get_write_mock_output(write_mock)
+    assert 'Bash hook' in printed
+    assert 'Passed' in printed
+
+
+def test_run_a_non_existing_hook(repo_with_passing_hook):
+    stage_a_file()
+    runner = Runner(repo_with_passing_hook)
+    args = auto_namedtuple(
+        all_files=False, color=False, verbose=False, hook='nope',
+    )
+    write_mock = mock.Mock()
+    ret = commands.run(runner, args, write=write_mock)
+    assert ret == 1
+    printed = get_write_mock_output(write_mock)
+    assert 'No hook with id `nope`' in printed
+
+
+def test_run_all_files(repo_with_passing_hook):
+    stage_a_file()
+    runner = Runner(repo_with_passing_hook)
+    args = auto_namedtuple(
+        all_files=True, color=False, verbose=True, hook=None,
+    )
+    write_mock = mock.Mock()
+    ret = commands.run(runner, args, write=write_mock)
+    assert ret == 0
+    printed = get_write_mock_output(write_mock)
+    # These are all the files checked into the repo.
+    # This seems kind of weird but it is because py.test reuses fixtures
+    for filename in 'hooks.yaml bin/hook.sh foo.py dummy'.split():
+        assert filename in printed

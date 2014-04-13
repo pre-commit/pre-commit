@@ -2,8 +2,10 @@ from __future__ import absolute_import
 
 import pytest
 import time
+import yaml
 from plumbum import local
 
+import pre_commit.constants as C
 from pre_commit import git
 from pre_commit.clientlib.validate_config import CONFIG_JSON_SCHEMA
 from pre_commit.clientlib.validate_config import validate_config_extra
@@ -68,6 +70,11 @@ def script_hooks_repo(dummy_git_repo):
     yield _make_repo(dummy_git_repo, 'script_hooks_repo')
 
 
+@pytest.yield_fixture
+def failing_hook_repo(dummy_git_repo):
+    yield _make_repo(dummy_git_repo, 'failing_hook_repo')
+
+
 def _make_config(path, hook_id, file_regex):
     config = {
         'repo': path,
@@ -96,4 +103,26 @@ def config_for_prints_cwd_repo(prints_cwd_repo):
 
 @pytest.yield_fixture
 def config_for_script_hooks_repo(script_hooks_repo):
-    yield _make_config(script_hooks_repo, 'bash_hook', '^$')
+    yield _make_config(script_hooks_repo, 'bash_hook', '')
+
+
+def _make_repo_from_configs(*configs):
+    with open(C.CONFIG_FILE, 'w') as config_file:
+        yaml.dump(
+            configs,
+            stream=config_file,
+            Dumper=yaml.SafeDumper,
+            **C.YAML_DUMP_KWARGS
+        )
+
+
+@pytest.yield_fixture
+def repo_with_passing_hook(config_for_script_hooks_repo, empty_git_dir):
+    _make_repo_from_configs(config_for_script_hooks_repo)
+    yield empty_git_dir
+
+
+@pytest.yield_fixture
+def repo_with_failing_hook(failing_hook_repo, empty_git_dir):
+    _make_repo_from_configs(_make_config(failing_hook_repo, 'failing_hook', ''))
+    yield empty_git_dir

@@ -1,19 +1,33 @@
 from __future__ import print_function
 
+import logging
 import os
 import pkg_resources
 import shutil
 import stat
+import subprocess
+import sys
 from asottile.ordereddict import OrderedDict
 from asottile.yaml import ordered_dump
 from asottile.yaml import ordered_load
 from plumbum import local
 
 import pre_commit.constants as C
+from pre_commit import git
+from pre_commit import color
 from pre_commit.clientlib.validate_config import CONFIG_JSON_SCHEMA
 from pre_commit.clientlib.validate_config import load_config
 from pre_commit.jsonschema_extensions import remove_defaults
+from pre_commit.logging_handler import LoggingHandler
 from pre_commit.repository import Repository
+from pre_commit.staged_files_only import staged_files_only
+
+
+logger = logging.getLogger('pre_commit')
+
+COLS = int(subprocess.Popen(['tput', 'cols'], stdout=subprocess.PIPE).communicate()[0])
+
+PASS_FAIL_LENGTH = 6
 
 
 def install(runner):
@@ -127,3 +141,80 @@ def clean(runner):
         shutil.rmtree(runner.hooks_workspace_path)
         print('Cleaned {0}.'.format(runner.hooks_workspace_path))
     return 0
+
+
+def _run_single_hook(runner, repository, hook_id, args, write):
+    if args.all_files:
+        get_filenames = git.get_all_files_matching
+    else:
+        get_filenames = git.get_staged_files_matching
+
+    hook = repository.hooks[hook_id]
+
+    # Print the hook and the dots first in case the hook takes hella long to
+    # run.
+    write(
+        '{0}{1}'.format(
+            hook['name'],
+            '.' * (COLS - len(hook['name']) - PASS_FAIL_LENGTH - 6),
+        ),
+    )
+    sys.stdout.flush()
+
+    retcode, stdout, stderr = repository.run_hook(
+        runner.cmd_runner,
+        hook_id,
+        get_filenames(hook['files'], hook['exclude']),
+    )
+
+    if retcode != repository.hooks[hook_id]['expected_return_value']:
+        retcode = 1
+        print_color = color.RED
+        pass_fail = 'Failed'
+    else:
+        retcode = 0
+        print_color = color.GREEN
+        pass_fail = 'Passed'
+
+    write(color.format_color(pass_fail, print_color, args.color) + '\n')
+
+    if (stdout or stderr) and (retcode or args.verbose):
+        write('\n')
+        for output in (stdout, stderr):
+            if output.strip():
+                write(output.strip() + '\n')
+        write('\n')
+
+    return retcode
+
+
+def _run_hooks(runner, args, write):
+    """Actually run the hooks."""
+    retval = 0
+
+    for repo in runner.repositories:
+        for hook_id in repo.hooks:
+            retval |= _run_single_hook(runner, repo, hook_id, args, write=write)
+
+    return retval
+
+
+def _run_hook(runner, hook_id, args, write):
+    for repo in runner.repositories:
+        if hook_id in repo.hooks:
+            return _run_single_hook(runner, repo, hook_id, args, write=write)
+    else:
+        write('No hook with id `{0}`\n'.format(hook_id))
+        return 1
+
+
+def run(runner, args, write=sys.stdout.write):
+    # Set up our logging handler
+    logger.addHandler(LoggingHandler(args.color))
+    logger.setLevel(logging.INFO)
+
+    with staged_files_only(runner.cmd_runner):
+        if args.hook:
+            return _run_hook(runner, args.hook, args, write=write)
+        else:
+            return _run_hooks(runner, args, write=write)
