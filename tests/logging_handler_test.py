@@ -1,15 +1,7 @@
-import __builtin__
 import mock
-import pytest
 
 from pre_commit import color
 from pre_commit.logging_handler import LoggingHandler
-
-
-@pytest.yield_fixture
-def print_mock():
-    with mock.patch.object(__builtin__, 'print', autospec=True) as print_mock:
-        yield print_mock
 
 
 class FakeLogRecord(object):
@@ -22,16 +14,18 @@ class FakeLogRecord(object):
         return self.message
 
 
-def test_logging_handler_color(print_mock):
-    handler = LoggingHandler(True)
+def test_logging_handler_color():
+    print_mock = mock.Mock()
+    handler = LoggingHandler(True, print_mock)
     handler.emit(FakeLogRecord('hi', 'WARNING', 30))
     print_mock.assert_called_once_with(
         color.YELLOW + '[WARNING]' + color.NORMAL + ' hi',
     )
 
 
-def test_logging_handler_no_color(print_mock):
-    handler = LoggingHandler(False)
+def test_logging_handler_no_color():
+    print_mock = mock.Mock()
+    handler = LoggingHandler(False, print_mock)
     handler.emit(FakeLogRecord('hi', 'WARNING', 30))
     print_mock.assert_called_once_with(
         '[WARNING] hi',

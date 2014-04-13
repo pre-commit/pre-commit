@@ -118,8 +118,8 @@ def img_staged(empty_git_dir):
 def _test_img_state(path, expected_file='img1.jpg', status='A'):
     assert os.path.exists(path.img_filename)
     assert (
-        open(path.img_filename).read() ==
-        open(get_resource_path(expected_file)).read()
+        open(path.img_filename, 'rb').read() ==
+        open(get_resource_path(expected_file), 'rb').read()
     )
     actual_status = get_short_git_status()['img.jpg']
     assert status == actual_status

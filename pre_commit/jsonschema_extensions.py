@@ -21,7 +21,7 @@ def extend_validator_cls(validator_cls, modify):
 
 
 def default_values(properties, instance):
-    for property, subschema in properties.iteritems():
+    for property, subschema in properties.items():
         if 'default' in subschema:
             instance.setdefault(
                 property, copy.deepcopy(subschema['default']),
@@ -29,7 +29,7 @@ def default_values(properties, instance):
 
 
 def remove_default_values(properties, instance):
-    for property, subschema in properties.iteritems():
+    for property, subschema in properties.items():
         if (
             'default' in subschema and
             instance.get(property) == subschema['default']
