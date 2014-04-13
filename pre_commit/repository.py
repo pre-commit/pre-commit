@@ -4,6 +4,7 @@ from asottile.ordereddict import OrderedDict
 from plumbum import local
 
 import pre_commit.constants as C
+from pre_commit import five
 from pre_commit.clientlib.validate_manifest import load_manifest
 from pre_commit.hooks_workspace import in_hooks_workspace
 from pre_commit.languages.all import languages
@@ -70,7 +71,7 @@ class Repository(object):
             logger.info('Installing environment for {0}.'.format(self.repo_url))
             logger.info('Once installed this environment will be reused.')
             logger.info('This may take a few minutes...')
-            with clean_path_on_failure(str(local.path(self.sha))):
+            with clean_path_on_failure(five.u(local.path(self.sha))):
                 local['git']['clone', '--no-checkout', self.repo_url, self.sha]()
                 with self.in_checkout():
                     local['git']['checkout', self.sha]()
