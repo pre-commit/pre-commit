@@ -8,6 +8,7 @@
 .project
 .pydevproject
 .tox
+.venv.touch
 /venv*
 coverage-html
 dist
