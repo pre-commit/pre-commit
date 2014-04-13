@@ -45,7 +45,6 @@ def _run_single_hook(runner, repository, hook_id, args):
         get_filenames(hook['files'], hook['exclude']),
     )
 
-    output = '\n'.join([stdout, stderr]).strip()
     if retcode != repository.hooks[hook_id]['expected_return_value']:
         retcode = 1
         print_color = color.RED
@@ -57,8 +56,12 @@ def _run_single_hook(runner, repository, hook_id, args):
 
     print(color.format_color(pass_fail, print_color, args.color))
 
-    if output and (retcode or args.verbose):
-        print('\n' + output)
+    if (stdout or stderr) and (retcode or args.verbose):
+        print()
+        for output in (stdout, stderr):
+            if output.strip():
+                print(output.strip())
+        print()
 
     return retcode
 

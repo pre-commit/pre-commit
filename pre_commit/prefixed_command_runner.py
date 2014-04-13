@@ -55,6 +55,9 @@ class PrefixedCommandRunner(object):
             'stdout': subprocess.PIPE,
             'stderr': subprocess.PIPE,
         }
+        if stdin is not None:
+            stdin = stdin.encode('utf-8')
+
         popen_kwargs.update(kwargs)
         self._create_path_if_not_exists()
         replaced_cmd = _replace_cmd(cmd, prefix=self.prefix_dir)

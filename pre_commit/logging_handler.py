@@ -14,12 +14,13 @@ LOG_LEVEL_COLORS = {
 
 
 class LoggingHandler(logging.Handler):
-    def __init__(self, use_color):
+    def __init__(self, use_color, print_fn=print):
         logging.Handler.__init__(self)
         self.use_color = use_color
+        self.__print_fn = print_fn
 
     def emit(self, record):
-        print(
+        self.__print_fn(
             u'{0}{1}'.format(
                 color.format_color(
                     '[{0}]'.format(record.levelname),

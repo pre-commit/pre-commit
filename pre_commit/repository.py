@@ -70,7 +70,7 @@ class Repository(object):
             logger.info('Installing environment for {0}.'.format(self.repo_url))
             logger.info('Once installed this environment will be reused.')
             logger.info('This may take a few minutes...')
-            with clean_path_on_failure(unicode(local.path(self.sha))):
+            with clean_path_on_failure(str(local.path(self.sha))):
                 local['git']['clone', '--no-checkout', self.repo_url, self.sha]()
                 with self.in_checkout():
                     local['git']['checkout', self.sha]()
