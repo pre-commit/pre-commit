@@ -64,11 +64,7 @@ def test_run_substitutes_prefix(popen_mock, makedirs_mock):
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
     )
-    assert ret == (
-        popen_mock.return_value.returncode,
-        popen_mock.return_value.communicate.return_value[0],
-        popen_mock.return_value.communicate.return_value[1],
-    )
+    assert ret == (popen_mock.return_value.returncode, 'stdout', 'stderr')
 
 
 PATH_TESTS = (
