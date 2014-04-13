@@ -5,18 +5,21 @@ from pre_commit.clientlib.validate_manifest import InvalidManifestError
 from pre_commit.clientlib.validate_manifest import MANIFEST_JSON_SCHEMA
 from pre_commit.clientlib.validate_manifest import run
 from testing.util import is_valid_according_to_schema
+from testing.util import get_resource_path
 
 
-def test_returns_0_for_valid_manifest():
-    assert run(['example_hooks.yaml']) == 0
-
-
-def test_returns_0_for_our_manifest():
-    assert run([]) == 0
-
-
-def test_returns_1_for_failing():
-    assert run(['tests/data/valid_yaml_but_invalid_manifest.yaml']) == 1
+@pytest.mark.parametrize(
+    ('input', 'expected_output'),
+    (
+        (['example_hooks.yaml'], 0),
+        (['hooks.yaml'], 0),
+        (['non_existent_file.yaml'], 1),
+        ([get_resource_path('valid_yaml_but_invalid_manifest.yaml')], 1),
+        ([get_resource_path('non_parseable_yaml_file.notyaml')], 1),
+    ),
+)
+def test_run(input, expected_output):
+    assert run(input) == expected_output
 
 
 def test_additional_manifest_check_raises_for_bad_language():

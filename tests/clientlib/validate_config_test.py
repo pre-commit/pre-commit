@@ -6,18 +6,21 @@ from pre_commit.clientlib.validate_config import run
 from pre_commit.clientlib.validate_config import validate_config_extra
 from pre_commit.jsonschema_extensions import apply_defaults
 from testing.util import is_valid_according_to_schema
+from testing.util import get_resource_path
 
 
-def test_returns_0_for_valid_config():
-    assert run(['example_pre-commit-config.yaml']) == 0
-
-
-def test_returns_0_for_out_manifest():
-    assert run([]) == 0
-
-
-def test_returns_1_for_failing():
-    assert run(['tests/data/valid_yaml_but_invalid_config.yaml']) == 1
+@pytest.mark.parametrize(
+    ('input', 'expected_output'),
+    (
+        (['example_pre-commit-config.yaml'], 0),
+        (['.pre-commit-config.yaml'], 0),
+        (['non_existent_file.yaml'], 1),
+        ([get_resource_path('valid_yaml_but_invalid_config.yaml')], 1),
+        ([get_resource_path('non_parseable_yaml_file.notyaml')], 1),
+    ),
+)
+def test_run(input, expected_output):
+    assert run(input) == expected_output
 
 
 @pytest.mark.parametrize(('manifest_obj', 'expected'), (
