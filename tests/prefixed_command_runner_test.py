@@ -21,7 +21,7 @@ def test_CalledProcessError_str():
 @pytest.fixture
 def popen_mock():
     popen = mock.Mock(spec=subprocess.Popen)
-    popen.return_value.communicate.return_value = ('stdout', 'stderr')
+    popen.return_value.communicate.return_value = (b'stdout', b'stderr')
     return popen
 
 

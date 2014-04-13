@@ -8,11 +8,8 @@ def extend_validator_cls(validator_cls, modify):
     validate_properties = validator_cls.VALIDATORS['properties']
 
     def new_properties(validator, properties, instance, schema):
-        for error in validate_properties(
-            validator, properties, instance, schema,
-        ):
-            yield error
-
+        # Exhaust the validator
+        list(validate_properties(validator, properties, instance, schema))
         modify(properties, instance)
 
     return jsonschema.validators.extend(

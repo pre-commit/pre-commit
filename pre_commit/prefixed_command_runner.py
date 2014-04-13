@@ -66,9 +66,9 @@ class PrefixedCommandRunner(object):
         proc = self.__popen(replaced_cmd, **popen_kwargs)
         stdout, stderr = proc.communicate(stdin)
         # TODO: stdout, stderr = from_bytes(stdout), from_bytes(stderr)
-        if stdout is not None and not isinstance(stdout, five.text):
+        if isinstance(stdout, bytes):
             stdout = five.text(stdout, 'utf-8')
-        if stderr is not None and not isinstance(stderr, five.text):
+        if isinstance(stderr, bytes):
             stderr = five.text(stderr, 'utf-8')
         returncode = proc.returncode
 

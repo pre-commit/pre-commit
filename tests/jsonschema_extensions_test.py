@@ -1,3 +1,6 @@
+import jsonschema.exceptions
+import pytest
+
 from pre_commit.jsonschema_extensions import apply_defaults
 from pre_commit.jsonschema_extensions import remove_defaults
 
@@ -78,3 +81,9 @@ def test_remove_defaults_removes_default():
         {'properties': {'foo': {'default': 'bar'}}},
     )
     assert ret == {}
+
+
+@pytest.mark.parametrize('func', (apply_defaults, remove_defaults))
+def test_still_validates_schema(func):
+    with pytest.raises(jsonschema.exceptions.ValidationError):
+        func({}, {'properties': {'foo': {}}, 'required': ['foo']})
