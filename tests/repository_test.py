@@ -55,7 +55,7 @@ def test_run_a_python_hook(config_for_python_hooks_repo):
     )
 
     assert ret[0] == 0
-    assert ret[1] == b"['/dev/null']\nHello World\n"
+    assert ret[1] == "['/dev/null']\nHello World\n"
 
 
 @pytest.mark.integration
@@ -77,7 +77,7 @@ def test_cwd_of_hook(config_for_prints_cwd_repo):
     )
 
     assert ret[0] == 0
-    assert ret[1] == repo.repo_url.encode('utf-8') + b'\n'
+    assert ret[1] == repo.repo_url + '\n'
 
 
 @pytest.mark.skipif(
@@ -90,7 +90,7 @@ def test_run_a_node_hook(config_for_node_hooks_repo):
     ret = repo.run_hook(PrefixedCommandRunner(C.HOOKS_WORKSPACE), 'foo', [])
 
     assert ret[0] == 0
-    assert ret[1] == b'Hello World\n'
+    assert ret[1] == 'Hello World\n'
 
 
 @pytest.mark.integration
@@ -101,7 +101,7 @@ def test_run_a_script_hook(config_for_script_hooks_repo):
     )
 
     assert ret[0] == 0
-    assert ret[1] == b'bar\nHello World\n'
+    assert ret[1] == 'bar\nHello World\n'
 
 
 @pytest.fixture
