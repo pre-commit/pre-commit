@@ -2,6 +2,8 @@ import os
 import os.path
 import subprocess
 
+from pre_commit import five
+
 
 class CalledProcessError(RuntimeError):
     def __init__(self, returncode, cmd, expected_returncode, output=None):
@@ -63,6 +65,11 @@ class PrefixedCommandRunner(object):
         replaced_cmd = _replace_cmd(cmd, prefix=self.prefix_dir)
         proc = self.__popen(replaced_cmd, **popen_kwargs)
         stdout, stderr = proc.communicate(stdin)
+        # TODO: stdout, stderr = from_bytes(stdout), from_bytes(stderr)
+        if isinstance(stdout, bytes):
+            stdout = five.text(stdout, 'utf-8')
+        if isinstance(stderr, bytes):
+            stderr = five.text(stderr, 'utf-8')
         returncode = proc.returncode
 
         if retcode is not None and retcode != returncode:

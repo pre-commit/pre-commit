@@ -1,0 +1,4 @@
+-   id: failing_hook
+    name: Failing hook
+    entry: bin/hook.sh
+    language: script

@@ -1,101 +1,10 @@
-from __future__ import print_function
-
 import argparse
-import logging
-import subprocess
 import sys
 
 from pre_commit import color
 from pre_commit import commands
-from pre_commit import git
-from pre_commit.logging_handler import LoggingHandler
 from pre_commit.runner import Runner
-from pre_commit.staged_files_only import staged_files_only
 from pre_commit.util import entry
-
-
-logger = logging.getLogger('pre_commit')
-
-COLS = int(subprocess.Popen(['tput', 'cols'], stdout=subprocess.PIPE).communicate()[0])
-
-PASS_FAIL_LENGTH = 6
-
-
-def _run_single_hook(runner, repository, hook_id, args):
-    if args.all_files:
-        get_filenames = git.get_all_files_matching
-    else:
-        get_filenames = git.get_staged_files_matching
-
-    hook = repository.hooks[hook_id]
-
-    # Print the hook and the dots first in case the hook takes hella long to
-    # run.
-    print(
-        '{0}{1}'.format(
-            hook['name'],
-            '.' * (COLS - len(hook['name']) - PASS_FAIL_LENGTH - 6),
-        ),
-        end='',
-    )
-
-    retcode, stdout, stderr = repository.run_hook(
-        runner.cmd_runner,
-        hook_id,
-        get_filenames(hook['files'], hook['exclude']),
-    )
-
-    if retcode != repository.hooks[hook_id]['expected_return_value']:
-        retcode = 1
-        print_color = color.RED
-        pass_fail = 'Failed'
-    else:
-        retcode = 0
-        print_color = color.GREEN
-        pass_fail = 'Passed'
-
-    print(color.format_color(pass_fail, print_color, args.color))
-
-    if (stdout or stderr) and (retcode or args.verbose):
-        print()
-        for output in (stdout, stderr):
-            if output.strip():
-                print(output.strip())
-        print()
-
-    return retcode
-
-
-def run_hooks(runner, args):
-    """Actually run the hooks."""
-    retval = 0
-
-    for repo in runner.repositories:
-        for hook_id in repo.hooks:
-            retval |= _run_single_hook(runner, repo, hook_id, args)
-
-    return retval
-
-
-def run_single_hook(runner, hook_id, args):
-    for repo in runner.repositories:
-        if hook_id in repo.hooks:
-            return _run_single_hook(runner, repo, hook_id, args)
-    else:
-        print('No hook with id `{0}`'.format(hook_id))
-        return 1
-
-
-def _run(runner, args):
-    # Set up our logging handler
-    logger.addHandler(LoggingHandler(args.color))
-    logger.setLevel(logging.INFO)
-
-    with staged_files_only(runner.cmd_runner):
-        if args.hook:
-            return run_single_hook(runner, args.hook, args)
-        else:
-            return run_hooks(runner, args)
 
 
 @entry
@@ -118,11 +27,11 @@ def run(argv):
         '--all-files', '-a', action='store_true', default=False,
         help='Run on all the files in the repo.',
     )
-    run_parser.add_argument('--verbose', '-v', action='store_true', default=False)
     run_parser.add_argument(
         '--color', default='auto', type=color.use_color,
         help='Whether to use color in output.  Defaults to `auto`',
     )
+    run_parser.add_argument('--verbose', '-v', action='store_true', default=False)
 
     help = subparsers.add_parser('help', help='Show help for a specific command.')
     help.add_argument('help_cmd', nargs='?', help='Command to show help for.')
@@ -143,7 +52,7 @@ def run(argv):
     elif args.command == 'autoupdate':
         return commands.autoupdate(runner)
     elif args.command == 'run':
-        return _run(runner, args)
+        return commands.run(runner, args)
     elif args.command == 'help':
         if args.help_cmd:
             parser.parse_args([args.help_cmd, '--help'])
