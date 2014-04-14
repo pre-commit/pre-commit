@@ -192,86 +192,50 @@ def get_write_mock_output(write_mock):
     return ''.join(call[0][0] for call in write_mock.call_args_list)
 
 
-def test_run_all_hooks_passing(repo_with_passing_hook):
-    stage_a_file()
-    runner = Runner(repo_with_passing_hook)
+def _test_run(repo, options, expected_outputs, expected_ret, stage):
+    if stage:
+        stage_a_file()
+    runner = Runner(repo)
     args = auto_namedtuple(
-        all_files=False, color=False, verbose=False, hook=None,
+        **dict(
+            dict(all_files=False, color=False, verbose=False, hook=None),
+            **options
+        )
     )
     write_mock = mock.Mock()
     ret = commands.run(runner, args, write=write_mock)
-    assert ret == 0
+    assert ret == expected_ret
     printed = get_write_mock_output(write_mock)
-    assert 'Bash hook' in printed
-    assert 'Passed' in printed
-
-
-def test_verbose_prints_output(repo_with_passing_hook):
-    stage_a_file()
-    runner = Runner(repo_with_passing_hook)
-    args = auto_namedtuple(
-        all_files=False, color=False, verbose=True, hook=None,
-    )
-    write_mock = mock.Mock()
-    ret = commands.run(runner, args, write=write_mock)
-    assert ret == 0
-    printed = get_write_mock_output(write_mock)
-    assert 'foo.py\nHello World\n' in printed
+    for expected_output_part in expected_outputs:
+        assert expected_output_part in printed
 
 
 def test_run_all_hooks_failing(repo_with_failing_hook):
-    stage_a_file()
-    runner = Runner(repo_with_failing_hook)
-    args = auto_namedtuple(
-        all_files=False, color=False, verbose=False, hook=None,
+    _test_run(
+        repo_with_failing_hook,
+        {},
+        ('Failing hook', 'Failed', 'Fail\nfoo.py\n'),
+        1,
+        True,
     )
-    write_mock = mock.Mock()
-    ret = commands.run(runner, args, write=write_mock)
-    assert ret == 1
-    printed = get_write_mock_output(write_mock)
-    assert 'Failing hook' in printed
-    assert 'Failed' in printed
-    assert 'Fail\nfoo.py\n' in printed
 
 
-def test_run_a_specific_hook(repo_with_passing_hook):
-    stage_a_file()
-    runner = Runner(repo_with_passing_hook)
-    args = auto_namedtuple(
-        all_files=False, color=False, verbose=False, hook='bash_hook',
+@pytest.mark.parametrize(
+    ('options', 'outputs', 'expected_ret', 'stage'),
+    (
+        ({}, ('Bash hook', 'Passed'), 0, True),
+        ({'verbose': True}, ('foo.py\nHello World',), 0, True),
+        ({'hook': 'bash_hook'}, ('Bash hook', 'Passed'), 0, True),
+        ({'hook': 'nope'}, ('No hook with id `nope`',), 1, True),
+        # All the files in the repo.
+        # This seems kind of weird but it is beacuse py.test reuses fixtures
+        (
+            {'all_files': True, 'verbose': True},
+            ('hooks.yaml', 'bin/hook.sh', 'foo.py', 'dummy'),
+            0,
+            True,
+        ),
     )
-    write_mock = mock.Mock()
-    ret = commands.run(runner, args, write=write_mock)
-    assert ret == 0
-    printed = get_write_mock_output(write_mock)
-    assert 'Bash hook' in printed
-    assert 'Passed' in printed
-
-
-def test_run_a_non_existing_hook(repo_with_passing_hook):
-    stage_a_file()
-    runner = Runner(repo_with_passing_hook)
-    args = auto_namedtuple(
-        all_files=False, color=False, verbose=False, hook='nope',
-    )
-    write_mock = mock.Mock()
-    ret = commands.run(runner, args, write=write_mock)
-    assert ret == 1
-    printed = get_write_mock_output(write_mock)
-    assert 'No hook with id `nope`' in printed
-
-
-def test_run_all_files(repo_with_passing_hook):
-    stage_a_file()
-    runner = Runner(repo_with_passing_hook)
-    args = auto_namedtuple(
-        all_files=True, color=False, verbose=True, hook=None,
-    )
-    write_mock = mock.Mock()
-    ret = commands.run(runner, args, write=write_mock)
-    assert ret == 0
-    printed = get_write_mock_output(write_mock)
-    # These are all the files checked into the repo.
-    # This seems kind of weird but it is because py.test reuses fixtures
-    for filename in 'hooks.yaml bin/hook.sh foo.py dummy'.split():
-        assert filename in printed
+)
+def test_run(repo_with_passing_hook, options, outputs, expected_ret, stage):
+    _test_run(repo_with_passing_hook, options, outputs, expected_ret, stage)
