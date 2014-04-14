@@ -25,11 +25,15 @@ def run(argv):
     run_parser.add_argument('hook', nargs='?', help='A single hook-id to run')
     run_parser.add_argument(
         '--all-files', '-a', action='store_true', default=False,
-        help='Run on all the files in the repo.',
+        help='Run on all the files in the repo.  Implies --no-stash.',
     )
     run_parser.add_argument(
         '--color', default='auto', type=color.use_color,
         help='Whether to use color in output.  Defaults to `auto`',
+    )
+    run_parser.add_argument(
+        '--no-stash', default=False, action='store_true',
+        help='Use this option to prevent auto stashing of unstaged files.',
     )
     run_parser.add_argument('--verbose', '-v', action='store_true', default=False)
 

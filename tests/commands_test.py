@@ -192,20 +192,30 @@ def get_write_mock_output(write_mock):
     return ''.join(call[0][0] for call in write_mock.call_args_list)
 
 
+def _get_opts(all_files=False, color=False, verbose=False, hook=None, no_stash=False):
+    return auto_namedtuple(
+        all_files=all_files,
+        color=color,
+        verbose=verbose,
+        hook=hook,
+        no_stash=no_stash,
+    )
+
+
+def _do_run(repo, args):
+    runner = Runner(repo)
+    write_mock = mock.Mock()
+    ret = commands.run(runner, args, write=write_mock)
+    printed = get_write_mock_output(write_mock)
+    return ret, printed
+
+
 def _test_run(repo, options, expected_outputs, expected_ret, stage):
     if stage:
         stage_a_file()
-    runner = Runner(repo)
-    args = auto_namedtuple(
-        **dict(
-            dict(all_files=False, color=False, verbose=False, hook=None),
-            **options
-        )
-    )
-    write_mock = mock.Mock()
-    ret = commands.run(runner, args, write=write_mock)
+    args = _get_opts(**options)
+    ret, printed = _do_run(repo, args)
     assert ret == expected_ret
-    printed = get_write_mock_output(write_mock)
     for expected_output_part in expected_outputs:
         assert expected_output_part in printed
 
@@ -240,3 +250,28 @@ def test_run_all_hooks_failing(repo_with_failing_hook):
 )
 def test_run(repo_with_passing_hook, options, outputs, expected_ret, stage):
     _test_run(repo_with_passing_hook, options, outputs, expected_ret, stage)
+
+
+@pytest.mark.parametrize(
+    ('no_stash', 'all_files', 'expect_stash'),
+    (
+        (True, True, False),
+        (True, False, False),
+        (False, True, False),
+        (False, False, True),
+    ),
+)
+def test_no_stash(repo_with_passing_hook, no_stash, all_files, expect_stash):
+    stage_a_file()
+    # Make unstaged changes
+    with open('foo.py', 'w') as foo_file:
+        foo_file.write('import os\n')
+
+    args = _get_opts(no_stash=no_stash, all_files=all_files)
+    ret, printed = _do_run(repo_with_passing_hook, args)
+    assert ret == 0
+    warning_msg = '[WARNING] Unstaged files detected.'
+    if expect_stash:
+        assert warning_msg in printed
+    else:
+        assert warning_msg not in printed

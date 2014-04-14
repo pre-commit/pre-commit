@@ -21,6 +21,7 @@ from pre_commit.jsonschema_extensions import remove_defaults
 from pre_commit.logging_handler import LoggingHandler
 from pre_commit.repository import Repository
 from pre_commit.staged_files_only import staged_files_only
+from pre_commit.util import noop_context
 
 
 logger = logging.getLogger('pre_commit')
@@ -230,10 +231,15 @@ def _run_hook(runner, hook_id, args, write):
 
 def run(runner, args, write=sys.stdout.write):
     # Set up our logging handler
-    logger.addHandler(LoggingHandler(args.color))
+    logger.addHandler(LoggingHandler(args.color, write=write))
     logger.setLevel(logging.INFO)
 
-    with staged_files_only(runner.cmd_runner):
+    if args.no_stash or args.all_files:
+        ctx = noop_context()
+    else:
+        ctx = staged_files_only(runner.cmd_runner)
+
+    with ctx:
         if args.hook:
             return _run_hook(runner, args.hook, args, write=write)
         else:
