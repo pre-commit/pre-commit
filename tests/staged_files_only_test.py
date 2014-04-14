@@ -1,3 +1,5 @@
+import logging
+import mock
 import os.path
 import pytest
 import shutil
@@ -215,3 +217,32 @@ def test_sub_something_unstaged(sub_staged, cmd_runner):
         _test_sub_state(sub_staged, 'sha2', 'AM')
 
     _test_sub_state(sub_staged, 'sha2', 'AM')
+
+
+@pytest.yield_fixture
+def fake_logging_handler():
+    class FakeHandler(logging.Handler):
+        def __init__(self):
+            logging.Handler.__init__(self)
+            self.logs = []
+
+        def emit(self, record):
+            self.logs.append(record)
+
+    pre_commit_logger = logging.getLogger('pre_commit')
+    original_level = pre_commit_logger.getEffectiveLevel()
+    handler = FakeHandler()
+    pre_commit_logger.addHandler(handler)
+    pre_commit_logger.setLevel(logging.WARNING)
+    yield handler
+    pre_commit_logger.setLevel(original_level)
+    pre_commit_logger.removeHandler(handler)
+
+
+def test_diff_returns_1_no_diff_though(fake_logging_handler, foo_staged):
+    cmd_runner = mock.Mock()
+    cmd_runner.run.return_value = (1, '', '')
+    cmd_runner.path.return_value = '.pre-commit-files_patch'
+    with staged_files_only(cmd_runner):
+        pass
+    assert not fake_logging_handler.logs
