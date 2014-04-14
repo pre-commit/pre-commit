@@ -227,7 +227,7 @@ def fake_logging_handler():
             self.logs = []
 
         def emit(self, record):
-            self.logs.append(record)
+            self.logs.append(record)  # pragma: no cover (only hit in failure)
 
     pre_commit_logger = logging.getLogger('pre_commit')
     original_level = pre_commit_logger.getEffectiveLevel()

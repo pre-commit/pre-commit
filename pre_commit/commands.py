@@ -229,10 +229,20 @@ def _run_hook(runner, hook_id, args, write):
         return 1
 
 
+def _has_unmerged_paths(runner):
+    _, stdout, _ = runner.cmd_runner.run(['git', 'ls-files', '--unmerged'])
+    return bool(stdout.strip())
+
+
 def run(runner, args, write=sys.stdout.write):
     # Set up our logging handler
     logger.addHandler(LoggingHandler(args.color, write=write))
     logger.setLevel(logging.INFO)
+
+    # Check if we have unresolved merge conflict files and fail fast.
+    if _has_unmerged_paths(runner):
+        logger.error('Unmerged files.  Resolve before committing.')
+        return 1
 
     if args.no_stash or args.all_files:
         ctx = noop_context()
