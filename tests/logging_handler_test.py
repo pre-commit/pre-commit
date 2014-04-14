@@ -19,7 +19,7 @@ def test_logging_handler_color():
     handler = LoggingHandler(True, print_mock)
     handler.emit(FakeLogRecord('hi', 'WARNING', 30))
     print_mock.assert_called_once_with(
-        color.YELLOW + '[WARNING]' + color.NORMAL + ' hi',
+        color.YELLOW + '[WARNING]' + color.NORMAL + ' hi\n',
     )
 
 
@@ -28,5 +28,5 @@ def test_logging_handler_no_color():
     handler = LoggingHandler(False, print_mock)
     handler.emit(FakeLogRecord('hi', 'WARNING', 30))
     print_mock.assert_called_once_with(
-        '[WARNING] hi',
+        '[WARNING] hi\n',
     )

@@ -1,6 +1,5 @@
-from __future__ import print_function
-
 import logging
+import sys
 
 from pre_commit import color
 
@@ -14,14 +13,14 @@ LOG_LEVEL_COLORS = {
 
 
 class LoggingHandler(logging.Handler):
-    def __init__(self, use_color, print_fn=print):
+    def __init__(self, use_color, write=sys.stdout.write):
         logging.Handler.__init__(self)
         self.use_color = use_color
-        self.__print_fn = print_fn
+        self.__write = write
 
     def emit(self, record):
-        self.__print_fn(
-            u'{0}{1}'.format(
+        self.__write(
+            u'{0}{1}\n'.format(
                 color.format_color(
                     '[{0}]'.format(record.levelname),
                     LOG_LEVEL_COLORS[record.levelname],
