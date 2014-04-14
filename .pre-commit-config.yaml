@@ -1,5 +1,5 @@
 -   repo: git@github.com:pre-commit/pre-commit-hooks
-    sha: 84fbf05803f25fea2ad4a9509b3666840bf580b4
+    sha: ca93f6834f2afc8a8f7de46c0e02076419077c7a
     hooks:
     -   id: trailing-whitespace
         files: \.(py|sh|yaml)$
@@ -11,13 +11,13 @@
         files: \.py$
     -   id: name-tests-test
         files: tests/.+\.py$
-    -   id: pyflakes
+    -   id: flake8
         files: \.py$
+        args: [--max-line-length=131]
 -   repo: git@github.com:pre-commit/pre-commit
-    sha: 3cfc49b522dee27cdcce83781cd874c5638ad6c1
+    sha: 2c7ec7a744908896af3afd140346e690deca7782
     hooks:
     -   id: validate_config
         files: ^\.pre-commit-config.yaml$
     -   id: validate_manifest
         files: ^hooks.yaml$
-        exclude: ^$

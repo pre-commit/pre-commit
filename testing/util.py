@@ -28,6 +28,7 @@ def copy_tree_to_path(src_dir, dest_dir):
         else:
             shutil.copy(srcname, destname)
 
+
 def is_valid_according_to_schema(obj, schema):
     try:
         jsonschema.validate(obj, schema)
