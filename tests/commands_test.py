@@ -252,18 +252,26 @@ def test_run(repo_with_passing_hook, options, outputs, expected_ret, stage):
     _test_run(repo_with_passing_hook, options, outputs, expected_ret, stage)
 
 
-@pytest.mark.parametrize('no_stash', (True, False))
-def test_no_stash(repo_with_passing_hook, no_stash):
+@pytest.mark.parametrize(
+    ('no_stash', 'all_files', 'expect_stash'),
+    (
+        (True, True, False),
+        (True, False, False),
+        (False, True, False),
+        (False, False, True),
+    ),
+)
+def test_no_stash(repo_with_passing_hook, no_stash, all_files, expect_stash):
     stage_a_file()
     # Make unstaged changes
     with open('foo.py', 'w') as foo_file:
         foo_file.write('import os\n')
 
-    args = _get_opts(no_stash=no_stash)
+    args = _get_opts(no_stash=no_stash, all_files=all_files)
     ret, printed = _do_run(repo_with_passing_hook, args)
     assert ret == 0
     warning_msg = '[WARNING] Unstaged files detected.'
-    if no_stash:
-        assert warning_msg not in printed
-    else:
+    if expect_stash:
         assert warning_msg in printed
+    else:
+        assert warning_msg not in printed

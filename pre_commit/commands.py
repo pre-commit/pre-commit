@@ -234,7 +234,7 @@ def run(runner, args, write=sys.stdout.write):
     logger.addHandler(LoggingHandler(args.color, write=write))
     logger.setLevel(logging.INFO)
 
-    if args.no_stash:
+    if args.no_stash or args.all_files:
         ctx = noop_context()
     else:
         ctx = staged_files_only(runner.cmd_runner)
