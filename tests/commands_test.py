@@ -275,3 +275,34 @@ def test_no_stash(repo_with_passing_hook, no_stash, all_files, expect_stash):
         assert warning_msg in printed
     else:
         assert warning_msg not in printed
+
+
+@pytest.yield_fixture
+def in_merge_conflict(repo_with_passing_hook):
+    local['git']['add', C.CONFIG_FILE]()
+    local['git']['commit', '-m' 'add hooks file']()
+    local['git']['clone', '.', 'foo']()
+    with local.cwd('foo'):
+        local['git']['checkout', 'origin/master', '-b', 'foo']()
+        with open('conflict_file', 'w') as conflict_file:
+            conflict_file.write('herp\nderp\n')
+        local['git']['add', 'conflict_file']()
+        local['git']['commit', '-m', 'conflict_file']()
+        local['git']['checkout', 'origin/master', '-b', 'bar']()
+        with open('conflict_file', 'w') as conflict_file:
+            conflict_file.write('harp\nddrp\n')
+        local['git']['add', 'conflict_file']()
+        local['git']['commit', '-m', 'conflict_file']()
+        local['git']['merge', 'foo'](retcode=None)
+        yield os.path.join(repo_with_passing_hook, 'foo')
+
+
+def test_merge_conflict(in_merge_conflict):
+    # Touch another file so we have unstaged non-conflicting things
+    assert os.path.exists('dummy')
+    with open('dummy', 'w') as dummy_file:
+        dummy_file.write('bar\nbaz\n')
+
+    ret, printed = _do_run(in_merge_conflict, _get_opts())
+    assert ret == 1
+    assert 'Resolve merge conflicts before committing' in printed
