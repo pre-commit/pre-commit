@@ -5,7 +5,7 @@ from setuptools import setup
 setup(
     name='pre_commit',
     description='A framework for managing and maintaining multi-language pre-commit hooks.',
-    url='http://github.com/pre-commit/pre-commit',
+    url='https://github.com/pre-commit/pre-commit',
     version='0.0.0',
 
     author='Anthony Sottile',
@@ -16,6 +16,8 @@ setup(
         'License :: Public Domain',
         'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.3',
+        'Programming Language :: Python :: Implementation :: PyPy',
     ],
 
     packages=find_packages('.', exclude=('tests*', 'testing*')),
