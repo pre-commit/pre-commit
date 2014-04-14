@@ -25,7 +25,7 @@ class LoggingHandler(logging.Handler):
                     '[{0}]'.format(record.levelname),
                     LOG_LEVEL_COLORS[record.levelname],
                     self.use_color,
-                ) + ' ' if record.levelno >= logging.WARNING else '',
+                ) + ' ',
                 record.getMessage(),
             )
         )

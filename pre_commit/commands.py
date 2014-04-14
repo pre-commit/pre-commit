@@ -230,7 +230,7 @@ def _run_hook(runner, hook_id, args, write):
 
 def run(runner, args, write=sys.stdout.write):
     # Set up our logging handler
-    logger.addHandler(LoggingHandler(args.color))
+    logger.addHandler(LoggingHandler(args.color, write=write))
     logger.setLevel(logging.INFO)
 
     with staged_files_only(runner.cmd_runner):
