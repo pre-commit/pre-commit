@@ -151,6 +151,26 @@ def _run_single_hook(runner, repository, hook_id, args, write):
 
     hook = repository.hooks[hook_id]
 
+    filenames = get_filenames(hook['files'], hook['exclude'])
+    if not filenames:
+        no_files_msg = '(no files to check) '
+        skipped_msg = 'Skipped'
+        write(
+            '{0}{1}{2}{3}\n'.format(
+                hook['name'],
+                '.' * (
+                    COLS -
+                    len(hook['name']) -
+                    len(no_files_msg) -
+                    len(skipped_msg) -
+                    6
+                ),
+                no_files_msg,
+                color.format_color(skipped_msg, color.TURQUOISE, args.color),
+            )
+        )
+        return 0
+
     # Print the hook and the dots first in case the hook takes hella long to
     # run.
     write(
@@ -164,7 +184,7 @@ def _run_single_hook(runner, repository, hook_id, args, write):
     retcode, stdout, stderr = repository.run_hook(
         runner.cmd_runner,
         hook_id,
-        get_filenames(hook['files'], hook['exclude']),
+        filenames,
     )
 
     if retcode != repository.hooks[hook_id]['expected_return_value']:

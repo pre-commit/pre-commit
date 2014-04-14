@@ -235,6 +235,7 @@ def test_run_all_hooks_failing(repo_with_failing_hook):
             0,
             True,
         ),
+        ({}, ('Bash hook', '(no files to check)', 'Skipped'), 0, False),
     )
 )
 def test_run(repo_with_passing_hook, options, outputs, expected_ret, stage):
