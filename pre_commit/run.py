@@ -31,6 +31,10 @@ def run(argv):
         '--color', default='auto', type=color.use_color,
         help='Whether to use color in output.  Defaults to `auto`',
     )
+    run_parser.add_argument(
+        '--no-stash', default=False, action='store_true',
+        help='Use this option to prevent auto stashing of unstaged files.',
+    )
     run_parser.add_argument('--verbose', '-v', action='store_true', default=False)
 
     help = subparsers.add_parser('help', help='Show help for a specific command.')

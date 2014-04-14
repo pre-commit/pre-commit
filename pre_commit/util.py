@@ -62,3 +62,9 @@ def clean_path_on_failure(path):
         if os.path.exists(path):
             shutil.rmtree(path)
         raise
+
+
+# TODO: asottile.contextlib this with a forward port of nested
+@contextlib.contextmanager
+def noop_context():
+    yield
