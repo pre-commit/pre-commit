@@ -277,14 +277,10 @@ def test_no_stash(repo_with_passing_hook, no_stash, all_files, expect_stash):
         assert warning_msg not in printed
 
 
-@pytest.mark.parametrize(
-    ('mode', 'expected'),
-    [(status, True) for status in commands.CONFLICTING_GIT_STATUSES] +
-    [(' A', False), (' D', False), (' M', False)]
-)
-def test_has_unmerged_paths(mode, expected):
+@pytest.mark.parametrize(('output', 'expected'), (('some', True), ('', False)))
+def test_has_unmerged_paths(output, expected):
     mock_runner = mock.Mock()
-    mock_runner.cmd_runner.run.return_value = (1, mode + ' foo', '')
+    mock_runner.cmd_runner.run.return_value = (1, output, '')
     assert commands._has_unmerged_paths(mock_runner) is expected
 
 
