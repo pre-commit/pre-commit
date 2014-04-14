@@ -9,15 +9,14 @@ from asottile.ordereddict import OrderedDict
 from asottile.yaml import ordered_dump
 from plumbum import local
 
-
 import pre_commit.constants as C
 from pre_commit import commands
-from pre_commit import git
 from pre_commit.clientlib.validate_config import CONFIG_JSON_SCHEMA
 from pre_commit.clientlib.validate_config import validate_config_extra
 from pre_commit.jsonschema_extensions import apply_defaults
 from pre_commit.runner import Runner
 from testing.auto_namedtuple import auto_namedtuple
+from testing.util import get_head_sha
 from testing.util import get_resource_path
 
 
@@ -53,7 +52,7 @@ def test_uninstall(empty_git_dir):
 def up_to_date_repo(python_hooks_repo):
     config = OrderedDict((
         ('repo', python_hooks_repo),
-        ('sha', git.get_head_sha(python_hooks_repo)),
+        ('sha', get_head_sha(python_hooks_repo)),
         ('hooks', [OrderedDict((('id', 'foo'), ('files', '')))]),
     ))
     wrapped_config = apply_defaults([config], CONFIG_JSON_SCHEMA)
@@ -90,14 +89,14 @@ def test_autoupdate_up_to_date_repo(up_to_date_repo):
 def out_of_date_repo(python_hooks_repo):
     config = OrderedDict((
         ('repo', python_hooks_repo),
-        ('sha', git.get_head_sha(python_hooks_repo)),
+        ('sha', get_head_sha(python_hooks_repo)),
         ('hooks', [OrderedDict((('id', 'foo'), ('files', '')))]),
     ))
     config_wrapped = apply_defaults([config], CONFIG_JSON_SCHEMA)
     validate_config_extra(config_wrapped)
     config = config_wrapped[0]
     local['git']['commit', '--allow-empty', '-m', 'foo']()
-    head_sha = git.get_head_sha(python_hooks_repo)
+    head_sha = get_head_sha(python_hooks_repo)
 
     with open(os.path.join(python_hooks_repo, C.CONFIG_FILE), 'w') as file_obj:
         file_obj.write(
@@ -136,7 +135,7 @@ def test_autoupdate_out_of_date_repo(out_of_date_repo):
 def hook_disappearing_repo(python_hooks_repo):
     config = OrderedDict((
         ('repo', python_hooks_repo),
-        ('sha', git.get_head_sha(python_hooks_repo)),
+        ('sha', get_head_sha(python_hooks_repo)),
         ('hooks', [OrderedDict((('id', 'foo'), ('files', '')))]),
     ))
     config_wrapped = apply_defaults([config], CONFIG_JSON_SCHEMA)

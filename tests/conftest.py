@@ -6,11 +6,11 @@ import yaml
 from plumbum import local
 
 import pre_commit.constants as C
-from pre_commit import git
 from pre_commit.clientlib.validate_config import CONFIG_JSON_SCHEMA
 from pre_commit.clientlib.validate_config import validate_config_extra
 from pre_commit.jsonschema_extensions import apply_defaults
 from testing.util import copy_tree_to_path
+from testing.util import get_head_sha
 from testing.util import get_resource_path
 
 
@@ -78,7 +78,7 @@ def failing_hook_repo(dummy_git_repo):
 def _make_config(path, hook_id, file_regex):
     config = {
         'repo': path,
-        'sha': git.get_head_sha(path),
+        'sha': get_head_sha(path),
         'hooks': [{'id': hook_id, 'files': file_regex}],
     }
     config_wrapped = apply_defaults([config], CONFIG_JSON_SCHEMA)

@@ -22,11 +22,6 @@ def get_root():
     return _get_root_new()
 
 
-def get_head_sha(git_repo_path):
-    with local.cwd(git_repo_path):
-        return local['git']['rev-parse', 'HEAD']().strip()
-
-
 @memoize_by_cwd
 def get_staged_files():
     return local['git']['diff', '--staged', '--name-only']().splitlines()
