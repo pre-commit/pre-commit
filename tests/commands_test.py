@@ -277,6 +277,17 @@ def test_no_stash(repo_with_passing_hook, no_stash, all_files, expect_stash):
         assert warning_msg not in printed
 
 
+@pytest.mark.parametrize(
+    ('mode', 'expected'),
+    [(status, True) for status in commands.CONFLICTING_GIT_STATUSES] +
+    [(' A', False), (' D', False), (' M', False)]
+)
+def test_has_unmerged_paths(mode, expected):
+    mock_runner = mock.Mock()
+    mock_runner.cmd_runner.run.return_value = (1, mode + ' foo', '')
+    assert commands._has_unmerged_paths(mock_runner) is expected
+
+
 @pytest.yield_fixture
 def in_merge_conflict(repo_with_passing_hook):
     local['git']['add', C.CONFIG_FILE]()
@@ -298,6 +309,12 @@ def in_merge_conflict(repo_with_passing_hook):
 
 
 def test_merge_conflict(in_merge_conflict):
+    ret, printed = _do_run(in_merge_conflict, _get_opts())
+    assert ret == 1
+    assert 'Unmerged files.  Resolve before committing.' in printed
+
+
+def test_merge_conflict_modified(in_merge_conflict):
     # Touch another file so we have unstaged non-conflicting things
     assert os.path.exists('dummy')
     with open('dummy', 'w') as dummy_file:
@@ -305,4 +322,4 @@ def test_merge_conflict(in_merge_conflict):
 
     ret, printed = _do_run(in_merge_conflict, _get_opts())
     assert ret == 1
-    assert 'Resolve merge conflicts before committing' in printed
+    assert 'Unmerged files.  Resolve before committing.' in printed

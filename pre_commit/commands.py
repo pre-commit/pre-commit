@@ -30,6 +30,9 @@ COLS = int(subprocess.Popen(['tput', 'cols'], stdout=subprocess.PIPE).communicat
 
 PASS_FAIL_LENGTH = 6
 
+# Grabbed from `git help status`
+CONFLICTING_GIT_STATUSES = set(('DD', 'AU', 'UD', 'UA', 'DU', 'AA', 'UU'))
+
 
 def install(runner):
     """Install the pre-commit hooks."""
@@ -229,10 +232,23 @@ def _run_hook(runner, hook_id, args, write):
         return 1
 
 
+def _has_unmerged_paths(runner):
+    _, stdout, _ = runner.cmd_runner.run(
+        ['git', 'status', '--short'], retcode=None,
+    )
+    codes = set(line[:2] for line in stdout.splitlines())
+    return codes & CONFLICTING_GIT_STATUSES > set()
+
+
 def run(runner, args, write=sys.stdout.write):
     # Set up our logging handler
     logger.addHandler(LoggingHandler(args.color, write=write))
     logger.setLevel(logging.INFO)
+
+    # Check if we have unresolved merge conflict files and fail fast.
+    if _has_unmerged_paths(runner):
+        logger.error('Unmerged files.  Resolve before committing.')
+        return 1
 
     if args.no_stash or args.all_files:
         ctx = noop_context()
