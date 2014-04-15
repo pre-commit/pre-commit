@@ -35,6 +35,7 @@ def parse_merge_msg_for_conflicts(merge_msg):
 
 @memoize_by_cwd
 def get_conflicted_files():
+    logger.info('Checking merge-conflict files only.')
     # Need to get the conflicted files from the MERGE_MSG because they could
     # have resolved the conflict by choosing one side or the other
     merge_msg = open(os.path.join('.git', 'MERGE_MSG')).read()
