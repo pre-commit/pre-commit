@@ -9,15 +9,14 @@ from asottile.ordereddict import OrderedDict
 from asottile.yaml import ordered_dump
 from plumbum import local
 
-
 import pre_commit.constants as C
 from pre_commit import commands
-from pre_commit import git
 from pre_commit.clientlib.validate_config import CONFIG_JSON_SCHEMA
 from pre_commit.clientlib.validate_config import validate_config_extra
 from pre_commit.jsonschema_extensions import apply_defaults
 from pre_commit.runner import Runner
 from testing.auto_namedtuple import auto_namedtuple
+from testing.util import get_head_sha
 from testing.util import get_resource_path
 
 
@@ -53,7 +52,7 @@ def test_uninstall(empty_git_dir):
 def up_to_date_repo(python_hooks_repo):
     config = OrderedDict((
         ('repo', python_hooks_repo),
-        ('sha', git.get_head_sha(python_hooks_repo)),
+        ('sha', get_head_sha(python_hooks_repo)),
         ('hooks', [OrderedDict((('id', 'foo'), ('files', '')))]),
     ))
     wrapped_config = apply_defaults([config], CONFIG_JSON_SCHEMA)
@@ -90,14 +89,14 @@ def test_autoupdate_up_to_date_repo(up_to_date_repo):
 def out_of_date_repo(python_hooks_repo):
     config = OrderedDict((
         ('repo', python_hooks_repo),
-        ('sha', git.get_head_sha(python_hooks_repo)),
+        ('sha', get_head_sha(python_hooks_repo)),
         ('hooks', [OrderedDict((('id', 'foo'), ('files', '')))]),
     ))
     config_wrapped = apply_defaults([config], CONFIG_JSON_SCHEMA)
     validate_config_extra(config_wrapped)
     config = config_wrapped[0]
     local['git']['commit', '--allow-empty', '-m', 'foo']()
-    head_sha = git.get_head_sha(python_hooks_repo)
+    head_sha = get_head_sha(python_hooks_repo)
 
     with open(os.path.join(python_hooks_repo, C.CONFIG_FILE), 'w') as file_obj:
         file_obj.write(
@@ -136,7 +135,7 @@ def test_autoupdate_out_of_date_repo(out_of_date_repo):
 def hook_disappearing_repo(python_hooks_repo):
     config = OrderedDict((
         ('repo', python_hooks_repo),
-        ('sha', git.get_head_sha(python_hooks_repo)),
+        ('sha', get_head_sha(python_hooks_repo)),
         ('hooks', [OrderedDict((('id', 'foo'), ('files', '')))]),
     ))
     config_wrapped = apply_defaults([config], CONFIG_JSON_SCHEMA)
@@ -282,26 +281,6 @@ def test_has_unmerged_paths(output, expected):
     mock_runner = mock.Mock()
     mock_runner.cmd_runner.run.return_value = (1, output, '')
     assert commands._has_unmerged_paths(mock_runner) is expected
-
-
-@pytest.yield_fixture
-def in_merge_conflict(repo_with_passing_hook):
-    local['git']['add', C.CONFIG_FILE]()
-    local['git']['commit', '-m' 'add hooks file']()
-    local['git']['clone', '.', 'foo']()
-    with local.cwd('foo'):
-        local['git']['checkout', 'origin/master', '-b', 'foo']()
-        with open('conflict_file', 'w') as conflict_file:
-            conflict_file.write('herp\nderp\n')
-        local['git']['add', 'conflict_file']()
-        local['git']['commit', '-m', 'conflict_file']()
-        local['git']['checkout', 'origin/master', '-b', 'bar']()
-        with open('conflict_file', 'w') as conflict_file:
-            conflict_file.write('harp\nddrp\n')
-        local['git']['add', 'conflict_file']()
-        local['git']['commit', '-m', 'conflict_file']()
-        local['git']['merge', 'foo'](retcode=None)
-        yield os.path.join(repo_with_passing_hook, 'foo')
 
 
 def test_merge_conflict(in_merge_conflict):

@@ -1,4 +1,5 @@
 import functools
+import logging
 import os
 import os.path
 import re
@@ -7,7 +8,11 @@ from plumbum import local
 from pre_commit.util import memoize_by_cwd
 
 
-def _get_root_new():
+logger = logging.getLogger('pre_commit')
+
+
+@memoize_by_cwd
+def get_root():
     path = os.getcwd()
     while len(path) > 1:
         if os.path.exists(os.path.join(path, '.git')):
@@ -17,14 +22,33 @@ def _get_root_new():
     raise AssertionError('called from outside of the gits')
 
 
+def is_in_merge_conflict():
+    return os.path.exists(os.path.join('.git', 'MERGE_MSG'))
+
+
+def parse_merge_msg_for_conflicts(merge_msg):
+    # Conflicted files start with tabs
+    return [
+        line.strip() for line in merge_msg.splitlines() if line.startswith('\t')
+    ]
+
+
 @memoize_by_cwd
-def get_root():
-    return _get_root_new()
+def get_conflicted_files():
+    logger.info('Checking merge-conflict files only.')
+    # Need to get the conflicted files from the MERGE_MSG because they could
+    # have resolved the conflict by choosing one side or the other
+    merge_msg = open(os.path.join('.git', 'MERGE_MSG')).read()
+    merge_conflict_filenames = parse_merge_msg_for_conflicts(merge_msg)
 
-
-def get_head_sha(git_repo_path):
-    with local.cwd(git_repo_path):
-        return local['git']['rev-parse', 'HEAD']().strip()
+    # This will get the rest of the changes made after the merge.
+    # If they resolved the merge conflict by choosing a mesh of both sides
+    # this will also include the conflicted files
+    tree_hash = local['git']['write-tree']().strip()
+    merge_diff_filenames = local['git'][
+        'diff', '-m', tree_hash, 'HEAD', 'MERGE_HEAD', '--name-only',
+    ]().splitlines()
+    return set(merge_conflict_filenames) | set(merge_diff_filenames)
 
 
 @memoize_by_cwd
@@ -57,3 +81,4 @@ def get_files_matching(all_file_list_strategy):
 
 get_staged_files_matching = get_files_matching(get_staged_files)
 get_all_files_matching = get_files_matching(get_all_files)
+get_conflicted_files_matching = get_files_matching(get_conflicted_files)

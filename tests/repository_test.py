@@ -3,13 +3,13 @@ import os
 import pytest
 
 import pre_commit.constants as C
-from pre_commit import git
 from pre_commit import repository
 from pre_commit.clientlib.validate_config import CONFIG_JSON_SCHEMA
 from pre_commit.clientlib.validate_config import validate_config_extra
 from pre_commit.jsonschema_extensions import apply_defaults
 from pre_commit.prefixed_command_runner import PrefixedCommandRunner
 from pre_commit.repository import Repository
+from testing.util import get_head_sha
 
 
 @pytest.fixture
@@ -17,7 +17,7 @@ def dummy_repo_config(dummy_git_repo):
     # This is not a valid config, but it is pretty close
     return {
         'repo': dummy_git_repo,
-        'sha': git.get_head_sha(dummy_git_repo),
+        'sha': get_head_sha(dummy_git_repo),
         'hooks': [],
     }
 
