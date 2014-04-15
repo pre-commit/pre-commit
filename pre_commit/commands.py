@@ -147,6 +147,8 @@ def clean(runner):
 def _run_single_hook(runner, repository, hook_id, args, write):
     if args.all_files:
         get_filenames = git.get_all_files_matching
+    elif git.is_in_merge_conflict():
+        get_filenames = git.get_conflicted_files_matching
     else:
         get_filenames = git.get_staged_files_matching
 

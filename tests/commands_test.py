@@ -283,26 +283,6 @@ def test_has_unmerged_paths(output, expected):
     assert commands._has_unmerged_paths(mock_runner) is expected
 
 
-@pytest.yield_fixture
-def in_merge_conflict(repo_with_passing_hook):
-    local['git']['add', C.CONFIG_FILE]()
-    local['git']['commit', '-m' 'add hooks file']()
-    local['git']['clone', '.', 'foo']()
-    with local.cwd('foo'):
-        local['git']['checkout', 'origin/master', '-b', 'foo']()
-        with open('conflict_file', 'w') as conflict_file:
-            conflict_file.write('herp\nderp\n')
-        local['git']['add', 'conflict_file']()
-        local['git']['commit', '-m', 'conflict_file']()
-        local['git']['checkout', 'origin/master', '-b', 'bar']()
-        with open('conflict_file', 'w') as conflict_file:
-            conflict_file.write('harp\nddrp\n')
-        local['git']['add', 'conflict_file']()
-        local['git']['commit', '-m', 'conflict_file']()
-        local['git']['merge', 'foo'](retcode=None)
-        yield os.path.join(repo_with_passing_hook, 'foo')
-
-
 def test_merge_conflict(in_merge_conflict):
     ret, printed = _do_run(in_merge_conflict, _get_opts())
     assert ret == 1
