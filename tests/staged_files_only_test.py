@@ -1,3 +1,6 @@
+from __future__ import unicode_literals
+
+import io
 import logging
 import mock
 import os.path
@@ -20,14 +23,18 @@ def get_short_git_status():
     return dict(reversed(line.split()) for line in git_status.splitlines())
 
 
-@pytest.yield_fixture
-def foo_staged(empty_git_dir):
+def write_gitignore():
     with open('.gitignore', 'w') as gitignore_file:
         gitignore_file.write(C.HOOKS_WORKSPACE + '\n')
+
+
+@pytest.yield_fixture
+def foo_staged(empty_git_dir):
+    write_gitignore()
     local['git']['add', '.']()
     local['git']['commit', '-m', 'add gitignore']()
 
-    with open('foo', 'w') as foo_file:
+    with io.open('foo', 'w') as foo_file:
         foo_file.write(FOO_CONTENTS)
     local['git']['add', 'foo']()
     foo_filename = os.path.join(empty_git_dir, 'foo')
@@ -41,7 +48,7 @@ def cmd_runner():
 
 def _test_foo_state(path, foo_contents=FOO_CONTENTS, status='A'):
     assert os.path.exists(path.foo_filename)
-    assert open(path.foo_filename).read() == foo_contents
+    assert io.open(path.foo_filename, encoding='utf-8').read() == foo_contents
     actual_status = get_short_git_status()['foo']
     assert status == actual_status
 
@@ -57,7 +64,7 @@ def test_foo_nothing_unstaged(foo_staged, cmd_runner):
 
 
 def test_foo_something_unstaged(foo_staged, cmd_runner):
-    with open(foo_staged.foo_filename, 'w') as foo_file:
+    with io.open(foo_staged.foo_filename, 'w') as foo_file:
         foo_file.write('herp\nderp\n')
 
     _test_foo_state(foo_staged, 'herp\nderp\n', 'AM')
@@ -69,7 +76,7 @@ def test_foo_something_unstaged(foo_staged, cmd_runner):
 
 
 def test_foo_both_modify_non_conflicting(foo_staged, cmd_runner):
-    with open(foo_staged.foo_filename, 'w') as foo_file:
+    with io.open(foo_staged.foo_filename, 'w') as foo_file:
         foo_file.write(FOO_CONTENTS + '9\n')
 
     _test_foo_state(foo_staged, FOO_CONTENTS + '9\n', 'AM')
@@ -78,7 +85,7 @@ def test_foo_both_modify_non_conflicting(foo_staged, cmd_runner):
         _test_foo_state(foo_staged)
 
         # Modify the file as part of the "pre-commit"
-        with open(foo_staged.foo_filename, 'w') as foo_file:
+        with io.open(foo_staged.foo_filename, 'w') as foo_file:
             foo_file.write(FOO_CONTENTS.replace('1', 'a'))
 
         _test_foo_state(foo_staged, FOO_CONTENTS.replace('1', 'a'), 'AM')
@@ -87,7 +94,7 @@ def test_foo_both_modify_non_conflicting(foo_staged, cmd_runner):
 
 
 def test_foo_both_modify_conflicting(foo_staged, cmd_runner):
-    with open(foo_staged.foo_filename, 'w') as foo_file:
+    with io.open(foo_staged.foo_filename, 'w') as foo_file:
         foo_file.write(FOO_CONTENTS.replace('1', 'a'))
 
     _test_foo_state(foo_staged, FOO_CONTENTS.replace('1', 'a'), 'AM')
@@ -96,7 +103,7 @@ def test_foo_both_modify_conflicting(foo_staged, cmd_runner):
         _test_foo_state(foo_staged)
 
         # Modify in the same place as the stashed diff
-        with open(foo_staged.foo_filename, 'w') as foo_file:
+        with io.open(foo_staged.foo_filename, 'w') as foo_file:
             foo_file.write(FOO_CONTENTS.replace('1', 'b'))
 
         _test_foo_state(foo_staged, FOO_CONTENTS.replace('1', 'b'), 'AM')
@@ -106,8 +113,7 @@ def test_foo_both_modify_conflicting(foo_staged, cmd_runner):
 
 @pytest.yield_fixture
 def img_staged(empty_git_dir):
-    with open('.gitignore', 'w') as gitignore_file:
-        gitignore_file.write(C.HOOKS_WORKSPACE + '\n')
+    write_gitignore()
     local['git']['add', '.']()
     local['git']['commit', '-m', 'add gitignore']()
 
@@ -120,8 +126,8 @@ def img_staged(empty_git_dir):
 def _test_img_state(path, expected_file='img1.jpg', status='A'):
     assert os.path.exists(path.img_filename)
     assert (
-        open(path.img_filename, 'rb').read() ==
-        open(get_resource_path(expected_file), 'rb').read()
+        io.open(path.img_filename, 'rb').read() ==
+        io.open(get_resource_path(expected_file), 'rb').read()
     )
     actual_status = get_short_git_status()['img.jpg']
     assert status == actual_status
@@ -246,3 +252,14 @@ def test_diff_returns_1_no_diff_though(fake_logging_handler, foo_staged):
     with staged_files_only(cmd_runner):
         pass
     assert not fake_logging_handler.logs
+
+
+def test_stage_utf8_changes(foo_staged, cmd_runner):
+    contents = '\u2603'
+    with io.open('foo', 'w', encoding='utf-8') as foo_file:
+        foo_file.write(contents)
+
+    _test_foo_state(foo_staged, contents, 'AM')
+    with staged_files_only(cmd_runner):
+        _test_foo_state(foo_staged)
+    _test_foo_state(foo_staged, contents, 'AM')
