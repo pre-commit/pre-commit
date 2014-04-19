@@ -160,7 +160,7 @@ def _print_no_files_skipped(hook, write, args):
                 len(hook['name']) -
                 len(no_files_msg) -
                 len(skipped_msg) -
-                6
+                1
             ),
             no_files_msg,
             color.format_color(skipped_msg, color.TURQUOISE, args.color),
@@ -173,7 +173,7 @@ def _print_user_skipped(hook, write, args):
     write(
         '{0}{1}{2}\n'.format(
             hook['name'],
-            '.' * (COLS - len(hook['name']) - len(skipped_msg) - 6),
+            '.' * (COLS - len(hook['name']) - len(skipped_msg) - 1),
             color.format_color(skipped_msg, color.YELLOW, args.color),
         ),
     )
@@ -202,7 +202,7 @@ def _run_single_hook(runner, repository, hook_id, args, write, skips=set()):
     write(
         '{0}{1}'.format(
             hook['name'],
-            '.' * (COLS - len(hook['name']) - PASS_FAIL_LENGTH - 6),
+            '.' * (COLS - len(hook['name']) - PASS_FAIL_LENGTH - 1),
         ),
     )
     sys.stdout.flush()
