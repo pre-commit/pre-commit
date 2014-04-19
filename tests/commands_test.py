@@ -201,10 +201,10 @@ def _get_opts(all_files=False, color=False, verbose=False, hook=None, no_stash=F
     )
 
 
-def _do_run(repo, args):
+def _do_run(repo, args, environ={}):
     runner = Runner(repo)
     write_mock = mock.Mock()
-    ret = commands.run(runner, args, write=write_mock)
+    ret = commands.run(runner, args, write=write_mock, environ=environ)
     printed = get_write_mock_output(write_mock)
     return ret, printed
 
@@ -298,3 +298,35 @@ def test_merge_conflict_modified(in_merge_conflict):
     ret, printed = _do_run(in_merge_conflict, _get_opts())
     assert ret == 1
     assert 'Unmerged files.  Resolve before committing.' in printed
+
+
+def test_merge_conflict_resolved(in_merge_conflict):
+    local['git']['add', '.']()
+    ret, printed = _do_run(in_merge_conflict, _get_opts())
+    for msg in ('Checking merge-conflict files only.', 'Bash hook', 'Passed'):
+        assert msg in printed
+
+
+@pytest.mark.parametrize(
+    ('environ', 'expected_output'),
+    (
+        ({}, set([])),
+        ({'SKIP': ''}, set([])),
+        ({'SKIP': ','}, set([])),
+        ({'SKIP': ',foo'}, set(['foo'])),
+        ({'SKIP': 'foo'}, set(['foo'])),
+        ({'SKIP': 'foo,bar'}, set(['foo', 'bar'])),
+        ({'SKIP': ' foo , bar'}, set(['foo', 'bar'])),
+    ),
+)
+def test_get_skips(environ, expected_output):
+    ret = commands._get_skips(environ)
+    assert ret == expected_output
+
+
+def test_skip_hook(repo_with_passing_hook):
+    ret, printed = _do_run(
+        repo_with_passing_hook, _get_opts(), {'SKIP': 'bash_hook'},
+    )
+    for msg in ('Bash hook', 'Skipped'):
+        assert msg in printed
