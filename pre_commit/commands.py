@@ -144,7 +144,42 @@ def clean(runner):
     return 0
 
 
-def _run_single_hook(runner, repository, hook_id, args, write):
+def _get_skips(environ):
+    skips = environ.get('SKIP', '')
+    return set(skip.strip() for skip in skips.split(',') if skip.strip())
+
+
+def _print_no_files_skipped(hook, write, args):
+    no_files_msg = '(no files to check) '
+    skipped_msg = 'Skipped'
+    write(
+        '{0}{1}{2}{3}\n'.format(
+            hook['name'],
+            '.' * (
+                COLS -
+                len(hook['name']) -
+                len(no_files_msg) -
+                len(skipped_msg) -
+                6
+            ),
+            no_files_msg,
+            color.format_color(skipped_msg, color.TURQUOISE, args.color),
+        )
+    )
+
+
+def _print_user_skipped(hook, write, args):
+    skipped_msg = 'Skipped'
+    write(
+        '{0}{1}{2}\n'.format(
+            hook['name'],
+            '.' * (COLS - len(hook['name']) - len(skipped_msg) - 6),
+            color.format_color(skipped_msg, color.YELLOW, args.color),
+        ),
+    )
+
+
+def _run_single_hook(runner, repository, hook_id, args, write, skips=set()):
     if args.all_files:
         get_filenames = git.get_all_files_matching
     elif git.is_in_merge_conflict():
@@ -155,23 +190,11 @@ def _run_single_hook(runner, repository, hook_id, args, write):
     hook = repository.hooks[hook_id]
 
     filenames = get_filenames(hook['files'], hook['exclude'])
-    if not filenames:
-        no_files_msg = '(no files to check) '
-        skipped_msg = 'Skipped'
-        write(
-            '{0}{1}{2}{3}\n'.format(
-                hook['name'],
-                '.' * (
-                    COLS -
-                    len(hook['name']) -
-                    len(no_files_msg) -
-                    len(skipped_msg) -
-                    6
-                ),
-                no_files_msg,
-                color.format_color(skipped_msg, color.TURQUOISE, args.color),
-            )
-        )
+    if hook_id in skips:
+        _print_user_skipped(hook, write, args)
+        return 0
+    elif not filenames:
+        _print_no_files_skipped(hook, write, args)
         return 0
 
     # Print the hook and the dots first in case the hook takes hella long to
@@ -211,18 +234,23 @@ def _run_single_hook(runner, repository, hook_id, args, write):
     return retcode
 
 
-def _run_hooks(runner, args, write):
+def _run_hooks(runner, args, write, environ):
     """Actually run the hooks."""
     retval = 0
 
+    skips = _get_skips(environ)
+
     for repo in runner.repositories:
         for hook_id in repo.hooks:
-            retval |= _run_single_hook(runner, repo, hook_id, args, write=write)
+            retval |= _run_single_hook(
+                runner, repo, hook_id, args, write, skips=skips,
+            )
 
     return retval
 
 
-def _run_hook(runner, hook_id, args, write):
+def _run_hook(runner, args, write):
+    hook_id = args.hook
     for repo in runner.repositories:
         if hook_id in repo.hooks:
             return _run_single_hook(runner, repo, hook_id, args, write=write)
@@ -236,7 +264,7 @@ def _has_unmerged_paths(runner):
     return bool(stdout.strip())
 
 
-def run(runner, args, write=sys.stdout.write):
+def run(runner, args, write=sys.stdout.write, environ=os.environ):
     # Set up our logging handler
     logger.addHandler(LoggingHandler(args.color, write=write))
     logger.setLevel(logging.INFO)
@@ -253,6 +281,6 @@ def run(runner, args, write=sys.stdout.write):
 
     with ctx:
         if args.hook:
-            return _run_hook(runner, args.hook, args, write=write)
+            return _run_hook(runner, args, write=write)
         else:
-            return _run_hooks(runner, args, write=write)
+            return _run_hooks(runner, args, write=write, environ=environ)
