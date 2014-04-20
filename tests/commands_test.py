@@ -330,3 +330,13 @@ def test_skip_hook(repo_with_passing_hook):
     )
     for msg in ('Bash hook', 'Skipped'):
         assert msg in printed
+
+
+def test_hook_id_not_in_non_verbose_output(repo_with_passing_hook):
+    ret, printed = _do_run(repo_with_passing_hook, _get_opts(verbose=False))
+    assert '[bash_hook]' not in printed
+
+
+def test_hook_id_in_verbose_output(repo_with_passing_hook):
+    ret, printed = _do_run(repo_with_passing_hook, _get_opts(verbose=True))
+    assert '[bash_hook] Bash hook' in printed

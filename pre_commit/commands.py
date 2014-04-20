@@ -5,7 +5,6 @@ import os
 import pkg_resources
 import shutil
 import stat
-import subprocess
 import sys
 from asottile.ordereddict import OrderedDict
 from asottile.yaml import ordered_dump
@@ -19,16 +18,13 @@ from pre_commit.clientlib.validate_config import CONFIG_JSON_SCHEMA
 from pre_commit.clientlib.validate_config import load_config
 from pre_commit.jsonschema_extensions import remove_defaults
 from pre_commit.logging_handler import LoggingHandler
+from pre_commit.output import get_hook_message
 from pre_commit.repository import Repository
 from pre_commit.staged_files_only import staged_files_only
 from pre_commit.util import noop_context
 
 
 logger = logging.getLogger('pre_commit')
-
-COLS = int(subprocess.Popen(['tput', 'cols'], stdout=subprocess.PIPE).communicate()[0])
-
-PASS_FAIL_LENGTH = 6
 
 
 def install(runner):
@@ -107,7 +103,8 @@ def autoupdate(runner):
     )
 
     for repo_config in input_configs:
-        print('Updating {0}...'.format(repo_config['repo']), end='')
+        sys.stdout.write('Updating {0}...'.format(repo_config['repo']))
+        sys.stdout.flush()
         try:
             new_repo_config = _update_repository(repo_config)
         except RepositoryCannotBeUpdatedError as error:
@@ -149,34 +146,30 @@ def _get_skips(environ):
     return set(skip.strip() for skip in skips.split(',') if skip.strip())
 
 
-def _print_no_files_skipped(hook, write, args):
-    no_files_msg = '(no files to check) '
-    skipped_msg = 'Skipped'
-    write(
-        '{0}{1}{2}{3}\n'.format(
-            hook['name'],
-            '.' * (
-                COLS -
-                len(hook['name']) -
-                len(no_files_msg) -
-                len(skipped_msg) -
-                1
-            ),
-            no_files_msg,
-            color.format_color(skipped_msg, color.TURQUOISE, args.color),
-        )
+def _hook_msg_start(hook, verbose):
+    return '{0}{1}'.format(
+        '[{0}] '.format(hook['id']) if verbose else '',
+        hook['name'],
     )
+
+
+def _print_no_files_skipped(hook, write, args):
+    write(get_hook_message(
+        _hook_msg_start(hook, args.verbose),
+        postfix='(no files to check) ',
+        end_msg='Skipped',
+        end_color=color.TURQUOISE,
+        use_color=args.color,
+    ))
 
 
 def _print_user_skipped(hook, write, args):
-    skipped_msg = 'Skipped'
-    write(
-        '{0}{1}{2}\n'.format(
-            hook['name'],
-            '.' * (COLS - len(hook['name']) - len(skipped_msg) - 1),
-            color.format_color(skipped_msg, color.YELLOW, args.color),
-        ),
-    )
+    write(get_hook_message(
+        _hook_msg_start(hook, args.verbose),
+        end_msg='Skipped',
+        end_color=color.YELLOW,
+        use_color=args.color,
+    ))
 
 
 def _run_single_hook(runner, repository, hook_id, args, write, skips=set()):
@@ -199,12 +192,7 @@ def _run_single_hook(runner, repository, hook_id, args, write, skips=set()):
 
     # Print the hook and the dots first in case the hook takes hella long to
     # run.
-    write(
-        '{0}{1}'.format(
-            hook['name'],
-            '.' * (COLS - len(hook['name']) - PASS_FAIL_LENGTH - 1),
-        ),
-    )
+    write(get_hook_message(_hook_msg_start(hook, args.verbose), end_len=6))
     sys.stdout.flush()
 
     retcode, stdout, stderr = repository.run_hook(
