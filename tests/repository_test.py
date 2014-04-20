@@ -1,6 +1,7 @@
 import mock
 import os
 import pytest
+from plumbum import local
 
 import pre_commit.constants as C
 from pre_commit import repository
@@ -167,3 +168,13 @@ def test_reinstall(config_for_python_hooks_repo):
     # TODO: how to assert this?
     repo = Repository(config_for_python_hooks_repo)
     repo.require_installed(PrefixedCommandRunner(C.HOOKS_WORKSPACE))
+
+
+@pytest.mark.xfail
+@pytest.mark.integration
+def test_really_long_file_paths(config_for_python_hooks_repo):
+    path = 'really_long' * 10
+    local['git']['init', path]()
+    with local.cwd(path):
+        repo = Repository(config_for_python_hooks_repo)
+        repo.require_installed(PrefixedCommandRunner(C.HOOKS_WORKSPACE))
