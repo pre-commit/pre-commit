@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 
+import mock
 import os
 import os.path
 import pytest
@@ -8,18 +9,36 @@ import yaml
 from plumbum import local
 
 import pre_commit.constants as C
+from pre_commit import five
 from pre_commit.clientlib.validate_config import CONFIG_JSON_SCHEMA
 from pre_commit.clientlib.validate_config import validate_config_extra
 from pre_commit.jsonschema_extensions import apply_defaults
+from pre_commit.store import Store
 from testing.util import copy_tree_to_path
 from testing.util import get_head_sha
 from testing.util import get_resource_path
 
 
 @pytest.yield_fixture
-def in_tmpdir(tmpdir):
-    with local.cwd(tmpdir.strpath):
-        yield tmpdir.strpath
+def tmpdir_factory(tmpdir):
+    class TmpdirFactory(object):
+        def __init__(self):
+            self.tmpdir_count = 0
+
+        def get(self):
+            path = os.path.join(tmpdir.strpath, five.text(self.tmpdir_count))
+            self.tmpdir_count += 1
+            os.mkdir(path)
+            return path
+
+    yield TmpdirFactory()
+
+
+@pytest.yield_fixture
+def in_tmpdir(tmpdir_factory):
+    path = tmpdir_factory.get()
+    with local.cwd(path):
+        yield path
 
 
 @pytest.yield_fixture
@@ -154,3 +173,36 @@ def in_merge_conflict(repo_with_passing_hook):
         local['git']['commit', '-m', 'conflict_file']()
         local['git']['merge', 'foo'](retcode=None)
         yield os.path.join(repo_with_passing_hook, 'foo')
+
+
+@pytest.yield_fixture(scope='session', autouse=True)
+def dont_write_to_home_directory():
+    """pre_commit.store.Store will by default write to the home directory
+    We'll mock out `Store.get_default_directory` to raise invariantly so we
+    don't construct a `Store` object that writes to our home directory.
+    """
+    class YouForgotToExplicitlyChooseAStoreDirectory(AssertionError):
+        pass
+
+    with mock.patch.object(
+        Store,
+        'get_default_directory',
+        side_effect=YouForgotToExplicitlyChooseAStoreDirectory,
+    ):
+        yield
+
+
+@pytest.yield_fixture
+def mock_out_store_directory(tmpdir_factory):
+    tmpdir = tmpdir_factory.get()
+    with mock.patch.object(
+        Store,
+        'get_default_directory',
+        return_value=tmpdir,
+    ):
+        yield tmpdir
+
+
+@pytest.yield_fixture
+def store(tmpdir_factory):
+    yield Store(os.path.join(tmpdir_factory.get(), '.pre-commit'))

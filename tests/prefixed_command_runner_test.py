@@ -73,6 +73,7 @@ PATH_TESTS = (
     ('foo/bar', '../baz', 'foo/baz'),
     ('./', 'bar', 'bar'),
     ('./', '', '.'),
+    ('/tmp/foo', '/tmp/bar', '/tmp/bar'),
 )
 
 

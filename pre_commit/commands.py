@@ -56,7 +56,7 @@ class RepositoryCannotBeUpdatedError(RuntimeError):
     pass
 
 
-def _update_repository(repo_config):
+def _update_repository(repo_config, runner):
     """Updates a repository to the tip of `master`.  If the repository cannot
     be updated because a hook that is configured does not exist in `master`,
     this raises a RepositoryCannotBeUpdatedError
@@ -64,9 +64,9 @@ def _update_repository(repo_config):
     Args:
         repo_config - A config for a repository
     """
-    repo = Repository(repo_config)
+    repo = Repository.create(repo_config, runner.store)
 
-    with repo.in_checkout():
+    with local.cwd(repo.repo_path_getter.repo_path):
         local['git']['fetch']()
         head_sha = local['git']['rev-parse', 'origin/master']().strip()
 
@@ -77,11 +77,11 @@ def _update_repository(repo_config):
     # Construct a new config with the head sha
     new_config = OrderedDict(repo_config)
     new_config['sha'] = head_sha
-    new_repo = Repository(new_config)
+    new_repo = Repository.create(new_config, runner.store)
 
     # See if any of our hooks were deleted with the new commits
     hooks = set(repo.hooks.keys())
-    hooks_missing = hooks - (hooks & set(new_repo.manifest.keys()))
+    hooks_missing = hooks - (hooks & set(new_repo.manifest.hooks.keys()))
     if hooks_missing:
         raise RepositoryCannotBeUpdatedError(
             'Cannot update because the tip of master is missing these hooks:\n'
@@ -106,7 +106,7 @@ def autoupdate(runner):
         sys.stdout.write('Updating {0}...'.format(repo_config['repo']))
         sys.stdout.flush()
         try:
-            new_repo_config = _update_repository(repo_config)
+            new_repo_config = _update_repository(repo_config, runner)
         except RepositoryCannotBeUpdatedError as error:
             print(error.args[0])
             output_configs.append(repo_config)
@@ -135,9 +135,9 @@ def autoupdate(runner):
 
 
 def clean(runner):
-    if os.path.exists(runner.hooks_workspace_path):
-        shutil.rmtree(runner.hooks_workspace_path)
-        print('Cleaned {0}.'.format(runner.hooks_workspace_path))
+    if os.path.exists(runner.store.directory):
+        shutil.rmtree(runner.store.directory)
+        print('Cleaned {0}.'.format(runner.store.directory))
     return 0
 
 
