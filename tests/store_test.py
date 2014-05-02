@@ -27,11 +27,6 @@ def test_get_default_directory_defaults_to_home():
     assert ret == os.path.join(os.environ['HOME'], '.pre-commit')
 
 
-@pytest.yield_fixture
-def store(tmpdir_factory):
-    yield Store(os.path.join(tmpdir_factory.get(), '.pre-commit'))
-
-
 def test_store_require_created(store):
     assert not os.path.exists(store.directory)
     store.require_created()
