@@ -195,11 +195,7 @@ def _run_single_hook(runner, repository, hook_id, args, write, skips=set()):
     write(get_hook_message(_hook_msg_start(hook, args.verbose), end_len=6))
     sys.stdout.flush()
 
-    retcode, stdout, stderr = repository.run_hook(
-        runner.cmd_runner,
-        hook_id,
-        filenames,
-    )
+    retcode, stdout, stderr = repository.run_hook(hook_id, filenames)
 
     if retcode != repository.hooks[hook_id]['expected_return_value']:
         retcode = 1
