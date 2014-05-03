@@ -1,57 +1,26 @@
-import mock
-import os
+import os.path
 import pytest
+from plumbum import local
 
-import pre_commit.constants as C
-from pre_commit import repository
 from pre_commit.clientlib.validate_config import CONFIG_JSON_SCHEMA
 from pre_commit.clientlib.validate_config import validate_config_extra
 from pre_commit.jsonschema_extensions import apply_defaults
 from pre_commit.prefixed_command_runner import PrefixedCommandRunner
 from pre_commit.repository import Repository
-from testing.util import get_head_sha
-
-
-@pytest.fixture
-def dummy_repo_config(dummy_git_repo):
-    # This is not a valid config, but it is pretty close
-    return {
-        'repo': dummy_git_repo,
-        'sha': get_head_sha(dummy_git_repo),
-        'hooks': [],
-    }
 
 
 @pytest.mark.integration
-def test_create_repo_in_env(dummy_repo_config, dummy_git_repo):
-    repo = Repository(dummy_repo_config)
-    repo.create()
-
-    assert os.path.exists(
-        os.path.join(dummy_git_repo, C.HOOKS_WORKSPACE, repo.sha),
-    )
+def test_install_python_repo_in_env(config_for_python_hooks_repo, store):
+    repo = Repository.create(config_for_python_hooks_repo, store)
+    repo.install(PrefixedCommandRunner(store.directory))
+    assert os.path.exists(os.path.join(store.directory, repo.sha, 'py_env'))
 
 
 @pytest.mark.integration
-def test_install_python_repo_in_env(config_for_python_hooks_repo):
-    repo = Repository(config_for_python_hooks_repo)
-    repo.install(PrefixedCommandRunner(C.HOOKS_WORKSPACE))
-
-    assert os.path.exists(
-        os.path.join(
-            repo.repo_url,
-            C.HOOKS_WORKSPACE,
-            repo.sha,
-            'py_env',
-        ),
-    )
-
-
-@pytest.mark.integration
-def test_run_a_python_hook(config_for_python_hooks_repo):
-    repo = Repository(config_for_python_hooks_repo)
+def test_run_a_python_hook(config_for_python_hooks_repo, store):
+    repo = Repository.create(config_for_python_hooks_repo, store)
     ret = repo.run_hook(
-        PrefixedCommandRunner(C.HOOKS_WORKSPACE), 'foo', ['/dev/null'],
+        PrefixedCommandRunner(store.directory), 'foo', ['/dev/null'],
     )
 
     assert ret[0] == 0
@@ -59,21 +28,21 @@ def test_run_a_python_hook(config_for_python_hooks_repo):
 
 
 @pytest.mark.integration
-def test_run_a_hook_lots_of_files(config_for_python_hooks_repo):
-    repo = Repository(config_for_python_hooks_repo)
+def test_lots_of_files(config_for_python_hooks_repo, store):
+    repo = Repository.create(config_for_python_hooks_repo, store)
     ret = repo.run_hook(
-        PrefixedCommandRunner(C.HOOKS_WORKSPACE), 'foo', ['/dev/null'] * 15000,
+        PrefixedCommandRunner(store.directory), 'foo', ['/dev/null'] * 15000,
     )
 
     assert ret[0] == 0
 
 
 @pytest.mark.integration
-def test_cwd_of_hook(config_for_prints_cwd_repo):
+def test_cwd_of_hook(config_for_prints_cwd_repo, store):
     # Note: this doubles as a test for `system` hooks
-    repo = Repository(config_for_prints_cwd_repo)
+    repo = Repository.create(config_for_prints_cwd_repo, store)
     ret = repo.run_hook(
-        PrefixedCommandRunner(C.HOOKS_WORKSPACE), 'prints_cwd', [],
+        PrefixedCommandRunner(store.directory), 'prints_cwd', [],
     )
 
     assert ret[0] == 0
@@ -85,19 +54,19 @@ def test_cwd_of_hook(config_for_prints_cwd_repo):
     reason="TODO: make this test not super slow",
 )
 @pytest.mark.integration
-def test_run_a_node_hook(config_for_node_hooks_repo):
-    repo = Repository(config_for_node_hooks_repo)
-    ret = repo.run_hook(PrefixedCommandRunner(C.HOOKS_WORKSPACE), 'foo', [])
+def test_run_a_node_hook(config_for_node_hooks_repo, store):
+    repo = Repository.create(config_for_node_hooks_repo, store)
+    ret = repo.run_hook(PrefixedCommandRunner(store.directory), 'foo', [])
 
     assert ret[0] == 0
     assert ret[1] == 'Hello World\n'
 
 
 @pytest.mark.integration
-def test_run_a_script_hook(config_for_script_hooks_repo):
-    repo = Repository(config_for_script_hooks_repo)
+def test_run_a_script_hook(config_for_script_hooks_repo, store):
+    repo = Repository.create(config_for_script_hooks_repo, store)
     ret = repo.run_hook(
-        PrefixedCommandRunner(C.HOOKS_WORKSPACE), 'bash_hook', ['bar'],
+        PrefixedCommandRunner(store.directory), 'bash_hook', ['bar'],
     )
 
     assert ret[0] == 0
@@ -120,50 +89,37 @@ def mock_repo_config():
 
 
 def test_repo_url(mock_repo_config):
-    repo = Repository(mock_repo_config)
+    repo = Repository(mock_repo_config, None)
     assert repo.repo_url == 'git@github.com:pre-commit/pre-commit-hooks'
 
 
 def test_sha(mock_repo_config):
-    repo = Repository(mock_repo_config)
+    repo = Repository(mock_repo_config, None)
     assert repo.sha == '5e713f8878b7d100c0e059f8cc34be4fc2e8f897'
 
 
 @pytest.mark.integration
-def test_languages(config_for_python_hooks_repo):
-    repo = Repository(config_for_python_hooks_repo)
+def test_languages(config_for_python_hooks_repo, store):
+    repo = Repository.create(config_for_python_hooks_repo, store)
     assert repo.languages == set(['python'])
 
 
-@pytest.yield_fixture
-def logger_mock():
-    with mock.patch.object(
-        repository.logger, 'info', autospec=True,
-    ) as info_mock:
-        yield info_mock
-
-
-def test_prints_while_creating(config_for_python_hooks_repo, logger_mock):
-    repo = Repository(config_for_python_hooks_repo)
-    repo.require_created()
-    logger_mock.assert_called_with('This may take a few minutes...')
-    logger_mock.reset_mock()
-    # Reinstall with same repo should not trigger another install
-    repo.require_created()
-    assert logger_mock.call_count == 0
-    # Reinstall on another run should not trigger another install
-    repo = Repository(config_for_python_hooks_repo)
-    repo.require_created()
-    assert logger_mock.call_count == 0
-
-
-def test_reinstall(config_for_python_hooks_repo):
-    repo = Repository(config_for_python_hooks_repo)
-    repo.require_installed(PrefixedCommandRunner(C.HOOKS_WORKSPACE))
+def test_reinstall(config_for_python_hooks_repo, store):
+    repo = Repository.create(config_for_python_hooks_repo, store)
+    repo.require_installed(PrefixedCommandRunner(store.directory))
     # Reinstall with same repo should not trigger another install
     # TODO: how to assert this?
-    repo.require_installed(PrefixedCommandRunner(C.HOOKS_WORKSPACE))
+    repo.require_installed(PrefixedCommandRunner(store.directory))
     # Reinstall on another run should not trigger another install
     # TODO: how to assert this?
-    repo = Repository(config_for_python_hooks_repo)
-    repo.require_installed(PrefixedCommandRunner(C.HOOKS_WORKSPACE))
+    repo = Repository.create(config_for_python_hooks_repo, store)
+    repo.require_installed(PrefixedCommandRunner(store.directory))
+
+
+@pytest.mark.integration
+def test_really_long_file_paths(config_for_python_hooks_repo, store):
+    path = 'really_long' * 10
+    local['git']['init', path]()
+    with local.cwd(path):
+        repo = Repository.create(config_for_python_hooks_repo, store)
+        repo.require_installed(PrefixedCommandRunner(store.directory))

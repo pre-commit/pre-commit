@@ -1,26 +1,23 @@
-import contextlib
-import logging
 from asottile.ordereddict import OrderedDict
-from plumbum import local
 
-import pre_commit.constants as C
-from pre_commit import five
-from pre_commit.clientlib.validate_manifest import load_manifest
-from pre_commit.hooks_workspace import in_hooks_workspace
 from pre_commit.languages.all import languages
+from pre_commit.manifest import Manifest
 from pre_commit.prefixed_command_runner import PrefixedCommandRunner
 from pre_commit.util import cached_property
-from pre_commit.util import clean_path_on_failure
-
-
-logger = logging.getLogger('pre_commit')
 
 
 class Repository(object):
-    def __init__(self, repo_config):
+    def __init__(self, repo_config, repo_path_getter):
         self.repo_config = repo_config
-        self.__created = False
+        self.repo_path_getter = repo_path_getter
         self.__installed = False
+
+    @classmethod
+    def create(cls, config, store):
+        repo_path_getter = store.get_repo_path_getter(
+            config['repo'], config['sha']
+        )
+        return cls(config, repo_path_getter)
 
     @cached_property
     def repo_url(self):
@@ -36,45 +33,21 @@ class Repository(object):
 
     @cached_property
     def hooks(self):
+        # TODO: merging in manifest dicts is a smell imo
         return OrderedDict(
-            (hook['id'], dict(hook, **self.manifest[hook['id']]))
+            (hook['id'], dict(hook, **self.manifest.hooks[hook['id']]))
             for hook in self.repo_config['hooks']
         )
 
     @cached_property
     def manifest(self):
-        with self.in_checkout():
-            return dict(
-                (hook['id'], hook)
-                for hook in load_manifest(C.MANIFEST_FILE)
-            )
+        return Manifest(self.repo_path_getter)
 
     def get_cmd_runner(self, hooks_cmd_runner):
+        # TODO: this effectively throws away the original cmd runner
         return PrefixedCommandRunner.from_command_runner(
-            hooks_cmd_runner, self.sha,
+            hooks_cmd_runner, self.repo_path_getter.repo_path,
         )
-
-    def require_created(self):
-        if self.__created:
-            return
-
-        self.create()
-        self.__created = True
-
-    def create(self):
-        with in_hooks_workspace():
-            if local.path(self.sha).exists():
-                # Project already exists, no reason to re-create it
-                return
-
-            # Checking out environment for the first time
-            logger.info('Installing environment for {0}.'.format(self.repo_url))
-            logger.info('Once installed this environment will be reused.')
-            logger.info('This may take a few minutes...')
-            with clean_path_on_failure(five.u(local.path(self.sha))):
-                local['git']['clone', '--no-checkout', self.repo_url, self.sha]()
-                with self.in_checkout():
-                    local['git']['checkout', self.sha]()
 
     def require_installed(self, cmd_runner):
         if self.__installed:
@@ -89,7 +62,6 @@ class Repository(object):
         Args:
             cmd_runner - A `PrefixedCommandRunner` bound to the hooks workspace
         """
-        self.require_created()
         repo_cmd_runner = self.get_cmd_runner(cmd_runner)
         for language_name in self.languages:
             language = languages[language_name]
@@ -100,13 +72,6 @@ class Repository(object):
                 # The language is already installed
                 continue
             language.install_environment(repo_cmd_runner)
-
-    @contextlib.contextmanager
-    def in_checkout(self):
-        self.require_created()
-        with in_hooks_workspace():
-            with local.cwd(self.sha):
-                yield
 
     def run_hook(self, cmd_runner, hook_id, file_args):
         """Run a hook.

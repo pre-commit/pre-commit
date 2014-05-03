@@ -20,6 +20,11 @@ from testing.util import get_head_sha
 from testing.util import get_resource_path
 
 
+@pytest.yield_fixture
+def runner_with_mocked_store(mock_out_store_directory):
+    yield Runner('/')
+
+
 def test_install_pre_commit(empty_git_dir):
     runner = Runner(empty_git_dir)
     ret = commands.install(runner)
@@ -70,13 +75,15 @@ def up_to_date_repo(python_hooks_repo):
     )
 
 
-def test_up_to_date_repo(up_to_date_repo):
+def test_up_to_date_repo(up_to_date_repo, runner_with_mocked_store):
     input_sha = up_to_date_repo.repo_config['sha']
-    ret = commands._update_repository(up_to_date_repo.repo_config)
+    ret = commands._update_repository(
+        up_to_date_repo.repo_config, runner_with_mocked_store,
+    )
     assert ret['sha'] == input_sha
 
 
-def test_autoupdate_up_to_date_repo(up_to_date_repo):
+def test_autoupdate_up_to_date_repo(up_to_date_repo, mock_out_store_directory):
     before = open(C.CONFIG_FILE).read()
     runner = Runner(up_to_date_repo.python_hooks_repo)
     ret = commands.autoupdate(runner)
@@ -110,18 +117,22 @@ def out_of_date_repo(python_hooks_repo):
     )
 
 
-def test_out_of_date_repo(out_of_date_repo):
-    ret = commands._update_repository(out_of_date_repo.repo_config)
+def test_out_of_date_repo(out_of_date_repo, runner_with_mocked_store):
+    ret = commands._update_repository(
+        out_of_date_repo.repo_config, runner_with_mocked_store,
+    )
     assert ret['sha'] == out_of_date_repo.head_sha
 
 
-def test_removes_defaults(out_of_date_repo):
-    ret = commands._update_repository(out_of_date_repo.repo_config)
+def test_removes_defaults(out_of_date_repo, runner_with_mocked_store):
+    ret = commands._update_repository(
+        out_of_date_repo.repo_config, runner_with_mocked_store,
+    )
     assert 'args' not in ret['hooks'][0]
     assert 'expected_return_value' not in ret['hooks'][0]
 
 
-def test_autoupdate_out_of_date_repo(out_of_date_repo):
+def test_autoupdate_out_of_date_repo(out_of_date_repo, mock_out_store_directory):
     before = open(C.CONFIG_FILE).read()
     runner = Runner(out_of_date_repo.python_hooks_repo)
     ret = commands.autoupdate(runner)
@@ -156,12 +167,14 @@ def hook_disappearing_repo(python_hooks_repo):
     )
 
 
-def test_hook_disppearing_repo_raises(hook_disappearing_repo):
+def test_hook_disppearing_repo_raises(hook_disappearing_repo, runner_with_mocked_store):
     with pytest.raises(commands.RepositoryCannotBeUpdatedError):
-        commands._update_repository(hook_disappearing_repo.repo_config)
+        commands._update_repository(
+            hook_disappearing_repo.repo_config, runner_with_mocked_store,
+        )
 
 
-def test_autoupdate_hook_disappearing_repo(hook_disappearing_repo):
+def test_autoupdate_hook_disappearing_repo(hook_disappearing_repo, mock_out_store_directory):
     before = open(C.CONFIG_FILE).read()
     runner = Runner(hook_disappearing_repo.python_hooks_repo)
     ret = commands.autoupdate(runner)
@@ -170,16 +183,18 @@ def test_autoupdate_hook_disappearing_repo(hook_disappearing_repo):
     assert before == after
 
 
-def test_clean(empty_git_dir):
-    os.mkdir(C.HOOKS_WORKSPACE)
-    commands.clean(Runner(empty_git_dir))
-    assert not os.path.exists(C.HOOKS_WORKSPACE)
+def test_clean(runner_with_mocked_store):
+    assert os.path.exists(runner_with_mocked_store.store.directory)
+    commands.clean(runner_with_mocked_store)
+    assert not os.path.exists(runner_with_mocked_store.store.directory)
 
 
-def test_clean_empty(empty_git_dir):
-    assert not os.path.exists(C.HOOKS_WORKSPACE)
-    commands.clean(Runner(empty_git_dir))
-    assert not os.path.exists(C.HOOKS_WORKSPACE)
+def test_clean_empty(runner_with_mocked_store):
+    """Make sure clean succeeds when we the directory doesn't exist."""
+    shutil.rmtree(runner_with_mocked_store.store.directory)
+    assert not os.path.exists(runner_with_mocked_store.store.directory)
+    commands.clean(runner_with_mocked_store)
+    assert not os.path.exists(runner_with_mocked_store.store.directory)
 
 
 def stage_a_file():
@@ -219,7 +234,7 @@ def _test_run(repo, options, expected_outputs, expected_ret, stage):
         assert expected_output_part in printed
 
 
-def test_run_all_hooks_failing(repo_with_failing_hook):
+def test_run_all_hooks_failing(repo_with_failing_hook, mock_out_store_directory):
     _test_run(
         repo_with_failing_hook,
         {},
@@ -247,7 +262,7 @@ def test_run_all_hooks_failing(repo_with_failing_hook):
         ({}, ('Bash hook', '(no files to check)', 'Skipped'), 0, False),
     )
 )
-def test_run(repo_with_passing_hook, options, outputs, expected_ret, stage):
+def test_run(repo_with_passing_hook, options, outputs, expected_ret, stage, mock_out_store_directory):
     _test_run(repo_with_passing_hook, options, outputs, expected_ret, stage)
 
 
@@ -260,7 +275,7 @@ def test_run(repo_with_passing_hook, options, outputs, expected_ret, stage):
         (False, False, True),
     ),
 )
-def test_no_stash(repo_with_passing_hook, no_stash, all_files, expect_stash):
+def test_no_stash(repo_with_passing_hook, no_stash, all_files, expect_stash, mock_out_store_directory):
     stage_a_file()
     # Make unstaged changes
     with open('foo.py', 'w') as foo_file:
@@ -283,13 +298,13 @@ def test_has_unmerged_paths(output, expected):
     assert commands._has_unmerged_paths(mock_runner) is expected
 
 
-def test_merge_conflict(in_merge_conflict):
+def test_merge_conflict(in_merge_conflict, mock_out_store_directory):
     ret, printed = _do_run(in_merge_conflict, _get_opts())
     assert ret == 1
     assert 'Unmerged files.  Resolve before committing.' in printed
 
 
-def test_merge_conflict_modified(in_merge_conflict):
+def test_merge_conflict_modified(in_merge_conflict, mock_out_store_directory):
     # Touch another file so we have unstaged non-conflicting things
     assert os.path.exists('dummy')
     with open('dummy', 'w') as dummy_file:
@@ -300,7 +315,7 @@ def test_merge_conflict_modified(in_merge_conflict):
     assert 'Unmerged files.  Resolve before committing.' in printed
 
 
-def test_merge_conflict_resolved(in_merge_conflict):
+def test_merge_conflict_resolved(in_merge_conflict, mock_out_store_directory):
     local['git']['add', '.']()
     ret, printed = _do_run(in_merge_conflict, _get_opts())
     for msg in ('Checking merge-conflict files only.', 'Bash hook', 'Passed'):
@@ -324,7 +339,7 @@ def test_get_skips(environ, expected_output):
     assert ret == expected_output
 
 
-def test_skip_hook(repo_with_passing_hook):
+def test_skip_hook(repo_with_passing_hook, mock_out_store_directory):
     ret, printed = _do_run(
         repo_with_passing_hook, _get_opts(), {'SKIP': 'bash_hook'},
     )
@@ -332,11 +347,11 @@ def test_skip_hook(repo_with_passing_hook):
         assert msg in printed
 
 
-def test_hook_id_not_in_non_verbose_output(repo_with_passing_hook):
+def test_hook_id_not_in_non_verbose_output(repo_with_passing_hook, mock_out_store_directory):
     ret, printed = _do_run(repo_with_passing_hook, _get_opts(verbose=False))
     assert '[bash_hook]' not in printed
 
 
-def test_hook_id_in_verbose_output(repo_with_passing_hook):
+def test_hook_id_in_verbose_output(repo_with_passing_hook, mock_out_store_directory):
     ret, printed = _do_run(repo_with_passing_hook, _get_opts(verbose=True))
     assert '[bash_hook] Bash hook' in printed

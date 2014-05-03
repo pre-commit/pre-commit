@@ -8,7 +8,6 @@ import pytest
 import shutil
 from plumbum import local
 
-import pre_commit.constants as C
 from pre_commit.prefixed_command_runner import PrefixedCommandRunner
 from pre_commit.staged_files_only import staged_files_only
 from testing.auto_namedtuple import auto_namedtuple
@@ -23,17 +22,8 @@ def get_short_git_status():
     return dict(reversed(line.split()) for line in git_status.splitlines())
 
 
-def write_gitignore():
-    with open('.gitignore', 'w') as gitignore_file:
-        gitignore_file.write(C.HOOKS_WORKSPACE + '\n')
-
-
 @pytest.yield_fixture
 def foo_staged(empty_git_dir):
-    write_gitignore()
-    local['git']['add', '.']()
-    local['git']['commit', '-m', 'add gitignore']()
-
     with io.open('foo', 'w') as foo_file:
         foo_file.write(FOO_CONTENTS)
     local['git']['add', 'foo']()
@@ -41,9 +31,9 @@ def foo_staged(empty_git_dir):
     yield auto_namedtuple(path=empty_git_dir, foo_filename=foo_filename)
 
 
-@pytest.fixture
-def cmd_runner():
-    return PrefixedCommandRunner(C.HOOKS_WORKSPACE)
+@pytest.yield_fixture
+def cmd_runner(tmpdir_factory):
+    yield PrefixedCommandRunner(tmpdir_factory.get())
 
 
 def _test_foo_state(path, foo_contents=FOO_CONTENTS, status='A'):
@@ -113,10 +103,6 @@ def test_foo_both_modify_conflicting(foo_staged, cmd_runner):
 
 @pytest.yield_fixture
 def img_staged(empty_git_dir):
-    write_gitignore()
-    local['git']['add', '.']()
-    local['git']['commit', '-m', 'add gitignore']()
-
     img_filename = os.path.join(empty_git_dir, 'img.jpg')
     shutil.copy(get_resource_path('img1.jpg'), img_filename)
     local['git']['add', 'img.jpg']()

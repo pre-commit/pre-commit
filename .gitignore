@@ -4,7 +4,6 @@
 .*.sw[a-z]
 .coverage
 .idea
-.pre-commit-files
 .project
 .pydevproject
 .tox
