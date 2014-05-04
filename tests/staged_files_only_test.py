@@ -8,7 +8,6 @@ import pytest
 import shutil
 from plumbum import local
 
-from pre_commit.prefixed_command_runner import PrefixedCommandRunner
 from pre_commit.staged_files_only import staged_files_only
 from testing.auto_namedtuple import auto_namedtuple
 from testing.util import get_resource_path
@@ -29,11 +28,6 @@ def foo_staged(empty_git_dir):
     local['git']['add', 'foo']()
     foo_filename = os.path.join(empty_git_dir, 'foo')
     yield auto_namedtuple(path=empty_git_dir, foo_filename=foo_filename)
-
-
-@pytest.yield_fixture
-def cmd_runner(tmpdir_factory):
-    yield PrefixedCommandRunner(tmpdir_factory.get())
 
 
 def _test_foo_state(path, foo_contents=FOO_CONTENTS, status='A'):

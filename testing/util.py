@@ -1,6 +1,7 @@
 import jsonschema
 import os
 import os.path
+import pytest
 import shutil
 from plumbum import local
 
@@ -41,3 +42,10 @@ def is_valid_according_to_schema(obj, schema):
         return True
     except jsonschema.exceptions.ValidationError:
         return False
+
+
+def skipif_slowtests_false(func):
+    return pytest.mark.skipif(
+        os.environ.get('slowtests') == 'false',
+        reason='slowtests=false',
+    )(func)
