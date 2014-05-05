@@ -13,6 +13,7 @@ from pre_commit import five
 from pre_commit.clientlib.validate_config import CONFIG_JSON_SCHEMA
 from pre_commit.clientlib.validate_config import validate_config_extra
 from pre_commit.jsonschema_extensions import apply_defaults
+from pre_commit.prefixed_command_runner import PrefixedCommandRunner
 from pre_commit.store import Store
 from testing.util import copy_tree_to_path
 from testing.util import get_head_sha
@@ -77,6 +78,11 @@ def node_hooks_repo(dummy_git_repo):
 
 
 @pytest.yield_fixture
+def ruby_hooks_repo(dummy_git_repo):
+    yield _make_repo(dummy_git_repo, 'ruby_hooks_repo')
+
+
+@pytest.yield_fixture
 def consumer_repo(dummy_git_repo):
     yield _make_repo(dummy_git_repo, 'consumer_repo')
 
@@ -110,6 +116,11 @@ def _make_config(path, hook_id, file_regex):
 @pytest.yield_fixture
 def config_for_node_hooks_repo(node_hooks_repo):
     yield _make_config(node_hooks_repo, 'foo', '\\.js$')
+
+
+@pytest.yield_fixture
+def config_for_ruby_hooks_repo(ruby_hooks_repo):
+    yield _make_config(ruby_hooks_repo, 'ruby_hook', '\\.rb$')
 
 
 @pytest.yield_fixture
@@ -206,3 +217,8 @@ def mock_out_store_directory(tmpdir_factory):
 @pytest.yield_fixture
 def store(tmpdir_factory):
     yield Store(os.path.join(tmpdir_factory.get(), '.pre-commit'))
+
+
+@pytest.yield_fixture
+def cmd_runner(tmpdir_factory):
+    yield PrefixedCommandRunner(tmpdir_factory.get())

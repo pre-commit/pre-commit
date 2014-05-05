@@ -6,6 +6,7 @@ from pre_commit.clientlib.validate_config import CONFIG_JSON_SCHEMA
 from pre_commit.clientlib.validate_config import validate_config_extra
 from pre_commit.jsonschema_extensions import apply_defaults
 from pre_commit.repository import Repository
+from testing.util import skipif_slowtests_false
 
 
 @pytest.mark.integration
@@ -19,7 +20,6 @@ def test_install_python_repo_in_env(config_for_python_hooks_repo, store):
 def test_run_a_python_hook(config_for_python_hooks_repo, store):
     repo = Repository.create(config_for_python_hooks_repo, store)
     ret = repo.run_hook('foo', ['/dev/null'])
-
     assert ret[0] == 0
     assert ret[1] == "['/dev/null']\nHello World\n"
 
@@ -28,7 +28,6 @@ def test_run_a_python_hook(config_for_python_hooks_repo, store):
 def test_lots_of_files(config_for_python_hooks_repo, store):
     repo = Repository.create(config_for_python_hooks_repo, store)
     ret = repo.run_hook('foo', ['/dev/null'] * 15000)
-
     assert ret[0] == 0
 
 
@@ -37,22 +36,27 @@ def test_cwd_of_hook(config_for_prints_cwd_repo, store):
     # Note: this doubles as a test for `system` hooks
     repo = Repository.create(config_for_prints_cwd_repo, store)
     ret = repo.run_hook('prints_cwd', [])
-
     assert ret[0] == 0
     assert ret[1] == repo.repo_url + '\n'
 
 
-@pytest.mark.skipif(
-    os.environ.get('slowtests', None) == 'false',
-    reason="TODO: make this test not super slow",
-)
+@skipif_slowtests_false
 @pytest.mark.integration
 def test_run_a_node_hook(config_for_node_hooks_repo, store):
     repo = Repository.create(config_for_node_hooks_repo, store)
     ret = repo.run_hook('foo', [])
-
     assert ret[0] == 0
     assert ret[1] == 'Hello World\n'
+
+
+@pytest.mark.herpderp
+@skipif_slowtests_false
+@pytest.mark.integration
+def test_run_a_ruby_hook(config_for_ruby_hooks_repo, store):
+    repo = Repository.create(config_for_ruby_hooks_repo, store)
+    ret = repo.run_hook('ruby_hook', [])
+    assert ret[0] == 0
+    assert ret[1] == 'Hello world from a ruby hook\n'
 
 
 @pytest.mark.integration

@@ -1,0 +1,4 @@
+-   id: ruby_hook
+    name: Ruby Hook
+    entry: ruby_hook
+    language: ruby
