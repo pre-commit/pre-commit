@@ -42,7 +42,4 @@ setup(
             'validate-manifest = pre_commit.clientlib.validate_manifest:run',
         ],
     },
-    scripts=[
-        'scripts/__rvm-env.sh',
-    ],
 )
