@@ -40,6 +40,14 @@ def test_cwd_of_hook(config_for_prints_cwd_repo, store):
     assert ret[1] == repo.repo_url + '\n'
 
 
+@pytest.mark.integration
+def test_system_hook_with_spaces(config_for_system_hook_with_spaces, store):
+    repo = Repository.create(config_for_system_hook_with_spaces, store)
+    ret = repo.run_hook('system-hook-with-spaces', [])
+    assert ret[0] == 0
+    assert ret[1] == 'Hello World\n'
+
+
 @skipif_slowtests_false
 @pytest.mark.integration
 def test_run_a_node_hook(config_for_node_hooks_repo, store):

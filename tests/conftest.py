@@ -102,6 +102,11 @@ def failing_hook_repo(dummy_git_repo):
     yield _make_repo(dummy_git_repo, 'failing_hook_repo')
 
 
+@pytest.yield_fixture
+def system_hook_with_spaces_repo(dummy_git_repo):
+    yield _make_repo(dummy_git_repo, 'system_hook_with_spaces_repo')
+
+
 def _make_config(path, hook_id, file_regex):
     config = {
         'repo': path,
@@ -136,6 +141,13 @@ def config_for_prints_cwd_repo(prints_cwd_repo):
 @pytest.yield_fixture
 def config_for_script_hooks_repo(script_hooks_repo):
     yield _make_config(script_hooks_repo, 'bash_hook', '')
+
+
+@pytest.yield_fixture
+def config_for_system_hook_with_spaces(system_hook_with_spaces_repo):
+    yield _make_config(
+        system_hook_with_spaces_repo, 'system-hook-with-spaces', '',
+    )
 
 
 def _make_repo_from_configs(*configs):
