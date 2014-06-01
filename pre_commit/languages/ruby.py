@@ -18,7 +18,7 @@ class RubyEnv(helpers.Environment):
 
     def run(self, *args, **kwargs):
         # TODO: hardcoded version smell
-        env = dict(os.environ, RBENV_VERSION='1.9.3-p545')
+        env = dict(os.environ, RBENV_VERSION='1.9.3-p547')
         return super(RubyEnv, self).run(*args, env=env, **kwargs)
 
 
@@ -61,7 +61,7 @@ def install_environment(repo_cmd_runner):
         _install_rbenv(repo_cmd_runner)
         with in_env(repo_cmd_runner) as ruby_env:
             # TODO: hardcoded version smell
-            ruby_env.run('rbenv install 1.9.3-p545')
+            ruby_env.run('rbenv install 1.9.3-p547')
             ruby_env.run(
                 'cd {prefix} && gem build *.gemspec && gem install *.gem',
             )
