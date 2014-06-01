@@ -1,8 +1,8 @@
 import os.path
+from asottile.cached_property import cached_property
 
 import pre_commit.constants as C
 from pre_commit.clientlib.validate_manifest import load_manifest
-from pre_commit.util import cached_property
 
 
 class Manifest(object):

@@ -6,33 +6,9 @@ import random
 import sys
 from plumbum import local
 
-from pre_commit.util import cached_property
 from pre_commit.util import clean_path_on_failure
 from pre_commit.util import entry
 from pre_commit.util import memoize_by_cwd
-
-
-@pytest.fixture
-def class_with_cached_property():
-    class Foo(object):
-        @cached_property
-        def my_property(self):
-            return "Foo" + str(random.getrandbits(64))
-
-    return Foo
-
-
-def test_cached_property(class_with_cached_property):
-    instance = class_with_cached_property()
-    val = instance.my_property
-    val2 = instance.my_property
-    assert val is val2
-
-
-def test_unbound_cached_property(class_with_cached_property):
-    # Make sure we don't blow up when accessing the property unbound
-    prop = class_with_cached_property.my_property
-    assert isinstance(prop, cached_property)
 
 
 @pytest.fixture
