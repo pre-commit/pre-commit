@@ -29,6 +29,7 @@ setup(
     },
     install_requires=[
         'argparse',
+        'asottile.cached_property',
         'asottile.ordereddict',
         'asottile.yaml',
         'jsonschema',

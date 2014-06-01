@@ -1,12 +1,12 @@
 import os
 import os.path
+from asottile.cached_property import cached_property
 
 import pre_commit.constants as C
 from pre_commit import git
 from pre_commit.clientlib.validate_config import load_config
 from pre_commit.repository import Repository
 from pre_commit.store import Store
-from pre_commit.util import cached_property
 
 
 class Runner(object):
