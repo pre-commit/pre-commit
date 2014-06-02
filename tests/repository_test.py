@@ -113,7 +113,7 @@ def test_sha(mock_repo_config):
 @pytest.mark.integration
 def test_languages(config_for_python_hooks_repo, store):
     repo = Repository.create(config_for_python_hooks_repo, store)
-    assert repo.languages == set(['python'])
+    assert repo.languages == set([('python', 'default')])
 
 
 def test_reinstall(config_for_python_hooks_repo, store):

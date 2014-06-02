@@ -18,7 +18,7 @@ def in_env(repo_cmd_runner):
     yield PythonEnv(repo_cmd_runner)
 
 
-def install_environment(repo_cmd_runner):
+def install_environment(repo_cmd_runner, version='default'):
     assert repo_cmd_runner.exists('setup.py')
 
     # Install a virtualenv

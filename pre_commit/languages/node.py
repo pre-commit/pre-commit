@@ -24,7 +24,7 @@ def in_env(repo_cmd_runner):
     yield NodeEnv(repo_cmd_runner)
 
 
-def install_environment(repo_cmd_runner):
+def install_environment(repo_cmd_runner, version='default'):
     assert repo_cmd_runner.exists('package.json')
 
     with clean_path_on_failure(repo_cmd_runner.path(python.ENVIRONMENT_DIR)):

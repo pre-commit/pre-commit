@@ -56,7 +56,7 @@ def _install_rbenv(repo_cmd_runner):
         )
 
 
-def install_environment(repo_cmd_runner):
+def install_environment(repo_cmd_runner, version='default'):
     with clean_path_on_failure(repo_cmd_runner.path('rbenv')):
         _install_rbenv(repo_cmd_runner)
         with in_env(repo_cmd_runner) as ruby_env:
