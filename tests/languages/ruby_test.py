@@ -1,8 +1,10 @@
 import os.path
 
 from pre_commit.languages.ruby import _install_rbenv
+from testing.util import skipif_slowtests_false
 
 
+@skipif_slowtests_false
 def test_install_rbenv(cmd_runner):
     _install_rbenv(cmd_runner)
     # Should have created rbenv directory
