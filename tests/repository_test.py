@@ -24,7 +24,6 @@ def test_run_a_python_hook(config_for_python_hooks_repo, store):
     assert ret[1] == "['/dev/null']\nHello World\n"
 
 
-@pytest.mark.xfail
 @pytest.mark.integration
 def test_run_versioned_hook(config_for_python3_hooks_repo, store):
     repo = Repository.create(config_for_python3_hooks_repo, store)

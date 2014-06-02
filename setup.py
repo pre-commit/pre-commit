@@ -36,6 +36,7 @@ setup(
         'plumbum',
         'pyyaml',
         'simplejson',
+        'virtualenv',
     ],
     entry_points={
         'console_scripts': [
