@@ -24,6 +24,15 @@ def test_run_a_python_hook(config_for_python_hooks_repo, store):
     assert ret[1] == "['/dev/null']\nHello World\n"
 
 
+@pytest.mark.xfail
+@pytest.mark.integration
+def test_run_versioned_hook(config_for_python3_hooks_repo, store):
+    repo = Repository.create(config_for_python3_hooks_repo, store)
+    ret = repo.run_hook('python3-hook', ['/dev/null'])
+    assert ret[0] == 0
+    assert ret[1] == "3.3\n['/dev/null']\nHello World\n"
+
+
 @pytest.mark.integration
 def test_lots_of_files(config_for_python_hooks_repo, store):
     repo = Repository.create(config_for_python_hooks_repo, store)
