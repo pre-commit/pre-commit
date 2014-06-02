@@ -83,6 +83,11 @@ def node_hooks_repo(dummy_git_repo):
 
 
 @pytest.yield_fixture
+def node_0_11_8_hooks_repo(dummy_git_repo):
+    yield _make_repo(dummy_git_repo, 'node_0_11_8_hooks_repo')
+
+
+@pytest.yield_fixture
 def ruby_hooks_repo(dummy_git_repo):
     yield _make_repo(dummy_git_repo, 'ruby_hooks_repo')
 
@@ -126,6 +131,11 @@ def _make_config(path, hook_id, file_regex):
 @pytest.yield_fixture
 def config_for_node_hooks_repo(node_hooks_repo):
     yield _make_config(node_hooks_repo, 'foo', '\\.js$')
+
+
+@pytest.yield_fixture
+def config_for_node_0_11_8_hooks_repo(node_0_11_8_hooks_repo):
+    yield _make_config(node_0_11_8_hooks_repo, 'node-11-8-hook', '\\.js$')
 
 
 @pytest.yield_fixture

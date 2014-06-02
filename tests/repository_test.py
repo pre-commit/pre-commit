@@ -33,6 +33,14 @@ def test_run_versioned_hook(config_for_python3_hooks_repo, store):
 
 
 @pytest.mark.integration
+def test_run_versioned_node_hook(config_for_node_0_11_8_hooks_repo, store):
+    repo = Repository.create(config_for_node_0_11_8_hooks_repo, store)
+    ret = repo.run_hook('node-11-8-hook', ['/dev/null'])
+    assert ret[0] == 0
+    assert ret[1] == 'v0.11.8\nHello World\n'
+
+
+@pytest.mark.integration
 def test_lots_of_files(config_for_python_hooks_repo, store):
     repo = Repository.create(config_for_python_hooks_repo, store)
     ret = repo.run_hook('foo', ['/dev/null'] * 15000)

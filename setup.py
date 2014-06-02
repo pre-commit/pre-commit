@@ -33,6 +33,7 @@ setup(
         'asottile.ordereddict',
         'asottile.yaml',
         'jsonschema',
+        'nodeenv>=0.9.4',
         'plumbum',
         'pyyaml',
         'simplejson',
