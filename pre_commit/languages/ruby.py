@@ -2,7 +2,6 @@ from __future__ import unicode_literals
 
 import contextlib
 import io
-import os
 
 from pre_commit.languages import helpers
 from pre_commit.util import clean_path_on_failure
@@ -16,25 +15,23 @@ class RubyEnv(helpers.Environment):
     def env_prefix(self):
         return '. {{prefix}}{0}/bin/activate &&'.format(ENVIRONMENT_DIR)
 
-    def run(self, *args, **kwargs):
-        # TODO: hardcoded version smell
-        env = dict(os.environ, RBENV_VERSION='1.9.3-p547')
-        return super(RubyEnv, self).run(*args, env=env, **kwargs)
-
 
 @contextlib.contextmanager
 def in_env(repo_cmd_runner):
     yield RubyEnv(repo_cmd_runner)
 
 
-def _install_rbenv(repo_cmd_runner):
+def _install_rbenv(repo_cmd_runner, version='default'):
     repo_cmd_runner.run([
         'git', 'clone', 'git://github.com/sstephenson/rbenv', '{prefix}rbenv',
     ])
-    repo_cmd_runner.run([
-        'git', 'clone', 'git://github.com/sstephenson/ruby-build',
-        '{prefix}rbenv/plugins/ruby-build',
-    ])
+
+    # Only install ruby-build if the version is specified
+    if version != 'default':
+        repo_cmd_runner.run([
+            'git', 'clone', 'git://github.com/sstephenson/ruby-build',
+            '{prefix}rbenv/plugins/ruby-build',
+        ])
 
     activate_path = repo_cmd_runner.path('rbenv', 'bin', 'activate')
     with io.open(activate_path, 'w') as activate_file:
@@ -55,13 +52,19 @@ def _install_rbenv(repo_cmd_runner):
             '\n'.format(repo_cmd_runner.path('rbenv'))
         )
 
+        # If we aren't using the system ruby, add a version here
+        if version != 'default':
+            activate_file.write('export RBENV_VERSION="{0}"\n'.format(version))
 
-def install_environment(repo_cmd_runner):
+
+def install_environment(repo_cmd_runner, version='default'):
     with clean_path_on_failure(repo_cmd_runner.path('rbenv')):
-        _install_rbenv(repo_cmd_runner)
+        # TODO: this currently will fail if there's no version specified and
+        # there's no system ruby installed.  Is this ok?
+        _install_rbenv(repo_cmd_runner, version=version)
         with in_env(repo_cmd_runner) as ruby_env:
-            # TODO: hardcoded version smell
-            ruby_env.run('rbenv install 1.9.3-p547')
+            if version != 'default':
+                ruby_env.run('rbenv install {0}'.format(version))
             ruby_env.run(
                 'cd {prefix} && gem build *.gemspec && gem install *.gem',
             )

@@ -29,7 +29,10 @@ class Repository(object):
 
     @cached_property
     def languages(self):
-        return set(hook['language'] for hook in self.hooks.values())
+        return set(
+            (hook['language'], hook['language_version'])
+            for hook in self.hooks.values()
+        )
 
     @cached_property
     def hooks(self):
@@ -56,7 +59,7 @@ class Repository(object):
 
     def install(self):
         """Install the hook repository."""
-        for language_name in self.languages:
+        for language_name, language_version in self.languages:
             language = languages[language_name]
             if (
                 language.ENVIRONMENT_DIR is None or
@@ -64,7 +67,7 @@ class Repository(object):
             ):
                 # The language is already installed
                 continue
-            language.install_environment(self.cmd_runner)
+            language.install_environment(self.cmd_runner, language_version)
 
     def run_hook(self, hook_id, file_args):
         """Run a hook.

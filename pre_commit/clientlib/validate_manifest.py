@@ -20,6 +20,7 @@ MANIFEST_JSON_SCHEMA = {
             'description': {'type': 'string', 'default': ''},
             'entry': {'type': 'string'},
             'language': {'type': 'string'},
+            'language_version': {'type': 'string', 'default': 'default'},
             'expected_return_value': {'type': 'number', 'default': 0},
         },
         'required': ['id', 'name', 'entry', 'language'],
@@ -31,9 +32,9 @@ def additional_manifest_check(obj):
     for hook_config in obj:
         language = hook_config['language']
 
-        if not any(language.startswith(lang) for lang in all_languages):
+        if language not in all_languages:
             raise InvalidManifestError(
-                'Expected language {0} for {1} to start with one of {2!r}'.format(
+                'Expected language {0} for {1} to be one of {2!r}'.format(
                     hook_config['id'],
                     hook_config['language'],
                     all_languages,

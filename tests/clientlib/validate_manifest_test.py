@@ -27,12 +27,23 @@ def test_additional_manifest_check_raises_for_bad_language():
         additional_manifest_check([{'id': 'foo', 'language': 'not valid'}])
 
 
-@pytest.mark.parametrize(('obj'), (
-    [{'language': 'python'}],
-    [{'language': 'ruby'}],
-))
+@pytest.mark.parametrize(
+    'obj', ([{'language': 'python'}], [{'language': 'ruby'}]),
+)
 def test_additional_manifest_check_languages(obj):
     additional_manifest_check(obj)
+
+
+@pytest.mark.parametrize(
+    'obj',
+    (
+        [{'id': 'a', 'language': 'not a language'}],
+        [{'id': 'a', 'language': 'python3'}],
+    ),
+)
+def test_additional_manifest_check_languages_failing(obj):
+    with pytest.raises(InvalidManifestError):
+        additional_manifest_check(obj)
 
 
 @pytest.mark.parametrize(('manifest_obj', 'expected'), (

@@ -19,6 +19,7 @@ def test_manifest_contents(manifest):
         'expected_return_value': 0,
         'id': 'bash_hook',
         'language': 'script',
+        'language_version': 'default',
         'name': 'Bash hook',
     }]
 
@@ -30,5 +31,6 @@ def test_hooks(manifest):
         'expected_return_value': 0,
         'id': 'bash_hook',
         'language': 'script',
+        'language_version': 'default',
         'name': 'Bash hook',
     }

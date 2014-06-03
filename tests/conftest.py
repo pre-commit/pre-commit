@@ -73,13 +73,28 @@ def python_hooks_repo(dummy_git_repo):
 
 
 @pytest.yield_fixture
+def python3_hooks_repo(dummy_git_repo):
+    yield _make_repo(dummy_git_repo, 'python3_hooks_repo')
+
+
+@pytest.yield_fixture
 def node_hooks_repo(dummy_git_repo):
     yield _make_repo(dummy_git_repo, 'node_hooks_repo')
 
 
 @pytest.yield_fixture
+def node_0_11_8_hooks_repo(dummy_git_repo):
+    yield _make_repo(dummy_git_repo, 'node_0_11_8_hooks_repo')
+
+
+@pytest.yield_fixture
 def ruby_hooks_repo(dummy_git_repo):
     yield _make_repo(dummy_git_repo, 'ruby_hooks_repo')
+
+
+@pytest.yield_fixture
+def ruby_1_9_3_p547_hooks_repo(dummy_git_repo):
+    yield _make_repo(dummy_git_repo, 'ruby_1_9_3_p547_hooks_repo')
 
 
 @pytest.yield_fixture
@@ -124,13 +139,28 @@ def config_for_node_hooks_repo(node_hooks_repo):
 
 
 @pytest.yield_fixture
+def config_for_node_0_11_8_hooks_repo(node_0_11_8_hooks_repo):
+    yield _make_config(node_0_11_8_hooks_repo, 'node-11-8-hook', '\\.js$')
+
+
+@pytest.yield_fixture
 def config_for_ruby_hooks_repo(ruby_hooks_repo):
     yield _make_config(ruby_hooks_repo, 'ruby_hook', '\\.rb$')
 
 
 @pytest.yield_fixture
+def config_for_ruby_1_9_3_p547_hooks_repo(ruby_1_9_3_p547_hooks_repo):
+    yield _make_config(ruby_1_9_3_p547_hooks_repo, 'ruby_hook', '\\.rb$')
+
+
+@pytest.yield_fixture
 def config_for_python_hooks_repo(python_hooks_repo):
     yield _make_config(python_hooks_repo, 'foo', '\\.py$')
+
+
+@pytest.yield_fixture
+def config_for_python3_hooks_repo(python3_hooks_repo):
+    yield _make_config(python3_hooks_repo, 'python3-hook', '\\.py$')
 
 
 @pytest.yield_fixture

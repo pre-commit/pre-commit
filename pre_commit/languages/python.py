@@ -18,12 +18,15 @@ def in_env(repo_cmd_runner):
     yield PythonEnv(repo_cmd_runner)
 
 
-def install_environment(repo_cmd_runner):
+def install_environment(repo_cmd_runner, version='default'):
     assert repo_cmd_runner.exists('setup.py')
 
     # Install a virtualenv
     with clean_path_on_failure(repo_cmd_runner.path(ENVIRONMENT_DIR)):
-        repo_cmd_runner.run(['virtualenv', '{{prefix}}{0}'.format(ENVIRONMENT_DIR)])
+        venv_cmd = ['virtualenv', '{{prefix}}{0}'.format(ENVIRONMENT_DIR)]
+        if version != 'default':
+            venv_cmd.extend(['-p', version])
+        repo_cmd_runner.run(venv_cmd)
         with in_env(repo_cmd_runner) as env:
             env.run('cd {prefix} && pip install .')
 

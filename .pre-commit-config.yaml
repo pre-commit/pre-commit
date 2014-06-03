@@ -2,9 +2,9 @@
     sha: ca93f6834f2afc8a8f7de46c0e02076419077c7a
     hooks:
     -   id: trailing-whitespace
-        files: \.(py|sh|yaml)$
+        files: \.(js|py|sh|yaml)$
     -   id: end-of-file-fixer
-        files: \.(py|sh|yaml)$
+        files: \.(js|py|sh|yaml)$
     -   id: check-yaml
         files: \.(yaml|yml)$
     -   id: debug-statements

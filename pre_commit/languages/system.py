@@ -4,7 +4,7 @@ import shlex
 ENVIRONMENT_DIR = None
 
 
-def install_environment(repo_cmd_runner):
+def install_environment(repo_cmd_runner, version='default'):
     """Installation for system type is a noop."""
 
 
