@@ -1,6 +1,5 @@
 [run]
 branch = True
-timid = True
 source =
     .
 omit =
