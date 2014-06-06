@@ -58,7 +58,7 @@ def up_to_date_repo(python_hooks_repo):
     config = OrderedDict((
         ('repo', python_hooks_repo),
         ('sha', get_head_sha(python_hooks_repo)),
-        ('hooks', [OrderedDict((('id', 'foo'), ('files', '')))]),
+        ('hooks', [OrderedDict((('id', 'foo'),))]),
     ))
     wrapped_config = apply_defaults([config], CONFIG_JSON_SCHEMA)
     validate_config_extra(wrapped_config)
@@ -147,7 +147,7 @@ def hook_disappearing_repo(python_hooks_repo):
     config = OrderedDict((
         ('repo', python_hooks_repo),
         ('sha', get_head_sha(python_hooks_repo)),
-        ('hooks', [OrderedDict((('id', 'foo'), ('files', '')))]),
+        ('hooks', [OrderedDict((('id', 'foo'),))]),
     ))
     config_wrapped = apply_defaults([config], CONFIG_JSON_SCHEMA)
     validate_config_extra(config_wrapped)

@@ -2,3 +2,4 @@
     name: Bash hook
     entry: bin/hook.sh
     language: script
+    files: ''

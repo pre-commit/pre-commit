@@ -46,20 +46,34 @@ def test_additional_manifest_check_languages_failing(obj):
         additional_manifest_check(obj)
 
 
-@pytest.mark.parametrize(('manifest_obj', 'expected'), (
-    ([], False),
-    ([{'id': 'a', 'name': 'b', 'entry': 'c', 'language': 'python'}], True),
+@pytest.mark.parametrize(
+    ('manifest_obj', 'expected'),
     (
-        [{
-            'id': 'a',
-            'name': 'b',
-            'entry': 'c',
-            'language': 'python',
-            'expected_return_value': 0,
-        }],
-        True,
-    ),
-))
+        ([], False),
+        (
+            [{
+                'id': 'a',
+                'name': 'b',
+                'entry': 'c',
+                'language': 'python',
+                'files': r'\.py$'
+            }],
+            True,
+        ),
+        (
+            [{
+                'id': 'a',
+                'name': 'b',
+                'entry': 'c',
+                'language': 'python',
+                'language_version': 'python3.3',
+                'files': r'\.py$',
+                'expected_return_value': 0,
+            }],
+            True,
+        ),
+    )
+)
 def test_is_valid_according_to_schema(manifest_obj, expected):
     ret = is_valid_according_to_schema(manifest_obj, MANIFEST_JSON_SCHEMA)
     assert ret is expected

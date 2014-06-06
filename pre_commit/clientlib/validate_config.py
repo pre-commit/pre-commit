@@ -32,7 +32,7 @@ CONFIG_JSON_SCHEMA = {
                             'items': {'type': 'string'},
                         },
                     },
-                    'required': ['id', 'files'],
+                    'required': ['id'],
                 }
             }
         },
@@ -55,7 +55,7 @@ def try_regex(repo, hook, value, field_name):
 def validate_config_extra(config):
     for repo in config:
         for hook in repo['hooks']:
-            try_regex(repo, hook['id'], hook['files'], 'files')
+            try_regex(repo, hook['id'], hook.get('files', ''), 'files')
             try_regex(repo, hook['id'], hook['exclude'], 'exclude')
 
 

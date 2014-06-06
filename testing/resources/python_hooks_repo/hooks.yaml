@@ -2,3 +2,4 @@
     name: Foo
     entry: foo
     language: python
+    files: \.py$

@@ -2,3 +2,4 @@
     name: Bar
     entry: bar
     language: python
+    files: \.py$

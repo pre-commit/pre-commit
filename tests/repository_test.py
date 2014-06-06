@@ -32,6 +32,7 @@ def test_run_versioned_hook(config_for_python3_hooks_repo, store):
     assert ret[1] == "3.3\n['/dev/null']\nHello World\n"
 
 
+@skipif_slowtests_false
 @pytest.mark.integration
 def test_run_versioned_node_hook(config_for_node_0_11_8_hooks_repo, store):
     repo = Repository.create(config_for_node_0_11_8_hooks_repo, store)
@@ -152,3 +153,13 @@ def test_really_long_file_paths(config_for_python_hooks_repo, store):
     with local.cwd(path):
         repo = Repository.create(config_for_python_hooks_repo, store)
         repo.require_installed()
+
+
+@pytest.mark.integration
+def test_config_overrides_repo_specifics(config_for_script_hooks_repo, store):
+    repo = Repository.create(config_for_script_hooks_repo, store)
+    assert repo.hooks['bash_hook']['files'] == ''
+    # Set the file regex to something else
+    config_for_script_hooks_repo['hooks'][0]['files'] = '\\.sh$'
+    repo = Repository.create(config_for_script_hooks_repo, store)
+    assert repo.hooks['bash_hook']['files'] == '\\.sh$'

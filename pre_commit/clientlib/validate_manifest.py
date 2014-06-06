@@ -21,9 +21,10 @@ MANIFEST_JSON_SCHEMA = {
             'entry': {'type': 'string'},
             'language': {'type': 'string'},
             'language_version': {'type': 'string', 'default': 'default'},
+            'files': {'type': 'string'},
             'expected_return_value': {'type': 'number', 'default': 0},
         },
-        'required': ['id', 'name', 'entry', 'language'],
+        'required': ['id', 'name', 'entry', 'language', 'files'],
     },
 }
 

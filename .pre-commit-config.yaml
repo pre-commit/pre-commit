@@ -1,5 +1,5 @@
 -   repo: git@github.com:pre-commit/pre-commit-hooks
-    sha: 59f23b7c556ce1cf66eb6dc574e10d2b4274be4b
+    sha: 7c003425b35fff516c0ee88f4040c8c208d474bd
     hooks:
     -   id: trailing-whitespace
         files: \.(js|rb|md|py|sh|txt|yaml|yml)$

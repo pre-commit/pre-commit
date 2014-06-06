@@ -38,7 +38,7 @@ class Repository(object):
     def hooks(self):
         # TODO: merging in manifest dicts is a smell imo
         return OrderedDict(
-            (hook['id'], dict(hook, **self.manifest.hooks[hook['id']]))
+            (hook['id'], dict(self.manifest.hooks[hook['id']], **hook))
             for hook in self.repo_config['hooks']
         )
 
