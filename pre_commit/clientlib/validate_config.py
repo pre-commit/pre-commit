@@ -1,8 +1,8 @@
-import re
 import sys
 
 from pre_commit.clientlib.validate_base import get_run_function
 from pre_commit.clientlib.validate_base import get_validator
+from pre_commit.clientlib.validate_base import is_regex_valid
 
 
 class InvalidConfigError(ValueError):
@@ -42,9 +42,7 @@ CONFIG_JSON_SCHEMA = {
 
 
 def try_regex(repo, hook, value, field_name):
-    try:
-        re.compile(value)
-    except re.error:
+    if not is_regex_valid(value):
         raise InvalidConfigError(
             'Invalid {0} regex at {1}, {2}: {3}'.format(
                 field_name, repo, hook, value,

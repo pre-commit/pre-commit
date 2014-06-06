@@ -4,10 +4,19 @@ import argparse
 import jsonschema
 import jsonschema.exceptions
 import os.path
+import re
 import yaml
 
 from pre_commit.jsonschema_extensions import apply_defaults
 from pre_commit.util import entry
+
+
+def is_regex_valid(regex):
+    try:
+        re.compile(regex)
+        return True
+    except re.error:
+        return False
 
 
 def get_validator(
