@@ -29,7 +29,9 @@ def is_in_merge_conflict():
 def parse_merge_msg_for_conflicts(merge_msg):
     # Conflicted files start with tabs
     return [
-        line.strip() for line in merge_msg.splitlines() if line.startswith('\t')
+        line.strip()
+        for line in merge_msg.splitlines()
+        if line.startswith('\t')
     ]
 
 

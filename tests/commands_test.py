@@ -31,7 +31,9 @@ def test_install_pre_commit(empty_git_dir):
     assert ret == 0
     assert os.path.exists(runner.pre_commit_path)
     pre_commit_contents = open(runner.pre_commit_path).read()
-    pre_commit_sh = pkg_resources.resource_filename('pre_commit', 'resources/pre-commit.sh')
+    pre_commit_sh = pkg_resources.resource_filename(
+        'pre_commit', 'resources/pre-commit.sh',
+    )
     expected_contents = open(pre_commit_sh).read()
     assert pre_commit_contents == expected_contents
     stat_result = os.stat(runner.pre_commit_path)
@@ -58,7 +60,7 @@ def up_to_date_repo(python_hooks_repo):
     config = OrderedDict((
         ('repo', python_hooks_repo),
         ('sha', get_head_sha(python_hooks_repo)),
-        ('hooks', [OrderedDict((('id', 'foo'), ('files', '')))]),
+        ('hooks', [OrderedDict((('id', 'foo'),))]),
     ))
     wrapped_config = apply_defaults([config], CONFIG_JSON_SCHEMA)
     validate_config_extra(wrapped_config)
@@ -132,7 +134,9 @@ def test_removes_defaults(out_of_date_repo, runner_with_mocked_store):
     assert 'expected_return_value' not in ret['hooks'][0]
 
 
-def test_autoupdate_out_of_date_repo(out_of_date_repo, mock_out_store_directory):
+def test_autoupdate_out_of_date_repo(
+        out_of_date_repo, mock_out_store_directory
+):
     before = open(C.CONFIG_FILE).read()
     runner = Runner(out_of_date_repo.python_hooks_repo)
     ret = commands.autoupdate(runner)
@@ -147,12 +151,15 @@ def hook_disappearing_repo(python_hooks_repo):
     config = OrderedDict((
         ('repo', python_hooks_repo),
         ('sha', get_head_sha(python_hooks_repo)),
-        ('hooks', [OrderedDict((('id', 'foo'), ('files', '')))]),
+        ('hooks', [OrderedDict((('id', 'foo'),))]),
     ))
     config_wrapped = apply_defaults([config], CONFIG_JSON_SCHEMA)
     validate_config_extra(config_wrapped)
     config = config_wrapped[0]
-    shutil.copy(get_resource_path('manifest_without_foo.yaml'), C.MANIFEST_FILE)
+    shutil.copy(
+        get_resource_path('manifest_without_foo.yaml'),
+        C.MANIFEST_FILE,
+    )
     local['git']['add', '.']()
     local['git']['commit', '-m', 'Remove foo']()
 
@@ -167,14 +174,18 @@ def hook_disappearing_repo(python_hooks_repo):
     )
 
 
-def test_hook_disppearing_repo_raises(hook_disappearing_repo, runner_with_mocked_store):
+def test_hook_disppearing_repo_raises(
+        hook_disappearing_repo, runner_with_mocked_store
+):
     with pytest.raises(commands.RepositoryCannotBeUpdatedError):
         commands._update_repository(
             hook_disappearing_repo.repo_config, runner_with_mocked_store,
         )
 
 
-def test_autoupdate_hook_disappearing_repo(hook_disappearing_repo, mock_out_store_directory):
+def test_autoupdate_hook_disappearing_repo(
+        hook_disappearing_repo, mock_out_store_directory
+):
     before = open(C.CONFIG_FILE).read()
     runner = Runner(hook_disappearing_repo.python_hooks_repo)
     ret = commands.autoupdate(runner)
@@ -206,7 +217,13 @@ def get_write_mock_output(write_mock):
     return ''.join(call[0][0] for call in write_mock.call_args_list)
 
 
-def _get_opts(all_files=False, color=False, verbose=False, hook=None, no_stash=False):
+def _get_opts(
+        all_files=False,
+        color=False,
+        verbose=False,
+        hook=None,
+        no_stash=False,
+):
     return auto_namedtuple(
         all_files=all_files,
         color=color,
@@ -234,7 +251,9 @@ def _test_run(repo, options, expected_outputs, expected_ret, stage):
         assert expected_output_part in printed
 
 
-def test_run_all_hooks_failing(repo_with_failing_hook, mock_out_store_directory):
+def test_run_all_hooks_failing(
+        repo_with_failing_hook, mock_out_store_directory
+):
     _test_run(
         repo_with_failing_hook,
         {},
@@ -262,7 +281,14 @@ def test_run_all_hooks_failing(repo_with_failing_hook, mock_out_store_directory)
         ({}, ('Bash hook', '(no files to check)', 'Skipped'), 0, False),
     )
 )
-def test_run(repo_with_passing_hook, options, outputs, expected_ret, stage, mock_out_store_directory):
+def test_run(
+        repo_with_passing_hook,
+        options,
+        outputs,
+        expected_ret,
+        stage,
+        mock_out_store_directory,
+):
     _test_run(repo_with_passing_hook, options, outputs, expected_ret, stage)
 
 
@@ -275,7 +301,13 @@ def test_run(repo_with_passing_hook, options, outputs, expected_ret, stage, mock
         (False, False, True),
     ),
 )
-def test_no_stash(repo_with_passing_hook, no_stash, all_files, expect_stash, mock_out_store_directory):
+def test_no_stash(
+        repo_with_passing_hook,
+        no_stash,
+        all_files,
+        expect_stash,
+        mock_out_store_directory,
+):
     stage_a_file()
     # Make unstaged changes
     with open('foo.py', 'w') as foo_file:
@@ -347,11 +379,15 @@ def test_skip_hook(repo_with_passing_hook, mock_out_store_directory):
         assert msg in printed
 
 
-def test_hook_id_not_in_non_verbose_output(repo_with_passing_hook, mock_out_store_directory):
+def test_hook_id_not_in_non_verbose_output(
+        repo_with_passing_hook, mock_out_store_directory
+):
     ret, printed = _do_run(repo_with_passing_hook, _get_opts(verbose=False))
     assert '[bash_hook]' not in printed
 
 
-def test_hook_id_in_verbose_output(repo_with_passing_hook, mock_out_store_directory):
+def test_hook_id_in_verbose_output(
+        repo_with_passing_hook, mock_out_store_directory
+):
     ret, printed = _do_run(repo_with_passing_hook, _get_opts(verbose=True))
     assert '[bash_hook] Bash hook' in printed

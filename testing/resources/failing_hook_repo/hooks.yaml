@@ -2,3 +2,4 @@
     name: Failing hook
     entry: bin/hook.sh
     language: script
+    files: .

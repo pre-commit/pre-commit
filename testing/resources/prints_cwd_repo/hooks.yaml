@@ -2,3 +2,4 @@
     name: Prints Cwd
     entry: pwd
     language: system
+    files: \.sh$

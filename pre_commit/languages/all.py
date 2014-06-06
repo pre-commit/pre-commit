@@ -9,16 +9,19 @@ from pre_commit.languages import system
 # # Use None for no environment
 # ENVIRONMENT_DIR = 'foo_env'
 #
-# def install_environment(repo_cmd_runner):
+# def install_environment(repo_cmd_runner, version='default'):
 #     """Installs a repository in the given repository.  Note that the current
 #     working directory will already be inside the repository.
 #
 #     Args:
 #         repo_cmd_runner - `PrefixedCommandRunner` bound to the repository.
+#         version - A version specified in the hook configuration or
+#             'default'.
 #     """
 #
 # def run_hook(repo_cmd_runner, hook, file_args):
-#     """Runs a hook and returns the returncode and output of running that hook.
+#     """Runs a hook and returns the returncode and output of running that
+#     hook.
 #
 #     Args:
 #         repo_cmd_runner - `PrefixedCommandRunner` bound to the repository.

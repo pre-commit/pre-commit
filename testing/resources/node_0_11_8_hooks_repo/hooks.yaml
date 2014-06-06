@@ -3,3 +3,4 @@
     entry: node-11-8-hook
     language: node
     language_version: 0.11.8
+    files: \.js$

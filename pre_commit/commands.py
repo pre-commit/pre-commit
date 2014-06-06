@@ -29,7 +29,9 @@ logger = logging.getLogger('pre_commit')
 
 def install(runner):
     """Install the pre-commit hooks."""
-    pre_commit_file = pkg_resources.resource_filename('pre_commit', 'resources/pre-commit.sh')
+    pre_commit_file = pkg_resources.resource_filename(
+        'pre_commit', 'resources/pre-commit.sh',
+    )
     with open(runner.pre_commit_path, 'w') as pre_commit_file_obj:
         pre_commit_file_obj.write(open(pre_commit_file).read())
 

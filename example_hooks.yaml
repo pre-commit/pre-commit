@@ -15,12 +15,13 @@
 -   id: my_hook
     name: My Simple Hook
     description: This is my simple hook that does blah
-    entry: my-simple-hook.py
+    entry: my-simple-hook
     language: python
-    expected_return_value: 0
+    files: \.py$
 -   id: my_grep_based_hook
     name: My Bash Based Hook
     description: This is a hook that uses grep to validate some stuff
     entry: ./my_grep_based_hook.sh
     language: script
+    files: \.(py|sh)$
     expected_return_value: 1

@@ -1,24 +1,14 @@
 -   repo: git@github.com:pre-commit/pre-commit-hooks
-    sha: 59f23b7c556ce1cf66eb6dc574e10d2b4274be4b
+    sha: 7c003425b35fff516c0ee88f4040c8c208d474bd
     hooks:
     -   id: trailing-whitespace
-        files: \.(js|rb|md|py|sh|txt|yaml|yml)$
     -   id: end-of-file-fixer
-        files: \.(js|rb|md|py|sh|txt|yaml|yml)$
     -   id: check-yaml
-        files: \.(yaml|yml)$
     -   id: debug-statements
-        files: \.py$
     -   id: name-tests-test
-        files: tests/.+\.py$
     -   id: flake8
-        files: \.py$
-        args:
-        - --max-line-length=131
 -   repo: git@github.com:pre-commit/pre-commit
-    sha: c7cfed699245191e6b0d43d3890fd582157e3919
+    sha: 96174deac671b451ee2a3fbdc647ad9606415e15
     hooks:
     -   id: validate_config
-        files: ^\.pre-commit-config.yaml$
     -   id: validate_manifest
-        files: ^hooks.yaml$

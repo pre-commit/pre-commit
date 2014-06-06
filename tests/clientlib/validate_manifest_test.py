@@ -28,38 +28,57 @@ def test_additional_manifest_check_raises_for_bad_language():
 
 
 @pytest.mark.parametrize(
-    'obj', ([{'language': 'python'}], [{'language': 'ruby'}]),
+    'obj',
+    (
+        [{'language': 'python', 'files': ''}],
+        [{'language': 'ruby', 'files': ''}]
+    ),
 )
-def test_additional_manifest_check_languages(obj):
+def test_additional_manifest_check_passing(obj):
     additional_manifest_check(obj)
 
 
 @pytest.mark.parametrize(
     'obj',
     (
-        [{'id': 'a', 'language': 'not a language'}],
-        [{'id': 'a', 'language': 'python3'}],
+        [{'id': 'a', 'language': 'not a language', 'files': ''}],
+        [{'id': 'a', 'language': 'python3', 'files': ''}],
+        [{'id': 'a', 'language': 'python', 'files': 'invalid regex('}],
     ),
 )
-def test_additional_manifest_check_languages_failing(obj):
+def test_additional_manifest_failing(obj):
     with pytest.raises(InvalidManifestError):
         additional_manifest_check(obj)
 
 
-@pytest.mark.parametrize(('manifest_obj', 'expected'), (
-    ([], False),
-    ([{'id': 'a', 'name': 'b', 'entry': 'c', 'language': 'python'}], True),
+@pytest.mark.parametrize(
+    ('manifest_obj', 'expected'),
     (
-        [{
-            'id': 'a',
-            'name': 'b',
-            'entry': 'c',
-            'language': 'python',
-            'expected_return_value': 0,
-        }],
-        True,
-    ),
-))
+        ([], False),
+        (
+            [{
+                'id': 'a',
+                'name': 'b',
+                'entry': 'c',
+                'language': 'python',
+                'files': r'\.py$'
+            }],
+            True,
+        ),
+        (
+            [{
+                'id': 'a',
+                'name': 'b',
+                'entry': 'c',
+                'language': 'python',
+                'language_version': 'python3.3',
+                'files': r'\.py$',
+                'expected_return_value': 0,
+            }],
+            True,
+        ),
+    )
+)
 def test_is_valid_according_to_schema(manifest_obj, expected):
     ret = is_valid_according_to_schema(manifest_obj, MANIFEST_JSON_SCHEMA)
     assert ret is expected

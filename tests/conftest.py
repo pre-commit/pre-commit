@@ -122,11 +122,11 @@ def system_hook_with_spaces_repo(dummy_git_repo):
     yield _make_repo(dummy_git_repo, 'system_hook_with_spaces_repo')
 
 
-def _make_config(path, hook_id, file_regex):
+def _make_config(path, hook_id):
     config = {
         'repo': path,
         'sha': get_head_sha(path),
-        'hooks': [{'id': hook_id, 'files': file_regex}],
+        'hooks': [{'id': hook_id}],
     }
     config_wrapped = apply_defaults([config], CONFIG_JSON_SCHEMA)
     validate_config_extra(config_wrapped)
@@ -135,48 +135,48 @@ def _make_config(path, hook_id, file_regex):
 
 @pytest.yield_fixture
 def config_for_node_hooks_repo(node_hooks_repo):
-    yield _make_config(node_hooks_repo, 'foo', '\\.js$')
+    yield _make_config(node_hooks_repo, 'foo')
 
 
 @pytest.yield_fixture
 def config_for_node_0_11_8_hooks_repo(node_0_11_8_hooks_repo):
-    yield _make_config(node_0_11_8_hooks_repo, 'node-11-8-hook', '\\.js$')
+    yield _make_config(node_0_11_8_hooks_repo, 'node-11-8-hook')
 
 
 @pytest.yield_fixture
 def config_for_ruby_hooks_repo(ruby_hooks_repo):
-    yield _make_config(ruby_hooks_repo, 'ruby_hook', '\\.rb$')
+    yield _make_config(ruby_hooks_repo, 'ruby_hook')
 
 
 @pytest.yield_fixture
 def config_for_ruby_1_9_3_p547_hooks_repo(ruby_1_9_3_p547_hooks_repo):
-    yield _make_config(ruby_1_9_3_p547_hooks_repo, 'ruby_hook', '\\.rb$')
+    yield _make_config(ruby_1_9_3_p547_hooks_repo, 'ruby_hook')
 
 
 @pytest.yield_fixture
 def config_for_python_hooks_repo(python_hooks_repo):
-    yield _make_config(python_hooks_repo, 'foo', '\\.py$')
+    yield _make_config(python_hooks_repo, 'foo')
 
 
 @pytest.yield_fixture
 def config_for_python3_hooks_repo(python3_hooks_repo):
-    yield _make_config(python3_hooks_repo, 'python3-hook', '\\.py$')
+    yield _make_config(python3_hooks_repo, 'python3-hook')
 
 
 @pytest.yield_fixture
 def config_for_prints_cwd_repo(prints_cwd_repo):
-    yield _make_config(prints_cwd_repo, 'prints_cwd', '^$')
+    yield _make_config(prints_cwd_repo, 'prints_cwd')
 
 
 @pytest.yield_fixture
 def config_for_script_hooks_repo(script_hooks_repo):
-    yield _make_config(script_hooks_repo, 'bash_hook', '')
+    yield _make_config(script_hooks_repo, 'bash_hook')
 
 
 @pytest.yield_fixture
 def config_for_system_hook_with_spaces(system_hook_with_spaces_repo):
     yield _make_config(
-        system_hook_with_spaces_repo, 'system-hook-with-spaces', '',
+        system_hook_with_spaces_repo, 'system-hook-with-spaces',
     )
 
 
@@ -198,7 +198,7 @@ def repo_with_passing_hook(config_for_script_hooks_repo, empty_git_dir):
 
 @pytest.yield_fixture
 def repo_with_failing_hook(failing_hook_repo, empty_git_dir):
-    _make_repo_from_configs(_make_config(failing_hook_repo, 'failing_hook', ''))
+    _make_repo_from_configs(_make_config(failing_hook_repo, 'failing_hook'))
     yield empty_git_dir
 
 

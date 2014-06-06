@@ -2,19 +2,12 @@
     sha: bec87f6c87284ea15dbcf7801810404c8036bab4
     hooks:
     -   id: pyflakes
-        files: \.py$
     -   id: debug-statements
-        files: \.py$
     -   id: trailing-whitespace
-        files: \.(py|sh|yaml)$
     -   id: name-tests-test
-        files: tests/.+\.py$
     -   id: end-of-file-fixer
-        files: \.(py|sh|yaml)$
 -   repo: git@github.com:pre-commit/pre-commit
     sha: c62c1a3b513ab9e057e85a5e950bd7c438371076
     hooks:
     -   id: validate_manifest
-        files: ^hooks.yaml$
     -   id: validate_config
-        files: ^\.pre-commit-config.yaml$
