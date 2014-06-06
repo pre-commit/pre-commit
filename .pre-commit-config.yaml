@@ -16,7 +16,7 @@
         args:
         - --max-line-length=131
 -   repo: git@github.com:pre-commit/pre-commit
-    sha: c7cfed699245191e6b0d43d3890fd582157e3919
+    sha: 96174deac671b451ee2a3fbdc647ad9606415e15
     hooks:
     -   id: validate_config
         files: ^\.pre-commit-config.yaml$
