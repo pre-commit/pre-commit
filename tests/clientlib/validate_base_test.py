@@ -44,7 +44,9 @@ def test_raises_for_invalid_yaml_file(noop_validator):
 
 def test_raises_for_failing_schema(array_validator):
     with pytest.raises(ValueError):
-        array_validator(get_resource_path('valid_yaml_but_invalid_manifest.yaml'))
+        array_validator(
+            get_resource_path('valid_yaml_but_invalid_manifest.yaml')
+        )
 
 
 def test_passes_array_schema(array_validator):

@@ -26,8 +26,8 @@ def get_hook_message(
     >>> print_hook_message('start', end_len=6)
     start...............................................................
 
-    # Print `start` followed by dots with the end message colored if coloring is
-    # specified and a newline afterwards
+    # Print `start` followed by dots with the end message colored if coloring
+    # is specified and a newline afterwards
     >>> print_hook_message(
         'start',
         end_msg='end',

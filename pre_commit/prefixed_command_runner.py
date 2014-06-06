@@ -42,7 +42,12 @@ class PrefixedCommandRunner(object):
 
     will run ['/tmp/foo/foo.sh', 'bar', 'baz']
     """
-    def __init__(self, prefix_dir, popen=subprocess.Popen, makedirs=os.makedirs):
+    def __init__(
+            self,
+            prefix_dir,
+            popen=subprocess.Popen,
+            makedirs=os.makedirs
+    ):
         self.prefix_dir = prefix_dir.rstrip(os.sep) + os.sep
         self.__popen = popen
         self.__makedirs = makedirs

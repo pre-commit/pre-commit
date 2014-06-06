@@ -35,9 +35,13 @@ def run(argv):
         '--no-stash', default=False, action='store_true',
         help='Use this option to prevent auto stashing of unstaged files.',
     )
-    run_parser.add_argument('--verbose', '-v', action='store_true', default=False)
+    run_parser.add_argument(
+        '--verbose', '-v', action='store_true', default=False,
+    )
 
-    help = subparsers.add_parser('help', help='Show help for a specific command.')
+    help = subparsers.add_parser(
+        'help', help='Show help for a specific command.'
+    )
     help.add_argument('help_cmd', nargs='?', help='Command to show help for.')
 
     # Argparse doesn't really provide a way to use a `default` subparser

@@ -4,7 +4,10 @@ from setuptools import setup
 
 setup(
     name='pre_commit',
-    description='A framework for managing and maintaining multi-language pre-commit hooks.',
+    description=(
+        'A framework for managing and maintaining multi-language pre-commit '
+        'hooks.'
+    ),
     url='https://github.com/pre-commit/pre-commit',
     version='0.0.0',
 

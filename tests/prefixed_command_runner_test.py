@@ -56,7 +56,9 @@ def test_init_normalizes_path_endings(input, expected_prefix):
 
 
 def test_run_substitutes_prefix(popen_mock, makedirs_mock):
-    instance = PrefixedCommandRunner('prefix', popen=popen_mock, makedirs=makedirs_mock)
+    instance = PrefixedCommandRunner(
+        'prefix', popen=popen_mock, makedirs=makedirs_mock,
+    )
     ret = instance.run(['{prefix}bar', 'baz'], retcode=None)
     popen_mock.assert_called_once_with(
         ['prefix/bar', 'baz'],
@@ -104,7 +106,9 @@ def test_from_command_runner(prefix, path_end, expected_output):
 
 
 def test_from_command_runner_preserves_popen(popen_mock, makedirs_mock):
-    first = PrefixedCommandRunner('foo', popen=popen_mock, makedirs=makedirs_mock)
+    first = PrefixedCommandRunner(
+        'foo', popen=popen_mock, makedirs=makedirs_mock,
+    )
     second = PrefixedCommandRunner.from_command_runner(first, 'bar')
     second.run(['foo/bar/baz'], retcode=None)
     popen_mock.assert_called_once_with(
