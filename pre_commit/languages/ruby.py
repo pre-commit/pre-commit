@@ -4,6 +4,7 @@ import contextlib
 import io
 
 from pre_commit.languages import helpers
+from pre_commit.prefixed_command_runner import CalledProcessError
 from pre_commit.util import clean_path_on_failure
 
 
@@ -28,6 +29,12 @@ def _install_rbenv(repo_cmd_runner, version='default'):
 
     # Only install ruby-build if the version is specified
     if version != 'default':
+        # ruby-download
+        repo_cmd_runner.run([
+            'git', 'clone', 'git://github.com/garnieretienne/rvm-download',
+            '{prefix}rbenv/plugins/ruby-download',
+        ])
+        # ruby-build
         repo_cmd_runner.run([
             'git', 'clone', 'git://github.com/sstephenson/ruby-build',
             '{prefix}rbenv/plugins/ruby-build',
@@ -57,6 +64,14 @@ def _install_rbenv(repo_cmd_runner, version='default'):
             activate_file.write('export RBENV_VERSION="{0}"\n'.format(version))
 
 
+def _install_ruby(environment, version):
+    try:
+        environment.run('rbenv download {0}'.format(version))
+    except CalledProcessError:
+        # Failed to download from mirror for some reason, build it instead
+        environment.run('rbenv install {0}'.format(version))
+
+
 def install_environment(repo_cmd_runner, version='default'):
     with clean_path_on_failure(repo_cmd_runner.path('rbenv')):
         # TODO: this currently will fail if there's no version specified and
@@ -64,7 +79,7 @@ def install_environment(repo_cmd_runner, version='default'):
         _install_rbenv(repo_cmd_runner, version=version)
         with in_env(repo_cmd_runner) as ruby_env:
             if version != 'default':
-                ruby_env.run('rbenv install {0}'.format(version))
+                _install_ruby(ruby_env, version)
             ruby_env.run(
                 'cd {prefix} && gem build *.gemspec && gem install *.gem',
             )

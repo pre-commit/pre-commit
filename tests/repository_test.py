@@ -44,11 +44,11 @@ def test_run_versioned_node_hook(config_for_node_0_11_8_hooks_repo, store):
 @pytest.mark.herpderp
 @skipif_slowtests_false
 @pytest.mark.integration
-def test_run_versioned_ruby_hook(config_for_ruby_1_9_3_p547_hooks_repo, store):
-    repo = Repository.create(config_for_ruby_1_9_3_p547_hooks_repo, store)
+def test_run_versioned_ruby_hook(config_for_ruby_1_9_3_hooks_repo, store):
+    repo = Repository.create(config_for_ruby_1_9_3_hooks_repo, store)
     ret = repo.run_hook('ruby_hook', [])
     assert ret[0] == 0
-    assert ret[1] == '1.9.3\n547\nHello world from a ruby hook\n'
+    assert ret[1] == '1.9.3\n484\nHello world from a ruby hook\n'
 
 
 @pytest.mark.integration

@@ -93,8 +93,8 @@ def ruby_hooks_repo(dummy_git_repo):
 
 
 @pytest.yield_fixture
-def ruby_1_9_3_p547_hooks_repo(dummy_git_repo):
-    yield _make_repo(dummy_git_repo, 'ruby_1_9_3_p547_hooks_repo')
+def ruby_1_9_3_hooks_repo(dummy_git_repo):
+    yield _make_repo(dummy_git_repo, 'ruby_1_9_3_hooks_repo')
 
 
 @pytest.yield_fixture
@@ -149,8 +149,8 @@ def config_for_ruby_hooks_repo(ruby_hooks_repo):
 
 
 @pytest.yield_fixture
-def config_for_ruby_1_9_3_p547_hooks_repo(ruby_1_9_3_p547_hooks_repo):
-    yield _make_config(ruby_1_9_3_p547_hooks_repo, 'ruby_hook')
+def config_for_ruby_1_9_3_hooks_repo(ruby_1_9_3_hooks_repo):
+    yield _make_config(ruby_1_9_3_hooks_repo, 'ruby_hook')
 
 
 @pytest.yield_fixture
