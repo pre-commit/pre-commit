@@ -26,6 +26,7 @@ CONFIG_JSON_SCHEMA = {
                         'id': {'type': 'string'},
                         'files': {'type': 'string'},
                         'exclude': {'type': 'string', 'default': '^$'},
+                        'language_version': {'type': 'string'},
                         'args': {
                             'type': 'array',
                             'default': [],
