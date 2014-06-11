@@ -265,3 +265,34 @@ def test_config_overrides_repo_specifics(tmpdir_factory, store):
     config['hooks'][0]['files'] = '\\.sh$'
     repo = Repository.create(config, store)
     assert repo.hooks['bash_hook']['files'] == '\\.sh$'
+
+
+def _create_repo_with_tags(tmpdir_factory, src, tag):
+    path = make_repo(tmpdir_factory, src)
+    with local.cwd(path):
+        local['git']('tag', tag)
+    return path
+
+
+@pytest.mark.xfail
+@pytest.mark.integration
+def test_tags_on_repositories(in_tmpdir, tmpdir_factory, store):
+    tag = 'v1.1'
+    git_dir_1 = _create_repo_with_tags(tmpdir_factory, 'prints_cwd_repo', tag)
+    git_dir_2 = _create_repo_with_tags(
+        tmpdir_factory, 'script_hooks_repo', tag,
+    )
+
+    repo_1 = Repository.create(
+        make_config_from_repo(git_dir_1, sha=tag), store,
+    )
+    ret = repo_1.run_hook('prints_cwd', [])
+    assert ret[0] == 0
+    assert ret[1].strip() == in_tmpdir
+
+    repo_2 = Repository.create(
+        make_config_from_repo(git_dir_2, sha=tag), store,
+    )
+    ret = repo_2.run_hook('bash_hook', ['bar'])
+    assert ret[0] == 0
+    assert ret[1] == 'bar\nHello World\n'
