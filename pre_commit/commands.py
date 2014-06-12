@@ -90,7 +90,7 @@ def _update_repository(repo_config, runner):
             '{0}'.format(', '.join(sorted(hooks_missing)))
         )
 
-    return remove_defaults([new_config], CONFIG_JSON_SCHEMA)[0]
+    return new_config
 
 
 def autoupdate(runner):
@@ -130,7 +130,10 @@ def autoupdate(runner):
     if changed:
         with open(runner.config_file_path, 'w') as config_file:
             config_file.write(
-                ordered_dump(output_configs, **C.YAML_DUMP_KWARGS)
+                ordered_dump(
+                    remove_defaults(output_configs, CONFIG_JSON_SCHEMA),
+                    **C.YAML_DUMP_KWARGS
+                )
             )
 
     return retv

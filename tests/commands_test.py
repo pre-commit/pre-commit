@@ -14,6 +14,7 @@ from pre_commit import commands
 from pre_commit.clientlib.validate_config import CONFIG_JSON_SCHEMA
 from pre_commit.clientlib.validate_config import validate_config_extra
 from pre_commit.jsonschema_extensions import apply_defaults
+from pre_commit.jsonschema_extensions import remove_defaults
 from pre_commit.runner import Runner
 from testing.auto_namedtuple import auto_namedtuple
 from testing.util import get_head_sha
@@ -68,7 +69,10 @@ def up_to_date_repo(python_hooks_repo):
 
     with open(os.path.join(python_hooks_repo, C.CONFIG_FILE), 'w') as file_obj:
         file_obj.write(
-            ordered_dump([config], **C.YAML_DUMP_KWARGS)
+            ordered_dump(
+                remove_defaults([config], CONFIG_JSON_SCHEMA),
+                **C.YAML_DUMP_KWARGS
+            )
         )
 
     yield auto_namedtuple(
@@ -87,6 +91,7 @@ def test_up_to_date_repo(up_to_date_repo, runner_with_mocked_store):
 
 def test_autoupdate_up_to_date_repo(up_to_date_repo, mock_out_store_directory):
     before = open(C.CONFIG_FILE).read()
+    assert '^$' not in before
     runner = Runner(up_to_date_repo.python_hooks_repo)
     ret = commands.autoupdate(runner)
     after = open(C.CONFIG_FILE).read()
@@ -126,14 +131,6 @@ def test_out_of_date_repo(out_of_date_repo, runner_with_mocked_store):
     assert ret['sha'] == out_of_date_repo.head_sha
 
 
-def test_removes_defaults(out_of_date_repo, runner_with_mocked_store):
-    ret = commands._update_repository(
-        out_of_date_repo.repo_config, runner_with_mocked_store,
-    )
-    assert 'args' not in ret['hooks'][0]
-    assert 'expected_return_value' not in ret['hooks'][0]
-
-
 def test_autoupdate_out_of_date_repo(
         out_of_date_repo, mock_out_store_directory
 ):
@@ -143,6 +140,8 @@ def test_autoupdate_out_of_date_repo(
     after = open(C.CONFIG_FILE).read()
     assert ret == 0
     assert before != after
+    # Make sure we don't add defaults
+    assert 'exclude' not in after
     assert out_of_date_repo.head_sha in after
 
 
