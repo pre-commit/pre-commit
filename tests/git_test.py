@@ -14,12 +14,19 @@ def test_get_root(empty_git_dir):
         assert git.get_root() == empty_git_dir
 
 
-def test_is_in_merge_conflict(empty_git_dir):
+def test_is_not_in_merge_conflict(empty_git_dir):
     assert git.is_in_merge_conflict() is False
 
 
-def test_is_not_in_merge_conflict(in_merge_conflict):
+def test_is_in_merge_conflict(in_merge_conflict):
     assert git.is_in_merge_conflict() is True
+
+
+def test_cherry_pick_conflict(in_merge_conflict):
+    local['git']('merge', '--abort')
+    foo_ref = local['git']('rev-parse', 'foo').strip()
+    local['git']('cherry-pick', foo_ref, retcode=None)
+    assert git.is_in_merge_conflict() is False
 
 
 @pytest.fixture

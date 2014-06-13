@@ -23,7 +23,10 @@ def get_root():
 
 
 def is_in_merge_conflict():
-    return os.path.exists(os.path.join('.git', 'MERGE_MSG'))
+    return (
+        os.path.exists(os.path.join('.git', 'MERGE_MSG')) and
+        os.path.exists(os.path.join('.git', 'MERGE_HEAD'))
+    )
 
 
 def parse_merge_msg_for_conflicts(merge_msg):
