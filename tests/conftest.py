@@ -14,6 +14,7 @@ from pre_commit.clientlib.validate_config import CONFIG_JSON_SCHEMA
 from pre_commit.clientlib.validate_config import validate_config_extra
 from pre_commit.jsonschema_extensions import apply_defaults
 from pre_commit.prefixed_command_runner import PrefixedCommandRunner
+from pre_commit.runner import Runner
 from pre_commit.store import Store
 from testing.util import copy_tree_to_path
 from testing.util import get_head_sha
@@ -264,3 +265,8 @@ def store(tmpdir_factory):
 @pytest.yield_fixture
 def cmd_runner(tmpdir_factory):
     yield PrefixedCommandRunner(tmpdir_factory.get())
+
+
+@pytest.yield_fixture
+def runner_with_mocked_store(mock_out_store_directory):
+    yield Runner('/')
