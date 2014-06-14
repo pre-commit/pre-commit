@@ -1,5 +1,4 @@
 import argparse
-import sys
 
 from pre_commit import color
 from pre_commit import commands
@@ -8,7 +7,7 @@ from pre_commit.util import entry
 
 
 @entry
-def run(argv):
+def main(argv):
     parser = argparse.ArgumentParser()
 
     subparsers = parser.add_subparsers(dest='command')
@@ -77,4 +76,4 @@ def run(argv):
 
 
 if __name__ == '__main__':
-    sys.exit(run())
+    exit(main())

@@ -44,7 +44,7 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'pre-commit = pre_commit.run:run',
+            'pre-commit = pre_commit.main:main',
             'validate-config = pre_commit.clientlib.validate_config:run',
             'validate-manifest = pre_commit.clientlib.validate_manifest:run',
         ],
