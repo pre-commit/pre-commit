@@ -33,7 +33,7 @@ def test_cherry_pick_conflict(in_merge_conflict):
 def get_files_matching_func():
     def get_filenames():
         return (
-            'pre_commit/run.py',
+            'pre_commit/main.py',
             'pre_commit/git.py',
             'im_a_file_that_doesnt_exist.py',
             'hooks.yaml',
@@ -45,7 +45,7 @@ def get_files_matching_func():
 def test_get_files_matching_base(get_files_matching_func):
     ret = get_files_matching_func('', '^$')
     assert ret == set([
-        'pre_commit/run.py',
+        'pre_commit/main.py',
         'pre_commit/git.py',
         'hooks.yaml',
     ])
@@ -54,7 +54,7 @@ def test_get_files_matching_base(get_files_matching_func):
 def test_get_files_matching_total_match(get_files_matching_func):
     ret = get_files_matching_func('^.*\\.py$', '^$')
     assert ret == set([
-        'pre_commit/run.py',
+        'pre_commit/main.py',
         'pre_commit/git.py',
     ])
 

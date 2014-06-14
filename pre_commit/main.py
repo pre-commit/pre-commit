@@ -1,14 +1,19 @@
+from __future__ import unicode_literals
+
 import argparse
-import sys
 
 from pre_commit import color
-from pre_commit import commands
+from pre_commit.commands.autoupdate import autoupdate
+from pre_commit.commands.clean import clean
+from pre_commit.commands.install import install
+from pre_commit.commands.run import run
+from pre_commit.commands.uninstall import uninstall
 from pre_commit.runner import Runner
 from pre_commit.util import entry
 
 
 @entry
-def run(argv):
+def main(argv):
     parser = argparse.ArgumentParser()
 
     subparsers = parser.add_subparsers(dest='command')
@@ -52,15 +57,15 @@ def run(argv):
     runner = Runner.create()
 
     if args.command == 'install':
-        return commands.install(runner)
+        return install(runner)
     elif args.command == 'uninstall':
-        return commands.uninstall(runner)
+        return uninstall(runner)
     elif args.command == 'clean':
-        return commands.clean(runner)
+        return clean(runner)
     elif args.command == 'autoupdate':
-        return commands.autoupdate(runner)
+        return autoupdate(runner)
     elif args.command == 'run':
-        return commands.run(runner, args)
+        return run(runner, args)
     elif args.command == 'help':
         if args.help_cmd:
             parser.parse_args([args.help_cmd, '--help'])
@@ -77,4 +82,4 @@ def run(argv):
 
 
 if __name__ == '__main__':
-    sys.exit(run())
+    exit(main())
