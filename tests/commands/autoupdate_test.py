@@ -75,7 +75,7 @@ def out_of_date_repo(python_hooks_repo):
     config_wrapped = apply_defaults([config], CONFIG_JSON_SCHEMA)
     validate_config_extra(config_wrapped)
     config = config_wrapped[0]
-    local['git']['commit', '--allow-empty', '-m', 'foo']()
+    local['git']('commit', '--allow-empty', '-m', 'foo')
     head_sha = get_head_sha(python_hooks_repo)
 
     with open(os.path.join(python_hooks_repo, C.CONFIG_FILE), 'w') as file_obj:
@@ -125,8 +125,8 @@ def hook_disappearing_repo(python_hooks_repo):
         get_resource_path('manifest_without_foo.yaml'),
         C.MANIFEST_FILE,
     )
-    local['git']['add', '.']()
-    local['git']['commit', '-m', 'Remove foo']()
+    local['git']('add', '.')
+    local['git']('commit', '-m', 'Remove foo')
 
     with open(os.path.join(python_hooks_repo, C.CONFIG_FILE), 'w') as file_obj:
         file_obj.write(

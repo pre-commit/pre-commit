@@ -49,21 +49,21 @@ def get_conflicted_files():
     # This will get the rest of the changes made after the merge.
     # If they resolved the merge conflict by choosing a mesh of both sides
     # this will also include the conflicted files
-    tree_hash = local['git']['write-tree']().strip()
-    merge_diff_filenames = local['git'][
+    tree_hash = local['git']('write-tree').strip()
+    merge_diff_filenames = local['git'](
         'diff', '-m', tree_hash, 'HEAD', 'MERGE_HEAD', '--name-only',
-    ]().splitlines()
+    ).splitlines()
     return set(merge_conflict_filenames) | set(merge_diff_filenames)
 
 
 @memoize_by_cwd
 def get_staged_files():
-    return local['git']['diff', '--staged', '--name-only']().splitlines()
+    return local['git']('diff', '--staged', '--name-only').splitlines()
 
 
 @memoize_by_cwd
 def get_all_files():
-    return local['git']['ls-files']().splitlines()
+    return local['git']('ls-files').splitlines()
 
 
 def get_files_matching(all_file_list_strategy):

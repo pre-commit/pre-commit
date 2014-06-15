@@ -149,7 +149,7 @@ def test_reinstall(config_for_python_hooks_repo, store):
 @pytest.mark.integration
 def test_really_long_file_paths(config_for_python_hooks_repo, store):
     path = 'really_long' * 10
-    local['git']['init', path]()
+    local['git']('init', path)
     with local.cwd(path):
         repo = Repository.create(config_for_python_hooks_repo, store)
         repo.require_installed()

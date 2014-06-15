@@ -14,8 +14,8 @@ from testing.auto_namedtuple import auto_namedtuple
 
 
 def stage_a_file():
-    local['touch']['foo.py']()
-    local['git']['add', 'foo.py']()
+    local['touch']('foo.py')
+    local['git']('add', 'foo.py')
 
 
 def get_write_mock_output(write_mock):
@@ -153,7 +153,7 @@ def test_merge_conflict_modified(in_merge_conflict, mock_out_store_directory):
 
 
 def test_merge_conflict_resolved(in_merge_conflict, mock_out_store_directory):
-    local['git']['add', '.']()
+    local['git']('add', '.')
     ret, printed = _do_run(in_merge_conflict, _get_opts())
     for msg in ('Checking merge-conflict files only.', 'Bash hook', 'Passed'):
         assert msg in printed

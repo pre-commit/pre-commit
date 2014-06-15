@@ -30,8 +30,8 @@ def _update_repository(repo_config, runner):
     repo = Repository.create(repo_config, runner.store)
 
     with local.cwd(repo.repo_path_getter.repo_path):
-        local['git']['fetch']()
-        head_sha = local['git']['rev-parse', 'origin/master']().strip()
+        local['git']('fetch')
+        head_sha = local['git']('rev-parse', 'origin/master').strip()
 
     # Don't bother trying to update if our sha is the same
     if head_sha == repo_config['sha']:

@@ -33,7 +33,7 @@ def copy_tree_to_path(src_dir, dest_dir):
 
 def get_head_sha(dir):
     with local.cwd(dir):
-        return local['git']['rev-parse', 'HEAD']().strip()
+        return local['git']('rev-parse', 'HEAD').strip()
 
 
 def is_valid_according_to_schema(obj, schema):

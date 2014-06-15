@@ -45,19 +45,19 @@ def in_tmpdir(tmpdir_factory):
 
 @pytest.yield_fixture
 def empty_git_dir(in_tmpdir):
-    local['git']['init']()
+    local['git']('init')
     yield in_tmpdir
 
 
 def add_and_commit():
-    local['git']['add', '.']()
-    local['git']['commit', '-m', 'random commit {0}'.format(time.time())]()
+    local['git']('add', '.')
+    local['git']('commit', '-m', 'random commit {0}'.format(time.time()))
 
 
 @pytest.yield_fixture
 def dummy_git_repo(empty_git_dir):
     # This is needed otherwise there is no `HEAD`
-    local['touch']['dummy']()
+    local['touch']('dummy')
     add_and_commit()
     yield empty_git_dir
 
@@ -205,27 +205,27 @@ def repo_with_failing_hook(failing_hook_repo, empty_git_dir):
 
 @pytest.yield_fixture
 def in_merge_conflict(repo_with_passing_hook):
-    local['git']['add', C.CONFIG_FILE]()
-    local['git']['commit', '-m' 'add hooks file']()
-    local['git']['clone', '.', 'foo']()
+    local['git']('add', C.CONFIG_FILE)
+    local['git']('commit', '-m' 'add hooks file')
+    local['git']('clone', '.', 'foo')
     with local.cwd('foo'):
-        local['git']['checkout', 'origin/master', '-b', 'foo']()
+        local['git']('checkout', 'origin/master', '-b', 'foo')
         with open('conflict_file', 'w') as conflict_file:
             conflict_file.write('herp\nderp\n')
-        local['git']['add', 'conflict_file']()
+        local['git']('add', 'conflict_file')
         with open('foo_only_file', 'w') as foo_only_file:
             foo_only_file.write('foo')
-        local['git']['add', 'foo_only_file']()
-        local['git']['commit', '-m', 'conflict_file']()
-        local['git']['checkout', 'origin/master', '-b', 'bar']()
+        local['git']('add', 'foo_only_file')
+        local['git']('commit', '-m', 'conflict_file')
+        local['git']('checkout', 'origin/master', '-b', 'bar')
         with open('conflict_file', 'w') as conflict_file:
             conflict_file.write('harp\nddrp\n')
-        local['git']['add', 'conflict_file']()
+        local['git']('add', 'conflict_file')
         with open('bar_only_file', 'w') as bar_only_file:
             bar_only_file.write('bar')
-        local['git']['add', 'bar_only_file']()
-        local['git']['commit', '-m', 'conflict_file']()
-        local['git']['merge', 'foo'](retcode=None)
+        local['git']('add', 'bar_only_file')
+        local['git']('commit', '-m', 'conflict_file')
+        local['git']('merge', 'foo', retcode=None)
         yield os.path.join(repo_with_passing_hook, 'foo')
 
 

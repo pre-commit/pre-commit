@@ -77,14 +77,14 @@ def test_exclude_removes_files(get_files_matching_func):
 def resolve_conflict():
     with open('conflict_file', 'w') as conflicted_file:
         conflicted_file.write('herp\nderp\n')
-    local['git']['add', 'conflict_file']()
+    local['git']('add', 'conflict_file')
 
 
 def test_get_conflicted_files(in_merge_conflict):
     resolve_conflict()
     with open('other_file', 'w') as other_file:
         other_file.write('oh hai')
-    local['git']['add', 'other_file']()
+    local['git']('add', 'other_file')
 
     ret = set(git.get_conflicted_files())
     assert ret == set(('conflict_file', 'other_file'))
