@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 import argparse
+import pkg_resources
 
 from pre_commit import color
 from pre_commit.commands.autoupdate import autoupdate
@@ -15,6 +16,15 @@ from pre_commit.util import entry
 @entry
 def main(argv):
     parser = argparse.ArgumentParser()
+
+    # http://stackoverflow.com/a/8521644/812183
+    parser.add_argument(
+        '-V', '--version',
+        action='version',
+        version='%(prog)s {0}'.format(
+            pkg_resources.get_distribution('pre-commit').version
+        )
+    )
 
     subparsers = parser.add_subparsers(dest='command')
 
