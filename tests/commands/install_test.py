@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from __future__ import unicode_literals
 
 import io
@@ -8,10 +9,12 @@ import stat
 
 from pre_commit.commands.install import install
 from pre_commit.runner import Runner
+from testing.fixtures import git_dir
 
 
-def test_install_pre_commit(empty_git_dir):
-    runner = Runner(empty_git_dir)
+def test_install_pre_commit(tmpdir_factory):
+    path = git_dir(tmpdir_factory)
+    runner = Runner(path)
     ret = install(runner)
     assert ret == 0
     assert os.path.exists(runner.pre_commit_path)

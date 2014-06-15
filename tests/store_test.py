@@ -1,3 +1,6 @@
+from __future__ import absolute_import
+from __future__ import unicode_literals
+
 import io
 import mock
 import os
@@ -10,6 +13,7 @@ from pre_commit import five
 from pre_commit.store import _get_default_directory
 from pre_commit.store import logger
 from pre_commit.store import Store
+from testing.fixtures import git_dir
 from testing.util import get_head_sha
 
 
@@ -71,13 +75,14 @@ def log_info_mock():
         yield info_mock
 
 
-def test_clone(store, empty_git_dir, log_info_mock):
-    with local.cwd(empty_git_dir):
+def test_clone(store, tmpdir_factory, log_info_mock):
+    path = git_dir(tmpdir_factory)
+    with local.cwd(path):
         local['git']('commit', '--allow-empty', '-m', 'foo')
-        sha = get_head_sha(empty_git_dir)
+        sha = get_head_sha(path)
         local['git']('commit', '--allow-empty', '-m', 'bar')
 
-    ret = store.clone(empty_git_dir, sha)
+    ret = store.clone(path, sha)
     # Should have printed some stuff
     log_info_mock.assert_called_with('This may take a few minutes...')
 

@@ -75,11 +75,9 @@ def test_run_all_hooks_failing(
         ({'verbose': True}, ('foo.py\nHello World',), 0, True),
         ({'hook': 'bash_hook'}, ('Bash hook', 'Passed'), 0, True),
         ({'hook': 'nope'}, ('No hook with id `nope`',), 1, True),
-        # All the files in the repo.
-        # This seems kind of weird but it is beacuse py.test reuses fixtures
         (
             {'all_files': True, 'verbose': True},
-            ('hooks.yaml', 'bin/hook.sh', 'foo.py', 'dummy'),
+            ('foo.py'),
             0,
             True,
         ),

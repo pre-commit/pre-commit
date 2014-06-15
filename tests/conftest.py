@@ -1,4 +1,5 @@
 from __future__ import absolute_import
+from __future__ import unicode_literals
 
 import mock
 import os
@@ -16,9 +17,13 @@ from pre_commit.jsonschema_extensions import apply_defaults
 from pre_commit.prefixed_command_runner import PrefixedCommandRunner
 from pre_commit.runner import Runner
 from pre_commit.store import Store
+from testing.fixtures import git_dir
 from testing.util import copy_tree_to_path
 from testing.util import get_head_sha
 from testing.util import get_resource_path
+
+
+git = local['git']
 
 
 @pytest.yield_fixture
@@ -43,23 +48,19 @@ def in_tmpdir(tmpdir_factory):
         yield path
 
 
-@pytest.yield_fixture
-def empty_git_dir(in_tmpdir):
-    local['git']('init')
-    yield in_tmpdir
-
-
 def add_and_commit():
-    local['git']('add', '.')
-    local['git']('commit', '-m', 'random commit {0}'.format(time.time()))
+    git('add', '.')
+    git('commit', '-m', 'random commit {0}'.format(time.time()))
 
 
 @pytest.yield_fixture
-def dummy_git_repo(empty_git_dir):
-    # This is needed otherwise there is no `HEAD`
-    local['touch']('dummy')
-    add_and_commit()
-    yield empty_git_dir
+def dummy_git_repo(tmpdir_factory):
+    path = git_dir(tmpdir_factory)
+    with local.cwd(path):
+        # This is needed otherwise there is no `HEAD`
+        local['touch']('dummy')
+        add_and_commit()
+        yield path
 
 
 def _make_repo(repo_path, repo_source):
@@ -192,40 +193,48 @@ def _make_repo_from_configs(*configs):
 
 
 @pytest.yield_fixture
-def repo_with_passing_hook(config_for_script_hooks_repo, empty_git_dir):
-    _make_repo_from_configs(config_for_script_hooks_repo)
-    yield empty_git_dir
+def repo_with_passing_hook(config_for_script_hooks_repo, tmpdir_factory):
+    path = git_dir(tmpdir_factory)
+    with local.cwd(path):
+        _make_repo_from_configs(config_for_script_hooks_repo)
+        yield path
 
 
 @pytest.yield_fixture
-def repo_with_failing_hook(failing_hook_repo, empty_git_dir):
-    _make_repo_from_configs(_make_config(failing_hook_repo, 'failing_hook'))
-    yield empty_git_dir
+def repo_with_failing_hook(failing_hook_repo, tmpdir_factory):
+    path = git_dir(tmpdir_factory)
+    with local.cwd(path):
+        _make_repo_from_configs(
+            _make_config(failing_hook_repo, 'failing_hook')
+        )
+        yield path
 
 
 @pytest.yield_fixture
 def in_merge_conflict(repo_with_passing_hook):
-    local['git']('add', C.CONFIG_FILE)
-    local['git']('commit', '-m' 'add hooks file')
-    local['git']('clone', '.', 'foo')
+    local['touch']('dummy')
+    git('add', 'dummy')
+    git('add', C.CONFIG_FILE)
+    git('commit', '-m' 'add hooks file')
+    git('clone', '.', 'foo')
     with local.cwd('foo'):
-        local['git']('checkout', 'origin/master', '-b', 'foo')
+        git('checkout', 'origin/master', '-b', 'foo')
         with open('conflict_file', 'w') as conflict_file:
             conflict_file.write('herp\nderp\n')
-        local['git']('add', 'conflict_file')
+        git('add', 'conflict_file')
         with open('foo_only_file', 'w') as foo_only_file:
             foo_only_file.write('foo')
-        local['git']('add', 'foo_only_file')
-        local['git']('commit', '-m', 'conflict_file')
-        local['git']('checkout', 'origin/master', '-b', 'bar')
+        git('add', 'foo_only_file')
+        git('commit', '-m', 'conflict_file')
+        git('checkout', 'origin/master', '-b', 'bar')
         with open('conflict_file', 'w') as conflict_file:
             conflict_file.write('harp\nddrp\n')
-        local['git']('add', 'conflict_file')
+        git('add', 'conflict_file')
         with open('bar_only_file', 'w') as bar_only_file:
             bar_only_file.write('bar')
-        local['git']('add', 'bar_only_file')
-        local['git']('commit', '-m', 'conflict_file')
-        local['git']('merge', 'foo', retcode=None)
+        git('add', 'bar_only_file')
+        git('commit', '-m', 'conflict_file')
+        git('merge', 'foo', retcode=None)
         yield os.path.join(repo_with_passing_hook, 'foo')
 
 
