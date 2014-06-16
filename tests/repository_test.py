@@ -1,3 +1,7 @@
+from __future__ import absolute_import
+from __future__ import unicode_literals
+
+import mock
 import os.path
 import pytest
 from plumbum import local
@@ -6,101 +10,115 @@ from pre_commit.clientlib.validate_config import CONFIG_JSON_SCHEMA
 from pre_commit.clientlib.validate_config import validate_config_extra
 from pre_commit.jsonschema_extensions import apply_defaults
 from pre_commit.repository import Repository
+from testing.fixtures import git_dir
+from testing.fixtures import make_config_from_repo
+from testing.fixtures import make_repo
 from testing.util import skipif_slowtests_false
 
 
 @pytest.mark.integration
-def test_install_python_repo_in_env(config_for_python_hooks_repo, store):
-    repo = Repository.create(config_for_python_hooks_repo, store)
+def test_install_python_repo_in_env(tmpdir_factory, store):
+    path = make_repo(tmpdir_factory, 'python_hooks_repo')
+    config = make_config_from_repo(path)
+    repo = Repository.create(config, store)
     repo.install()
     assert os.path.exists(os.path.join(store.directory, repo.sha, 'py_env'))
 
 
-@pytest.mark.integration
-def test_run_a_python_hook(config_for_python_hooks_repo, store):
-    repo = Repository.create(config_for_python_hooks_repo, store)
-    ret = repo.run_hook('foo', ['/dev/null'])
+def _test_hook_repo(tmpdir_factory, store, repo_path, hook_id, args, expected):
+    path = make_repo(tmpdir_factory, repo_path)
+    config = make_config_from_repo(path)
+    repo = Repository.create(config, store)
+    ret = repo.run_hook(hook_id, args)
     assert ret[0] == 0
-    assert ret[1] == "['/dev/null']\nHello World\n"
+    assert ret[1] == expected
 
 
 @pytest.mark.integration
-def test_run_versioned_hook(config_for_python3_hooks_repo, store):
-    repo = Repository.create(config_for_python3_hooks_repo, store)
-    ret = repo.run_hook('python3-hook', ['/dev/null'])
-    assert ret[0] == 0
-    assert ret[1] == "3.3\n['/dev/null']\nHello World\n"
+def test_python_hook(tmpdir_factory, store):
+    _test_hook_repo(
+        tmpdir_factory, store, 'python_hooks_repo',
+        'foo', ['/dev/null'], "['/dev/null']\nHello World\n",
+    )
+
+
+@pytest.mark.integration
+def test_versioned_python_hook(tmpdir_factory, store):
+    _test_hook_repo(
+        tmpdir_factory, store, 'python3_hooks_repo',
+        'python3-hook', ['/dev/null'], "3.3\n['/dev/null']\nHello World\n",
+    )
 
 
 @skipif_slowtests_false
 @pytest.mark.integration
-def test_run_versioned_node_hook(config_for_node_0_11_8_hooks_repo, store):
-    repo = Repository.create(config_for_node_0_11_8_hooks_repo, store)
-    ret = repo.run_hook('node-11-8-hook', ['/dev/null'])
-    assert ret[0] == 0
-    assert ret[1] == 'v0.11.8\nHello World\n'
+def test_run_a_node_hook(tmpdir_factory, store):
+    _test_hook_repo(
+        tmpdir_factory, store, 'node_hooks_repo',
+        'foo', [], 'Hello World\n',
+    )
 
 
-@pytest.mark.herpderp
 @skipif_slowtests_false
 @pytest.mark.integration
-def test_run_versioned_ruby_hook(config_for_ruby_1_9_3_hooks_repo, store):
-    repo = Repository.create(config_for_ruby_1_9_3_hooks_repo, store)
-    ret = repo.run_hook('ruby_hook', [])
-    assert ret[0] == 0
-    assert ret[1] == '1.9.3\n484\nHello world from a ruby hook\n'
+def test_run_versioned_node_hook(tmpdir_factory, store):
+    _test_hook_repo(
+        tmpdir_factory, store, 'node_0_11_8_hooks_repo',
+        'node-11-8-hook', ['/dev/null'], 'v0.11.8\nHello World\n',
+    )
+
+
+@skipif_slowtests_false
+@pytest.mark.integration
+def test_run_a_ruby_hook(tmpdir_factory, store):
+    _test_hook_repo(
+        tmpdir_factory, store, 'ruby_hooks_repo',
+        'ruby_hook', [], 'Hello world from a ruby hook\n',
+    )
+
+
+@skipif_slowtests_false
+@pytest.mark.integration
+def test_run_versioned_ruby_hook(tmpdir_factory, store):
+    _test_hook_repo(
+        tmpdir_factory, store, 'ruby_1_9_3_hooks_repo',
+        'ruby_hook', [], '1.9.3\n484\nHello world from a ruby hook\n',
+    )
 
 
 @pytest.mark.integration
-def test_lots_of_files(config_for_python_hooks_repo, store):
-    repo = Repository.create(config_for_python_hooks_repo, store)
-    ret = repo.run_hook('foo', ['/dev/null'] * 15000)
-    assert ret[0] == 0
+def test_system_hook_with_spaces(tmpdir_factory, store):
+    _test_hook_repo(
+        tmpdir_factory, store, 'system_hook_with_spaces_repo',
+        'system-hook-with-spaces', [], 'Hello World\n',
+    )
 
 
 @pytest.mark.integration
-def test_cwd_of_hook(config_for_prints_cwd_repo, store):
+def test_run_a_script_hook(tmpdir_factory, store):
+    _test_hook_repo(
+        tmpdir_factory, store, 'script_hooks_repo',
+        'bash_hook', ['bar'], 'bar\nHello World\n',
+    )
+
+
+@pytest.mark.integration
+def test_cwd_of_hook(tmpdir_factory, store):
     # Note: this doubles as a test for `system` hooks
-    repo = Repository.create(config_for_prints_cwd_repo, store)
-    ret = repo.run_hook('prints_cwd', [])
-    assert ret[0] == 0
-    assert ret[1] == repo.repo_url + '\n'
+    path = git_dir(tmpdir_factory)
+    with local.cwd(path):
+        _test_hook_repo(
+            tmpdir_factory, store, 'prints_cwd_repo',
+            'prints_cwd', [], path + '\n',
+        )
 
 
 @pytest.mark.integration
-def test_system_hook_with_spaces(config_for_system_hook_with_spaces, store):
-    repo = Repository.create(config_for_system_hook_with_spaces, store)
-    ret = repo.run_hook('system-hook-with-spaces', [])
-    assert ret[0] == 0
-    assert ret[1] == 'Hello World\n'
-
-
-@skipif_slowtests_false
-@pytest.mark.integration
-def test_run_a_node_hook(config_for_node_hooks_repo, store):
-    repo = Repository.create(config_for_node_hooks_repo, store)
-    ret = repo.run_hook('foo', [])
-    assert ret[0] == 0
-    assert ret[1] == 'Hello World\n'
-
-
-@pytest.mark.herpderp
-@skipif_slowtests_false
-@pytest.mark.integration
-def test_run_a_ruby_hook(config_for_ruby_hooks_repo, store):
-    repo = Repository.create(config_for_ruby_hooks_repo, store)
-    ret = repo.run_hook('ruby_hook', [])
-    assert ret[0] == 0
-    assert ret[1] == 'Hello world from a ruby hook\n'
-
-
-@pytest.mark.integration
-def test_run_a_script_hook(config_for_script_hooks_repo, store):
-    repo = Repository.create(config_for_script_hooks_repo, store)
-    ret = repo.run_hook('bash_hook', ['bar'])
-
-    assert ret[0] == 0
-    assert ret[1] == 'bar\nHello World\n'
+def test_lots_of_files(tmpdir_factory, store):
+    _test_hook_repo(
+        tmpdir_factory, store, 'script_hooks_repo',
+        'bash_hook', ['/dev/null'] * 15000, mock.ANY,
+    )
 
 
 @pytest.fixture
@@ -129,37 +147,49 @@ def test_sha(mock_repo_config):
 
 
 @pytest.mark.integration
-def test_languages(config_for_python_hooks_repo, store):
-    repo = Repository.create(config_for_python_hooks_repo, store)
+def test_languages(tmpdir_factory, store):
+    path = make_repo(tmpdir_factory, 'python_hooks_repo')
+    config = make_config_from_repo(path)
+    repo = Repository.create(config, store)
     assert repo.languages == set([('python', 'default')])
 
 
-def test_reinstall(config_for_python_hooks_repo, store):
-    repo = Repository.create(config_for_python_hooks_repo, store)
+def test_reinstall(tmpdir_factory, store):
+    path = make_repo(tmpdir_factory, 'python_hooks_repo')
+    config = make_config_from_repo(path)
+    repo = Repository.create(config, store)
     repo.require_installed()
     # Reinstall with same repo should not trigger another install
     # TODO: how to assert this?
     repo.require_installed()
     # Reinstall on another run should not trigger another install
     # TODO: how to assert this?
-    repo = Repository.create(config_for_python_hooks_repo, store)
+    repo = Repository.create(config, store)
     repo.require_installed()
 
 
 @pytest.mark.integration
-def test_really_long_file_paths(config_for_python_hooks_repo, store):
-    path = 'really_long' * 10
-    local['git']('init', path)
-    with local.cwd(path):
-        repo = Repository.create(config_for_python_hooks_repo, store)
+def test_really_long_file_paths(tmpdir_factory, store):
+    base_path = tmpdir_factory.get()
+    really_long_path = os.path.join(base_path, 'really_long' * 10)
+    local['git']('init', really_long_path)
+
+    path = make_repo(tmpdir_factory, 'python_hooks_repo')
+    config = make_config_from_repo(path)
+
+    with local.cwd(really_long_path):
+        repo = Repository.create(config, store)
         repo.require_installed()
 
 
 @pytest.mark.integration
-def test_config_overrides_repo_specifics(config_for_script_hooks_repo, store):
-    repo = Repository.create(config_for_script_hooks_repo, store)
+def test_config_overrides_repo_specifics(tmpdir_factory, store):
+    path = make_repo(tmpdir_factory, 'script_hooks_repo')
+    config = make_config_from_repo(path)
+
+    repo = Repository.create(config, store)
     assert repo.hooks['bash_hook']['files'] == ''
     # Set the file regex to something else
-    config_for_script_hooks_repo['hooks'][0]['files'] = '\\.sh$'
-    repo = Repository.create(config_for_script_hooks_repo, store)
+    config['hooks'][0]['files'] = '\\.sh$'
+    repo = Repository.create(config, store)
     assert repo.hooks['bash_hook']['files'] == '\\.sh$'

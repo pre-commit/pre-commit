@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 import os
 import mock
 import pytest
@@ -9,7 +11,9 @@ from pre_commit.prefixed_command_runner import PrefixedCommandRunner
 
 
 def test_CalledProcessError_str():
-    error = CalledProcessError(1, ['git', 'status'], 0, ('stdout', 'stderr'))
+    error = CalledProcessError(
+        1, [str('git'), str('status')], 0, (str('stdout'), str('stderr'))
+    )
     assert str(error) == (
         "Command: ['git', 'status']\n"
         "Return code: 1\n"

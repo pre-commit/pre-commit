@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 import pytest
 
 from pre_commit.clientlib.validate_config import CONFIG_JSON_SCHEMA

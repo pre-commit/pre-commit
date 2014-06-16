@@ -11,6 +11,21 @@ from pre_commit.commands.run import _has_unmerged_paths
 from pre_commit.commands.run import run
 from pre_commit.runner import Runner
 from testing.auto_namedtuple import auto_namedtuple
+from testing.fixtures import make_consuming_repo
+
+
+@pytest.yield_fixture
+def repo_with_passing_hook(tmpdir_factory):
+    git_path = make_consuming_repo(tmpdir_factory, 'script_hooks_repo')
+    with local.cwd(git_path):
+        yield git_path
+
+
+@pytest.yield_fixture
+def repo_with_failing_hook(tmpdir_factory):
+    git_path = make_consuming_repo(tmpdir_factory, 'failing_hook_repo')
+    with local.cwd(git_path):
+        yield git_path
 
 
 def stage_a_file():

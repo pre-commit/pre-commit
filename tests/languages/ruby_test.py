@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 import os.path
 
 from pre_commit.languages.ruby import _install_rbenv

@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 import pytest
 from asottile.ordereddict import OrderedDict
 from asottile.yaml import ordered_load

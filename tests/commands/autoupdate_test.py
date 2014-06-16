@@ -1,10 +1,8 @@
 from __future__ import unicode_literals
 
-import io
 import pytest
 import shutil
 from asottile.ordereddict import OrderedDict
-from asottile.yaml import ordered_dump
 from plumbum import local
 
 import pre_commit.constants as C
@@ -14,14 +12,15 @@ from pre_commit.commands.autoupdate import RepositoryCannotBeUpdatedError
 from pre_commit.runner import Runner
 from testing.auto_namedtuple import auto_namedtuple
 from testing.fixtures import make_config_from_repo
-from testing.fixtures import make_hooks_repo
+from testing.fixtures import make_repo
+from testing.fixtures import write_config
 from testing.util import get_head_sha
 from testing.util import get_resource_path
 
 
 @pytest.yield_fixture
 def up_to_date_repo(tmpdir_factory):
-    yield make_hooks_repo(tmpdir_factory, 'python_hooks_repo')
+    yield make_repo(tmpdir_factory, 'python_hooks_repo')
 
 
 def test_up_to_date_repo(up_to_date_repo, runner_with_mocked_store):
@@ -36,8 +35,7 @@ def test_autoupdate_up_to_date_repo(
 ):
     # Write out the config
     config = make_config_from_repo(up_to_date_repo, check=False)
-    with io.open(C.CONFIG_FILE, 'w') as config_file:
-        config_file.write(ordered_dump([config], **C.YAML_DUMP_KWARGS))
+    write_config('.', config)
 
     before = open(C.CONFIG_FILE).read()
     assert '^$' not in before
@@ -50,7 +48,7 @@ def test_autoupdate_up_to_date_repo(
 
 @pytest.yield_fixture
 def out_of_date_repo(tmpdir_factory):
-    path = make_hooks_repo(tmpdir_factory, 'python_hooks_repo')
+    path = make_repo(tmpdir_factory, 'python_hooks_repo')
     original_sha = get_head_sha(path)
 
     # Make a commit
@@ -79,8 +77,7 @@ def test_autoupdate_out_of_date_repo(
     config = make_config_from_repo(
         out_of_date_repo.path, sha=out_of_date_repo.original_sha, check=False,
     )
-    with io.open(C.CONFIG_FILE, 'w') as config_file:
-        config_file.write(ordered_dump([config], **C.YAML_DUMP_KWARGS))
+    write_config('.', config)
 
     before = open(C.CONFIG_FILE).read()
     runner = Runner('.')
@@ -95,7 +92,7 @@ def test_autoupdate_out_of_date_repo(
 
 @pytest.yield_fixture
 def hook_disappearing_repo(tmpdir_factory):
-    path = make_hooks_repo(tmpdir_factory, 'python_hooks_repo')
+    path = make_repo(tmpdir_factory, 'python_hooks_repo')
     original_sha = get_head_sha(path)
 
     with local.cwd(path):
@@ -130,8 +127,7 @@ def test_autoupdate_hook_disappearing_repo(
         hooks=[OrderedDict((('id', 'foo'),))],
         check=False,
     )
-    with io.open(C.CONFIG_FILE, 'w') as config_file:
-        config_file.write(ordered_dump([config], **C.YAML_DUMP_KWARGS))
+    write_config('.', config)
 
     before = open(C.CONFIG_FILE).read()
     runner = Runner('.')

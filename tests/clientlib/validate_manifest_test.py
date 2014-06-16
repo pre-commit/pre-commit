@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 import pytest
 
 from pre_commit.clientlib.validate_manifest import additional_manifest_check
