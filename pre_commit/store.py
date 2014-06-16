@@ -22,7 +22,10 @@ def _get_default_directory():
     `Store.get_default_directory` can be mocked in tests and
     `_get_default_directory` can be tested.
     """
-    return os.path.join(os.environ['HOME'], '.pre-commit')
+    return os.environ.get(
+        'PRE_COMMIT_HOME',
+        os.path.join(os.environ['HOME'], '.pre-commit'),
+    )
 
 
 class Store(object):

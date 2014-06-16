@@ -66,4 +66,7 @@ def make_consuming_repo(tmpdir_factory, repo_source):
     config = make_config_from_repo(path)
     git_path = git_dir(tmpdir_factory)
     write_config(git_path, config)
+    with local.cwd(git_path):
+        git('add', C.CONFIG_FILE)
+        git('commit', '-m', 'Add hooks config')
     return git_path
