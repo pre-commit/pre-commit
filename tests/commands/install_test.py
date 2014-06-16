@@ -17,24 +17,39 @@ from testing.fixtures import make_consuming_repo
 
 
 def _get_commit_output(tmpdir_factory):
+    local['touch']('foo')
+    local['git']('add', 'foo')
     # Don't want to write to home directory
     env = dict(os.environ, **{'PRE_COMMIT_HOME': tmpdir_factory.get()})
-    return local['git'](
-        'commit', '-m', 'Commit!', '--allow-empty',
+    return local['git'].run(
+        ['commit', '-m', 'Commit!', '--allow-empty'],
         # git commit puts pre-commit to stderr
         stderr=subprocess.STDOUT,
         env=env,
-    )
+        retcode=None,
+    )[:2]
 
 
 NORMAL_PRE_COMMIT_RUN = re.compile(
-    r'^\[INFO\] Installing environment for .+.\n'
-    r'\[INFO\] Once installed this environment will be reused.\n'
-    r'\[INFO\] This may take a few minutes...\n'
-    r'Bash hook'
-    r'\.+'
-    r'\(no files to check\) Skipped\n'
-    r'\[master [a-f0-9]{7}\] Commit!\n$'
+    r'^\[INFO\] Installing environment for .+\.\n'
+    r'\[INFO\] Once installed this environment will be reused\.\n'
+    r'\[INFO\] This may take a few minutes\.\.\.\n'
+    r'Bash hook\.+Passed\n'
+    r'\[master [a-f0-9]{7}\] Commit!\n'
+    r' 0 files changed\n'
+    r' create mode 100644 foo\n$'
+)
+
+
+FAILING_PRE_COMMIT_RUN = re.compile(
+    r'^\[INFO\] Installing environment for .+\.\n'
+    r'\[INFO\] Once installed this environment will be reused\.\n'
+    r'\[INFO\] This may take a few minutes\.\.\.\n'
+    r'Failing hook\.+Failed\n'
+    r'\n'
+    r'Fail\n'
+    r'foo\n'
+    r'\n$'
 )
 
 
@@ -59,7 +74,8 @@ def test_install_pre_commit_and_run(tmpdir_factory):
     with local.cwd(path):
         assert install(Runner(path)) == 0
 
-        output = _get_commit_output(tmpdir_factory)
+        ret, output = _get_commit_output(tmpdir_factory)
+        assert ret == 0
         assert NORMAL_PRE_COMMIT_RUN.match(output)
 
 
@@ -69,7 +85,8 @@ def test_install_idempotent(tmpdir_factory):
         assert install(Runner(path)) == 0
         assert install(Runner(path)) == 0
 
-        output = _get_commit_output(tmpdir_factory)
+        ret, output = _get_commit_output(tmpdir_factory)
+        assert ret == 0
         assert NORMAL_PRE_COMMIT_RUN.match(output)
 
 
@@ -89,3 +106,13 @@ def test_environment_not_sourced(tmpdir_factory):
             '`pre-commit` not found.  '
             'Did you forget to activate your virtualenv?\n'
         )
+
+
+def test_failing_hooks_returns_nonzero(tmpdir_factory):
+    path = make_consuming_repo(tmpdir_factory, 'failing_hook_repo')
+    with local.cwd(path):
+        assert install(Runner(path)) == 0
+
+        ret, output = _get_commit_output(tmpdir_factory)
+        assert ret == 1
+        assert FAILING_PRE_COMMIT_RUN.match(output)
