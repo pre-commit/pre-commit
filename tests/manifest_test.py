@@ -1,13 +1,18 @@
+from __future__ import absolute_import
+from __future__ import unicode_literals
+
 import pytest
 
 from pre_commit.manifest import Manifest
+from testing.fixtures import make_repo
 from testing.util import get_head_sha
 
 
 @pytest.yield_fixture
-def manifest(store, script_hooks_repo):
-    head_sha = get_head_sha(script_hooks_repo)
-    repo_path_getter = store.get_repo_path_getter(script_hooks_repo, head_sha)
+def manifest(store, tmpdir_factory):
+    path = make_repo(tmpdir_factory, 'script_hooks_repo')
+    head_sha = get_head_sha(path)
+    repo_path_getter = store.get_repo_path_getter(path, head_sha)
     yield Manifest(repo_path_getter)
 
 

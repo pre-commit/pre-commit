@@ -1,21 +1,33 @@
+from __future__ import absolute_import
+from __future__ import unicode_literals
+
+import os.path
 import pytest
 from plumbum import local
 
 from pre_commit import git
+from testing.fixtures import git_dir
 
 
-def test_get_root(empty_git_dir):
-    assert git.get_root() == empty_git_dir
-
-    foo = local.path('foo')
-    foo.mkdir()
-
-    with local.cwd(foo):
-        assert git.get_root() == empty_git_dir
+def test_get_root_at_root(tmpdir_factory):
+    path = git_dir(tmpdir_factory)
+    with local.cwd(path):
+        assert git.get_root() == path
 
 
-def test_is_not_in_merge_conflict(empty_git_dir):
-    assert git.is_in_merge_conflict() is False
+def test_get_root_deeper(tmpdir_factory):
+    path = git_dir(tmpdir_factory)
+
+    foo_path = os.path.join(path, 'foo')
+    os.mkdir(foo_path)
+    with local.cwd(foo_path):
+        assert git.get_root() == path
+
+
+def test_is_not_in_merge_conflict(tmpdir_factory):
+    path = git_dir(tmpdir_factory)
+    with local.cwd(path):
+        assert git.is_in_merge_conflict() is False
 
 
 def test_is_in_merge_conflict(in_merge_conflict):
@@ -77,14 +89,14 @@ def test_exclude_removes_files(get_files_matching_func):
 def resolve_conflict():
     with open('conflict_file', 'w') as conflicted_file:
         conflicted_file.write('herp\nderp\n')
-    local['git']['add', 'conflict_file']()
+    local['git']('add', 'conflict_file')
 
 
 def test_get_conflicted_files(in_merge_conflict):
     resolve_conflict()
     with open('other_file', 'w') as other_file:
         other_file.write('oh hai')
-    local['git']['add', 'other_file']()
+    local['git']('add', 'other_file')
 
     ret = set(git.get_conflicted_files())
     assert ret == set(('conflict_file', 'other_file'))

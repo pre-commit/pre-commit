@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 import sys
 
 RED = '\033[41m'

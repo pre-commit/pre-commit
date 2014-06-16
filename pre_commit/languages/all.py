@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 from pre_commit.languages import node
 from pre_commit.languages import python
 from pre_commit.languages import ruby

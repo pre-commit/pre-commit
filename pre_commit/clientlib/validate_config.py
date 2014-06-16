@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 import sys
 
 from pre_commit.clientlib.validate_base import get_run_function

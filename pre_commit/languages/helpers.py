@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 
 
 def run_hook(env, hook, file_args):

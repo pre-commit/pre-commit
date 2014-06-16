@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 """five: six, redux"""
 # pylint:disable=invalid-name
 PY2 = (str is bytes)

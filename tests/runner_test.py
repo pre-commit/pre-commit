@@ -1,9 +1,14 @@
+from __future__ import absolute_import
+from __future__ import unicode_literals
+
 import os
 import os.path
-import pytest
+from plumbum import local
 
 import pre_commit.constants as C
 from pre_commit.runner import Runner
+from testing.fixtures import git_dir
+from testing.fixtures import make_repo
 
 
 def test_init_has_no_side_effects(tmpdir):
@@ -13,24 +18,26 @@ def test_init_has_no_side_effects(tmpdir):
     assert os.getcwd() == current_wd
 
 
-def test_create_sets_correct_directory(empty_git_dir):
-    runner = Runner.create()
-    assert runner.git_root == empty_git_dir
-    assert os.getcwd() == empty_git_dir
+def test_create_sets_correct_directory(tmpdir_factory):
+    path = git_dir(tmpdir_factory)
+    with local.cwd(path):
+        runner = Runner.create()
+        assert runner.git_root == path
+        assert os.getcwd() == path
 
 
-@pytest.yield_fixture
-def git_dir_with_directory(empty_git_dir):
-    os.mkdir('foo')
-    yield empty_git_dir
+def test_create_changes_to_git_root(tmpdir_factory):
+    path = git_dir(tmpdir_factory)
+    with local.cwd(path):
+        # Change into some directory, create should set to root
+        foo_path = os.path.join(path, 'foo')
+        os.mkdir(foo_path)
+        os.chdir(foo_path)
+        assert os.getcwd() != path
 
-
-def test_changes_to_root_of_git_dir(git_dir_with_directory):
-    os.chdir('foo')
-    assert os.getcwd() != git_dir_with_directory
-    runner = Runner.create()
-    assert runner.git_root == git_dir_with_directory
-    assert os.getcwd() == git_dir_with_directory
+        runner = Runner.create()
+        assert runner.git_root == path
+        assert os.getcwd() == path
 
 
 def test_config_file_path():
@@ -39,9 +46,10 @@ def test_config_file_path():
     assert runner.config_file_path == expected_path
 
 
-def test_repositories(consumer_repo, mock_out_store_directory):
+def test_repositories(tmpdir_factory, mock_out_store_directory):
     # TODO: make this not have external deps
-    runner = Runner(consumer_repo)
+    path = make_repo(tmpdir_factory, 'consumer_repo')
+    runner = Runner(path)
     assert len(runner.repositories) == 2
     assert [repo.repo_url for repo in runner.repositories] == [
         'git@github.com:pre-commit/pre-commit-hooks',

@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 from asottile.cached_property import cached_property
 from asottile.ordereddict import OrderedDict
 

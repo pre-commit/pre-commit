@@ -11,11 +11,26 @@ from pre_commit.commands.run import _has_unmerged_paths
 from pre_commit.commands.run import run
 from pre_commit.runner import Runner
 from testing.auto_namedtuple import auto_namedtuple
+from testing.fixtures import make_consuming_repo
+
+
+@pytest.yield_fixture
+def repo_with_passing_hook(tmpdir_factory):
+    git_path = make_consuming_repo(tmpdir_factory, 'script_hooks_repo')
+    with local.cwd(git_path):
+        yield git_path
+
+
+@pytest.yield_fixture
+def repo_with_failing_hook(tmpdir_factory):
+    git_path = make_consuming_repo(tmpdir_factory, 'failing_hook_repo')
+    with local.cwd(git_path):
+        yield git_path
 
 
 def stage_a_file():
-    local['touch']['foo.py']()
-    local['git']['add', 'foo.py']()
+    local['touch']('foo.py')
+    local['git']('add', 'foo.py')
 
 
 def get_write_mock_output(write_mock):
@@ -75,11 +90,9 @@ def test_run_all_hooks_failing(
         ({'verbose': True}, ('foo.py\nHello World',), 0, True),
         ({'hook': 'bash_hook'}, ('Bash hook', 'Passed'), 0, True),
         ({'hook': 'nope'}, ('No hook with id `nope`',), 1, True),
-        # All the files in the repo.
-        # This seems kind of weird but it is beacuse py.test reuses fixtures
         (
             {'all_files': True, 'verbose': True},
-            ('hooks.yaml', 'bin/hook.sh', 'foo.py', 'dummy'),
+            ('foo.py'),
             0,
             True,
         ),
@@ -153,7 +166,7 @@ def test_merge_conflict_modified(in_merge_conflict, mock_out_store_directory):
 
 
 def test_merge_conflict_resolved(in_merge_conflict, mock_out_store_directory):
-    local['git']['add', '.']()
+    local['git']('add', '.')
     ret, printed = _do_run(in_merge_conflict, _get_opts())
     for msg in ('Checking merge-conflict files only.', 'Bash hook', 'Passed'):
         assert msg in printed

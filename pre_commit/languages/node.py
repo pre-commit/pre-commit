@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 import contextlib
 
 from pre_commit.languages import helpers
