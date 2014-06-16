@@ -27,7 +27,7 @@ setup(
     packages=find_packages('.', exclude=('tests*', 'testing*')),
     package_data={
         'pre_commit': [
-            'resources/pre-commit.sh'
+            'resources/pre-commit-hook'
         ]
     },
     install_requires=[

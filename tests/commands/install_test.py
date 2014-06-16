@@ -46,7 +46,7 @@ def test_install_pre_commit(tmpdir_factory):
     assert os.path.exists(runner.pre_commit_path)
     pre_commit_contents = io.open(runner.pre_commit_path).read()
     pre_commit_sh = pkg_resources.resource_filename(
-        'pre_commit', 'resources/pre-commit.sh',
+        'pre_commit', 'resources/pre-commit-hook',
     )
     expected_contents = io.open(pre_commit_sh).read()
     assert pre_commit_contents == expected_contents
