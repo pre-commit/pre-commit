@@ -4,5 +4,7 @@ MANIFEST_FILE = 'hooks.yaml'
 
 YAML_DUMP_KWARGS = {
     'default_flow_style': False,
+    # Use unicode
+    'encoding': None,
     'indent': 4,
 }
