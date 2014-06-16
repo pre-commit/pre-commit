@@ -71,3 +71,21 @@ def test_install_idempotent(tmpdir_factory):
 
         output = _get_commit_output(tmpdir_factory)
         assert NORMAL_PRE_COMMIT_RUN.match(output)
+
+
+def test_environment_not_sourced(tmpdir_factory):
+    path = make_consuming_repo(tmpdir_factory, 'script_hooks_repo')
+    with local.cwd(path):
+        assert install(Runner(path)) == 0
+
+        ret, stdout, stderr = local['git'].run(
+            ['commit', '--allow-empty', '-m', 'foo'],
+            env={},
+            retcode=None,
+        )
+        assert ret == 1
+        assert stdout == ''
+        assert stderr == (
+            '`pre-commit` not found.  '
+            'Did you forget to activate your virtualenv?\n'
+        )
