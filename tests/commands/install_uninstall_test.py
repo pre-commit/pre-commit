@@ -10,9 +10,10 @@ import subprocess
 import stat
 from plumbum import local
 
-from pre_commit.commands.install import install
-from pre_commit.commands.install import is_our_pre_commit
-from pre_commit.commands.install import make_executable
+from pre_commit.commands.install_uninstall import install
+from pre_commit.commands.install_uninstall import is_our_pre_commit
+from pre_commit.commands.install_uninstall import make_executable
+from pre_commit.commands.install_uninstall import uninstall
 from pre_commit.runner import Runner
 from testing.fixtures import git_dir
 from testing.fixtures import make_consuming_repo
@@ -44,6 +45,23 @@ def test_install_pre_commit(tmpdir_factory):
     assert pre_commit_contents == expected_contents
     stat_result = os.stat(runner.pre_commit_path)
     assert stat_result.st_mode & (stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+
+
+def test_uninstall_does_not_blow_up_when_not_there(tmpdir_factory):
+    path = git_dir(tmpdir_factory)
+    runner = Runner(path)
+    ret = uninstall(runner)
+    assert ret == 0
+
+
+def test_uninstall(tmpdir_factory):
+    path = git_dir(tmpdir_factory)
+    runner = Runner(path)
+    assert not os.path.exists(runner.pre_commit_path)
+    install(runner)
+    assert os.path.exists(runner.pre_commit_path)
+    uninstall(runner)
+    assert not os.path.exists(runner.pre_commit_path)
 
 
 def _get_commit_output(tmpdir_factory, touch_file='foo'):

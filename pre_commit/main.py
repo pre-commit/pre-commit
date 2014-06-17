@@ -6,9 +6,9 @@ import pkg_resources
 from pre_commit import color
 from pre_commit.commands.autoupdate import autoupdate
 from pre_commit.commands.clean import clean
-from pre_commit.commands.install import install
+from pre_commit.commands.install_uninstall import install
+from pre_commit.commands.install_uninstall import uninstall
 from pre_commit.commands.run import run
-from pre_commit.commands.uninstall import uninstall
 from pre_commit.runner import Runner
 from pre_commit.util import entry
 

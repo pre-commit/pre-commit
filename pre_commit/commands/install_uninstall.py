@@ -54,3 +54,11 @@ def install(runner, overwrite=False):
 
     print('pre-commit installed at {0}'.format(runner.pre_commit_path))
     return 0
+
+
+def uninstall(runner):
+    """Uninstall the pre-commit hooks."""
+    if os.path.exists(runner.pre_commit_path):
+        os.remove(runner.pre_commit_path)
+        print('pre-commit uninstalled')
+    return 0
