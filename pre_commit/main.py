@@ -6,9 +6,9 @@ import pkg_resources
 from pre_commit import color
 from pre_commit.commands.autoupdate import autoupdate
 from pre_commit.commands.clean import clean
-from pre_commit.commands.install import install
+from pre_commit.commands.install_uninstall import install
+from pre_commit.commands.install_uninstall import uninstall
 from pre_commit.commands.run import run
-from pre_commit.commands.uninstall import uninstall
 from pre_commit.runner import Runner
 from pre_commit.util import entry
 
@@ -28,7 +28,13 @@ def main(argv):
 
     subparsers = parser.add_subparsers(dest='command')
 
-    subparsers.add_parser('install', help='Intall the pre-commit script.')
+    install_parser = subparsers.add_parser(
+        'install', help='Intall the pre-commit script.',
+    )
+    install_parser.add_argument(
+        '-f', '--overwrite', action='store_true',
+        help='Overwrite existing hooks / remove migration mode.',
+    )
 
     subparsers.add_parser('uninstall', help='Uninstall the pre-commit script.')
 
@@ -67,7 +73,7 @@ def main(argv):
     runner = Runner.create()
 
     if args.command == 'install':
-        return install(runner)
+        return install(runner, overwrite=args.overwrite)
     elif args.command == 'uninstall':
         return uninstall(runner)
     elif args.command == 'clean':

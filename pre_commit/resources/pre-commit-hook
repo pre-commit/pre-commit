@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+# This is a randomish md5 to identify this script
+# d8ee923c46731b42cd95cc869add4062
+
+HERE=$(dirname $(readlink -f "$0"))
+
+retv=0
+
+which pre-commit > /dev/null
+if [ $? -ne 0 ]; then
+    echo '`pre-commit` not found.  Did you forget to activate your virtualenv?'
+    exit 1
+fi
+
+
+# Run the legacy pre-commit if it exists
+if [ -x "$HERE"/pre-commit.legacy ]; then
+    "$HERE"/pre-commit.legacy
+    if [ $? -ne 0 ]; then
+        retv=1
+    fi
+fi
+
+
+# Run pre-commit
+pre-commit
+if [ $? -ne 0 ]; then
+    retv=1
+fi
+
+exit $retv

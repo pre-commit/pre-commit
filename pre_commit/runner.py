@@ -41,7 +41,14 @@ class Runner(object):
 
     @cached_property
     def pre_commit_path(self):
-        return os.path.join(self.git_root, '.git/hooks/pre-commit')
+        return os.path.join(self.git_root, '.git', 'hooks', 'pre-commit')
+
+    @cached_property
+    def pre_commit_legacy_path(self):
+        """The path in the 'hooks' directory representing the temporary
+        storage for existing pre-commit hooks.
+        """
+        return self.pre_commit_path + '.legacy'
 
     @cached_property
     def cmd_runner(self):

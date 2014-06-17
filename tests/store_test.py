@@ -31,6 +31,14 @@ def test_get_default_directory_defaults_to_home():
     assert ret == os.path.join(os.environ['HOME'], '.pre-commit')
 
 
+def test_uses_environment_variable_when_present():
+    with mock.patch.dict(
+        os.environ, {'PRE_COMMIT_HOME': '/tmp/pre_commit_home'}
+    ):
+        ret = _get_default_directory()
+        assert ret == '/tmp/pre_commit_home'
+
+
 def test_store_require_created(store):
     assert not os.path.exists(store.directory)
     store.require_created()
