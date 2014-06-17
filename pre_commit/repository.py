@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 
-from asottile.cached_property import cached_property
 from asottile.ordereddict import OrderedDict
+from cached_property import cached_property
 
 from pre_commit.languages.all import languages
 from pre_commit.manifest import Manifest
