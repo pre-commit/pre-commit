@@ -49,7 +49,10 @@ def clean_path_on_failure(path):
         raise
 
 
-# TODO: asottile.contextlib this with a forward port of nested
 @contextlib.contextmanager
 def noop_context():
     yield
+
+
+def shell_escape(arg):
+    return "'" + arg.replace("'", "'\"'\"'".strip()) + "'"

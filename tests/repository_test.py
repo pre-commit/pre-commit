@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
+import io
 import mock
 import os.path
 import pytest
@@ -25,12 +26,20 @@ def test_install_python_repo_in_env(tmpdir_factory, store):
     assert os.path.exists(os.path.join(store.directory, repo.sha, 'py_env'))
 
 
-def _test_hook_repo(tmpdir_factory, store, repo_path, hook_id, args, expected):
+def _test_hook_repo(
+        tmpdir_factory,
+        store,
+        repo_path,
+        hook_id,
+        args,
+        expected,
+        expected_return_code=0,
+):
     path = make_repo(tmpdir_factory, repo_path)
     config = make_config_from_repo(path)
     repo = Repository.create(config, store)
     ret = repo.run_hook(hook_id, args)
-    assert ret[0] == 0
+    assert ret[0] == expected_return_code
     assert ret[1] == expected
 
 
@@ -100,6 +109,69 @@ def test_run_a_script_hook(tmpdir_factory, store):
         tmpdir_factory, store, 'script_hooks_repo',
         'bash_hook', ['bar'], 'bar\nHello World\n',
     )
+
+
+@pytest.mark.integration
+def test_pcre_hook_no_match(tmpdir_factory, store):
+    path = git_dir(tmpdir_factory)
+    with local.cwd(path):
+        with io.open('herp', 'w') as herp:
+            herp.write('foo')
+
+        with io.open('derp', 'w') as derp:
+            derp.write('bar')
+
+        _test_hook_repo(
+            tmpdir_factory, store, 'pcre_hooks_repo',
+            'regex-with-quotes', ['herp', 'derp'], '',
+        )
+
+        _test_hook_repo(
+            tmpdir_factory, store, 'pcre_hooks_repo',
+            'other-regex', ['herp', 'derp'], '',
+        )
+
+
+@pytest.mark.integration
+def test_pcre_hook_matching(tmpdir_factory, store):
+    path = git_dir(tmpdir_factory)
+    with local.cwd(path):
+        with io.open('herp', 'w') as herp:
+            herp.write("\nherpfoo'bard\n")
+
+        with io.open('derp', 'w') as derp:
+            derp.write('[INFO] information yo\n')
+
+        _test_hook_repo(
+            tmpdir_factory, store, 'pcre_hooks_repo',
+            'regex-with-quotes', ['herp', 'derp'], "herp:2:herpfoo'bard\n",
+            expected_return_code=123,
+        )
+
+        _test_hook_repo(
+            tmpdir_factory, store, 'pcre_hooks_repo',
+            'other-regex', ['herp', 'derp'], 'derp:1:[INFO] information yo\n',
+            expected_return_code=123,
+        )
+
+
+@pytest.mark.integration
+def test_pcre_many_files(tmpdir_factory, store):
+    # This is intended to simulate lots of passing files and one failing file
+    # to make sure it still fails.  This is not the case when naively using
+    # a system hook with `grep -H -n '...'` and expected_return_code=123.
+    path = git_dir(tmpdir_factory)
+    with local.cwd(path):
+        with io.open('herp', 'w') as herp:
+            herp.write('[INFO] info\n')
+
+        _test_hook_repo(
+            tmpdir_factory, store, 'pcre_hooks_repo',
+            'other-regex',
+            ['/dev/null'] * 15000 + ['herp'],
+            'herp:1:[INFO] info\n',
+            expected_return_code=123,
+        )
 
 
 @pytest.mark.integration

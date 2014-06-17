@@ -1,0 +1,10 @@
+-   id: regex-with-quotes
+    name: Regex with quotes
+    entry: "foo'bar"
+    language: pcre
+    files: ''
+-   id: other-regex
+    name: Other regex
+    entry: ^\[INFO\]
+    language: pcre
+    files: ''

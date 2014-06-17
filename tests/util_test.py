@@ -11,6 +11,7 @@ from plumbum import local
 from pre_commit.util import clean_path_on_failure
 from pre_commit.util import entry
 from pre_commit.util import memoize_by_cwd
+from pre_commit.util import shell_escape
 
 
 @pytest.fixture
@@ -99,3 +100,15 @@ def test_clean_path_on_failure_cleans_for_system_exit(in_tmpdir):
             raise MySystemExit
 
     assert not os.path.exists('foo')
+
+
+@pytest.mark.parametrize(
+    ('input_str', 'expected'),
+    (
+        ('', "''"),
+        ('foo"bar', "'foo\"bar'"),
+        ("foo'bar", "'foo'\"'\"'bar'")
+    ),
+)
+def test_shell_escape(input_str, expected):
+    assert shell_escape(input_str) == expected
