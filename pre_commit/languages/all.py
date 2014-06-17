@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 from pre_commit.languages import node
+from pre_commit.languages import pcre
 from pre_commit.languages import python
 from pre_commit.languages import ruby
 from pre_commit.languages import script
@@ -36,6 +37,7 @@ from pre_commit.languages import system
 
 languages = {
     'node': node,
+    'pcre': pcre,
     'python': python,
     'ruby': ruby,
     'script': script,
