@@ -28,7 +28,13 @@ def main(argv):
 
     subparsers = parser.add_subparsers(dest='command')
 
-    subparsers.add_parser('install', help='Intall the pre-commit script.')
+    install_parser = subparsers.add_parser(
+        'install', help='Intall the pre-commit script.',
+    )
+    install_parser.add_argument(
+        '-f', '--overwrite', action='store_true',
+        help='Overwrite existing hooks / remove migration mode.',
+    )
 
     subparsers.add_parser('uninstall', help='Uninstall the pre-commit script.')
 
@@ -67,7 +73,7 @@ def main(argv):
     runner = Runner.create()
 
     if args.command == 'install':
-        return install(runner)
+        return install(runner, overwrite=args.overwrite)
     elif args.command == 'uninstall':
         return uninstall(runner)
     elif args.command == 'clean':

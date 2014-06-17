@@ -7,6 +7,7 @@ import os.path
 import pkg_resources
 import stat
 
+
 # This is used to identify the hook file we install
 IDENTIFYING_HASH = 'd8ee923c46731b42cd95cc869add4062'
 
@@ -23,7 +24,7 @@ def make_executable(filename):
     )
 
 
-def install(runner):
+def install(runner, overwrite=False):
     """Install the pre-commit hooks."""
     pre_commit_file = pkg_resources.resource_filename(
         'pre_commit', 'resources/pre-commit-hook',
@@ -34,7 +35,18 @@ def install(runner):
         os.path.exists(runner.pre_commit_path) and
         not is_our_pre_commit(runner.pre_commit_path)
     ):
-        os.rename(runner.pre_commit_path, runner.pre_commit_path + '.legacy')
+        os.rename(runner.pre_commit_path, runner.pre_commit_legacy_path)
+
+    # If we specify overwrite, we simply delete the legacy file
+    if overwrite and os.path.exists(runner.pre_commit_legacy_path):
+        os.remove(runner.pre_commit_legacy_path)
+    elif os.path.exists(runner.pre_commit_legacy_path):
+        print(
+            'Running in migration mode with existing hooks at {0}\n'
+            'Use -f to use only pre-commit.'.format(
+                runner.pre_commit_legacy_path,
+            )
+        )
 
     with open(runner.pre_commit_path, 'w') as pre_commit_file_obj:
         pre_commit_file_obj.write(open(pre_commit_file).read())

@@ -156,7 +156,28 @@ def test_install_existing_hooks_no_overwrite(tmpdir_factory):
         assert EXISTING_COMMIT_RUN.match(output)
 
         # Now install pre-commit (no-overwrite)
-        assert install(Runner(path)) == 0
+        assert install(runner) == 0
+
+        # We should run both the legacy and pre-commit hooks
+        ret, output = _get_commit_output(tmpdir_factory)
+        assert ret == 0
+        assert output.startswith('legacy hook\n')
+        assert NORMAL_PRE_COMMIT_RUN.match(output[len('legacy hook\n'):])
+
+
+def test_install_existing_hook_no_overwrite_idempotent(tmpdir_factory):
+    path = make_consuming_repo(tmpdir_factory, 'script_hooks_repo')
+    with local.cwd(path):
+        runner = Runner(path)
+
+        # Write out an "old" hook
+        with io.open(runner.pre_commit_path, 'w') as hook_file:
+            hook_file.write('#!/usr/bin/env bash\necho "legacy hook"\n')
+        make_executable(runner.pre_commit_path)
+
+        # Install twice
+        assert install(runner) == 0
+        assert install(runner) == 0
 
         # We should run both the legacy and pre-commit hooks
         ret, output = _get_commit_output(tmpdir_factory)
@@ -184,9 +205,36 @@ def test_failing_existing_hook_returns_1(tmpdir_factory):
             hook_file.write('#!/usr/bin/env bash\necho "fail!"\nexit 1\n')
         make_executable(runner.pre_commit_path)
 
-        assert install(Runner(path)) == 0
+        assert install(runner) == 0
 
         # We should get a failure from the legacy hook
         ret, output = _get_commit_output(tmpdir_factory)
         assert ret == 1
         assert FAIL_OLD_HOOK.match(output)
+
+
+def test_install_overwrite_no_existing_hooks(tmpdir_factory):
+    path = make_consuming_repo(tmpdir_factory, 'script_hooks_repo')
+    with local.cwd(path):
+        assert install(Runner(path), overwrite=True) == 0
+
+        ret, output = _get_commit_output(tmpdir_factory)
+        assert ret == 0
+        assert NORMAL_PRE_COMMIT_RUN.match(output)
+
+
+def test_install_overwrite(tmpdir_factory):
+    path = make_consuming_repo(tmpdir_factory, 'script_hooks_repo')
+    with local.cwd(path):
+        runner = Runner(path)
+
+        # Write out the "old" hook
+        with io.open(runner.pre_commit_path, 'w') as hook_file:
+            hook_file.write('#!/usr/bin/env bash\necho "legacy hook"\n')
+        make_executable(runner.pre_commit_path)
+
+        assert install(runner, overwrite=True) == 0
+
+        ret, output = _get_commit_output(tmpdir_factory)
+        assert ret == 0
+        assert NORMAL_PRE_COMMIT_RUN.match(output)
