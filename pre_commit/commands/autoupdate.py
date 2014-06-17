@@ -3,8 +3,8 @@ from __future__ import unicode_literals
 
 import sys
 
-from asottile.yaml import ordered_dump
-from asottile.yaml import ordered_load
+from aspy.yaml import ordered_dump
+from aspy.yaml import ordered_load
 from plumbum import local
 
 import pre_commit.constants as C

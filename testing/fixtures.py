@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 
 import io
 import os.path
-from asottile.yaml import ordered_dump
+from aspy.yaml import ordered_dump
 from plumbum import local
 
 import pre_commit.constants as C
