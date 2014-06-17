@@ -1,10 +1,10 @@
 from __future__ import unicode_literals
 
 import pytest
-from asottile.ordereddict import OrderedDict
 from asottile.yaml import ordered_load
 
 from pre_commit.clientlib.validate_base import get_validator
+from pre_commit.ordereddict import OrderedDict
 from testing.util import get_resource_path
 
 

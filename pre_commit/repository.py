@@ -1,10 +1,10 @@
 from __future__ import unicode_literals
 
-from asottile.ordereddict import OrderedDict
 from cached_property import cached_property
 
 from pre_commit.languages.all import languages
 from pre_commit.manifest import Manifest
+from pre_commit.ordereddict import OrderedDict
 from pre_commit.prefixed_command_runner import PrefixedCommandRunner
 
 

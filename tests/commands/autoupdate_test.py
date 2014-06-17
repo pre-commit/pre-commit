@@ -2,13 +2,13 @@ from __future__ import unicode_literals
 
 import pytest
 import shutil
-from asottile.ordereddict import OrderedDict
 from plumbum import local
 
 import pre_commit.constants as C
 from pre_commit.commands.autoupdate import _update_repository
 from pre_commit.commands.autoupdate import autoupdate
 from pre_commit.commands.autoupdate import RepositoryCannotBeUpdatedError
+from pre_commit.ordereddict import OrderedDict
 from pre_commit.runner import Runner
 from testing.auto_namedtuple import auto_namedtuple
 from testing.fixtures import make_config_from_repo
