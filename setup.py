@@ -32,7 +32,7 @@ setup(
     },
     install_requires=[
         'argparse',
-        'asottile.yaml',
+        'aspy.yaml',
         'cached-property',
         'jsonschema',
         'nodeenv>=0.9.4',

@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 
 import pytest
-from asottile.yaml import ordered_load
+from aspy.yaml import ordered_load
 
 from pre_commit.clientlib.validate_base import get_validator
 from pre_commit.ordereddict import OrderedDict
