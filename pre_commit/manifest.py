@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 
 import os.path
-from asottile.cached_property import cached_property
+from cached_property import cached_property
 
 import pre_commit.constants as C
 from pre_commit.clientlib.validate_manifest import load_manifest

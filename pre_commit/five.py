@@ -2,11 +2,10 @@ from __future__ import unicode_literals
 
 """five: six, redux"""
 # pylint:disable=invalid-name
-PY2 = (str is bytes)
-PY3 = (str is not bytes)
+PY2 = str is bytes
+PY3 = str is not bytes
 
-# provide a symettrical `text` type to `bytes`
-if PY2:
+if PY2:  # pragma: no cover (PY2 only)
     text = unicode  # flake8: noqa
-else:
+else:  # pragma: no cover (PY3 only)
     text = str

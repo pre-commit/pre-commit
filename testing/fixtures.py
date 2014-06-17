@@ -3,7 +3,6 @@ from __future__ import unicode_literals
 
 import io
 import os.path
-from asottile.ordereddict import OrderedDict
 from asottile.yaml import ordered_dump
 from plumbum import local
 
@@ -12,6 +11,7 @@ from pre_commit.clientlib.validate_manifest import load_manifest
 from pre_commit.clientlib.validate_config import CONFIG_JSON_SCHEMA
 from pre_commit.clientlib.validate_config import validate_config_extra
 from pre_commit.jsonschema_extensions import apply_defaults
+from pre_commit.ordereddict import OrderedDict
 from testing.util import copy_tree_to_path
 from testing.util import get_head_sha
 from testing.util import get_resource_path

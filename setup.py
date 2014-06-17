@@ -32,11 +32,11 @@ setup(
     },
     install_requires=[
         'argparse',
-        'asottile.cached_property',
-        'asottile.ordereddict',
         'asottile.yaml',
+        'cached-property',
         'jsonschema',
         'nodeenv>=0.9.4',
+        'ordereddict',
         'plumbum',
         'pyyaml',
         'simplejson',
