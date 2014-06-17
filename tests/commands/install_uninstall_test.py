@@ -256,3 +256,23 @@ def test_install_overwrite(tmpdir_factory):
         ret, output = _get_commit_output(tmpdir_factory)
         assert ret == 0
         assert NORMAL_PRE_COMMIT_RUN.match(output)
+
+
+def test_uninstall_restores_legacy_hooks(tmpdir_factory):
+    path = make_consuming_repo(tmpdir_factory, 'script_hooks_repo')
+    with local.cwd(path):
+        runner = Runner(path)
+
+        # Write out an "old" hook
+        with io.open(runner.pre_commit_path, 'w') as hook_file:
+            hook_file.write('#!/usr/bin/env bash\necho "legacy hook"\n')
+        make_executable(runner.pre_commit_path)
+
+        # Now install and uninstall pre-commit
+        assert install(runner) == 0
+        assert uninstall(runner) == 0
+
+        # Make sure we installed the "old" hook correctly
+        ret, output = _get_commit_output(tmpdir_factory, touch_file='baz')
+        assert ret == 0
+        assert EXISTING_COMMIT_RUN.match(output)

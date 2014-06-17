@@ -61,4 +61,9 @@ def uninstall(runner):
     if os.path.exists(runner.pre_commit_path):
         os.remove(runner.pre_commit_path)
         print('pre-commit uninstalled')
+
+    if os.path.exists(runner.pre_commit_legacy_path):
+        os.rename(runner.pre_commit_legacy_path, runner.pre_commit_path)
+        print('Restored previous hooks to {0}'.format(runner.pre_commit_path))
+
     return 0
