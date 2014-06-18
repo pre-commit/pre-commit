@@ -1,13 +1,17 @@
 #!/usr/bin/env bash
 # This is a randomish md5 to identify this script
-# d8ee923c46731b42cd95cc869add4062
+# 4d9958c90bc262f47553e2c073f14cfe
 
 HERE=$(dirname $(readlink -f "$0"))
 
 retv=0
 
-which pre-commit > /dev/null
-if [ $? -ne 0 ]; then
+which pre-commit >& /dev/null
+WHICH_RETV=$?
+python -c 'import pre_commit.main' >& /dev/null
+PYTHON_RETV=$?
+
+if [ $WHICH_RETV -ne 0 ] && [ $PYTHON_RETV -ne 0 ]; then
     echo '`pre-commit` not found.  Did you forget to activate your virtualenv?'
     exit 1
 fi
@@ -23,8 +27,15 @@ fi
 
 
 # Run pre-commit
-pre-commit
-if [ $? -ne 0 ]; then
+if [ $WHICH_RETV -eq 0 ]; then
+    pre-commit
+    PRE_COMMIT_RETV=$?
+else
+    python -m pre_commit.main
+    PRE_COMMIT_RETV=$?
+fi
+
+if [ $PRE_COMMIT_RETV -ne 0 ]; then
     retv=1
 fi
 
