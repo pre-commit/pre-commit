@@ -1,3 +1,9 @@
+0.2.1
+=====
+- Use either `pre-commit` or `python -m pre_commit.main` depending on which is
+  available
+- Don't use readlink -f
+
 0.2.0
 =====
 - Fix for merge-conflict during cherry-picking.
