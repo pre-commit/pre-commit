@@ -10,6 +10,7 @@ from plumbum import local
 
 from pre_commit.prefixed_command_runner import PrefixedCommandRunner
 from pre_commit.util import clean_path_on_failure
+from pre_commit.util import hex_md5
 
 
 logger = logging.getLogger('pre_commit')
@@ -74,7 +75,7 @@ class Store(object):
         self.require_created()
 
         # Check if we already exist
-        sha_path = os.path.join(self.directory, sha)
+        sha_path = os.path.join(self.directory, sha + '_' + hex_md5(url))
         if os.path.exists(sha_path):
             return os.readlink(sha_path)
 
