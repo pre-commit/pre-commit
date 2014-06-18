@@ -100,13 +100,23 @@ def _get_commit_output(tmpdir_factory, touch_file='foo'):
     )[:2]
 
 
+# osx does this different :(
+FILES_CHANGED = (
+    r'('
+    r' 1 file changed, 0 insertions\(\+\), 0 deletions\(-\)\n'
+    r'|'
+    r' 0 files changed\n'
+    r')'
+)
+
+
 NORMAL_PRE_COMMIT_RUN = re.compile(
     r'^\[INFO\] Installing environment for .+\.\n'
     r'\[INFO\] Once installed this environment will be reused\.\n'
     r'\[INFO\] This may take a few minutes\.\.\.\n'
     r'Bash hook\.+Passed\n'
-    r'\[master [a-f0-9]{7}\] Commit!\n'
-    r' 0 files changed\n'
+    r'\[master [a-f0-9]{7}\] Commit!\n' +
+    FILES_CHANGED +
     r' create mode 100644 foo\n$'
 )
 
@@ -174,8 +184,8 @@ def test_failing_hooks_returns_nonzero(tmpdir_factory):
 
 EXISTING_COMMIT_RUN = re.compile(
     r'^legacy hook\n'
-    r'\[master [a-f0-9]{7}\] Commit!\n'
-    r' 0 files changed\n'
+    r'\[master [a-f0-9]{7}\] Commit!\n' +
+    FILES_CHANGED +
     r' create mode 100644 baz\n$'
 )
 
