@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 
+import hashlib
 import io
 import logging
 import os
@@ -74,7 +75,9 @@ class Store(object):
         self.require_created()
 
         # Check if we already exist
-        sha_path = os.path.join(self.directory, sha)
+        sha_path = os.path.join(
+            self.directory, sha + '_' + hashlib.md5(url).hexdigest()
+        )
         if os.path.exists(sha_path):
             return os.readlink(sha_path)
 

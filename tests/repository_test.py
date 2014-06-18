@@ -17,15 +17,6 @@ from testing.fixtures import make_repo
 from testing.util import skipif_slowtests_false
 
 
-@pytest.mark.integration
-def test_install_python_repo_in_env(tmpdir_factory, store):
-    path = make_repo(tmpdir_factory, 'python_hooks_repo')
-    config = make_config_from_repo(path)
-    repo = Repository.create(config, store)
-    repo.install()
-    assert os.path.exists(os.path.join(store.directory, repo.sha, 'py_env'))
-
-
 def _test_hook_repo(
         tmpdir_factory,
         store,
@@ -274,7 +265,6 @@ def _create_repo_with_tags(tmpdir_factory, src, tag):
     return path
 
 
-@pytest.mark.xfail
 @pytest.mark.integration
 def test_tags_on_repositories(in_tmpdir, tmpdir_factory, store):
     tag = 'v1.1'

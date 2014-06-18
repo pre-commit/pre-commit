@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
+import hashlib
 import io
 import mock
 import os
@@ -104,7 +105,9 @@ def test_clone(store, tmpdir_factory, log_info_mock):
     assert get_head_sha(ret) == sha
 
     # Assert that we made a symlink from the sha to the repo
-    sha_path = os.path.join(store.directory, sha)
+    sha_path = os.path.join(
+        store.directory, sha + '_' + hashlib.md5(path).hexdigest(),
+    )
     assert os.path.exists(sha_path)
     assert os.path.islink(sha_path)
     assert os.readlink(sha_path) == ret
@@ -136,7 +139,12 @@ def test_clone_when_repo_already_exists(store):
     store.require_created()
     repo_dir_path = os.path.join(store.directory, 'repo_dir')
     os.mkdir(repo_dir_path)
-    os.symlink(repo_dir_path, os.path.join(store.directory, 'fake_sha'))
+    os.symlink(
+        repo_dir_path,
+        os.path.join(
+            store.directory, 'fake_sha' + '_' + hashlib.md5('url').hexdigest(),
+        ),
+    )
 
     ret = store.clone('url', 'fake_sha')
     assert ret == repo_dir_path
