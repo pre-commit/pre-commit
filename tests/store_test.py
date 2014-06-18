@@ -1,7 +1,6 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-import hashlib
 import io
 import mock
 import os
@@ -14,6 +13,7 @@ from pre_commit import five
 from pre_commit.store import _get_default_directory
 from pre_commit.store import logger
 from pre_commit.store import Store
+from pre_commit.util import hex_md5
 from testing.fixtures import git_dir
 from testing.util import get_head_sha
 
@@ -105,9 +105,7 @@ def test_clone(store, tmpdir_factory, log_info_mock):
     assert get_head_sha(ret) == sha
 
     # Assert that we made a symlink from the sha to the repo
-    sha_path = os.path.join(
-        store.directory, sha + '_' + hashlib.md5(path).hexdigest(),
-    )
+    sha_path = os.path.join(store.directory, sha + '_' + hex_md5(path))
     assert os.path.exists(sha_path)
     assert os.path.islink(sha_path)
     assert os.readlink(sha_path) == ret
@@ -141,9 +139,7 @@ def test_clone_when_repo_already_exists(store):
     os.mkdir(repo_dir_path)
     os.symlink(
         repo_dir_path,
-        os.path.join(
-            store.directory, 'fake_sha' + '_' + hashlib.md5('url').hexdigest(),
-        ),
+        os.path.join(store.directory, 'fake_sha' + '_' + hex_md5('url')),
     )
 
     ret = store.clone('url', 'fake_sha')

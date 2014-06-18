@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 
 import contextlib
 import functools
+import hashlib
 import os
 import os.path
 import shutil
@@ -56,3 +57,11 @@ def noop_context():
 
 def shell_escape(arg):
     return "'" + arg.replace("'", "'\"'\"'".strip()) + "'"
+
+
+def hex_md5(s):
+    """Hexdigest an md5 of the string.
+
+    :param text s:
+    """
+    return hashlib.md5(s.encode('utf-8')).hexdigest()
