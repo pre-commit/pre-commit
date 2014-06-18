@@ -8,7 +8,7 @@
     -   id: name-tests-test
     -   id: flake8
 -   repo: git@github.com:pre-commit/pre-commit
-    sha: 96174deac671b451ee2a3fbdc647ad9606415e15
+    sha: bcb1283267c0a041c77150a80a58f1bc2a3252d6
     hooks:
     -   id: validate_config
     -   id: validate_manifest
