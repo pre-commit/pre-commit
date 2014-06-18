@@ -74,7 +74,7 @@ pre-commit config file describes:
 
 For example:
 
-    -   repo: git@github.com:pre-commit/pre-commit-hooks
+    -   repo: git://github.com/pre-commit/pre-commit-hooks
         sha: 82344a4055f4e103afdc31e98a46de679fe55385
         hooks:
         -   id: trailing-whitespace
@@ -138,14 +138,14 @@ For example:
 
 JSHint:
 
-    -   repo: git@github.com:pre-commit/mirrors-jshint
+    -   repo: git://github.com/pre-commit/mirrors-jshint
         sha: 8e7fa9caad6f7b2aae8d2c7b64f457611416192b
         hooks:
         -   id: jshint
 
 SCSS-Lint:
 
-    -   repo: git@github.com:pre-commit/mirrors-scss-lint
+    -   repo: git://github.com/pre-commit/mirrors-scss-lint
         sha: d7266131da322d6d76a18d6a3659f21025d9ea11
         hooks:
         -   id: scss-lint
@@ -236,7 +236,7 @@ Sometimes you don't want the default system installed version so you can
 override this on a per-hook basis by setting the `language_version`.
 
 
-    -   repo: git@github.com:pre-commit/mirrors-scss-lint
+    -   repo: git://github.com/pre-commit/mirrors-scss-lint
         sha: d7266131da322d6d76a18d6a3659f21025d9ea11
         hooks:
         -   id: scss-lint
