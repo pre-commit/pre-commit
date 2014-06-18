@@ -2,7 +2,9 @@
 # This is a randomish md5 to identify this script
 # 4d9958c90bc262f47553e2c073f14cfe
 
-HERE=$(dirname $(readlink -f "$0"))
+pushd `dirname $0` > /dev/null
+HERE=`pwd`
+popd > /dev/null
 
 retv=0
 
