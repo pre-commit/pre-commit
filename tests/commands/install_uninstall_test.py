@@ -10,8 +10,11 @@ import subprocess
 import stat
 from plumbum import local
 
+from pre_commit.commands.install_uninstall import IDENTIFYING_HASH
+from pre_commit.commands.install_uninstall import PREVIOUS_IDENTIFYING_HASHES
 from pre_commit.commands.install_uninstall import install
 from pre_commit.commands.install_uninstall import is_our_pre_commit
+from pre_commit.commands.install_uninstall import is_previous_pre_commit
 from pre_commit.commands.install_uninstall import make_executable
 from pre_commit.commands.install_uninstall import uninstall
 from pre_commit.runner import Runner
@@ -29,6 +32,25 @@ def test_is_our_pre_commit():
             'pre_commit', 'resources/pre-commit-hook',
         )
     ) is True
+
+
+def test_is_not_previous_pre_commit():
+    assert is_previous_pre_commit('setup.py') is False
+
+
+def test_is_also_not_previous_pre_commit():
+    assert is_previous_pre_commit(
+        pkg_resources.resource_filename(
+            'pre_commit', 'resources/pre-commit-hook',
+        )
+    ) is False
+
+
+def test_is_previous_pre_commit(in_tmpdir):
+    with io.open('foo', 'w') as foo_file:
+        foo_file.write(PREVIOUS_IDENTIFYING_HASHES[0])
+
+    assert is_previous_pre_commit('foo')
 
 
 def test_install_pre_commit(tmpdir_factory):
@@ -276,3 +298,43 @@ def test_uninstall_restores_legacy_hooks(tmpdir_factory):
         ret, output = _get_commit_output(tmpdir_factory, touch_file='baz')
         assert ret == 0
         assert EXISTING_COMMIT_RUN.match(output)
+
+
+def test_replace_old_commit_script(tmpdir_factory):
+    path = make_consuming_repo(tmpdir_factory, 'script_hooks_repo')
+    with local.cwd(path):
+        runner = Runner(path)
+
+        # Install a script that looks like our old script
+        pre_commit_contents = io.open(
+            pkg_resources.resource_filename(
+                'pre_commit', 'resources/pre-commit-hook',
+            )
+        ).read()
+        new_contents = pre_commit_contents.replace(
+            IDENTIFYING_HASH, PREVIOUS_IDENTIFYING_HASHES[-1],
+        )
+
+        with io.open(runner.pre_commit_path, 'w') as pre_commit_file:
+            pre_commit_file.write(new_contents)
+        make_executable(runner.pre_commit_path)
+
+        # Install normally
+        assert install(runner) == 0
+
+        ret, output = _get_commit_output(tmpdir_factory)
+        assert ret == 0
+        assert NORMAL_PRE_COMMIT_RUN.match(output)
+
+
+def test_uninstall_doesnt_remove_not_our_hooks(tmpdir_factory):
+    path = git_dir(tmpdir_factory)
+    with local.cwd(path):
+        runner = Runner(path)
+        with io.open(runner.pre_commit_path, 'w') as pre_commit_file:
+            pre_commit_file.write('#!/usr/bin/env bash\necho 1\n')
+        make_executable(runner.pre_commit_path)
+
+        assert uninstall(runner) == 0
+
+        assert os.path.exists(runner.pre_commit_path)

@@ -9,11 +9,21 @@ import stat
 
 
 # This is used to identify the hook file we install
-IDENTIFYING_HASH = 'd8ee923c46731b42cd95cc869add4062'
+PREVIOUS_IDENTIFYING_HASHES = [
+    'd8ee923c46731b42cd95cc869add4062',
+]
+
+
+IDENTIFYING_HASH = '4d9958c90bc262f47553e2c073f14cfe'
 
 
 def is_our_pre_commit(filename):
     return IDENTIFYING_HASH in io.open(filename).read()
+
+
+def is_previous_pre_commit(filename):
+    contents = io.open(filename).read()
+    return any(hash in contents for hash in PREVIOUS_IDENTIFYING_HASHES)
 
 
 def make_executable(filename):
@@ -33,7 +43,8 @@ def install(runner, overwrite=False):
     # If we have an existing hook, move it to pre-commit.legacy
     if (
         os.path.exists(runner.pre_commit_path) and
-        not is_our_pre_commit(runner.pre_commit_path)
+        not is_our_pre_commit(runner.pre_commit_path) and
+        not is_previous_pre_commit(runner.pre_commit_path)
     ):
         os.rename(runner.pre_commit_path, runner.pre_commit_legacy_path)
 
@@ -58,9 +69,17 @@ def install(runner, overwrite=False):
 
 def uninstall(runner):
     """Uninstall the pre-commit hooks."""
-    if os.path.exists(runner.pre_commit_path):
-        os.remove(runner.pre_commit_path)
-        print('pre-commit uninstalled')
+    # If our file doesn't exist or it isn't ours, gtfo.
+    if (
+        not os.path.exists(runner.pre_commit_path) or (
+            not is_our_pre_commit(runner.pre_commit_path) and
+            not is_previous_pre_commit(runner.pre_commit_path)
+        )
+    ):
+        return 0
+
+    os.remove(runner.pre_commit_path)
+    print('pre-commit uninstalled')
 
     if os.path.exists(runner.pre_commit_legacy_path):
         os.rename(runner.pre_commit_legacy_path, runner.pre_commit_path)
