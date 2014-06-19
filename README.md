@@ -134,6 +134,16 @@ For example:
         files: \.(js|rb|md|py|sh|txt|yaml|yml)$
 
 
+### Supported languages
+
+- `node`
+- `python`
+- `ruby`
+- `pcre` - "Perl Compatible Regular Expression" Specify the regex as the `entry`
+- `script` - A script existing inside of a repository
+- `system` - Executables available at the system level
+
+
 ## Popular Hooks
 
 JSHint:
@@ -181,6 +191,15 @@ pyflakes:
 
 
 ## Advanced features
+
+### Running in Migration Mode
+
+By default, if you have existing hooks `pre-commit install` will install in
+a migration mode which runs both your existing hooks and hooks for pre-commit.
+To disable this behavior, simply pass `-f` / `--overwrite` to the `install`
+command.  If you decide not to use pre-commit, `pre-commit uninstall` will
+restore your hooks to the state prior to installation.
+
 
 ### Temporarily Disabling Hooks
 
