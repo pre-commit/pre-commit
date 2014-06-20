@@ -103,6 +103,14 @@ def test_run_a_script_hook(tmpdir_factory, store):
 
 
 @pytest.mark.integration
+def test_run_hook_with_spaced_args(tmpdir_factory, store):
+    _test_hook_repo(
+        tmpdir_factory, store, 'arg_per_line_hooks_repo',
+        'arg-per-line', ['foo bar', 'baz'], 'arg: foo bar\narg: baz\n',
+    )
+
+
+@pytest.mark.integration
 def test_pcre_hook_no_match(tmpdir_factory, store):
     path = git_dir(tmpdir_factory)
     with local.cwd(path):

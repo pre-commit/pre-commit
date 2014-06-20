@@ -2,12 +2,12 @@ from __future__ import unicode_literals
 
 
 def file_args_to_stdin(file_args):
-    return '\n'.join(list(file_args) + [''])
+    return '\0'.join(list(file_args) + [''])
 
 
 def run_hook(env, hook, file_args):
     return env.run(
-        ' '.join(['xargs', hook['entry']] + hook['args']),
+        ' '.join(['xargs', '-0', hook['entry']] + hook['args']),
         stdin=file_args_to_stdin(file_args),
         retcode=None,
     )
