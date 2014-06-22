@@ -1,3 +1,7 @@
+0.2.2
+=====
+- Fix filenames with spaces
+
 0.2.1
 =====
 - Use either `pre-commit` or `python -m pre_commit.main` depending on which is
