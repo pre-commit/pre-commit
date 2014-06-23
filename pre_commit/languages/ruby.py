@@ -6,6 +6,8 @@ import io
 from pre_commit.languages import helpers
 from pre_commit.prefixed_command_runner import CalledProcessError
 from pre_commit.util import clean_path_on_failure
+from pre_commit.util import resource_filename
+from pre_commit.util import tarfile_open
 
 
 ENVIRONMENT_DIR = 'rbenv'
@@ -23,22 +25,18 @@ def in_env(repo_cmd_runner):
 
 
 def _install_rbenv(repo_cmd_runner, version='default'):
-    repo_cmd_runner.run([
-        'git', 'clone', 'git://github.com/sstephenson/rbenv', '{prefix}rbenv',
-    ])
+    with tarfile_open(resource_filename('rbenv.tar.gz')) as tf:
+        tf.extractall(repo_cmd_runner.path('.'))
 
     # Only install ruby-build if the version is specified
     if version != 'default':
         # ruby-download
-        repo_cmd_runner.run([
-            'git', 'clone', 'git://github.com/garnieretienne/rvm-download',
-            '{prefix}rbenv/plugins/ruby-download',
-        ])
+        with tarfile_open(resource_filename('ruby-download.tar.gz')) as tf:
+            tf.extractall(repo_cmd_runner.path('rbenv', 'plugins'))
+
         # ruby-build
-        repo_cmd_runner.run([
-            'git', 'clone', 'git://github.com/sstephenson/ruby-build',
-            '{prefix}rbenv/plugins/ruby-build',
-        ])
+        with tarfile_open(resource_filename('ruby-build.tar.gz')) as tf:
+            tf.extractall(repo_cmd_runner.path('rbenv', 'plugins'))
 
     activate_path = repo_cmd_runner.path('rbenv', 'bin', 'activate')
     with io.open(activate_path, 'w') as activate_file:

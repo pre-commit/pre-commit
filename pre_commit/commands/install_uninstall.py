@@ -4,8 +4,9 @@ from __future__ import unicode_literals
 import io
 import os
 import os.path
-import pkg_resources
 import stat
+
+from pre_commit.util import resource_filename
 
 
 # This is used to identify the hook file we install
@@ -36,9 +37,7 @@ def make_executable(filename):
 
 def install(runner, overwrite=False):
     """Install the pre-commit hooks."""
-    pre_commit_file = pkg_resources.resource_filename(
-        'pre_commit', 'resources/pre-commit-hook',
-    )
+    pre_commit_file = resource_filename('pre-commit-hook')
 
     # If we have an existing hook, move it to pre-commit.legacy
     if (
