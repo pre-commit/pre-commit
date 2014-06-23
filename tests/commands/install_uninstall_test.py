@@ -5,7 +5,6 @@ import io
 import os
 import os.path
 import re
-import pkg_resources
 import subprocess
 import stat
 from plumbum import local
@@ -18,6 +17,7 @@ from pre_commit.commands.install_uninstall import is_previous_pre_commit
 from pre_commit.commands.install_uninstall import make_executable
 from pre_commit.commands.install_uninstall import uninstall
 from pre_commit.runner import Runner
+from pre_commit.util import resource_filename
 from testing.fixtures import git_dir
 from testing.fixtures import make_consuming_repo
 
@@ -27,11 +27,7 @@ def test_is_not_our_pre_commit():
 
 
 def test_is_our_pre_commit():
-    assert is_our_pre_commit(
-        pkg_resources.resource_filename(
-            'pre_commit', 'resources/pre-commit-hook',
-        )
-    ) is True
+    assert is_our_pre_commit(resource_filename('pre-commit-hook'))
 
 
 def test_is_not_previous_pre_commit():
@@ -39,11 +35,7 @@ def test_is_not_previous_pre_commit():
 
 
 def test_is_also_not_previous_pre_commit():
-    assert is_previous_pre_commit(
-        pkg_resources.resource_filename(
-            'pre_commit', 'resources/pre-commit-hook',
-        )
-    ) is False
+    assert not is_previous_pre_commit(resource_filename('pre-commit-hook'))
 
 
 def test_is_previous_pre_commit(in_tmpdir):
@@ -60,9 +52,7 @@ def test_install_pre_commit(tmpdir_factory):
     assert ret == 0
     assert os.path.exists(runner.pre_commit_path)
     pre_commit_contents = io.open(runner.pre_commit_path).read()
-    pre_commit_script = pkg_resources.resource_filename(
-        'pre_commit', 'resources/pre-commit-hook',
-    )
+    pre_commit_script = resource_filename('pre-commit-hook')
     expected_contents = io.open(pre_commit_script).read()
     assert pre_commit_contents == expected_contents
     stat_result = os.stat(runner.pre_commit_path)
@@ -317,9 +307,7 @@ def test_replace_old_commit_script(tmpdir_factory):
 
         # Install a script that looks like our old script
         pre_commit_contents = io.open(
-            pkg_resources.resource_filename(
-                'pre_commit', 'resources/pre-commit-hook',
-            )
+            resource_filename('pre-commit-hook'),
         ).read()
         new_contents = pre_commit_contents.replace(
             IDENTIFYING_HASH, PREVIOUS_IDENTIFYING_HASHES[-1],

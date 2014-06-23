@@ -5,6 +5,7 @@ import functools
 import hashlib
 import os
 import os.path
+import pkg_resources
 import shutil
 import sys
 import tarfile
@@ -89,3 +90,10 @@ def tmpdir():
         yield tempdir
     finally:
         shutil.rmtree(tempdir)
+
+
+def resource_filename(filename):
+    return pkg_resources.resource_filename(
+        'pre_commit',
+        os.path.join('resources', filename),
+    )
