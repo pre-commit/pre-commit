@@ -180,7 +180,7 @@ def test_cwd_of_hook(tmpdir_factory, store):
     with local.cwd(path):
         _test_hook_repo(
             tmpdir_factory, store, 'prints_cwd_repo',
-            'prints_cwd', [], path + '\n',
+            'prints_cwd', ['-L'], path + '\n',
         )
 
 
@@ -284,7 +284,7 @@ def test_tags_on_repositories(in_tmpdir, tmpdir_factory, store):
     repo_1 = Repository.create(
         make_config_from_repo(git_dir_1, sha=tag), store,
     )
-    ret = repo_1.run_hook('prints_cwd', [])
+    ret = repo_1.run_hook('prints_cwd', ['-L'])
     assert ret[0] == 0
     assert ret[1].strip() == in_tmpdir
 
