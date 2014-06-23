@@ -27,7 +27,10 @@ setup(
     packages=find_packages('.', exclude=('tests*', 'testing*')),
     package_data={
         'pre_commit': [
-            'resources/pre-commit-hook'
+            'resources/pre-commit-hook',
+            'resources/rbenv.tar.gz',
+            'resources/ruby-build.tar.gz',
+            'resources/ruby-download.tar.gz',
         ]
     },
     install_requires=[
