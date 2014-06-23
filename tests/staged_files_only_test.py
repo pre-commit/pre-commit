@@ -1,3 +1,4 @@
+# -*- coding: UTF-8 -*-
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
@@ -34,9 +35,14 @@ def foo_staged(tmpdir_factory):
         yield auto_namedtuple(path=path, foo_filename=foo_filename)
 
 
-def _test_foo_state(path, foo_contents=FOO_CONTENTS, status='A'):
+def _test_foo_state(
+        path,
+        foo_contents=FOO_CONTENTS,
+        status='A',
+        encoding='UTF-8',
+):
     assert os.path.exists(path.foo_filename)
-    assert io.open(path.foo_filename, encoding='utf-8').read() == foo_contents
+    assert io.open(path.foo_filename, encoding=encoding).read() == foo_contents
     actual_status = get_short_git_status()['foo']
     assert status == actual_status
 
@@ -246,10 +252,22 @@ def test_diff_returns_1_no_diff_though(fake_logging_handler, foo_staged):
 
 def test_stage_utf8_changes(foo_staged, cmd_runner):
     contents = '\u2603'
-    with io.open('foo', 'w', encoding='utf-8') as foo_file:
+    with io.open('foo', 'w', encoding='UTF-8') as foo_file:
         foo_file.write(contents)
 
     _test_foo_state(foo_staged, contents, 'AM')
     with staged_files_only(cmd_runner):
         _test_foo_state(foo_staged)
     _test_foo_state(foo_staged, contents, 'AM')
+
+
+def test_stage_non_utf8_changes(foo_staged, cmd_runner):
+    contents = 'ú'
+    # Produce a latin-1 diff
+    with io.open('foo', 'w', encoding='latin-1') as foo_file:
+        foo_file.write(contents)
+
+    _test_foo_state(foo_staged, contents, 'AM', encoding='latin-1')
+    with staged_files_only(cmd_runner):
+        _test_foo_state(foo_staged)
+    _test_foo_state(foo_staged, contents, 'AM', encoding='latin-1')
