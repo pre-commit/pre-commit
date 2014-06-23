@@ -49,7 +49,9 @@ def make_archive(name, repo, ref, destdir):
         # We don't want the '.git' directory
         shutil.rmtree(os.path.join(tempdir, '.git'))
 
-        with tarfile_open(output_path, 'w|gz') as tf:
+        # XXX: py2.6 derps if filename is unicode while writing
+        # XXX: str() is used to preserve behavior in py3
+        with tarfile_open(str(output_path), 'w|gz') as tf:
             tf.add(tempdir, name)
 
     return output_path
