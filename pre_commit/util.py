@@ -7,6 +7,8 @@ import os
 import os.path
 import shutil
 import sys
+import tarfile
+import tempfile
 
 
 def memoize_by_cwd(func):
@@ -65,3 +67,25 @@ def hex_md5(s):
     :param text s:
     """
     return hashlib.md5(s.encode('utf-8')).hexdigest()
+
+
+@contextlib.contextmanager
+def tarfile_open(*args, **kwargs):
+    """Compatibility layer because python2.6"""
+    tf = tarfile.open(*args, **kwargs)
+    try:
+        yield tf
+    finally:
+        tf.close()
+
+
+@contextlib.contextmanager
+def tmpdir():
+    """Contextmanager to create a temporary directory.  It will be cleaned up
+    afterwards.
+    """
+    tempdir = tempfile.mkdtemp()
+    try:
+        yield tempdir
+    finally:
+        shutil.rmtree(tempdir)
