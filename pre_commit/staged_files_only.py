@@ -20,19 +20,20 @@ def staged_files_only(cmd_runner):
         cmd_runner - PrefixedCommandRunner
     """
     # Determine if there are unstaged files
-    retcode, diff_stdout, _ = cmd_runner.run(
+    retcode, diff_stdout_binary, _ = cmd_runner.run(
         ['git', 'diff', '--ignore-submodules', '--binary', '--exit-code'],
         retcode=None,
+        encoding=None,
     )
-    if retcode and diff_stdout.strip():
+    if retcode and diff_stdout_binary.strip():
         patch_filename = cmd_runner.path('patch{0}'.format(int(time.time())))
         logger.warning('Unstaged files detected.')
         logger.info(
             'Stashing unstaged files to {0}.'.format(patch_filename),
         )
         # Save the current unstaged changes as a patch
-        with io.open(patch_filename, 'w', encoding='utf-8') as patch_file:
-            patch_file.write(diff_stdout)
+        with io.open(patch_filename, 'wb') as patch_file:
+            patch_file.write(diff_stdout_binary)
 
         # Clear the working directory of unstaged changes
         cmd_runner.run(['git', 'checkout', '--', '.'])

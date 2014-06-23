@@ -56,24 +56,24 @@ class PrefixedCommandRunner(object):
         if not os.path.exists(self.prefix_dir):
             self.__makedirs(self.prefix_dir)
 
-    def run(self, cmd, retcode=0, stdin=None, **kwargs):
+    def run(self, cmd, retcode=0, stdin=None, encoding='UTF-8', **kwargs):
         popen_kwargs = {
             'stdin': subprocess.PIPE,
             'stdout': subprocess.PIPE,
             'stderr': subprocess.PIPE,
         }
         if stdin is not None:
-            stdin = stdin.encode('utf-8')
+            stdin = stdin.encode('UTF-8')
 
         popen_kwargs.update(kwargs)
         self._create_path_if_not_exists()
         replaced_cmd = _replace_cmd(cmd, prefix=self.prefix_dir)
         proc = self.__popen(replaced_cmd, **popen_kwargs)
         stdout, stderr = proc.communicate(stdin)
-        if isinstance(stdout, bytes):
-            stdout = stdout.decode('UTF-8')
-        if isinstance(stderr, bytes):
-            stderr = stderr.decode('UTF-8')
+        if encoding is not None:
+            stdout = stdout.decode(encoding)
+        if encoding is not None:
+            stderr = stderr.decode(encoding)
         returncode = proc.returncode
 
         if retcode is not None and retcode != returncode:
