@@ -47,6 +47,8 @@ def make_archive(name, repo, ref, destdir):
             local['git']('checkout', ref)
 
         # We don't want the '.git' directory
+        # It adds a bunch of size to the archive and we don't use it at
+        # runtime
         shutil.rmtree(os.path.join(tempdir, '.git'))
 
         # XXX: py2.6 derps if filename is unicode while writing
