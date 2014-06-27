@@ -55,7 +55,7 @@ def test_versioned_python_hook(tmpdir_factory, store):
 def test_run_a_node_hook(tmpdir_factory, store):
     _test_hook_repo(
         tmpdir_factory, store, 'node_hooks_repo',
-        'foo', [], 'Hello World\n',
+        'foo', ['/dev/null'], 'Hello World\n',
     )
 
 
@@ -73,7 +73,7 @@ def test_run_versioned_node_hook(tmpdir_factory, store):
 def test_run_a_ruby_hook(tmpdir_factory, store):
     _test_hook_repo(
         tmpdir_factory, store, 'ruby_hooks_repo',
-        'ruby_hook', [], 'Hello world from a ruby hook\n',
+        'ruby_hook', ['/dev/null'], 'Hello world from a ruby hook\n',
     )
 
 
@@ -82,7 +82,9 @@ def test_run_a_ruby_hook(tmpdir_factory, store):
 def test_run_versioned_ruby_hook(tmpdir_factory, store):
     _test_hook_repo(
         tmpdir_factory, store, 'ruby_1_9_3_hooks_repo',
-        'ruby_hook', [], '1.9.3\n484\nHello world from a ruby hook\n',
+        'ruby_hook',
+        ['/dev/null'],
+        '1.9.3\n484\nHello world from a ruby hook\n',
     )
 
 
@@ -90,7 +92,7 @@ def test_run_versioned_ruby_hook(tmpdir_factory, store):
 def test_system_hook_with_spaces(tmpdir_factory, store):
     _test_hook_repo(
         tmpdir_factory, store, 'system_hook_with_spaces_repo',
-        'system-hook-with-spaces', [], 'Hello World\n',
+        'system-hook-with-spaces', ['/dev/null'], 'Hello World\n',
     )
 
 
