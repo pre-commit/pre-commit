@@ -139,7 +139,8 @@ def test_environment_not_sourced(tmpdir_factory):
 
         ret, stdout, stderr = local['git'].run(
             ['commit', '--allow-empty', '-m', 'foo'],
-            env={},
+            # XXX: 'HOME' makes this test pass on OSX
+            env={'HOME': os.environ['HOME']},
             retcode=None,
         )
         assert ret == 1
