@@ -8,7 +8,7 @@ from plumbum import local
 import pre_commit.constants as C
 from pre_commit.runner import Runner
 from testing.fixtures import git_dir
-from testing.fixtures import make_repo
+from testing.fixtures import make_consuming_repo
 
 
 def test_init_has_no_side_effects(tmpdir):
@@ -47,14 +47,9 @@ def test_config_file_path():
 
 
 def test_repositories(tmpdir_factory, mock_out_store_directory):
-    # TODO: make this not have external deps
-    path = make_repo(tmpdir_factory, 'consumer_repo')
+    path = make_consuming_repo(tmpdir_factory, 'script_hooks_repo')
     runner = Runner(path)
-    assert len(runner.repositories) == 2
-    assert [repo.repo_url for repo in runner.repositories] == [
-        'git@github.com:pre-commit/pre-commit-hooks',
-        'git@github.com:pre-commit/pre-commit',
-    ]
+    assert len(runner.repositories) == 1
 
 
 def test_pre_commit_path():
