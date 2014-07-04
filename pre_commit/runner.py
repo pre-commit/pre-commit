@@ -37,7 +37,10 @@ class Runner(object):
     def repositories(self):
         """Returns a tuple of the configured repositories."""
         config = load_config(self.config_file_path)
-        return tuple(Repository.create(x, self.store) for x in config)
+        repositories = tuple(Repository.create(x, self.store) for x in config)
+        for repository in repositories:
+            repository.require_installed()
+        return repositories
 
     @cached_property
     def pre_commit_path(self):
