@@ -35,6 +35,13 @@ def main(argv):
         '-f', '--overwrite', action='store_true',
         help='Overwrite existing hooks / remove migration mode.',
     )
+    install_parser.add_argument(
+        '--install-hooks', action='store_true',
+        help=(
+            'Whether to install hook environments for all environments '
+            'in the config file.'
+        ),
+    )
 
     subparsers.add_parser('uninstall', help='Uninstall the pre-commit script.')
 
@@ -73,7 +80,9 @@ def main(argv):
     runner = Runner.create()
 
     if args.command == 'install':
-        return install(runner, overwrite=args.overwrite)
+        return install(
+            runner, overwrite=args.overwrite, hooks=args.install_hooks,
+        )
     elif args.command == 'uninstall':
         return uninstall(runner)
     elif args.command == 'clean':

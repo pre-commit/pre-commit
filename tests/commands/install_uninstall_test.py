@@ -76,11 +76,12 @@ def test_uninstall(tmpdir_factory):
     assert not os.path.exists(runner.pre_commit_path)
 
 
-def _get_commit_output(tmpdir_factory, touch_file='foo'):
+def _get_commit_output(tmpdir_factory, touch_file='foo', home=None):
     local['touch'](touch_file)
     local['git']('add', touch_file)
     # Don't want to write to home directory
-    env = dict(os.environ, **{'PRE_COMMIT_HOME': tmpdir_factory.get()})
+    home = home or tmpdir_factory.get()
+    env = dict(os.environ, **{'PRE_COMMIT_HOME': home})
     return local['git'].run(
         ['commit', '-m', 'Commit!', '--allow-empty'],
         # git commit puts pre-commit to stderr
@@ -336,3 +337,26 @@ def test_uninstall_doesnt_remove_not_our_hooks(tmpdir_factory):
         assert uninstall(runner) == 0
 
         assert os.path.exists(runner.pre_commit_path)
+
+
+PRE_INSTALLED = re.compile(
+    r'Bash hook\.+Passed\n'
+    r'\[master [a-f0-9]{7}\] Commit!\n' +
+    FILES_CHANGED +
+    r' create mode 100644 foo\n$'
+)
+
+
+def test_installs_hooks_with_hooks_True(
+        tmpdir_factory,
+        mock_out_store_directory,
+):
+    path = make_consuming_repo(tmpdir_factory, 'script_hooks_repo')
+    with local.cwd(path):
+        install(Runner(path), hooks=True)
+        ret, output = _get_commit_output(
+            tmpdir_factory, home=mock_out_store_directory,
+        )
+
+        assert ret == 0
+        assert PRE_INSTALLED.match(output)
