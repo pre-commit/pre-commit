@@ -35,7 +35,7 @@ def make_executable(filename):
     )
 
 
-def install(runner, overwrite=False):
+def install(runner, overwrite=False, hooks=False):
     """Install the pre-commit hooks."""
     pre_commit_file = resource_filename('pre-commit-hook')
 
@@ -63,6 +63,12 @@ def install(runner, overwrite=False):
     make_executable(runner.pre_commit_path)
 
     print('pre-commit installed at {0}'.format(runner.pre_commit_path))
+
+    # If they requested we install all of the hooks, do so.
+    if hooks:
+        for repository in runner.repositories:
+            repository.require_installed()
+
     return 0
 
 
