@@ -70,6 +70,12 @@ def main(argv):
         argv = ['run']
     args = parser.parse_args(argv)
 
+    if args.command == 'help':
+        if args.help_cmd:
+            parser.parse_args([args.help_cmd, '--help'])
+        else:
+            parser.parse_args(['--help'])
+
     runner = Runner.create()
 
     if args.command == 'install':
@@ -82,11 +88,6 @@ def main(argv):
         return autoupdate(runner)
     elif args.command == 'run':
         return run(runner, args)
-    elif args.command == 'help':
-        if args.help_cmd:
-            parser.parse_args([args.help_cmd, '--help'])
-        else:
-            parser.parse_args(['--help'])
     else:
         raise NotImplementedError(
             'Command {0} not implemented.'.format(args.command)
