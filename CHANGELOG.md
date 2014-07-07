@@ -1,3 +1,14 @@
+0.2.4
+=====
+- Support --install-hooks as an argument to `pre-commit install`
+- Install hooks before attempting to run anything
+- Use `python -m nodeenv` instead of `nodeenv`
+
+0.2.3
+=====
+- Freeze ruby building infrastructure
+- Fix bug that assumed diffs were utf-8
+
 0.2.2
 =====
 - Fix filenames with spaces
