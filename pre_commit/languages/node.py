@@ -32,18 +32,18 @@ def install_environment(repo_cmd_runner, version='default'):
             try:
                 with clean_path_on_failure(env_dir):
                     repo_cmd_runner.run([
-                        'nodeenv', '-n', 'system',
+                        'python', '-m', 'nodeenv', '-n', 'system',
                         '{{prefix}}{0}'.format(ENVIRONMENT_DIR),
                     ])
             except CalledProcessError:
                 # TODO: log failure here
                 repo_cmd_runner.run([
-                    'nodeenv', '--prebuilt',
+                    'python', '-m', 'nodeenv', '--prebuilt',
                     '{{prefix}}{0}'.format(ENVIRONMENT_DIR)
                 ])
         else:
             repo_cmd_runner.run([
-                'nodeenv', '--prebuilt', '-n', version,
+                'python', '-m', 'nodeenv', '--prebuilt', '-n', version,
                 '{{prefix}}{0}'.format(ENVIRONMENT_DIR)
             ])
 
