@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 import contextlib
+import sys
 
 from pre_commit.languages import helpers
 from pre_commit.prefixed_command_runner import CalledProcessError
@@ -32,18 +33,18 @@ def install_environment(repo_cmd_runner, version='default'):
             try:
                 with clean_path_on_failure(env_dir):
                     repo_cmd_runner.run([
-                        'python', '-m', 'nodeenv', '-n', 'system',
+                        sys.executable, '-m', 'nodeenv', '-n', 'system',
                         '{{prefix}}{0}'.format(ENVIRONMENT_DIR),
                     ])
             except CalledProcessError:
                 # TODO: log failure here
                 repo_cmd_runner.run([
-                    'python', '-m', 'nodeenv', '--prebuilt',
+                    sys.executable, '-m', 'nodeenv', '--prebuilt',
                     '{{prefix}}{0}'.format(ENVIRONMENT_DIR)
                 ])
         else:
             repo_cmd_runner.run([
-                'python', '-m', 'nodeenv', '--prebuilt', '-n', version,
+                sys.executable, '-m', 'nodeenv', '--prebuilt', '-n', version,
                 '{{prefix}}{0}'.format(ENVIRONMENT_DIR)
             ])
 
