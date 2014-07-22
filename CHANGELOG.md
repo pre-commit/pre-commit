@@ -1,3 +1,7 @@
+0.2.5
+=====
+- Default columns to 80 (for non-terminal execution).
+
 0.2.4
 =====
 - Support --install-hooks as an argument to `pre-commit install`
