@@ -157,6 +157,7 @@ FAILING_PRE_COMMIT_RUN = re.compile(
     r'\[INFO\] Once installed this environment will be reused\.\n'
     r'\[INFO\] This may take a few minutes\.\.\.\n'
     r'Failing hook\.+Failed\n'
+    r'hookid: failing_hook\n'
     r'\n'
     r'Fail\n'
     r'foo\n'

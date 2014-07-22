@@ -84,6 +84,7 @@ def _run_single_hook(runner, repository, hook_id, args, write, skips=set()):
     write(color.format_color(pass_fail, print_color, args.color) + '\n')
 
     if (stdout or stderr) and (retcode or args.verbose):
+        write('hookid: {0}\n'.format(hook['id']))
         write('\n')
         for output in (stdout, stderr):
             if output.strip():

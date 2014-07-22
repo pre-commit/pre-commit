@@ -77,7 +77,7 @@ def test_run_all_hooks_failing(
     _test_run(
         repo_with_failing_hook,
         {},
-        ('Failing hook', 'Failed', 'Fail\nfoo.py\n'),
+        ('Failing hook', 'Failed', 'hookid: failing_hook', 'Fail\nfoo.py\n'),
         1,
         True,
     )
