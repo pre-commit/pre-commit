@@ -1,3 +1,9 @@
+0.2.6
+=====
+- Print hookid on failure
+- Use sys.executable for running nodeenv
+- Allow running as `python -m pre_commit`
+
 0.2.5
 =====
 - Default columns to 80 (for non-terminal execution).
