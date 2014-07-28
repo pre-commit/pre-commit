@@ -9,6 +9,7 @@ from pre_commit.commands.clean import clean
 from pre_commit.commands.install_uninstall import install
 from pre_commit.commands.install_uninstall import uninstall
 from pre_commit.commands.run import run
+from pre_commit.error_handler import error_handler
 from pre_commit.runner import Runner
 from pre_commit.util import entry
 
@@ -83,28 +84,29 @@ def main(argv):
         else:
             parser.parse_args(['--help'])
 
-    runner = Runner.create()
+    with error_handler():
+        runner = Runner.create()
 
-    if args.command == 'install':
-        return install(
-            runner, overwrite=args.overwrite, hooks=args.install_hooks,
-        )
-    elif args.command == 'uninstall':
-        return uninstall(runner)
-    elif args.command == 'clean':
-        return clean(runner)
-    elif args.command == 'autoupdate':
-        return autoupdate(runner)
-    elif args.command == 'run':
-        return run(runner, args)
-    else:
-        raise NotImplementedError(
-            'Command {0} not implemented.'.format(args.command)
-        )
+        if args.command == 'install':
+            return install(
+                runner, overwrite=args.overwrite, hooks=args.install_hooks,
+            )
+        elif args.command == 'uninstall':
+            return uninstall(runner)
+        elif args.command == 'clean':
+            return clean(runner)
+        elif args.command == 'autoupdate':
+            return autoupdate(runner)
+        elif args.command == 'run':
+            return run(runner, args)
+        else:
+            raise NotImplementedError(
+                'Command {0} not implemented.'.format(args.command)
+            )
 
-    raise AssertionError(
-        'Command {0} failed to exit with a returncode'.format(args.command)
-    )
+        raise AssertionError(
+            'Command {0} failed to exit with a returncode'.format(args.command)
+        )
 
 
 if __name__ == '__main__':
