@@ -1,3 +1,7 @@
+0.2.7
+=====
+- Produce output when running pre-commit install --install-hooks
+
 0.2.6
 =====
 - Print hookid on failure
