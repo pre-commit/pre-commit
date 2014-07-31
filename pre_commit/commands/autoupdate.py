@@ -43,7 +43,7 @@ def _update_repository(repo_config, runner):
     new_repo = Repository.create(new_config, runner.store)
 
     # See if any of our hooks were deleted with the new commits
-    hooks = set(repo.hooks.keys())
+    hooks = set(hook_id for hook_id, _ in repo.hooks)
     hooks_missing = hooks - (hooks & set(new_repo.manifest.hooks.keys()))
     if hooks_missing:
         raise RepositoryCannotBeUpdatedError(

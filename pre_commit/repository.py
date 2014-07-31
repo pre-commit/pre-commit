@@ -4,7 +4,6 @@ from cached_property import cached_property
 
 from pre_commit.languages.all import languages
 from pre_commit.manifest import Manifest
-from pre_commit.ordereddict import OrderedDict
 from pre_commit.prefixed_command_runner import PrefixedCommandRunner
 
 
@@ -33,13 +32,13 @@ class Repository(object):
     def languages(self):
         return set(
             (hook['language'], hook['language_version'])
-            for hook in self.hooks.values()
+            for _, hook in self.hooks
         )
 
     @cached_property
     def hooks(self):
         # TODO: merging in manifest dicts is a smell imo
-        return OrderedDict(
+        return tuple(
             (hook['id'], dict(self.manifest.hooks[hook['id']], **hook))
             for hook in self.repo_config['hooks']
         )
@@ -71,15 +70,14 @@ class Repository(object):
                 continue
             language.install_environment(self.cmd_runner, language_version)
 
-    def run_hook(self, hook_id, file_args):
+    def run_hook(self, hook, file_args):
         """Run a hook.
 
         Args:
-            hook_id - Id of the hook
+            hook - Hook dictionary
             file_args - List of files to run
         """
         self.require_installed()
-        hook = self.hooks[hook_id]
         return languages[hook['language']].run_hook(
             self.cmd_runner, hook, file_args,
         )
