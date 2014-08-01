@@ -29,7 +29,10 @@ def _test_hook_repo(
     path = make_repo(tmpdir_factory, repo_path)
     config = make_config_from_repo(path)
     repo = Repository.create(config, store)
-    ret = repo.run_hook(hook_id, args)
+    hook_dict = [
+        hook for repo_hook_id, hook in repo.hooks if repo_hook_id == hook_id
+    ][0]
+    ret = repo.run_hook(hook_dict, args)
     assert ret[0] == expected_return_code
     assert ret[1] == expected
 
@@ -261,11 +264,11 @@ def test_config_overrides_repo_specifics(tmpdir_factory, store):
     config = make_config_from_repo(path)
 
     repo = Repository.create(config, store)
-    assert repo.hooks['bash_hook']['files'] == ''
+    assert repo.hooks[0][1]['files'] == ''
     # Set the file regex to something else
     config['hooks'][0]['files'] = '\\.sh$'
     repo = Repository.create(config, store)
-    assert repo.hooks['bash_hook']['files'] == '\\.sh$'
+    assert repo.hooks[0][1]['files'] == '\\.sh$'
 
 
 def _create_repo_with_tags(tmpdir_factory, src, tag):
@@ -286,13 +289,13 @@ def test_tags_on_repositories(in_tmpdir, tmpdir_factory, store):
     repo_1 = Repository.create(
         make_config_from_repo(git_dir_1, sha=tag), store,
     )
-    ret = repo_1.run_hook('prints_cwd', ['-L'])
+    ret = repo_1.run_hook(repo_1.hooks[0][1], ['-L'])
     assert ret[0] == 0
     assert ret[1].strip() == in_tmpdir
 
     repo_2 = Repository.create(
         make_config_from_repo(git_dir_2, sha=tag), store,
     )
-    ret = repo_2.run_hook('bash_hook', ['bar'])
+    ret = repo_2.run_hook(repo_2.hooks[0][1], ['bar'])
     assert ret[0] == 0
     assert ret[1] == 'bar\nHello World\n'

@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 
+import io
 import mock
 import os
 import os.path
@@ -205,7 +206,22 @@ def test_hook_id_not_in_non_verbose_output(
 
 
 def test_hook_id_in_verbose_output(
-        repo_with_passing_hook, mock_out_store_directory
+        repo_with_passing_hook, mock_out_store_directory,
 ):
     ret, printed = _do_run(repo_with_passing_hook, _get_opts(verbose=True))
     assert '[bash_hook] Bash hook' in printed
+
+
+def test_multiple_hooks_same_id(
+        repo_with_passing_hook, mock_out_store_directory,
+):
+    with local.cwd(repo_with_passing_hook):
+        # Add bash hook on there again
+        with io.open('.pre-commit-config.yaml', 'a+') as config_file:
+            config_file.write('    - id: bash_hook\n')
+        local['git']('add', '.pre-commit-config.yaml')
+        stage_a_file()
+
+    ret, output = _do_run(repo_with_passing_hook, _get_opts())
+    assert ret == 0
+    assert output.count('Bash hook') == 2

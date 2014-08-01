@@ -47,7 +47,7 @@ def _print_user_skipped(hook, write, args):
     ))
 
 
-def _run_single_hook(runner, repository, hook_id, args, write, skips=set()):
+def _run_single_hook(runner, repository, hook, args, write, skips=set()):
     if args.all_files:
         get_filenames = git.get_all_files_matching
     elif git.is_in_merge_conflict():
@@ -55,10 +55,8 @@ def _run_single_hook(runner, repository, hook_id, args, write, skips=set()):
     else:
         get_filenames = git.get_staged_files_matching
 
-    hook = repository.hooks[hook_id]
-
     filenames = get_filenames(hook['files'], hook['exclude'])
-    if hook_id in skips:
+    if hook['id'] in skips:
         _print_user_skipped(hook, write, args)
         return 0
     elif not filenames:
@@ -70,9 +68,9 @@ def _run_single_hook(runner, repository, hook_id, args, write, skips=set()):
     write(get_hook_message(_hook_msg_start(hook, args.verbose), end_len=6))
     sys.stdout.flush()
 
-    retcode, stdout, stderr = repository.run_hook(hook_id, filenames)
+    retcode, stdout, stderr = repository.run_hook(hook, filenames)
 
-    if retcode != repository.hooks[hook_id]['expected_return_value']:
+    if retcode != hook['expected_return_value']:
         retcode = 1
         print_color = color.RED
         pass_fail = 'Failed'
@@ -101,9 +99,9 @@ def _run_hooks(runner, args, write, environ):
     skips = _get_skips(environ)
 
     for repo in runner.repositories:
-        for hook_id in repo.hooks:
+        for _, hook in repo.hooks:
             retval |= _run_single_hook(
-                runner, repo, hook_id, args, write, skips=skips,
+                runner, repo, hook, args, write, skips=skips,
             )
 
     return retval
@@ -112,8 +110,11 @@ def _run_hooks(runner, args, write, environ):
 def _run_hook(runner, args, write):
     hook_id = args.hook
     for repo in runner.repositories:
-        if hook_id in repo.hooks:
-            return _run_single_hook(runner, repo, hook_id, args, write=write)
+        for hook_id_in_repo, hook in repo.hooks:
+            if hook_id == hook_id_in_repo:
+                return _run_single_hook(
+                    runner, repo, hook, args, write=write,
+                )
     else:
         write('No hook with id `{0}`\n'.format(hook_id))
         return 1
