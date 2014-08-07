@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 
 import argparse
 import pkg_resources
+import sys
 
 from pre_commit import color
 from pre_commit.commands.autoupdate import autoupdate
@@ -11,11 +12,10 @@ from pre_commit.commands.install_uninstall import uninstall
 from pre_commit.commands.run import run
 from pre_commit.error_handler import error_handler
 from pre_commit.runner import Runner
-from pre_commit.util import entry
 
 
-@entry
-def main(argv):
+def main(argv=None):
+    argv = argv if argv is not None else sys.argv[1:]
     parser = argparse.ArgumentParser()
 
     # http://stackoverflow.com/a/8521644/812183
