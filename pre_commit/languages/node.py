@@ -4,7 +4,6 @@ import contextlib
 import sys
 
 from pre_commit.languages import helpers
-from pre_commit.prefixed_command_runner import CalledProcessError
 from pre_commit.util import clean_path_on_failure
 
 
@@ -27,26 +26,15 @@ def install_environment(repo_cmd_runner, version='default'):
 
     env_dir = repo_cmd_runner.path(ENVIRONMENT_DIR)
     with clean_path_on_failure(env_dir):
-        if version == 'default':
-            # In the default case we attempt to install system node and if that
-            # doesn't work we use --prebuilt
-            try:
-                with clean_path_on_failure(env_dir):
-                    repo_cmd_runner.run([
-                        sys.executable, '-m', 'nodeenv', '-n', 'system',
-                        '{{prefix}}{0}'.format(ENVIRONMENT_DIR),
-                    ])
-            except CalledProcessError:
-                # TODO: log failure here
-                repo_cmd_runner.run([
-                    sys.executable, '-m', 'nodeenv', '--prebuilt',
-                    '{{prefix}}{0}'.format(ENVIRONMENT_DIR)
-                ])
-        else:
-            repo_cmd_runner.run([
-                sys.executable, '-m', 'nodeenv', '--prebuilt', '-n', version,
-                '{{prefix}}{0}'.format(ENVIRONMENT_DIR)
-            ])
+        cmd = [
+            sys.executable, '-m', 'nodeenv', '--prebuilt',
+            '{{prefix}}{0}'.format(ENVIRONMENT_DIR),
+        ]
+
+        if version != 'default':
+            cmd.extend(['-n', version])
+
+        repo_cmd_runner.run(cmd)
 
         with in_env(repo_cmd_runner) as node_env:
             node_env.run('cd {prefix} && npm install -g')
