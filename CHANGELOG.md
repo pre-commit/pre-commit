@@ -1,3 +1,9 @@
+0.2.8
+=====
+- Allow a client to have duplicates of hooks.
+- Use --prebuilt instead of system for node.
+- Improve some fatal error messages
+
 0.2.7
 =====
 - Produce output when running pre-commit install --install-hooks
