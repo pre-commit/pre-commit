@@ -1,15 +1,12 @@
 from __future__ import unicode_literals
 
-import mock
 import pytest
 import os
 import os.path
 import random
-import sys
 from plumbum import local
 
 from pre_commit.util import clean_path_on_failure
-from pre_commit.util import entry
 from pre_commit.util import memoize_by_cwd
 from pre_commit.util import shell_escape
 from pre_commit.util import tmpdir
@@ -44,28 +41,6 @@ def test_memoized_by_cwd_changes_with_different_cwd(memoized_by_cwd):
         ret2 = memoized_by_cwd('baz')
 
     assert ret != ret2
-
-
-@pytest.fixture
-def entry_func():
-    @entry
-    def func(argv):
-        return argv
-
-    return func
-
-
-def test_explicitly_passed_argv_are_passed(entry_func):
-    input = object()
-    ret = entry_func(input)
-    assert ret is input
-
-
-def test_no_arguments_passed_uses_argv(entry_func):
-    argv = [1, 2, 3, 4]
-    with mock.patch.object(sys, 'argv', argv):
-        ret = entry_func()
-        assert ret == argv[1:]
 
 
 def test_clean_on_failure_noop(in_tmpdir):

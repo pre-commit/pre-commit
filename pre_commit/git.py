@@ -7,13 +7,13 @@ import os.path
 import re
 from plumbum import local
 
+from pre_commit.errors import FatalError
 from pre_commit.util import memoize_by_cwd
 
 
 logger = logging.getLogger('pre_commit')
 
 
-@memoize_by_cwd
 def get_root():
     path = os.getcwd()
     while len(path) > 1:
@@ -21,7 +21,10 @@ def get_root():
             return path
         else:
             path = os.path.normpath(os.path.join(path, '../'))
-    raise AssertionError('called from outside of the gits')
+    raise FatalError(
+        'Called from outside of the gits. '
+        'Please cd to a git repository.'
+    )
 
 
 def is_in_merge_conflict():

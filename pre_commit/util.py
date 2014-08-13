@@ -7,7 +7,6 @@ import os
 import os.path
 import pkg_resources
 import shutil
-import sys
 import tarfile
 import tempfile
 
@@ -26,19 +25,6 @@ def memoize_by_cwd(func):
 
     wrapper._cache = {}
 
-    return wrapper
-
-
-def entry(func):
-    """Allows a function that has `argv` as an argument to be used as a
-    commandline entry.  This will make the function callable using either
-    explicitly passed argv or defaulting to sys.argv[1:]
-    """
-    @functools.wraps(func)
-    def wrapper(argv=None):
-        if argv is None:
-            argv = sys.argv[1:]
-        return func(argv)
     return wrapper
 
 

@@ -1,13 +1,12 @@
 from __future__ import unicode_literals
 
-import sys
-
 from pre_commit.clientlib.validate_base import get_run_function
 from pre_commit.clientlib.validate_base import get_validator
 from pre_commit.clientlib.validate_base import is_regex_valid
+from pre_commit.errors import FatalError
 
 
-class InvalidConfigError(ValueError):
+class InvalidConfigError(FatalError):
     pass
 
 
@@ -71,4 +70,4 @@ run = get_run_function('Config filenames.', load_config, InvalidConfigError)
 
 
 if __name__ == '__main__':
-    sys.exit(run())
+    exit(run())

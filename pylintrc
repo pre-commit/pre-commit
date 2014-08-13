@@ -1,5 +1,5 @@
 [MESSAGES CONTROL]
-disable=missing-docstring,abstract-method,redefined-builtin,useless-else-on-loop,redefined-outer-name,invalid-name
+disable=locally-disabled,fixme,missing-docstring,abstract-method,useless-else-on-loop,invalid-name
 
 [REPORTS]
 output-format=colorized

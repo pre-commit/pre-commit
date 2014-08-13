@@ -6,10 +6,10 @@ import jsonschema
 import jsonschema.exceptions
 import os.path
 import re
+import sys
 import yaml
 
 from pre_commit.jsonschema_extensions import apply_defaults
-from pre_commit.util import entry
 
 
 def is_regex_valid(regex):
@@ -64,8 +64,8 @@ def get_validator(
 
 
 def get_run_function(filenames_help, validate_strategy, exception_cls):
-    @entry
-    def run(argv):
+    def run(argv=None):
+        argv = argv if argv is not None else sys.argv[1:]
         parser = argparse.ArgumentParser()
         parser.add_argument('filenames', nargs='*', help=filenames_help)
         args = parser.parse_args(argv)

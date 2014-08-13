@@ -16,13 +16,13 @@ COLS = int(
 
 
 def get_hook_message(
-    start,
-    postfix='',
-    end_msg=None,
-    end_len=0,
-    end_color=None,
-    use_color=None,
-    cols=COLS,
+        start,
+        postfix='',
+        end_msg=None,
+        end_len=0,
+        end_color=None,
+        use_color=None,
+        cols=COLS,
 ):
     """Prints a message for running a hook.
 
