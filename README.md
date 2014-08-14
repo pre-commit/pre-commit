@@ -49,7 +49,7 @@ Non Administrative Installation:
 
 System Level Install:
 
-    sudo curl https://bootstrap.pypa.io/get-pip.py | python - pre-commit
+    curl https://bootstrap.pypa.io/get-pip.py | sudo python - pre-commit
 
 In a Python Project, add the following to your requirements.txt (or requirements-dev.txt):
 
@@ -86,8 +86,8 @@ trailing-whitespace hook.
 ## Usage
 
 run `pre-commit install` to install pre-commit into your git hooks. pre-commit
-will now run on every commit. Everytime you clone a project using pre-commit
-running install should always be the first thing you do.
+will now run on every commit. Every time you clone a project using pre-commit
+running `pre-commit install` should always be the first thing you do.
 
 If you want to manually run all pre-commit hooks on a repository, run
 `pre-commit run --all-files`. To run individual hooks use
@@ -103,7 +103,7 @@ and build a copy of node.
 
 pre-commit currently supports hooks written in JavaScript (node), Python, Ruby
 and system installed scripts. As long as your git repo is an installable package
-(gem, npm, pypi, etc) or exposes a executable, it can be used with pre-commit.
+(gem, npm, pypi, etc) or exposes an executable, it can be used with pre-commit.
 Each git repo can support as many languages/hooks as you want.
 
 An executable must satisfy the following things:
