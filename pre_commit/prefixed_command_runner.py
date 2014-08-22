@@ -42,6 +42,7 @@ class PrefixedCommandRunner(object):
 
     will run ['/tmp/foo/foo.sh', 'bar', 'baz']
     """
+
     def __init__(
             self,
             prefix_dir,

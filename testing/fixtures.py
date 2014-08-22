@@ -58,7 +58,7 @@ def make_config_from_repo(repo_path, sha=None, hooks=None, check=True):
 def write_config(directory, config):
     assert type(config) is OrderedDict
     with io.open(os.path.join(directory, C.CONFIG_FILE), 'w') as config_file:
-        config_file.write(ordered_dump([config],  **C.YAML_DUMP_KWARGS))
+        config_file.write(ordered_dump([config], **C.YAML_DUMP_KWARGS))
 
 
 def make_consuming_repo(tmpdir_factory, repo_source):
