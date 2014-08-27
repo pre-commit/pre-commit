@@ -5,5 +5,4 @@
 
 A framework for managing and maintaining multi-language pre-commit hooks.
 
-For more information see: http://pre-commit.com
-
+For more information see: http://pre-commit.com/

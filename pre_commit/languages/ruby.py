@@ -65,7 +65,7 @@ def _install_rbenv(repo_cmd_runner, version='default'):
 def _install_ruby(environment, version):
     try:
         environment.run('rbenv download {0}'.format(version))
-    except CalledProcessError:
+    except CalledProcessError:  # pragma: no cover (usually find with download)
         # Failed to download from mirror for some reason, build it instead
         environment.run('rbenv install {0}'.format(version))
 
