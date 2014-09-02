@@ -1,3 +1,4 @@
+# -*- coding: UTF-8 -*-
 from __future__ import unicode_literals
 
 import io
@@ -5,8 +6,10 @@ import mock
 import os
 import os.path
 import pytest
+import subprocess
 from plumbum import local
 
+from pre_commit.commands.install_uninstall import install
 from pre_commit.commands.run import _get_skips
 from pre_commit.commands.run import _has_unmerged_paths
 from pre_commit.commands.run import run
@@ -225,3 +228,30 @@ def test_multiple_hooks_same_id(
     ret, output = _do_run(repo_with_passing_hook, _get_opts())
     assert ret == 0
     assert output.count('Bash hook') == 2
+
+
+def test_stdout_write_bug_py26(
+        repo_with_failing_hook, mock_out_store_directory, tmpdir_factory,
+):
+    with local.cwd(repo_with_failing_hook):
+        # Add bash hook on there again
+        with io.open('.pre-commit-config.yaml', 'a+') as config_file:
+            config_file.write('        args: ["☃"]\n')
+        local['git']('add', '.pre-commit-config.yaml')
+        stage_a_file()
+
+        install(Runner(repo_with_failing_hook))
+
+        # Don't want to write to home directory
+        env = dict(os.environ, **{'PRE_COMMIT_HOME': tmpdir_factory.get()})
+        # Have to use subprocess because pytest monkeypatches sys.stdout
+        _, stdout, _ = local['git'].run(
+            ('commit', '-m', 'Commit!'),
+            # git commit puts pre-commit to stderr
+            stderr=subprocess.STDOUT,
+            env=env,
+            retcode=None,
+        )
+        assert 'UnicodeEncodeError' not in stdout
+        # Doesn't actually happen, but a reasonable assertion
+        assert 'UnicodeDecodeError' not in stdout

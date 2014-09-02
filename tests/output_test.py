@@ -1,9 +1,11 @@
 from __future__ import unicode_literals
 
+import mock
 import pytest
 
 from pre_commit import color
 from pre_commit.output import get_hook_message
+from pre_commit.output import sys_stdout_write_wrapper
 
 
 @pytest.mark.parametrize(
@@ -77,3 +79,9 @@ def test_make_sure_postfix_is_not_colored():
     assert ret == (
         'start' + '.' * 6 + 'post ' + color.RED + 'end' + color.NORMAL + '\n'
     )
+
+
+def test_sys_stdout_write_wrapper_writes():
+    fake_stream = mock.Mock()
+    sys_stdout_write_wrapper('hello world', fake_stream)
+    assert fake_stream.write.call_count == 1
