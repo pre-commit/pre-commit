@@ -9,6 +9,7 @@ from pre_commit import git
 from pre_commit import color
 from pre_commit.logging_handler import LoggingHandler
 from pre_commit.output import get_hook_message
+from pre_commit.output import sys_stdout_write_wrapper
 from pre_commit.staged_files_only import staged_files_only
 from pre_commit.util import noop_context
 
@@ -125,7 +126,7 @@ def _has_unmerged_paths(runner):
     return bool(stdout.strip())
 
 
-def run(runner, args, write=sys.stdout.write, environ=os.environ):
+def run(runner, args, write=sys_stdout_write_wrapper, environ=os.environ):
     # Set up our logging handler
     logger.addHandler(LoggingHandler(args.color, write=write))
     logger.setLevel(logging.INFO)

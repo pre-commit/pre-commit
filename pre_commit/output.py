@@ -1,8 +1,10 @@
 from __future__ import unicode_literals
 
 import subprocess
+import sys
 
 from pre_commit import color
+from pre_commit import five
 
 
 # TODO: smell: import side-effects
@@ -70,3 +72,14 @@ def get_hook_message(
             postfix,
             color.format_color(end_msg, end_color, use_color),
         )
+
+
+def sys_stdout_write_wrapper(s, stream=sys.stdout):
+    """Python 2.6 chokes on unicode being passed to sys.stdout.write.
+
+    This is an adapter because PY2 is ok with bytes and PY3 requires text.
+    """
+    assert type(s) is five.text
+    if five.PY2:  # pragma: no cover (PY2)
+        s = s.encode('UTF-8')
+    stream.write(s)
