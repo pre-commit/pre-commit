@@ -30,7 +30,7 @@ def main(argv=None):
     subparsers = parser.add_subparsers(dest='command')
 
     install_parser = subparsers.add_parser(
-        'install', help='Intall the pre-commit script.',
+        'install', help='Install the pre-commit script.',
     )
     install_parser.add_argument(
         '-f', '--overwrite', action='store_true',
@@ -48,7 +48,10 @@ def main(argv=None):
 
     subparsers.add_parser('clean', help='Clean out pre-commit files.')
 
-    subparsers.add_parser('autoupdate', help='Auto-update hooks config.')
+    subparsers.add_parser(
+        'autoupdate',
+        help="Auto-update pre-commit config to the latest repos' versions.",
+    )
 
     run_parser = subparsers.add_parser('run', help='Run hooks.')
     run_parser.add_argument('hook', nargs='?', help='A single hook-id to run')
