@@ -1,3 +1,7 @@
+0.2.9
+=====
+- Fix bug where sys.stdout.write must take `bytes` in python 2.6
+
 0.2.8
 =====
 - Allow a client to have duplicates of hooks.
