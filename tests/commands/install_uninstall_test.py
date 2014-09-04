@@ -2,11 +2,13 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 import io
+import mock
 import os
 import os.path
 import re
 import subprocess
 import stat
+import sys
 from plumbum import local
 
 from pre_commit.commands.install_uninstall import IDENTIFYING_HASH
@@ -53,7 +55,9 @@ def test_install_pre_commit(tmpdir_factory):
     assert os.path.exists(runner.pre_commit_path)
     pre_commit_contents = io.open(runner.pre_commit_path).read()
     pre_commit_script = resource_filename('pre-commit-hook')
-    expected_contents = io.open(pre_commit_script).read()
+    expected_contents = io.open(pre_commit_script).read().format(
+        sys_executable=sys.executable,
+    )
     assert pre_commit_contents == expected_contents
     stat_result = os.stat(runner.pre_commit_path)
     assert stat_result.st_mode & (stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
@@ -76,12 +80,17 @@ def test_uninstall(tmpdir_factory):
     assert not os.path.exists(runner.pre_commit_path)
 
 
-def _get_commit_output(tmpdir_factory, touch_file='foo', home=None):
+def _get_commit_output(
+        tmpdir_factory,
+        touch_file='foo',
+        home=None,
+        env_base=os.environ,
+):
     local['touch'](touch_file)
     local['git']('add', touch_file)
     # Don't want to write to home directory
     home = home or tmpdir_factory.get()
-    env = dict(os.environ, **{'PRE_COMMIT_HOME': home})
+    env = dict(env_base, **{'PRE_COMMIT_HOME': home})
     return local['git'].run(
         ['commit', '-m', 'Commit!', '--allow-empty'],
         # git commit puts pre-commit to stderr
@@ -136,11 +145,12 @@ def test_install_idempotent(tmpdir_factory):
 def test_environment_not_sourced(tmpdir_factory):
     path = make_consuming_repo(tmpdir_factory, 'script_hooks_repo')
     with local.cwd(path):
-        assert install(Runner(path)) == 0
+        # Patch the executable to simulate rming virtualenv
+        with mock.patch.object(sys, 'executable', '/bin/false'):
+            assert install(Runner(path)) == 0
 
         ret, stdout, stderr = local['git'].run(
             ['commit', '--allow-empty', '-m', 'foo'],
-            # XXX: 'HOME' makes this test pass on OSX
             env={'HOME': os.environ['HOME']},
             retcode=None,
         )
@@ -362,3 +372,17 @@ def test_installs_hooks_with_hooks_True(
 
         assert ret == 0
         assert PRE_INSTALLED.match(output)
+
+
+def test_installed_from_venv(tmpdir_factory):
+    path = make_consuming_repo(tmpdir_factory, 'script_hooks_repo')
+    with local.cwd(path):
+        install(Runner(path))
+        # No environment so pre-commit is not on the path when running!
+        # Should still pick up the python from when we installed
+        ret, output = _get_commit_output(
+            tmpdir_factory,
+            env_base={'HOME': os.environ['HOME']},
+        )
+        assert ret == 0
+        assert NORMAL_PRE_COMMIT_RUN.match(output)

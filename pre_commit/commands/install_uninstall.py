@@ -6,6 +6,7 @@ import logging
 import os
 import os.path
 import stat
+import sys
 
 from pre_commit.logging_handler import LoggingHandler
 from pre_commit.util import resource_filename
@@ -15,12 +16,13 @@ logger = logging.getLogger('pre_commit')
 
 
 # This is used to identify the hook file we install
-PREVIOUS_IDENTIFYING_HASHES = [
+PREVIOUS_IDENTIFYING_HASHES = (
+    '4d9958c90bc262f47553e2c073f14cfe',
     'd8ee923c46731b42cd95cc869add4062',
-]
+)
 
 
-IDENTIFYING_HASH = '4d9958c90bc262f47553e2c073f14cfe'
+IDENTIFYING_HASH = '49fd668cb42069aa1b6048464be5d395'
 
 
 def is_our_pre_commit(filename):
@@ -63,8 +65,11 @@ def install(runner, overwrite=False, hooks=False):
             )
         )
 
-    with open(runner.pre_commit_path, 'w') as pre_commit_file_obj:
-        pre_commit_file_obj.write(open(pre_commit_file).read())
+    with io.open(runner.pre_commit_path, 'w') as pre_commit_file_obj:
+        contents = io.open(pre_commit_file).read().format(
+            sys_executable=sys.executable,
+        )
+        pre_commit_file_obj.write(contents)
     make_executable(runner.pre_commit_path)
 
     print('pre-commit installed at {0}'.format(runner.pre_commit_path))
