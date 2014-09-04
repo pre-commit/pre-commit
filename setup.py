@@ -41,7 +41,7 @@ setup(
         'aspy.yaml',
         'cached-property',
         'jsonschema',
-        'nodeenv>=0.9.4',
+        'nodeenv>=0.11.1',
         'ordereddict',
         'plumbum',
         'pyyaml',
