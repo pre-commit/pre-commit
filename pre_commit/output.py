@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 
+import os
 import subprocess
 import sys
 
@@ -10,7 +11,7 @@ from pre_commit import five
 # TODO: smell: import side-effects
 COLS = int(
     subprocess.Popen(
-        ['tput', 'cols'], stdout=subprocess.PIPE
+        ['tput', 'cols'], stdout=subprocess.PIPE, stderr=open(os.devnull, 'w'),
     ).communicate()[0] or
     # Default in the case of no terminal
     80
