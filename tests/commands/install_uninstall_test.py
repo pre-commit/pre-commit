@@ -382,7 +382,10 @@ def test_installed_from_venv(tmpdir_factory):
         # Should still pick up the python from when we installed
         ret, output = _get_commit_output(
             tmpdir_factory,
-            env_base={'HOME': os.environ['HOME']},
+            env_base={
+                'HOME': os.environ['HOME'],
+                'TERM': os.environ.get('TERM', ''),
+            },
         )
         assert ret == 0
         assert NORMAL_PRE_COMMIT_RUN.match(output)

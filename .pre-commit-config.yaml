@@ -4,7 +4,7 @@
     -   id: trailing-whitespace
     -   id: end-of-file-fixer
     -   id: autopep8-wrapper
-        args: ['-i', '--ignore=E265,E309,E501', '-v']
+        args: ['-i', '--ignore=E265,E309,E501']
     -   id: check-json
     -   id: check-yaml
     -   id: debug-statements
