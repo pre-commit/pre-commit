@@ -1,3 +1,8 @@
+0.2.10
+======
+- Bump version of nodeenv to fix bug with ~/.npmrc
+- Choose `python` more intelligently when running.
+
 0.2.9
 =====
 - Fix bug where sys.stdout.write must take `bytes` in python 2.6
