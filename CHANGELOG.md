@@ -1,3 +1,7 @@
+0.2.11
+======
+- Fix terminal width detection (broken in 0.2.10)
+
 0.2.10
 ======
 - Bump version of nodeenv to fix bug with ~/.npmrc
