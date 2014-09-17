@@ -56,10 +56,6 @@ def main(argv=None):
     run_parser = subparsers.add_parser('run', help='Run hooks.')
     run_parser.add_argument('hook', nargs='?', help='A single hook-id to run')
     run_parser.add_argument(
-        '--all-files', '-a', action='store_true', default=False,
-        help='Run on all the files in the repo.  Implies --no-stash.',
-    )
-    run_parser.add_argument(
         '--color', default='auto', type=color.use_color,
         help='Whether to use color in output.  Defaults to `auto`',
     )
@@ -69,6 +65,14 @@ def main(argv=None):
     )
     run_parser.add_argument(
         '--verbose', '-v', action='store_true', default=False,
+    )
+    run_mutex_group = run_parser.add_mutually_exclusive_group(required=False)
+    run_mutex_group.add_argument(
+        '--all-files', '-a', action='store_true', default=False,
+        help='Run on all the files in the repo.  Implies --no-stash.',
+    )
+    run_mutex_group.add_argument(
+        '--files', nargs='*', help='Specific filenames to run hooks on.',
     )
 
     help = subparsers.add_parser(

@@ -43,13 +43,17 @@ def get_write_mock_output(write_mock):
 
 def _get_opts(
         all_files=False,
+        files=(),
         color=False,
         verbose=False,
         hook=None,
         no_stash=False,
 ):
+    # These are mutually exclusive
+    assert not (all_files and files)
     return auto_namedtuple(
         all_files=all_files,
+        files=files,
         color=color,
         verbose=verbose,
         hook=hook,
@@ -96,6 +100,12 @@ def test_run_all_hooks_failing(
         ({'hook': 'nope'}, ('No hook with id `nope`',), 1, True),
         (
             {'all_files': True, 'verbose': True},
+            ('foo.py'),
+            0,
+            True,
+        ),
+        (
+            {'files': ('foo.py',), 'verbose': True},
             ('foo.py'),
             0,
             True,
