@@ -49,7 +49,9 @@ def _print_user_skipped(hook, write, args):
 
 
 def _run_single_hook(runner, repository, hook, args, write, skips=set()):
-    if args.all_files:
+    if args.files:
+        get_filenames = git.get_files_matching(lambda: args.files)
+    elif args.all_files:
         get_filenames = git.get_all_files_matching
     elif git.is_in_merge_conflict():
         get_filenames = git.get_conflicted_files_matching
@@ -136,7 +138,8 @@ def run(runner, args, write=sys_stdout_write_wrapper, environ=os.environ):
         logger.error('Unmerged files.  Resolve before committing.')
         return 1
 
-    if args.no_stash or args.all_files:
+    # Don't stash if specified or files are specified
+    if args.no_stash or args.all_files or args.files:
         ctx = noop_context()
     else:
         ctx = staged_files_only(runner.cmd_runner)
