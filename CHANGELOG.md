@@ -1,3 +1,7 @@
+0.3.0
+=====
+- Add `--files` option to `pre-commit run`
+
 0.2.11
 ======
 - Fix terminal width detection (broken in 0.2.10)
