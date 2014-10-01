@@ -21,9 +21,9 @@ def is_regex_valid(regex):
 
 
 def get_validator(
-    json_schema,
-    exception_type,
-    additional_validation_strategy=lambda obj: None,
+        json_schema,
+        exception_type,
+        additional_validation_strategy=lambda obj: None,
 ):
     """Returns a function which will validate a yaml file for correctness
 
@@ -44,14 +44,14 @@ def get_validator(
             obj = load_strategy(file_contents)
         except Exception as e:
             raise exception_type(
-                'File {0} is not a valid yaml file'.format(filename), e,
+                'Invalid yaml: {0}\n{1}'.format(os.path.relpath(filename), e),
             )
 
         try:
             jsonschema.validate(obj, json_schema)
         except jsonschema.exceptions.ValidationError as e:
             raise exception_type(
-                'File {0} is not a valid file'.format(filename), e,
+                'Invalid content: {0}\n{1}'.format(os.path.relpath(filename), e),
             )
 
         obj = apply_defaults(obj, json_schema)
