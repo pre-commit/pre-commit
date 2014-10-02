@@ -5,7 +5,7 @@ import io
 import logging
 import time
 
-from pre_commit.prefixed_command_runner import CalledProcessError
+from pre_commit.util import CalledProcessError
 
 
 logger = logging.getLogger('pre_commit')

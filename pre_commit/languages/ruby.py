@@ -4,7 +4,7 @@ import contextlib
 import io
 
 from pre_commit.languages import helpers
-from pre_commit.prefixed_command_runner import CalledProcessError
+from pre_commit.util import CalledProcessError
 from pre_commit.util import clean_path_on_failure
 from pre_commit.util import resource_filename
 from pre_commit.util import tarfile_open

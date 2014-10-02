@@ -4,29 +4,7 @@ import os
 import os.path
 import subprocess
 
-
-class CalledProcessError(RuntimeError):
-    def __init__(self, returncode, cmd, expected_returncode, output=None):
-        super(CalledProcessError, self).__init__(
-            returncode, cmd, expected_returncode, output,
-        )
-        self.returncode = returncode
-        self.cmd = cmd
-        self.expected_returncode = expected_returncode
-        self.output = output
-
-    def __str__(self):
-        return (
-            'Command: {0!r}\n'
-            'Return code: {1}\n'
-            'Expected return code: {2}\n'
-            'Output: {3!r}\n'.format(
-                self.cmd,
-                self.returncode,
-                self.expected_returncode,
-                self.output,
-            )
-        )
+from pre_commit.util import cmd_output
 
 
 def _replace_cmd(cmd, **kwargs):
@@ -57,32 +35,10 @@ class PrefixedCommandRunner(object):
         if not os.path.exists(self.prefix_dir):
             self.__makedirs(self.prefix_dir)
 
-    def run(self, cmd, retcode=0, stdin=None, encoding='UTF-8', **kwargs):
-        popen_kwargs = {
-            'stdin': subprocess.PIPE,
-            'stdout': subprocess.PIPE,
-            'stderr': subprocess.PIPE,
-        }
-        if stdin is not None:
-            stdin = stdin.encode('UTF-8')
-
-        popen_kwargs.update(kwargs)
+    def run(self, cmd, **kwargs):
         self._create_path_if_not_exists()
         replaced_cmd = _replace_cmd(cmd, prefix=self.prefix_dir)
-        proc = self.__popen(replaced_cmd, **popen_kwargs)
-        stdout, stderr = proc.communicate(stdin)
-        if encoding is not None:
-            stdout = stdout.decode(encoding)
-        if encoding is not None:
-            stderr = stderr.decode(encoding)
-        returncode = proc.returncode
-
-        if retcode is not None and retcode != returncode:
-            raise CalledProcessError(
-                returncode, replaced_cmd, retcode, output=(stdout, stderr),
-            )
-
-        return proc.returncode, stdout, stderr
+        return cmd_output(*replaced_cmd, __popen=self.__popen, **kwargs)
 
     def path(self, *parts):
         path = os.path.join(self.prefix_dir, *parts)

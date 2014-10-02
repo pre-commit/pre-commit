@@ -4,9 +4,9 @@ import pytest
 import os
 import os.path
 import random
-from plumbum import local
 
 from pre_commit.util import clean_path_on_failure
+from pre_commit.util import cwd
 from pre_commit.util import memoize_by_cwd
 from pre_commit.util import shell_escape
 from pre_commit.util import tmpdir
@@ -37,7 +37,7 @@ def test_memoized_by_cwd_returns_different_for_different_args(memoized_by_cwd):
 
 def test_memoized_by_cwd_changes_with_different_cwd(memoized_by_cwd):
     ret = memoized_by_cwd('baz')
-    with local.cwd('.git'):
+    with cwd('.git'):
         ret2 = memoized_by_cwd('baz')
 
     assert ret != ret2

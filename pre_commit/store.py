@@ -6,10 +6,11 @@ import os
 import os.path
 import tempfile
 from cached_property import cached_property
-from plumbum import local
 
 from pre_commit.prefixed_command_runner import PrefixedCommandRunner
 from pre_commit.util import clean_path_on_failure
+from pre_commit.util import cmd_output
+from pre_commit.util import cwd
 from pre_commit.util import hex_md5
 
 
@@ -85,9 +86,9 @@ class Store(object):
 
         dir = tempfile.mkdtemp(prefix='repo', dir=self.directory)
         with clean_path_on_failure(dir):
-            local['git']('clone', '--no-checkout', url, dir)
-            with local.cwd(dir):
-                local['git']('checkout', sha)
+            cmd_output('git', 'clone', '--no-checkout', url, dir)
+            with cwd(dir):
+                cmd_output('git', 'checkout', sha)
 
         # Make a symlink from sha->repo
         os.symlink(dir, sha_path)

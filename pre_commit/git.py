@@ -5,9 +5,9 @@ import logging
 import os
 import os.path
 import re
-from plumbum import local
 
 from pre_commit.errors import FatalError
+from pre_commit.util import cmd_output
 from pre_commit.util import memoize_by_cwd
 
 
@@ -54,21 +54,21 @@ def get_conflicted_files():
     # This will get the rest of the changes made after the merge.
     # If they resolved the merge conflict by choosing a mesh of both sides
     # this will also include the conflicted files
-    tree_hash = local['git']('write-tree').strip()
-    merge_diff_filenames = local['git'](
-        'diff', '-m', tree_hash, 'HEAD', 'MERGE_HEAD', '--name-only',
-    ).splitlines()
+    tree_hash = cmd_output('git', 'write-tree')[1].strip()
+    merge_diff_filenames = cmd_output(
+        'git', 'diff', '-m', tree_hash, 'HEAD', 'MERGE_HEAD', '--name-only',
+    )[1].splitlines()
     return set(merge_conflict_filenames) | set(merge_diff_filenames)
 
 
 @memoize_by_cwd
 def get_staged_files():
-    return local['git']('diff', '--staged', '--name-only').splitlines()
+    return cmd_output('git', 'diff', '--staged', '--name-only')[1].splitlines()
 
 
 @memoize_by_cwd
 def get_all_files():
-    return local['git']('ls-files').splitlines()
+    return cmd_output('git', 'ls-files')[1].splitlines()
 
 
 def get_files_matching(all_file_list_strategy):

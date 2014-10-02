@@ -3,16 +3,17 @@ from __future__ import unicode_literals
 
 import os.path
 import pytest
-from plumbum import local
 
 from pre_commit import git
 from pre_commit.errors import FatalError
+from pre_commit.util import cmd_output
+from pre_commit.util import cwd
 from testing.fixtures import git_dir
 
 
 def test_get_root_at_root(tmpdir_factory):
     path = git_dir(tmpdir_factory)
-    with local.cwd(path):
+    with cwd(path):
         assert git.get_root() == path
 
 
@@ -21,19 +22,19 @@ def test_get_root_deeper(tmpdir_factory):
 
     foo_path = os.path.join(path, 'foo')
     os.mkdir(foo_path)
-    with local.cwd(foo_path):
+    with cwd(foo_path):
         assert git.get_root() == path
 
 
 def test_get_root_not_git_dir(tmpdir_factory):
-    with local.cwd(tmpdir_factory.get()):
+    with cwd(tmpdir_factory.get()):
         with pytest.raises(FatalError):
             git.get_root()
 
 
 def test_is_not_in_merge_conflict(tmpdir_factory):
     path = git_dir(tmpdir_factory)
-    with local.cwd(path):
+    with cwd(path):
         assert git.is_in_merge_conflict() is False
 
 
@@ -42,9 +43,9 @@ def test_is_in_merge_conflict(in_merge_conflict):
 
 
 def test_cherry_pick_conflict(in_merge_conflict):
-    local['git']('merge', '--abort')
-    foo_ref = local['git']('rev-parse', 'foo').strip()
-    local['git']('cherry-pick', foo_ref, retcode=None)
+    cmd_output('git', 'merge', '--abort')
+    foo_ref = cmd_output('git', 'rev-parse', 'foo')[1].strip()
+    cmd_output('git', 'cherry-pick', foo_ref, retcode=None)
     assert git.is_in_merge_conflict() is False
 
 
@@ -96,14 +97,14 @@ def test_exclude_removes_files(get_files_matching_func):
 def resolve_conflict():
     with open('conflict_file', 'w') as conflicted_file:
         conflicted_file.write('herp\nderp\n')
-    local['git']('add', 'conflict_file')
+    cmd_output('git', 'add', 'conflict_file')
 
 
 def test_get_conflicted_files(in_merge_conflict):
     resolve_conflict()
     with open('other_file', 'w') as other_file:
         other_file.write('oh hai')
-    local['git']('add', 'other_file')
+    cmd_output('git', 'add', 'other_file')
 
     ret = set(git.get_conflicted_files())
     assert ret == set(('conflict_file', 'other_file'))

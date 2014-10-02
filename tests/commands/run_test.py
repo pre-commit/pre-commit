@@ -7,13 +7,14 @@ import os
 import os.path
 import pytest
 import subprocess
-from plumbum import local
 
 from pre_commit.commands.install_uninstall import install
 from pre_commit.commands.run import _get_skips
 from pre_commit.commands.run import _has_unmerged_paths
 from pre_commit.commands.run import run
 from pre_commit.runner import Runner
+from pre_commit.util import cmd_output
+from pre_commit.util import cwd
 from testing.auto_namedtuple import auto_namedtuple
 from testing.fixtures import make_consuming_repo
 
@@ -21,20 +22,20 @@ from testing.fixtures import make_consuming_repo
 @pytest.yield_fixture
 def repo_with_passing_hook(tmpdir_factory):
     git_path = make_consuming_repo(tmpdir_factory, 'script_hooks_repo')
-    with local.cwd(git_path):
+    with cwd(git_path):
         yield git_path
 
 
 @pytest.yield_fixture
 def repo_with_failing_hook(tmpdir_factory):
     git_path = make_consuming_repo(tmpdir_factory, 'failing_hook_repo')
-    with local.cwd(git_path):
+    with cwd(git_path):
         yield git_path
 
 
 def stage_a_file():
-    local['touch']('foo.py')
-    local['git']('add', 'foo.py')
+    cmd_output('touch', 'foo.py')
+    cmd_output('git', 'add', 'foo.py')
 
 
 def get_write_mock_output(write_mock):
@@ -180,7 +181,7 @@ def test_merge_conflict_modified(in_merge_conflict, mock_out_store_directory):
 
 
 def test_merge_conflict_resolved(in_merge_conflict, mock_out_store_directory):
-    local['git']('add', '.')
+    cmd_output('git', 'add', '.')
     ret, printed = _do_run(in_merge_conflict, _get_opts())
     for msg in ('Checking merge-conflict files only.', 'Bash hook', 'Passed'):
         assert msg in printed
@@ -228,11 +229,11 @@ def test_hook_id_in_verbose_output(
 def test_multiple_hooks_same_id(
         repo_with_passing_hook, mock_out_store_directory,
 ):
-    with local.cwd(repo_with_passing_hook):
+    with cwd(repo_with_passing_hook):
         # Add bash hook on there again
         with io.open('.pre-commit-config.yaml', 'a+') as config_file:
             config_file.write('    - id: bash_hook\n')
-        local['git']('add', '.pre-commit-config.yaml')
+        cmd_output('git', 'add', '.pre-commit-config.yaml')
         stage_a_file()
 
     ret, output = _do_run(repo_with_passing_hook, _get_opts())
@@ -243,11 +244,11 @@ def test_multiple_hooks_same_id(
 def test_stdout_write_bug_py26(
         repo_with_failing_hook, mock_out_store_directory, tmpdir_factory,
 ):
-    with local.cwd(repo_with_failing_hook):
+    with cwd(repo_with_failing_hook):
         # Add bash hook on there again
         with io.open('.pre-commit-config.yaml', 'a+') as config_file:
             config_file.write('        args: ["☃"]\n')
-        local['git']('add', '.pre-commit-config.yaml')
+        cmd_output('git', 'add', '.pre-commit-config.yaml')
         stage_a_file()
 
         install(Runner(repo_with_failing_hook))
@@ -255,8 +256,8 @@ def test_stdout_write_bug_py26(
         # Don't want to write to home directory
         env = dict(os.environ, **{'PRE_COMMIT_HOME': tmpdir_factory.get()})
         # Have to use subprocess because pytest monkeypatches sys.stdout
-        _, stdout, _ = local['git'].run(
-            ('commit', '-m', 'Commit!'),
+        _, stdout, _ = cmd_output(
+            'git', 'commit', '-m', 'Commit!',
             # git commit puts pre-commit to stderr
             stderr=subprocess.STDOUT,
             env=env,

@@ -8,9 +8,10 @@ import mock
 import os.path
 import pytest
 import shutil
-from plumbum import local
 
 from pre_commit.staged_files_only import staged_files_only
+from pre_commit.util import cmd_output
+from pre_commit.util import cwd
 from testing.auto_namedtuple import auto_namedtuple
 from testing.fixtures import git_dir
 from testing.util import get_resource_path
@@ -20,17 +21,17 @@ FOO_CONTENTS = '\n'.join(('1', '2', '3', '4', '5', '6', '7', '8', ''))
 
 
 def get_short_git_status():
-    git_status = local['git']('status', '-s')
+    git_status = cmd_output('git', 'status', '-s')[1]
     return dict(reversed(line.split()) for line in git_status.splitlines())
 
 
 @pytest.yield_fixture
 def foo_staged(tmpdir_factory):
     path = git_dir(tmpdir_factory)
-    with local.cwd(path):
+    with cwd(path):
         with io.open('foo', 'w') as foo_file:
             foo_file.write(FOO_CONTENTS)
-        local['git']('add', 'foo')
+        cmd_output('git', 'add', 'foo')
         foo_filename = os.path.join(path, 'foo')
         yield auto_namedtuple(path=path, foo_filename=foo_filename)
 
@@ -108,10 +109,10 @@ def test_foo_both_modify_conflicting(foo_staged, cmd_runner):
 @pytest.yield_fixture
 def img_staged(tmpdir_factory):
     path = git_dir(tmpdir_factory)
-    with local.cwd(path):
+    with cwd(path):
         img_filename = os.path.join(path, 'img.jpg')
         shutil.copy(get_resource_path('img1.jpg'), img_filename)
-        local['git']('add', 'img.jpg')
+        cmd_output('git', 'add', 'img.jpg')
         yield auto_namedtuple(path=path, img_filename=img_filename)
 
 
@@ -163,26 +164,28 @@ def test_img_conflict(img_staged, cmd_runner):
 @pytest.yield_fixture
 def submodule_with_commits(tmpdir_factory):
     path = git_dir(tmpdir_factory)
-    with local.cwd(path):
-        local['git']('commit', '--allow-empty', '-m', 'foo')
-        sha1 = local['git']('rev-parse', 'HEAD').strip()
-        local['git']('commit', '--allow-empty', '-m', 'bar')
-        sha2 = local['git']('rev-parse', 'HEAD').strip()
+    with cwd(path):
+        cmd_output('git', 'commit', '--allow-empty', '-m', 'foo')
+        sha1 = cmd_output('git', 'rev-parse', 'HEAD')[1].strip()
+        cmd_output('git', 'commit', '--allow-empty', '-m', 'bar')
+        sha2 = cmd_output('git', 'rev-parse', 'HEAD')[1].strip()
         yield auto_namedtuple(path=path, sha1=sha1, sha2=sha2)
 
 
 def checkout_submodule(sha):
-    with local.cwd('sub'):
-        local['git']('checkout', sha)
+    with cwd('sub'):
+        cmd_output('git', 'checkout', sha)
 
 
 @pytest.yield_fixture
 def sub_staged(submodule_with_commits, tmpdir_factory):
     path = git_dir(tmpdir_factory)
-    with local.cwd(path):
-        local['git']('submodule', 'add', submodule_with_commits.path, 'sub')
+    with cwd(path):
+        cmd_output(
+            'git', 'submodule', 'add', submodule_with_commits.path, 'sub',
+        )
         checkout_submodule(submodule_with_commits.sha1)
-        local['git']('add', 'sub')
+        cmd_output('git', 'add', 'sub')
         yield auto_namedtuple(
             path=path,
             sub_path=os.path.join(path, 'sub'),
@@ -192,8 +195,8 @@ def sub_staged(submodule_with_commits, tmpdir_factory):
 
 def _test_sub_state(path, sha='sha1', status='A'):
     assert os.path.exists(path.sub_path)
-    with local.cwd(path.sub_path):
-        actual_sha = local['git']('rev-parse', 'HEAD').strip()
+    with cwd(path.sub_path):
+        actual_sha = cmd_output('git', 'rev-parse', 'HEAD')[1].strip()
     assert actual_sha == getattr(path.submodule, sha)
     actual_status = get_short_git_status()['sub']
     assert actual_status == status

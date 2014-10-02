@@ -4,9 +4,9 @@ from __future__ import unicode_literals
 import argparse
 import mock
 import pytest
-from plumbum import local
 
 from pre_commit import main
+from pre_commit.util import cwd
 from testing.auto_namedtuple import auto_namedtuple
 
 
@@ -133,7 +133,7 @@ def test_help_cmd_in_empty_directory(
 ):
     path = tmpdir_factory.get()
 
-    with local.cwd(path):
+    with cwd(path):
         with pytest.raises(CalledExit):
             main.main(['help', 'run'])
 

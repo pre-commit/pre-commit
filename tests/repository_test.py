@@ -5,12 +5,13 @@ import io
 import mock
 import os.path
 import pytest
-from plumbum import local
 
 from pre_commit.clientlib.validate_config import CONFIG_JSON_SCHEMA
 from pre_commit.clientlib.validate_config import validate_config_extra
 from pre_commit.jsonschema_extensions import apply_defaults
 from pre_commit.repository import Repository
+from pre_commit.util import cmd_output
+from pre_commit.util import cwd
 from testing.fixtures import git_dir
 from testing.fixtures import make_config_from_repo
 from testing.fixtures import make_repo
@@ -118,7 +119,7 @@ def test_run_hook_with_spaced_args(tmpdir_factory, store):
 @pytest.mark.integration
 def test_pcre_hook_no_match(tmpdir_factory, store):
     path = git_dir(tmpdir_factory)
-    with local.cwd(path):
+    with cwd(path):
         with io.open('herp', 'w') as herp:
             herp.write('foo')
 
@@ -139,7 +140,7 @@ def test_pcre_hook_no_match(tmpdir_factory, store):
 @pytest.mark.integration
 def test_pcre_hook_matching(tmpdir_factory, store):
     path = git_dir(tmpdir_factory)
-    with local.cwd(path):
+    with cwd(path):
         with io.open('herp', 'w') as herp:
             herp.write("\nherpfoo'bard\n")
 
@@ -165,7 +166,7 @@ def test_pcre_many_files(tmpdir_factory, store):
     # to make sure it still fails.  This is not the case when naively using
     # a system hook with `grep -H -n '...'` and expected_return_code=123.
     path = git_dir(tmpdir_factory)
-    with local.cwd(path):
+    with cwd(path):
         with io.open('herp', 'w') as herp:
             herp.write('[INFO] info\n')
 
@@ -182,7 +183,7 @@ def test_pcre_many_files(tmpdir_factory, store):
 def test_cwd_of_hook(tmpdir_factory, store):
     # Note: this doubles as a test for `system` hooks
     path = git_dir(tmpdir_factory)
-    with local.cwd(path):
+    with cwd(path):
         _test_hook_repo(
             tmpdir_factory, store, 'prints_cwd_repo',
             'prints_cwd', ['-L'], path + '\n',
@@ -248,12 +249,12 @@ def test_reinstall(tmpdir_factory, store):
 def test_really_long_file_paths(tmpdir_factory, store):
     base_path = tmpdir_factory.get()
     really_long_path = os.path.join(base_path, 'really_long' * 10)
-    local['git']('init', really_long_path)
+    cmd_output('git', 'init', really_long_path)
 
     path = make_repo(tmpdir_factory, 'python_hooks_repo')
     config = make_config_from_repo(path)
 
-    with local.cwd(really_long_path):
+    with cwd(really_long_path):
         repo = Repository.create(config, store)
         repo.require_installed()
 
@@ -273,8 +274,8 @@ def test_config_overrides_repo_specifics(tmpdir_factory, store):
 
 def _create_repo_with_tags(tmpdir_factory, src, tag):
     path = make_repo(tmpdir_factory, src)
-    with local.cwd(path):
-        local['git']('tag', tag)
+    with cwd(path):
+        cmd_output('git', 'tag', tag)
     return path
 
 

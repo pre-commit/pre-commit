@@ -2,7 +2,6 @@ from __future__ import unicode_literals
 
 import pytest
 import shutil
-from plumbum import local
 
 import pre_commit.constants as C
 from pre_commit.commands.autoupdate import _update_repository
@@ -10,6 +9,8 @@ from pre_commit.commands.autoupdate import autoupdate
 from pre_commit.commands.autoupdate import RepositoryCannotBeUpdatedError
 from pre_commit.ordereddict import OrderedDict
 from pre_commit.runner import Runner
+from pre_commit.util import cmd_output
+from pre_commit.util import cwd
 from testing.auto_namedtuple import auto_namedtuple
 from testing.fixtures import make_config_from_repo
 from testing.fixtures import make_repo
@@ -52,8 +53,8 @@ def out_of_date_repo(tmpdir_factory):
     original_sha = get_head_sha(path)
 
     # Make a commit
-    with local.cwd(path):
-        local['git']['commit', '--allow-empty', '-m', 'foo']()
+    with cwd(path):
+        cmd_output('git', 'commit', '--allow-empty', '-m', 'foo')
     head_sha = get_head_sha(path)
 
     yield auto_namedtuple(
@@ -95,13 +96,13 @@ def hook_disappearing_repo(tmpdir_factory):
     path = make_repo(tmpdir_factory, 'python_hooks_repo')
     original_sha = get_head_sha(path)
 
-    with local.cwd(path):
+    with cwd(path):
         shutil.copy(
             get_resource_path('manifest_without_foo.yaml'),
             C.MANIFEST_FILE,
         )
-        local['git']('add', '.')
-        local['git']('commit', '-m', 'Remove foo')
+        cmd_output('git', 'add', '.')
+        cmd_output('git', 'commit', '-m', 'Remove foo')
 
     yield auto_namedtuple(path=path, original_sha=original_sha)
 
