@@ -51,7 +51,9 @@ def get_validator(
             jsonschema.validate(obj, json_schema)
         except jsonschema.exceptions.ValidationError as e:
             raise exception_type(
-                'Invalid content: {0}\n{1}'.format(os.path.relpath(filename), e),
+                'Invalid content: {0}\n{1}'.format(
+                    os.path.relpath(filename), e
+                ),
             )
 
         obj = apply_defaults(obj, json_schema)
