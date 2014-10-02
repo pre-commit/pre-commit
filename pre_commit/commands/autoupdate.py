@@ -5,7 +5,6 @@ import sys
 
 from aspy.yaml import ordered_dump
 from aspy.yaml import ordered_load
-from plumbum import local
 
 import pre_commit.constants as C
 from pre_commit.clientlib.validate_config import CONFIG_JSON_SCHEMA
@@ -13,6 +12,8 @@ from pre_commit.clientlib.validate_config import load_config
 from pre_commit.jsonschema_extensions import remove_defaults
 from pre_commit.ordereddict import OrderedDict
 from pre_commit.repository import Repository
+from pre_commit.util import cwd
+from pre_commit.util import cmd_output
 
 
 class RepositoryCannotBeUpdatedError(RuntimeError):
@@ -29,9 +30,9 @@ def _update_repository(repo_config, runner):
     """
     repo = Repository.create(repo_config, runner.store)
 
-    with local.cwd(repo.repo_path_getter.repo_path):
-        local['git']('fetch')
-        head_sha = local['git']('rev-parse', 'origin/master').strip()
+    with cwd(repo.repo_path_getter.repo_path):
+        cmd_output('git', 'fetch')
+        head_sha = cmd_output('git', 'rev-parse', 'origin/master')[1].strip()
 
     # Don't bother trying to update if our sha is the same
     if head_sha == repo_config['sha']:

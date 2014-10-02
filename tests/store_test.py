@@ -7,12 +7,13 @@ import os
 import os.path
 import pytest
 import shutil
-from plumbum import local
 
 from pre_commit import five
 from pre_commit.store import _get_default_directory
 from pre_commit.store import logger
 from pre_commit.store import Store
+from pre_commit.util import cmd_output
+from pre_commit.util import cwd
 from pre_commit.util import hex_md5
 from testing.fixtures import git_dir
 from testing.util import get_head_sha
@@ -86,10 +87,10 @@ def log_info_mock():
 
 def test_clone(store, tmpdir_factory, log_info_mock):
     path = git_dir(tmpdir_factory)
-    with local.cwd(path):
-        local['git']('commit', '--allow-empty', '-m', 'foo')
+    with cwd(path):
+        cmd_output('git', 'commit', '--allow-empty', '-m', 'foo')
         sha = get_head_sha(path)
-        local['git']('commit', '--allow-empty', '-m', 'bar')
+        cmd_output('git', 'commit', '--allow-empty', '-m', 'bar')
 
     ret = store.clone(path, sha)
     # Should have printed some stuff

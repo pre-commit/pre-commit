@@ -4,8 +4,9 @@ from __future__ import unicode_literals
 
 import os.path
 import shutil
-from plumbum import local
 
+from pre_commit.util import cmd_output
+from pre_commit.util import cwd
 from pre_commit.util import tarfile_open
 from pre_commit.util import tmpdir
 
@@ -42,9 +43,9 @@ def make_archive(name, repo, ref, destdir):
     output_path = os.path.join(destdir, name + '.tar.gz')
     with tmpdir() as tempdir:
         # Clone the repository to the temporary directory
-        local['git']('clone', repo, tempdir)
-        with local.cwd(tempdir):
-            local['git']('checkout', ref)
+        cmd_output('git', 'clone', repo, tempdir)
+        with cwd(tempdir):
+            cmd_output('git', 'checkout', ref)
 
         # We don't want the '.git' directory
         # It adds a bunch of size to the archive and we don't use it at

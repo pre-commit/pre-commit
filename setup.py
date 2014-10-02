@@ -43,7 +43,6 @@ setup(
         'jsonschema',
         'nodeenv>=0.11.1',
         'ordereddict',
-        'plumbum',
         'pyyaml',
         'simplejson',
         'virtualenv',

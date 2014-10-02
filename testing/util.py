@@ -5,7 +5,9 @@ import os
 import os.path
 import pytest
 import shutil
-from plumbum import local
+
+from pre_commit.util import cmd_output
+from pre_commit.util import cwd
 
 
 TESTING_DIR = os.path.abspath(os.path.dirname(__file__))
@@ -34,8 +36,8 @@ def copy_tree_to_path(src_dir, dest_dir):
 
 
 def get_head_sha(dir):
-    with local.cwd(dir):
-        return local['git']('rev-parse', 'HEAD').strip()
+    with cwd(dir):
+        return cmd_output('git', 'rev-parse', 'HEAD')[1].strip()
 
 
 def is_valid_according_to_schema(obj, schema):

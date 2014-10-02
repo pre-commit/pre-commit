@@ -4,9 +4,10 @@ from __future__ import unicode_literals
 import mock
 import os.path
 import pytest
-from plumbum import local
 
 from pre_commit import make_archives
+from pre_commit.util import cmd_output
+from pre_commit.util import cwd
 from pre_commit.util import tarfile_open
 from testing.fixtures import git_dir
 from testing.util import get_head_sha
@@ -17,16 +18,16 @@ def test_make_archive(tmpdir_factory):
     output_dir = tmpdir_factory.get()
     git_path = git_dir(tmpdir_factory)
     # Add a files to the git directory
-    with local.cwd(git_path):
-        local['touch']('foo')
-        local['git']('add', '.')
-        local['git']('commit', '-m', 'foo')
+    with cwd(git_path):
+        cmd_output('touch', 'foo')
+        cmd_output('git', 'add', '.')
+        cmd_output('git', 'commit', '-m', 'foo')
         # We'll use this sha
         head_sha = get_head_sha('.')
         # And check that this file doesn't exist
-        local['touch']('bar')
-        local['git']('add', '.')
-        local['git']('commit', '-m', 'bar')
+        cmd_output('touch', 'bar')
+        cmd_output('git', 'add', '.')
+        cmd_output('git', 'commit', '-m', 'bar')
 
     # Do the thing
     archive_path = make_archives.make_archive(

@@ -3,10 +3,10 @@ from __future__ import unicode_literals
 
 import os
 import os.path
-from plumbum import local
 
 import pre_commit.constants as C
 from pre_commit.runner import Runner
+from pre_commit.util import cwd
 from testing.fixtures import git_dir
 from testing.fixtures import make_consuming_repo
 
@@ -20,7 +20,7 @@ def test_init_has_no_side_effects(tmpdir):
 
 def test_create_sets_correct_directory(tmpdir_factory):
     path = git_dir(tmpdir_factory)
-    with local.cwd(path):
+    with cwd(path):
         runner = Runner.create()
         assert runner.git_root == path
         assert os.getcwd() == path
@@ -28,7 +28,7 @@ def test_create_sets_correct_directory(tmpdir_factory):
 
 def test_create_changes_to_git_root(tmpdir_factory):
     path = git_dir(tmpdir_factory)
-    with local.cwd(path):
+    with cwd(path):
         # Change into some directory, create should set to root
         foo_path = os.path.join(path, 'foo')
         os.mkdir(foo_path)

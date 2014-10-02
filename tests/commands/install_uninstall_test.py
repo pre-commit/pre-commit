@@ -9,7 +9,6 @@ import re
 import subprocess
 import stat
 import sys
-from plumbum import local
 
 from pre_commit.commands.install_uninstall import IDENTIFYING_HASH
 from pre_commit.commands.install_uninstall import PREVIOUS_IDENTIFYING_HASHES
@@ -19,6 +18,8 @@ from pre_commit.commands.install_uninstall import is_previous_pre_commit
 from pre_commit.commands.install_uninstall import make_executable
 from pre_commit.commands.install_uninstall import uninstall
 from pre_commit.runner import Runner
+from pre_commit.util import cmd_output
+from pre_commit.util import cwd
 from pre_commit.util import resource_filename
 from testing.fixtures import git_dir
 from testing.fixtures import make_consuming_repo
@@ -86,13 +87,13 @@ def _get_commit_output(
         home=None,
         env_base=os.environ,
 ):
-    local['touch'](touch_file)
-    local['git']('add', touch_file)
+    cmd_output('touch', touch_file)
+    cmd_output('git', 'add', touch_file)
     # Don't want to write to home directory
     home = home or tmpdir_factory.get()
     env = dict(env_base, **{'PRE_COMMIT_HOME': home})
-    return local['git'].run(
-        ['commit', '-m', 'Commit!', '--allow-empty'],
+    return cmd_output(
+        'git', 'commit', '-m', 'Commit!', '--allow-empty',
         # git commit puts pre-commit to stderr
         stderr=subprocess.STDOUT,
         env=env,
@@ -123,7 +124,7 @@ NORMAL_PRE_COMMIT_RUN = re.compile(
 
 def test_install_pre_commit_and_run(tmpdir_factory):
     path = make_consuming_repo(tmpdir_factory, 'script_hooks_repo')
-    with local.cwd(path):
+    with cwd(path):
         assert install(Runner(path)) == 0
 
         ret, output = _get_commit_output(tmpdir_factory)
@@ -133,7 +134,7 @@ def test_install_pre_commit_and_run(tmpdir_factory):
 
 def test_install_idempotent(tmpdir_factory):
     path = make_consuming_repo(tmpdir_factory, 'script_hooks_repo')
-    with local.cwd(path):
+    with cwd(path):
         assert install(Runner(path)) == 0
         assert install(Runner(path)) == 0
 
@@ -144,13 +145,13 @@ def test_install_idempotent(tmpdir_factory):
 
 def test_environment_not_sourced(tmpdir_factory):
     path = make_consuming_repo(tmpdir_factory, 'script_hooks_repo')
-    with local.cwd(path):
+    with cwd(path):
         # Patch the executable to simulate rming virtualenv
         with mock.patch.object(sys, 'executable', '/bin/false'):
             assert install(Runner(path)) == 0
 
-        ret, stdout, stderr = local['git'].run(
-            ['commit', '--allow-empty', '-m', 'foo'],
+        ret, stdout, stderr = cmd_output(
+            'git', 'commit', '--allow-empty', '-m', 'foo',
             env={'HOME': os.environ['HOME']},
             retcode=None,
         )
@@ -177,7 +178,7 @@ FAILING_PRE_COMMIT_RUN = re.compile(
 
 def test_failing_hooks_returns_nonzero(tmpdir_factory):
     path = make_consuming_repo(tmpdir_factory, 'failing_hook_repo')
-    with local.cwd(path):
+    with cwd(path):
         assert install(Runner(path)) == 0
 
         ret, output = _get_commit_output(tmpdir_factory)
@@ -195,7 +196,7 @@ EXISTING_COMMIT_RUN = re.compile(
 
 def test_install_existing_hooks_no_overwrite(tmpdir_factory):
     path = make_consuming_repo(tmpdir_factory, 'script_hooks_repo')
-    with local.cwd(path):
+    with cwd(path):
         runner = Runner(path)
 
         # Write out an "old" hook
@@ -220,7 +221,7 @@ def test_install_existing_hooks_no_overwrite(tmpdir_factory):
 
 def test_install_existing_hook_no_overwrite_idempotent(tmpdir_factory):
     path = make_consuming_repo(tmpdir_factory, 'script_hooks_repo')
-    with local.cwd(path):
+    with cwd(path):
         runner = Runner(path)
 
         # Write out an "old" hook
@@ -250,7 +251,7 @@ FAIL_OLD_HOOK = re.compile(
 
 def test_failing_existing_hook_returns_1(tmpdir_factory):
     path = make_consuming_repo(tmpdir_factory, 'script_hooks_repo')
-    with local.cwd(path):
+    with cwd(path):
         runner = Runner(path)
 
         # Write out a failing "old" hook
@@ -268,7 +269,7 @@ def test_failing_existing_hook_returns_1(tmpdir_factory):
 
 def test_install_overwrite_no_existing_hooks(tmpdir_factory):
     path = make_consuming_repo(tmpdir_factory, 'script_hooks_repo')
-    with local.cwd(path):
+    with cwd(path):
         assert install(Runner(path), overwrite=True) == 0
 
         ret, output = _get_commit_output(tmpdir_factory)
@@ -278,7 +279,7 @@ def test_install_overwrite_no_existing_hooks(tmpdir_factory):
 
 def test_install_overwrite(tmpdir_factory):
     path = make_consuming_repo(tmpdir_factory, 'script_hooks_repo')
-    with local.cwd(path):
+    with cwd(path):
         runner = Runner(path)
 
         # Write out the "old" hook
@@ -295,7 +296,7 @@ def test_install_overwrite(tmpdir_factory):
 
 def test_uninstall_restores_legacy_hooks(tmpdir_factory):
     path = make_consuming_repo(tmpdir_factory, 'script_hooks_repo')
-    with local.cwd(path):
+    with cwd(path):
         runner = Runner(path)
 
         # Write out an "old" hook
@@ -315,7 +316,7 @@ def test_uninstall_restores_legacy_hooks(tmpdir_factory):
 
 def test_replace_old_commit_script(tmpdir_factory):
     path = make_consuming_repo(tmpdir_factory, 'script_hooks_repo')
-    with local.cwd(path):
+    with cwd(path):
         runner = Runner(path)
 
         # Install a script that looks like our old script
@@ -340,7 +341,7 @@ def test_replace_old_commit_script(tmpdir_factory):
 
 def test_uninstall_doesnt_remove_not_our_hooks(tmpdir_factory):
     path = git_dir(tmpdir_factory)
-    with local.cwd(path):
+    with cwd(path):
         runner = Runner(path)
         with io.open(runner.pre_commit_path, 'w') as pre_commit_file:
             pre_commit_file.write('#!/usr/bin/env bash\necho 1\n')
@@ -364,7 +365,7 @@ def test_installs_hooks_with_hooks_True(
         mock_out_store_directory,
 ):
     path = make_consuming_repo(tmpdir_factory, 'script_hooks_repo')
-    with local.cwd(path):
+    with cwd(path):
         install(Runner(path), hooks=True)
         ret, output = _get_commit_output(
             tmpdir_factory, home=mock_out_store_directory,
@@ -376,7 +377,7 @@ def test_installs_hooks_with_hooks_True(
 
 def test_installed_from_venv(tmpdir_factory):
     path = make_consuming_repo(tmpdir_factory, 'script_hooks_repo')
-    with local.cwd(path):
+    with cwd(path):
         install(Runner(path))
         # No environment so pre-commit is not on the path when running!
         # Should still pick up the python from when we installed

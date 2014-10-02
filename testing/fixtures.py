@@ -4,7 +4,6 @@ from __future__ import unicode_literals
 import io
 import os.path
 from aspy.yaml import ordered_dump
-from plumbum import local
 
 import pre_commit.constants as C
 from pre_commit.clientlib.validate_manifest import load_manifest
@@ -12,27 +11,26 @@ from pre_commit.clientlib.validate_config import CONFIG_JSON_SCHEMA
 from pre_commit.clientlib.validate_config import validate_config_extra
 from pre_commit.jsonschema_extensions import apply_defaults
 from pre_commit.ordereddict import OrderedDict
+from pre_commit.util import cmd_output
+from pre_commit.util import cwd
 from testing.util import copy_tree_to_path
 from testing.util import get_head_sha
 from testing.util import get_resource_path
 
 
-git = local['git']
-
-
 def git_dir(tmpdir_factory):
     path = tmpdir_factory.get()
-    with local.cwd(path):
-        git('init')
+    with cwd(path):
+        cmd_output('git', 'init')
     return path
 
 
 def make_repo(tmpdir_factory, repo_source):
     path = git_dir(tmpdir_factory)
     copy_tree_to_path(get_resource_path(repo_source), path)
-    with local.cwd(path):
-        git('add', '.')
-        git('commit', '-m', 'Add hooks')
+    with cwd(path):
+        cmd_output('git', 'add', '.')
+        cmd_output('git', 'commit', '-m', 'Add hooks')
     return path
 
 
@@ -66,7 +64,7 @@ def make_consuming_repo(tmpdir_factory, repo_source):
     config = make_config_from_repo(path)
     git_path = git_dir(tmpdir_factory)
     write_config(git_path, config)
-    with local.cwd(git_path):
-        git('add', C.CONFIG_FILE)
-        git('commit', '-m', 'Add hooks config')
+    with cwd(git_path):
+        cmd_output('git', 'add', C.CONFIG_FILE)
+        cmd_output('git', 'commit', '-m', 'Add hooks config')
     return git_path

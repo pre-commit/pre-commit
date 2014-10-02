@@ -6,17 +6,15 @@ import mock
 import os
 import os.path
 import pytest
-from plumbum import local
 
 import pre_commit.constants as C
 from pre_commit import five
 from pre_commit.prefixed_command_runner import PrefixedCommandRunner
 from pre_commit.runner import Runner
 from pre_commit.store import Store
+from pre_commit.util import cmd_output
+from pre_commit.util import cwd
 from testing.fixtures import make_consuming_repo
-
-
-git = local['git']
 
 
 @pytest.yield_fixture
@@ -37,39 +35,39 @@ def tmpdir_factory(tmpdir):
 @pytest.yield_fixture
 def in_tmpdir(tmpdir_factory):
     path = tmpdir_factory.get()
-    with local.cwd(path):
+    with cwd(path):
         yield path
 
 
 @pytest.yield_fixture
 def in_merge_conflict(tmpdir_factory):
     path = make_consuming_repo(tmpdir_factory, 'script_hooks_repo')
-    with local.cwd(path):
-        local['touch']('dummy')
-        git('add', 'dummy')
-        git('add', C.CONFIG_FILE)
-        git('commit', '-m', 'Add config.')
+    with cwd(path):
+        cmd_output('touch', 'dummy')
+        cmd_output('git', 'add', 'dummy')
+        cmd_output('git', 'add', C.CONFIG_FILE)
+        cmd_output('git', 'commit', '-m', 'Add config.')
 
     conflict_path = tmpdir_factory.get()
-    git('clone', path, conflict_path)
-    with local.cwd(conflict_path):
-        git('checkout', 'origin/master', '-b', 'foo')
+    cmd_output('git', 'clone', path, conflict_path)
+    with cwd(conflict_path):
+        cmd_output('git', 'checkout', 'origin/master', '-b', 'foo')
         with io.open('conflict_file', 'w') as conflict_file:
             conflict_file.write('herp\nderp\n')
-        git('add', 'conflict_file')
+        cmd_output('git', 'add', 'conflict_file')
         with io.open('foo_only_file', 'w') as foo_only_file:
             foo_only_file.write('foo')
-        git('add', 'foo_only_file')
-        git('commit', '-m', 'conflict_file')
-        git('checkout', 'origin/master', '-b', 'bar')
+        cmd_output('git', 'add', 'foo_only_file')
+        cmd_output('git', 'commit', '-m', 'conflict_file')
+        cmd_output('git', 'checkout', 'origin/master', '-b', 'bar')
         with io.open('conflict_file', 'w') as conflict_file:
             conflict_file.write('harp\nddrp\n')
-        git('add', 'conflict_file')
+        cmd_output('git', 'add', 'conflict_file')
         with io.open('bar_only_file', 'w') as bar_only_file:
             bar_only_file.write('bar')
-        git('add', 'bar_only_file')
-        git('commit', '-m', 'conflict_file')
-        git('merge', 'foo', retcode=None)
+        cmd_output('git', 'add', 'bar_only_file')
+        cmd_output('git', 'commit', '-m', 'conflict_file')
+        cmd_output('git', 'merge', 'foo', retcode=None)
         yield os.path.join(conflict_path)
 
 

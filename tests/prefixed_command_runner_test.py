@@ -6,8 +6,8 @@ import pytest
 import subprocess
 
 from pre_commit.prefixed_command_runner import _replace_cmd
-from pre_commit.prefixed_command_runner import CalledProcessError
 from pre_commit.prefixed_command_runner import PrefixedCommandRunner
+from pre_commit.util import CalledProcessError
 
 
 def test_CalledProcessError_str():
@@ -65,7 +65,7 @@ def test_run_substitutes_prefix(popen_mock, makedirs_mock):
     )
     ret = instance.run(['{prefix}bar', 'baz'], retcode=None)
     popen_mock.assert_called_once_with(
-        ['prefix/bar', 'baz'],
+        ('prefix/bar', 'baz'),
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
@@ -116,7 +116,7 @@ def test_from_command_runner_preserves_popen(popen_mock, makedirs_mock):
     second = PrefixedCommandRunner.from_command_runner(first, 'bar')
     second.run(['foo/bar/baz'], retcode=None)
     popen_mock.assert_called_once_with(
-        ['foo/bar/baz'],
+        ('foo/bar/baz',),
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
