@@ -1,3 +1,9 @@
+0.3.1
+=====
+- Fix error clobbering #174.
+- Remove dependency on `plumbum`.
+- Allow pre-commit to be run from anywhere in a repository #175.
+
 0.3.0
 =====
 - Add `--files` option to `pre-commit run`
