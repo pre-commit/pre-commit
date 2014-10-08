@@ -1,3 +1,7 @@
+0.3.2
+=====
+- Fix for `staged_files_only` with color.diff = always #176.
+
 0.3.1
 =====
 - Fix error clobbering #174.
