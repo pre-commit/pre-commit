@@ -70,6 +70,11 @@ def test_foo_something_unstaged(foo_staged, cmd_runner):
     _test_foo_state(foo_staged, 'herp\nderp\n', 'AM')
 
 
+def test_foo_something_unstaged_diff_color_always(foo_staged, cmd_runner):
+    cmd_output('git', 'config', '--local', 'color.diff', 'always')
+    test_foo_something_unstaged(foo_staged, cmd_runner)
+
+
 def test_foo_both_modify_non_conflicting(foo_staged, cmd_runner):
     with io.open(foo_staged.foo_filename, 'w') as foo_file:
         foo_file.write(FOO_CONTENTS + '9\n')
