@@ -13,3 +13,4 @@ before_install:
   - git config --global user.email "user@example.com"
 after_success:
     - coveralls
+sudo: false
