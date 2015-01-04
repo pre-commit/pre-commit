@@ -1,9 +1,10 @@
 from __future__ import unicode_literals
 
-import pytest
 import os
 import os.path
 import random
+
+import pytest
 
 from pre_commit.util import clean_path_on_failure
 from pre_commit.util import cwd

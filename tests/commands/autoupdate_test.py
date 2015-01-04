@@ -1,7 +1,8 @@
 from __future__ import unicode_literals
 
-import pytest
 import shutil
+
+import pytest
 
 import pre_commit.constants as C
 from pre_commit.commands.autoupdate import _update_repository

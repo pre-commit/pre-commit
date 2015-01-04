@@ -2,11 +2,12 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 import io
-import mock
 import os
 import os.path
-import pytest
 import shutil
+
+import mock
+import pytest
 
 from pre_commit import five
 from pre_commit.store import _get_default_directory

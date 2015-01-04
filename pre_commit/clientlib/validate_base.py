@@ -2,11 +2,12 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import argparse
-import jsonschema
-import jsonschema.exceptions
 import os.path
 import re
 import sys
+
+import jsonschema
+import jsonschema.exceptions
 import yaml
 
 from pre_commit.jsonschema_extensions import apply_defaults

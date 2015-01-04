@@ -3,12 +3,13 @@ from __future__ import unicode_literals
 
 import io
 import os.path
+
 from aspy.yaml import ordered_dump
 
 import pre_commit.constants as C
-from pre_commit.clientlib.validate_manifest import load_manifest
 from pre_commit.clientlib.validate_config import CONFIG_JSON_SCHEMA
 from pre_commit.clientlib.validate_config import validate_config_extra
+from pre_commit.clientlib.validate_manifest import load_manifest
 from pre_commit.jsonschema_extensions import apply_defaults
 from pre_commit.ordereddict import OrderedDict
 from pre_commit.util import cmd_output

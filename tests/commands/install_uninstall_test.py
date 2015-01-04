@@ -2,20 +2,21 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 import io
-import mock
 import os
 import os.path
 import re
-import subprocess
 import stat
+import subprocess
 import sys
 
+import mock
+
 from pre_commit.commands.install_uninstall import IDENTIFYING_HASH
-from pre_commit.commands.install_uninstall import PREVIOUS_IDENTIFYING_HASHES
 from pre_commit.commands.install_uninstall import install
 from pre_commit.commands.install_uninstall import is_our_pre_commit
 from pre_commit.commands.install_uninstall import is_previous_pre_commit
 from pre_commit.commands.install_uninstall import make_executable
+from pre_commit.commands.install_uninstall import PREVIOUS_IDENTIFYING_HASHES
 from pre_commit.commands.install_uninstall import uninstall
 from pre_commit.runner import Runner
 from pre_commit.util import cmd_output

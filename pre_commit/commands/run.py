@@ -5,8 +5,8 @@ import logging
 import os
 import sys
 
-from pre_commit import git
 from pre_commit import color
+from pre_commit import git
 from pre_commit.logging_handler import LoggingHandler
 from pre_commit.output import get_hook_message
 from pre_commit.output import sys_stdout_write_wrapper

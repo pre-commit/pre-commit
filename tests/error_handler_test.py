@@ -3,9 +3,10 @@ from __future__ import unicode_literals
 
 import io
 import os.path
+import re
+
 import mock
 import pytest
-import re
 
 from pre_commit import error_handler
 from pre_commit.errors import FatalError

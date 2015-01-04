@@ -2,11 +2,12 @@
 from __future__ import unicode_literals
 
 import io
-import mock
 import os
 import os.path
-import pytest
 import subprocess
+
+import mock
+import pytest
 
 from pre_commit.commands.install_uninstall import install
 from pre_commit.commands.run import _get_skips

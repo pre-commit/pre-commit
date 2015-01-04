@@ -5,11 +5,12 @@ import functools
 import hashlib
 import os
 import os.path
-import pkg_resources
 import shutil
 import subprocess
 import tarfile
 import tempfile
+
+import pkg_resources
 
 
 @contextlib.contextmanager

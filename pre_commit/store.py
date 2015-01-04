@@ -5,6 +5,7 @@ import logging
 import os
 import os.path
 import tempfile
+
 from cached_property import cached_property
 
 from pre_commit.prefixed_command_runner import PrefixedCommandRunner

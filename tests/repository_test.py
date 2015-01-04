@@ -2,8 +2,9 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 import io
-import mock
 import os.path
+
+import mock
 import pytest
 
 from pre_commit.clientlib.validate_config import CONFIG_JSON_SCHEMA
