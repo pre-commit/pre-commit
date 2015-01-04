@@ -1,9 +1,10 @@
 from __future__ import unicode_literals
 
 import os
+import subprocess
+
 import mock
 import pytest
-import subprocess
 
 from pre_commit.prefixed_command_runner import _replace_cmd
 from pre_commit.prefixed_command_runner import PrefixedCommandRunner

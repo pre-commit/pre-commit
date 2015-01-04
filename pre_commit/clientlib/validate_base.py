@@ -2,11 +2,12 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import argparse
-import jsonschema
-import jsonschema.exceptions
 import os.path
 import re
 import sys
+
+import jsonschema
+import jsonschema.exceptions
 import yaml
 
 from pre_commit.jsonschema_extensions import apply_defaults
@@ -78,10 +79,6 @@ def get_run_function(filenames_help, validate_strategy, exception_cls):
                 validate_strategy(filename)
             except exception_cls as e:
                 print(e.args[0])
-                # If there was an inner exception, print the stringified
-                # version of that.
-                if len(e.args) > 1:
-                    print(str(e.args[1]))
                 retval = 1
         return retval
     return run

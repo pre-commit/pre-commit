@@ -1,10 +1,11 @@
 from __future__ import unicode_literals
 
-import jsonschema
 import os
 import os.path
-import pytest
 import shutil
+
+import jsonschema
+import pytest
 
 from pre_commit.util import cmd_output
 from pre_commit.util import cwd

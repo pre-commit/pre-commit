@@ -4,10 +4,11 @@ from __future__ import unicode_literals
 
 import io
 import logging
-import mock
 import os.path
-import pytest
 import shutil
+
+import mock
+import pytest
 
 from pre_commit.staged_files_only import staged_files_only
 from pre_commit.util import cmd_output

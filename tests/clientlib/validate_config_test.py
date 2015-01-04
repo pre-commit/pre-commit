@@ -7,8 +7,8 @@ from pre_commit.clientlib.validate_config import InvalidConfigError
 from pre_commit.clientlib.validate_config import run
 from pre_commit.clientlib.validate_config import validate_config_extra
 from pre_commit.jsonschema_extensions import apply_defaults
-from testing.util import is_valid_according_to_schema
 from testing.util import get_resource_path
+from testing.util import is_valid_according_to_schema
 
 
 @pytest.mark.parametrize(

@@ -1,8 +1,9 @@
 from __future__ import unicode_literals
 
+import sys
+
 import mock
 import pytest
-import sys
 
 from pre_commit.color import format_color
 from pre_commit.color import GREEN

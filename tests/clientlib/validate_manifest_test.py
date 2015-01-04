@@ -6,8 +6,8 @@ from pre_commit.clientlib.validate_manifest import additional_manifest_check
 from pre_commit.clientlib.validate_manifest import InvalidManifestError
 from pre_commit.clientlib.validate_manifest import MANIFEST_JSON_SCHEMA
 from pre_commit.clientlib.validate_manifest import run
-from testing.util import is_valid_according_to_schema
 from testing.util import get_resource_path
+from testing.util import is_valid_according_to_schema
 
 
 @pytest.mark.parametrize(

@@ -1,8 +1,9 @@
 from __future__ import unicode_literals
 
 import argparse
-import pkg_resources
 import sys
+
+import pkg_resources
 
 from pre_commit import color
 from pre_commit.commands.autoupdate import autoupdate
