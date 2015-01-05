@@ -79,10 +79,6 @@ def get_run_function(filenames_help, validate_strategy, exception_cls):
                 validate_strategy(filename)
             except exception_cls as e:
                 print(e.args[0])
-                # If there was an inner exception, print the stringified
-                # version of that.
-                if len(e.args) > 1:
-                    print(str(e.args[1]))
                 retval = 1
         return retval
     return run

@@ -3,5 +3,5 @@
 coverage
 flake8
 mock
-pylint
+pylint<1.4
 pytest
