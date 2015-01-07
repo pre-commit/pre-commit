@@ -19,7 +19,23 @@ def test_CalledProcessError_str():
         "Command: ['git', 'status']\n"
         "Return code: 1\n"
         "Expected return code: 0\n"
-        "Output: ('stdout', 'stderr')\n"
+        "Output: \n"
+        "    stdout\n"
+        "Errors: \n"
+        "    stderr\n"
+    )
+
+
+def test_CalledProcessError_str_nooutput():
+    error = CalledProcessError(
+        1, [str('git'), str('status')], 0, (str(''), str(''))
+    )
+    assert str(error) == (
+        "Command: ['git', 'status']\n"
+        "Return code: 1\n"
+        "Expected return code: 0\n"
+        "Output: (none)\n"
+        "Errors: (none)\n"
     )
 
 

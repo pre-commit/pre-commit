@@ -108,15 +108,23 @@ class CalledProcessError(RuntimeError):
         self.output = output
 
     def __str__(self):
+        output = []
+        for text in self.output:
+            if text:
+                output.append('\n    ' + text.replace('\n', '\n    '))
+            else:
+                output.append('(none)')
+
         return (
             'Command: {0!r}\n'
             'Return code: {1}\n'
             'Expected return code: {2}\n'
-            'Output: {3!r}\n'.format(
+            'Output: {3}\n'
+            'Errors: {4}\n'.format(
                 self.cmd,
                 self.returncode,
                 self.expected_returncode,
-                self.output,
+                *output
             )
         )
 
