@@ -1,3 +1,7 @@
+0.3.3
+=====
+- Improve message for `CalledProcessError`
+
 0.3.2
 =====
 - Fix for `staged_files_only` with color.diff = always #176.
