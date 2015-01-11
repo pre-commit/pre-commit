@@ -7,6 +7,7 @@ import os.path
 import pre_commit.constants as C
 from pre_commit.runner import Runner
 from pre_commit.util import cwd
+from pre_commit.util import resource_filename
 from testing.fixtures import git_dir
 from testing.fixtures import make_consuming_repo
 
@@ -56,6 +57,34 @@ def test_pre_commit_path():
     runner = Runner('foo/bar')
     expected_path = os.path.join('foo/bar', '.git/hooks/pre-commit')
     assert runner.pre_commit_path == expected_path
+
+
+def test_pre_push_path():
+    runner = Runner('foo/bar')
+    expected_path = os.path.join('foo/bar', '.git/hooks/pre-push')
+    assert runner.pre_push_path == expected_path
+
+
+def test_pre_commit_legacy_path():
+    runner = Runner('foo/bar')
+    expected_path = os.path.join('foo/bar', '.git/hooks/pre-commit.legacy')
+    assert runner.pre_commit_legacy_path == expected_path
+
+
+def test_pre_push_legacy_path():
+    runner = Runner('foo/bar')
+    expected_path = os.path.join('foo/bar', '.git/hooks/pre-push.legacy')
+    assert runner.pre_push_legacy_path == expected_path
+
+
+def test_pre_template():
+    runner = Runner('foo/bar')
+    assert runner.pre_template == resource_filename('hook-tmpl')
+
+
+def test_pre_push_template():
+    runner = Runner('foo/bar')
+    assert runner.pre_push_template == resource_filename('pre-push-tmpl')
 
 
 def test_cmd_runner(mock_out_store_directory):
