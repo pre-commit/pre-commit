@@ -7,6 +7,7 @@ HERE=`pwd`
 popd > /dev/null
 
 retv=0
+args=""
 
 ENV_PYTHON='{sys_executable}'
 
@@ -23,29 +24,30 @@ if ((
         (ENV_PYTHON_RETV != 0) &&
         (PYTHON_RETV != 0)
 )); then
-    echo '`pre-commit` not found.  Did you forget to activate your virtualenv?'
+    echo '`{hook_type}` not found.  Did you forget to activate your virtualenv?'
     exit 1
 fi
 
 
 # Run the legacy pre-commit if it exists
-if [ -x "$HERE"/pre-commit.legacy ]; then
-    "$HERE"/pre-commit.legacy
+if [ -x "$HERE"/{hook_type}.legacy ]; then
+    "$HERE"/{hook_type}.legacy
     if [ $? -ne 0 ]; then
         retv=1
     fi
 fi
 
+{pre_push}
 
 # Run pre-commit
 if ((WHICH_RETV == 0)); then
-    pre-commit
+    pre-commit $args
     PRE_COMMIT_RETV=$?
 elif ((ENV_PYTHON_RETV == 0)); then
-    "$ENV_PYTHON" -m pre_commit.main
+    "$ENV_PYTHON" -m pre_commit.main $args
     PRE_COMMIT_RETV=$?
 else
-    python -m pre_commit.main
+    python -m pre_commit.main $args
     PRE_COMMIT_RETV=$?
 fi
 
