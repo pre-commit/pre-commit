@@ -3,3 +3,4 @@
     entry: bin/hook.sh
     language: script
     files: ''
+    args: [hello, world]

@@ -19,6 +19,7 @@ def manifest(store, tmpdir_factory):
 def test_manifest_contents(manifest):
     # Should just retrieve the manifest contents
     assert manifest.manifest_contents == [{
+        'args': [],
         'description': '',
         'entry': 'bin/hook.sh',
         'expected_return_value': 0,
@@ -32,6 +33,7 @@ def test_manifest_contents(manifest):
 
 def test_hooks(manifest):
     assert manifest.hooks['bash_hook'] == {
+        'args': [],
         'description': '',
         'entry': 'bin/hook.sh',
         'expected_return_value': 0,
