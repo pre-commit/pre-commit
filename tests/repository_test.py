@@ -113,7 +113,9 @@ def test_run_a_script_hook(tmpdir_factory, store):
 def test_run_hook_with_spaced_args(tmpdir_factory, store):
     _test_hook_repo(
         tmpdir_factory, store, 'arg_per_line_hooks_repo',
-        'arg-per-line', ['foo bar', 'baz'], 'arg: foo bar\narg: baz\n',
+        'arg-per-line',
+        ['foo bar', 'baz'],
+        'arg: hello\narg: world\narg: foo bar\narg: baz\n',
     )
 
 

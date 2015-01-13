@@ -30,7 +30,6 @@ CONFIG_JSON_SCHEMA = {
                         'language_version': {'type': 'string'},
                         'args': {
                             'type': 'array',
-                            'default': [],
                             'items': {'type': 'string'},
                         },
                     },
