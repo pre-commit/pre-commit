@@ -1,3 +1,7 @@
+0.3.4
+=====
+- Allow hook providers to default `args` in `hooks.yaml`
+
 0.3.3
 =====
 - Improve message for `CalledProcessError`
