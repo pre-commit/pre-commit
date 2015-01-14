@@ -10,6 +10,7 @@ from pre_commit import git
 from pre_commit.clientlib.validate_config import load_config
 from pre_commit.repository import Repository
 from pre_commit.store import Store
+from pre_commit.util import resource_filename
 
 
 class Runner(object):
@@ -43,16 +44,38 @@ class Runner(object):
             repository.require_installed()
         return repositories
 
-    @cached_property
-    def pre_commit_path(self):
-        return os.path.join(self.git_root, '.git', 'hooks', 'pre-commit')
+    def get_hook_path(self, hook_type):
+        return os.path.join(self.git_root, '.git', 'hooks', hook_type)
 
     @cached_property
+    def pre_commit_path(self):
+        return self.get_hook_path('pre-commit')
+
+    @cached_property
+    def pre_push_path(self):
+        return self.get_hook_path('pre-push')
+
+    @cached_property
+    def pre_template(self):
+        return resource_filename('hook-tmpl')
+
+    @cached_property
+    def pre_push_template(self):
+        return resource_filename('pre-push-tmpl')
+
+    @property
     def pre_commit_legacy_path(self):
         """The path in the 'hooks' directory representing the temporary
         storage for existing pre-commit hooks.
         """
         return self.pre_commit_path + '.legacy'
+
+    @property
+    def pre_push_legacy_path(self):
+        """The path in the 'hooks' directory representing the temporary
+        storage for existing pre-push hooks.
+        """
+        return self.pre_push_path + '.legacy'
 
     @cached_property
     def cmd_runner(self):

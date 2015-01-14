@@ -30,7 +30,8 @@ setup(
     packages=find_packages('.', exclude=('tests*', 'testing*')),
     package_data={
         'pre_commit': [
-            'resources/pre-commit-hook',
+            'resources/hook-tmpl',
+            'resources/pre-push-tmpl',
             'resources/rbenv.tar.gz',
             'resources/ruby-build.tar.gz',
             'resources/ruby-download.tar.gz',

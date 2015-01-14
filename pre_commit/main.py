@@ -44,8 +44,18 @@ def main(argv=None):
             'in the config file.'
         ),
     )
+    install_parser.add_argument(
+        '-t', '--hook-type', choices=('pre-commit', 'pre-push'),
+        default='pre-commit',
+    )
 
-    subparsers.add_parser('uninstall', help='Uninstall the pre-commit script.')
+    uninstall_parser = subparsers.add_parser(
+        'uninstall', help='Uninstall the pre-commit script.',
+    )
+    uninstall_parser.add_argument(
+        '-t', '--hook-type', choices=('pre-commit', 'pre-push'),
+        default='pre-commit',
+    )
 
     subparsers.add_parser('clean', help='Clean out pre-commit files.')
 
@@ -66,6 +76,15 @@ def main(argv=None):
     )
     run_parser.add_argument(
         '--verbose', '-v', action='store_true', default=False,
+    )
+
+    run_parser.add_argument(
+        '--origin', '-o', default='',
+        help='The origin branch"s commit_id when using `git push`',
+    )
+    run_parser.add_argument(
+        '--source', '-s', default='',
+        help='The remote branch"s commit_id when using `git push`',
     )
     run_mutex_group = run_parser.add_mutually_exclusive_group(required=False)
     run_mutex_group.add_argument(
@@ -98,9 +117,10 @@ def main(argv=None):
         if args.command == 'install':
             return install(
                 runner, overwrite=args.overwrite, hooks=args.install_hooks,
+                hook_type=args.hook_type,
             )
         elif args.command == 'uninstall':
-            return uninstall(runner)
+            return uninstall(runner, hook_type=args.hook_type)
         elif args.command == 'clean':
             return clean(runner)
         elif args.command == 'autoupdate':

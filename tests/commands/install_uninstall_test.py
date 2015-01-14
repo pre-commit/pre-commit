@@ -10,7 +10,7 @@ import subprocess
 import sys
 
 import mock
-
+from pre_commit.commands.install_uninstall import get_hook_path
 from pre_commit.commands.install_uninstall import IDENTIFYING_HASH
 from pre_commit.commands.install_uninstall import install
 from pre_commit.commands.install_uninstall import is_our_pre_commit
@@ -22,6 +22,7 @@ from pre_commit.runner import Runner
 from pre_commit.util import cmd_output
 from pre_commit.util import cwd
 from pre_commit.util import resource_filename
+
 from testing.fixtures import git_dir
 from testing.fixtures import make_consuming_repo
 
@@ -31,7 +32,7 @@ def test_is_not_our_pre_commit():
 
 
 def test_is_our_pre_commit():
-    assert is_our_pre_commit(resource_filename('pre-commit-hook'))
+    assert is_our_pre_commit(resource_filename('hook-tmpl'))
 
 
 def test_is_not_previous_pre_commit():
@@ -39,7 +40,7 @@ def test_is_not_previous_pre_commit():
 
 
 def test_is_also_not_previous_pre_commit():
-    assert not is_previous_pre_commit(resource_filename('pre-commit-hook'))
+    assert not is_previous_pre_commit(resource_filename('hook-tmpl'))
 
 
 def test_is_previous_pre_commit(in_tmpdir):
@@ -56,13 +57,27 @@ def test_install_pre_commit(tmpdir_factory):
     assert ret == 0
     assert os.path.exists(runner.pre_commit_path)
     pre_commit_contents = io.open(runner.pre_commit_path).read()
-    pre_commit_script = resource_filename('pre-commit-hook')
+    pre_commit_script = resource_filename('hook-tmpl')
     expected_contents = io.open(pre_commit_script).read().format(
         sys_executable=sys.executable,
+        hook_type='pre-commit',
+        pre_push=''
     )
     assert pre_commit_contents == expected_contents
     stat_result = os.stat(runner.pre_commit_path)
     assert stat_result.st_mode & (stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+
+    ret = install(runner, hook_type='pre-push')
+    assert ret == 0
+    assert os.path.exists(runner.pre_push_path)
+    pre_push_contents = io.open(runner.pre_push_path).read()
+    pre_push_template_contents = io.open(runner.pre_push_template).read()
+    expected_contents = io.open(pre_commit_script).read().format(
+        sys_executable=sys.executable,
+        hook_type='pre-push',
+        pre_push=pre_push_template_contents
+    )
+    assert pre_push_contents == expected_contents
 
 
 def test_uninstall_does_not_blow_up_when_not_there(tmpdir_factory):
@@ -322,7 +337,7 @@ def test_replace_old_commit_script(tmpdir_factory):
 
         # Install a script that looks like our old script
         pre_commit_contents = io.open(
-            resource_filename('pre-commit-hook'),
+            resource_filename('hook-tmpl'),
         ).read()
         new_contents = pre_commit_contents.replace(
             IDENTIFYING_HASH, PREVIOUS_IDENTIFYING_HASHES[-1],
@@ -391,3 +406,17 @@ def test_installed_from_venv(tmpdir_factory):
         )
         assert ret == 0
         assert NORMAL_PRE_COMMIT_RUN.match(output)
+
+
+def test_get_hook_path(tmpdir_factory):
+    path = git_dir(tmpdir_factory)
+    with cwd(path):
+        runner = Runner(path)
+        expected_paths = (os.path.join(path, '.git/hooks/pre-commit'),
+                          os.path.join(path, '.git/hooks/pre-commit.legacy')
+                          )
+        assert expected_paths == get_hook_path(runner, 'pre-commit')
+        expected_paths = (os.path.join(path, '.git/hooks/pre-push'),
+                          os.path.join(path, '.git/hooks/pre-push.legacy')
+                          )
+        assert expected_paths == get_hook_path(runner, 'pre-push')
