@@ -11,6 +11,7 @@ from pre_commit.logging_handler import LoggingHandler
 from pre_commit.output import get_hook_message
 from pre_commit.output import sys_stdout_write_wrapper
 from pre_commit.staged_files_only import staged_files_only
+from pre_commit.util import cmd_output
 from pre_commit.util import noop_context
 
 
@@ -48,8 +49,18 @@ def _print_user_skipped(hook, write, args):
     ))
 
 
+def get_changed_files(new, old):
+    return cmd_output(
+        'git', 'diff', '--name-only', '{0}..{1}'.format(old, new),
+    )[1].splitlines()
+
+
 def _run_single_hook(runner, repository, hook, args, write, skips=set()):
-    if args.files:
+    if args.origin and args.source:
+        get_filenames = git.get_files_matching(
+            lambda: get_changed_files(args.origin, args.source),
+        )
+    elif args.files:
         get_filenames = git.get_files_matching(lambda: args.files)
     elif args.all_files:
         get_filenames = git.get_all_files_matching
@@ -136,6 +147,9 @@ def run(runner, args, write=sys_stdout_write_wrapper, environ=os.environ):
     # Check if we have unresolved merge conflict files and fail fast.
     if _has_unmerged_paths(runner):
         logger.error('Unmerged files.  Resolve before committing.')
+        return 1
+    if bool(args.source) != bool(args.origin):
+        logger.error('Specify both --origin and --source.')
         return 1
 
     # Don't stash if specified or files are specified

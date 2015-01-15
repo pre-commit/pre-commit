@@ -19,10 +19,11 @@ logger = logging.getLogger('pre_commit')
 PREVIOUS_IDENTIFYING_HASHES = (
     '4d9958c90bc262f47553e2c073f14cfe',
     'd8ee923c46731b42cd95cc869add4062',
+    '49fd668cb42069aa1b6048464be5d395',
 )
 
 
-IDENTIFYING_HASH = '49fd668cb42069aa1b6048464be5d395'
+IDENTIFYING_HASH = '79f09a650522a87b0da915d0d983b2de'
 
 
 def is_our_pre_commit(filename):
@@ -42,37 +43,46 @@ def make_executable(filename):
     )
 
 
-def install(runner, overwrite=False, hooks=False):
+def install(runner, overwrite=False, hooks=False, hook_type='pre-commit'):
     """Install the pre-commit hooks."""
-    pre_commit_file = resource_filename('pre-commit-hook')
+    hook_path = runner.get_hook_path(hook_type)
+    legacy_path = hook_path + '.legacy'
 
     # If we have an existing hook, move it to pre-commit.legacy
     if (
-        os.path.exists(runner.pre_commit_path) and
-        not is_our_pre_commit(runner.pre_commit_path) and
-        not is_previous_pre_commit(runner.pre_commit_path)
+        os.path.exists(hook_path) and
+        not is_our_pre_commit(hook_path) and
+        not is_previous_pre_commit(hook_path)
     ):
-        os.rename(runner.pre_commit_path, runner.pre_commit_legacy_path)
+        os.rename(hook_path, legacy_path)
 
     # If we specify overwrite, we simply delete the legacy file
-    if overwrite and os.path.exists(runner.pre_commit_legacy_path):
-        os.remove(runner.pre_commit_legacy_path)
-    elif os.path.exists(runner.pre_commit_legacy_path):
+    if overwrite and os.path.exists(legacy_path):
+        os.remove(legacy_path)
+    elif os.path.exists(legacy_path):
         print(
             'Running in migration mode with existing hooks at {0}\n'
             'Use -f to use only pre-commit.'.format(
-                runner.pre_commit_legacy_path,
+                legacy_path,
             )
         )
 
-    with io.open(runner.pre_commit_path, 'w') as pre_commit_file_obj:
-        contents = io.open(pre_commit_file).read().format(
+    with io.open(hook_path, 'w') as pre_commit_file_obj:
+        if hook_type == 'pre-push':
+            with io.open(resource_filename('pre-push-tmpl')) as fp:
+                pre_push_contents = fp.read()
+        else:
+            pre_push_contents = ''
+
+        contents = io.open(resource_filename('hook-tmpl')).read().format(
             sys_executable=sys.executable,
+            hook_type=hook_type,
+            pre_push=pre_push_contents,
         )
         pre_commit_file_obj.write(contents)
-    make_executable(runner.pre_commit_path)
+    make_executable(hook_path)
 
-    print('pre-commit installed at {0}'.format(runner.pre_commit_path))
+    print('pre-commit installed at {0}'.format(hook_path))
 
     # If they requested we install all of the hooks, do so.
     if hooks:
@@ -85,22 +95,24 @@ def install(runner, overwrite=False, hooks=False):
     return 0
 
 
-def uninstall(runner):
+def uninstall(runner, hook_type='pre-commit'):
     """Uninstall the pre-commit hooks."""
+    hook_path = runner.get_hook_path(hook_type)
+    legacy_path = hook_path + '.legacy'
     # If our file doesn't exist or it isn't ours, gtfo.
     if (
-        not os.path.exists(runner.pre_commit_path) or (
-            not is_our_pre_commit(runner.pre_commit_path) and
-            not is_previous_pre_commit(runner.pre_commit_path)
+        not os.path.exists(hook_path) or (
+            not is_our_pre_commit(hook_path) and
+            not is_previous_pre_commit(hook_path)
         )
     ):
         return 0
 
-    os.remove(runner.pre_commit_path)
-    print('pre-commit uninstalled')
+    os.remove(hook_path)
+    print('{0} uninstalled'.format(hook_type))
 
-    if os.path.exists(runner.pre_commit_legacy_path):
-        os.rename(runner.pre_commit_legacy_path, runner.pre_commit_path)
-        print('Restored previous hooks to {0}'.format(runner.pre_commit_path))
+    if os.path.exists(legacy_path):
+        os.rename(legacy_path, hook_path)
+        print('Restored previous hooks to {0}'.format(hook_path))
 
     return 0

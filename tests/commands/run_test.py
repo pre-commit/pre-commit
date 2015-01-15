@@ -12,6 +12,7 @@ import pytest
 from pre_commit.commands.install_uninstall import install
 from pre_commit.commands.run import _get_skips
 from pre_commit.commands.run import _has_unmerged_paths
+from pre_commit.commands.run import get_changed_files
 from pre_commit.commands.run import run
 from pre_commit.runner import Runner
 from pre_commit.util import cmd_output
@@ -50,6 +51,8 @@ def _get_opts(
         verbose=False,
         hook=None,
         no_stash=False,
+        origin='',
+        source='',
 ):
     # These are mutually exclusive
     assert not (all_files and files)
@@ -60,6 +63,8 @@ def _get_opts(
         verbose=verbose,
         hook=hook,
         no_stash=no_stash,
+        origin=origin,
+        source=source,
     )
 
 
@@ -124,6 +129,29 @@ def test_run(
         mock_out_store_directory,
 ):
     _test_run(repo_with_passing_hook, options, outputs, expected_ret, stage)
+
+
+@pytest.mark.parametrize(
+    ('origin', 'source', 'expect_failure'),
+    (
+        ('master', 'master', False),
+        ('master', '', True),
+        ('', 'master', True),
+    )
+)
+def test_origin_source_error_msg(
+        repo_with_passing_hook, origin, source, expect_failure,
+        mock_out_store_directory,
+):
+    args = _get_opts(origin=origin, source=source)
+    ret, printed = _do_run(repo_with_passing_hook, args)
+    warning_msg = 'Specify both --origin and --source.'
+    if expect_failure:
+        assert ret == 1
+        assert warning_msg in printed
+    else:
+        assert ret == 0
+        assert warning_msg not in printed
 
 
 @pytest.mark.parametrize(
@@ -267,3 +295,11 @@ def test_stdout_write_bug_py26(
         assert 'UnicodeEncodeError' not in stdout
         # Doesn't actually happen, but a reasonable assertion
         assert 'UnicodeDecodeError' not in stdout
+
+
+def test_get_changed_files():
+    files = get_changed_files(
+        '78c682a1d13ba20e7cb735313b9314a74365cd3a',
+        '3387edbb1288a580b37fe25225aa0b856b18ad1a',
+    )
+    assert files == ['CHANGELOG.md', 'setup.py']

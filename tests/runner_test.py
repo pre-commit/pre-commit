@@ -58,6 +58,12 @@ def test_pre_commit_path():
     assert runner.pre_commit_path == expected_path
 
 
+def test_pre_push_path():
+    runner = Runner('foo/bar')
+    expected_path = os.path.join('foo/bar', '.git/hooks/pre-push')
+    assert runner.pre_push_path == expected_path
+
+
 def test_cmd_runner(mock_out_store_directory):
     runner = Runner('foo/bar')
     ret = runner.cmd_runner
