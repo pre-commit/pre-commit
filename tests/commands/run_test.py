@@ -132,20 +132,21 @@ def test_run(
 
 
 @pytest.mark.parametrize(
-    ('origin', 'source', 'expect_stash'),
+    ('origin', 'source', 'expect_failure'),
     (
         ('master', 'master', False),
         ('master', '', True),
         ('', 'master', True),
     )
 )
-def test_origin_source_define(
-        repo_with_passing_hook, origin, source, expect_stash,
-        mock_out_store_directory):
+def test_origin_source_error_msg(
+        repo_with_passing_hook, origin, source, expect_failure,
+        mock_out_store_directory,
+):
     args = _get_opts(origin=origin, source=source)
     ret, printed = _do_run(repo_with_passing_hook, args)
-    warning_msg = '--origin and --source depend on each other.'
-    if expect_stash:
+    warning_msg = 'Specify both --origin and --source.'
+    if expect_failure:
         assert ret == 1
         assert warning_msg in printed
     else:
@@ -297,7 +298,8 @@ def test_stdout_write_bug_py26(
 
 
 def test_get_changed_files():
-    files = list(get_changed_files('78c682a1d13ba20e7cb735313b9314a74365cd3a',
-                                   '3387edbb1288a580b37fe25225aa0b856b18ad1a'
-                                   ))
+    files = get_changed_files(
+        '78c682a1d13ba20e7cb735313b9314a74365cd3a',
+        '3387edbb1288a580b37fe25225aa0b856b18ad1a',
+    )
     assert files == ['CHANGELOG.md', 'setup.py']

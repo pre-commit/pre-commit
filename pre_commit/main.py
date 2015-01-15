@@ -79,11 +79,11 @@ def main(argv=None):
     )
 
     run_parser.add_argument(
-        '--origin', '-o', default='',
+        '--origin', '-o',
         help='The origin branch"s commit_id when using `git push`',
     )
     run_parser.add_argument(
-        '--source', '-s', default='',
+        '--source', '-s',
         help='The remote branch"s commit_id when using `git push`',
     )
     run_mutex_group = run_parser.add_mutually_exclusive_group(required=False)

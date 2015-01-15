@@ -9,6 +9,7 @@ import stat
 import sys
 
 from pre_commit.logging_handler import LoggingHandler
+from pre_commit.util import resource_filename
 
 
 logger = logging.getLogger('pre_commit')
@@ -41,19 +42,10 @@ def make_executable(filename):
     )
 
 
-def get_hook_path(runner, hook_type):
-    if hook_type == 'pre-commit':
-        hook_path = runner.pre_commit_path
-        legacy_path = runner.pre_commit_legacy_path
-    else:
-        hook_path = runner.pre_push_path
-        legacy_path = runner.pre_push_legacy_path
-    return hook_path, legacy_path
-
-
 def install(runner, overwrite=False, hooks=False, hook_type='pre-commit'):
     """Install the pre-commit hooks."""
-    hook_path, legacy_path = get_hook_path(runner, hook_type)
+    hook_path = runner.get_hook_path(hook_type)
+    legacy_path = hook_path + '.legacy'
 
     # If we have an existing hook, move it to pre-commit.legacy
     if (
@@ -76,12 +68,12 @@ def install(runner, overwrite=False, hooks=False, hook_type='pre-commit'):
 
     with io.open(hook_path, 'w') as pre_commit_file_obj:
         if hook_type == 'pre-push':
-            with io.open(runner.pre_push_template) as fp:
+            with io.open(resource_filename('pre-push-tmpl')) as fp:
                 pre_push_contents = fp.read()
         else:
             pre_push_contents = ''
 
-        contents = io.open(runner.pre_template).read().format(
+        contents = io.open(resource_filename('hook-tmpl')).read().format(
             sys_executable=sys.executable,
             hook_type=hook_type,
             pre_push=pre_push_contents,
@@ -104,7 +96,8 @@ def install(runner, overwrite=False, hooks=False, hook_type='pre-commit'):
 
 def uninstall(runner, hook_type='pre-commit'):
     """Uninstall the pre-commit hooks."""
-    hook_path, legacy_path = get_hook_path(runner, hook_type)
+    hook_path = runner.get_hook_path(hook_type)
+    legacy_path = hook_path + '.legacy'
     # If our file doesn't exist or it isn't ours, gtfo.
     if (
         not os.path.exists(hook_path) or (

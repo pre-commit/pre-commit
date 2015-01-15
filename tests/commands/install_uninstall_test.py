@@ -10,7 +10,7 @@ import subprocess
 import sys
 
 import mock
-from pre_commit.commands.install_uninstall import get_hook_path
+
 from pre_commit.commands.install_uninstall import IDENTIFYING_HASH
 from pre_commit.commands.install_uninstall import install
 from pre_commit.commands.install_uninstall import is_our_pre_commit
@@ -22,7 +22,6 @@ from pre_commit.runner import Runner
 from pre_commit.util import cmd_output
 from pre_commit.util import cwd
 from pre_commit.util import resource_filename
-
 from testing.fixtures import git_dir
 from testing.fixtures import make_consuming_repo
 
@@ -71,11 +70,12 @@ def test_install_pre_commit(tmpdir_factory):
     assert ret == 0
     assert os.path.exists(runner.pre_push_path)
     pre_push_contents = io.open(runner.pre_push_path).read()
-    pre_push_template_contents = io.open(runner.pre_push_template).read()
+    pre_push_tmpl = resource_filename('pre-push-tmpl')
+    pre_push_template_contents = io.open(pre_push_tmpl).read()
     expected_contents = io.open(pre_commit_script).read().format(
         sys_executable=sys.executable,
         hook_type='pre-push',
-        pre_push=pre_push_template_contents
+        pre_push=pre_push_template_contents,
     )
     assert pre_push_contents == expected_contents
 
@@ -406,17 +406,3 @@ def test_installed_from_venv(tmpdir_factory):
         )
         assert ret == 0
         assert NORMAL_PRE_COMMIT_RUN.match(output)
-
-
-def test_get_hook_path(tmpdir_factory):
-    path = git_dir(tmpdir_factory)
-    with cwd(path):
-        runner = Runner(path)
-        expected_paths = (os.path.join(path, '.git/hooks/pre-commit'),
-                          os.path.join(path, '.git/hooks/pre-commit.legacy')
-                          )
-        assert expected_paths == get_hook_path(runner, 'pre-commit')
-        expected_paths = (os.path.join(path, '.git/hooks/pre-push'),
-                          os.path.join(path, '.git/hooks/pre-push.legacy')
-                          )
-        assert expected_paths == get_hook_path(runner, 'pre-push')
