@@ -19,10 +19,11 @@ logger = logging.getLogger('pre_commit')
 PREVIOUS_IDENTIFYING_HASHES = (
     '4d9958c90bc262f47553e2c073f14cfe',
     'd8ee923c46731b42cd95cc869add4062',
+    '49fd668cb42069aa1b6048464be5d395',
 )
 
 
-IDENTIFYING_HASH = '49fd668cb42069aa1b6048464be5d395'
+IDENTIFYING_HASH = '79f09a650522a87b0da915d0d983b2de'
 
 
 def is_our_pre_commit(filename):
