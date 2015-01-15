@@ -406,3 +406,46 @@ def test_installed_from_venv(tmpdir_factory):
         )
         assert ret == 0
         assert NORMAL_PRE_COMMIT_RUN.match(output)
+
+
+def _get_push_output(tmpdir_factory):
+    # Don't want to write to home directory
+    home = tmpdir_factory.get()
+    env = dict(os.environ, **{'PRE_COMMIT_HOME': home})
+    return cmd_output(
+        'git', 'push', 'origin', 'HEAD:new_branch',
+        # git commit puts pre-commit to stderr
+        stderr=subprocess.STDOUT,
+        env=env,
+        retcode=None,
+    )[:2]
+
+
+def test_pre_push_integration_failing(tmpdir_factory):
+    upstream = make_consuming_repo(tmpdir_factory, 'failing_hook_repo')
+    path = tmpdir_factory.get()
+    cmd_output('git', 'clone', upstream, path)
+    with cwd(path):
+        install(Runner(path), hook_type='pre-push')
+        # commit succeeds because pre-commit is only installed for pre-push
+        assert _get_commit_output(tmpdir_factory)[0] == 0
+
+        retc, output = _get_push_output(tmpdir_factory)
+        assert retc == 1
+        assert 'Failing hook' in output
+        assert 'Failed' in output
+        assert 'hookid: failing_hook' in output
+
+
+def test_pre_push_integration_accepted(tmpdir_factory):
+    upstream = make_consuming_repo(tmpdir_factory, 'script_hooks_repo')
+    path = tmpdir_factory.get()
+    cmd_output('git', 'clone', upstream, path)
+    with cwd(path):
+        install(Runner(path), hook_type='pre-push')
+        assert _get_commit_output(tmpdir_factory)[0] == 0
+
+        retc, output = _get_push_output(tmpdir_factory)
+        assert retc == 0
+        assert 'Bash hook' in output
+        assert 'Passed' in output
