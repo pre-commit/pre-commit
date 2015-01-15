@@ -1,3 +1,7 @@
+0.3.5
+=====
+- Support running as `pre-push`.
+
 0.3.4
 =====
 - Allow hook providers to default `args` in `hooks.yaml`
