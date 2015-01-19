@@ -4,7 +4,6 @@ from __future__ import unicode_literals
 import io
 import os
 import os.path
-import shutil
 import sqlite3
 
 import mock
@@ -15,6 +14,7 @@ from pre_commit.store import _get_default_directory
 from pre_commit.store import Store
 from pre_commit.util import cmd_output
 from pre_commit.util import cwd
+from pre_commit.util import rmtree
 from testing.fixtures import git_dir
 from testing.util import get_head_sha
 
@@ -30,7 +30,7 @@ def test_our_session_fixture_works():
 def test_get_default_directory_defaults_to_home():
     # Not we use the module level one which is not mocked
     ret = _get_default_directory()
-    assert ret == os.path.join(os.environ['HOME'], '.pre-commit')
+    assert ret == os.path.join(os.path.expanduser('~'), '.pre-commit')
 
 
 def test_uses_environment_variable_when_present():
@@ -61,7 +61,7 @@ def test_store_require_created_does_not_create_twice(store):
     store.require_created()
     # We intentionally delete the directory here so we can figure out if it
     # calls it again.
-    shutil.rmtree(store.directory)
+    rmtree(store.directory)
     assert not os.path.exists(store.directory)
     # Call require_created, this should not trigger a call to create
     store.require_created()

@@ -37,13 +37,13 @@ def test_error_handler_fatal_error(mocked_log_and_exit):
     )
 
     assert re.match(
-        'Traceback \(most recent call last\):\n'
-        '  File ".+/pre_commit/error_handler.py", line \d+, in error_handler\n'
-        '    yield\n'
-        '  File ".+/tests/error_handler_test.py", line \d+, '
-        'in test_error_handler_fatal_error\n'
-        '    raise exc\n'
-        '(pre_commit\.errors\.)?FatalError: just a test\n',
+        r'Traceback \(most recent call last\):\n'
+        r'  File ".+pre_commit.error_handler.py", line \d+, in error_handler\n'
+        r'    yield\n'
+        r'  File ".+tests.error_handler_test.py", line \d+, '
+        r'in test_error_handler_fatal_error\n'
+        r'    raise exc\n'
+        r'(pre_commit\.errors\.)?FatalError: just a test\n',
         mocked_log_and_exit.call_args[0][2],
     )
 
@@ -60,13 +60,13 @@ def test_error_handler_uncaught_error(mocked_log_and_exit):
         mock.ANY,
     )
     assert re.match(
-        'Traceback \(most recent call last\):\n'
-        '  File ".+/pre_commit/error_handler.py", line \d+, in error_handler\n'
-        '    yield\n'
-        '  File ".+/tests/error_handler_test.py", line \d+, '
-        'in test_error_handler_uncaught_error\n'
-        '    raise exc\n'
-        'ValueError: another test\n',
+        r'Traceback \(most recent call last\):\n'
+        r'  File ".+pre_commit.error_handler.py", line \d+, in error_handler\n'
+        r'    yield\n'
+        r'  File ".+tests.error_handler_test.py", line \d+, '
+        r'in test_error_handler_uncaught_error\n'
+        r'    raise exc\n'
+        r'ValueError: another test\n',
         mocked_log_and_exit.call_args[0][2],
     )
 

@@ -49,8 +49,27 @@ def is_valid_according_to_schema(obj, schema):
         return False
 
 
-def skipif_slowtests_false(func):
-    return pytest.mark.skipif(
-        os.environ.get('slowtests') == 'false',
-        reason='slowtests=false',
-    )(func)
+skipif_slowtests_false = pytest.mark.skipif(
+    os.environ.get('slowtests') == 'false',
+    reason='slowtests=false',
+)
+
+xfailif_windows_no_ruby = pytest.mark.xfail(
+    os.name == 'nt',
+    reason='Ruby support not yet implemented on windows.',
+)
+
+xfailif_windows_no_node = pytest.mark.xfail(
+    os.name == 'nt',
+    reason='Node support not yet implemented on windows.',
+)
+
+
+def platform_supports_pcre():
+    return cmd_output('grep', '-P', '', os.devnull, retcode=None)[0] == 1
+
+
+xfailif_no_pcre_support = pytest.mark.xfail(
+    not platform_supports_pcre(),
+    reason='grep -P is not supported on this platform',
+)

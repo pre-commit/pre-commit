@@ -3,10 +3,11 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import os.path
-import shutil
 
+from pre_commit import five
 from pre_commit.util import cmd_output
 from pre_commit.util import cwd
+from pre_commit.util import rmtree
 from pre_commit.util import tarfile_open
 from pre_commit.util import tmpdir
 
@@ -50,11 +51,9 @@ def make_archive(name, repo, ref, destdir):
         # We don't want the '.git' directory
         # It adds a bunch of size to the archive and we don't use it at
         # runtime
-        shutil.rmtree(os.path.join(tempdir, '.git'))
+        rmtree(os.path.join(tempdir, '.git'))
 
-        # XXX: py2.6 derps if filename is unicode while writing
-        # XXX: str() is used to preserve behavior in py3
-        with tarfile_open(str(output_path), 'w|gz') as tf:
+        with tarfile_open(five.n(output_path), 'w|gz') as tf:
             tf.add(tempdir, name)
 
     return output_path

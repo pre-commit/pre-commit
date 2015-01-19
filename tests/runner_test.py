@@ -41,8 +41,8 @@ def test_create_changes_to_git_root(tmpdir_factory):
 
 
 def test_config_file_path():
-    runner = Runner('foo/bar')
-    expected_path = os.path.join('foo/bar', C.CONFIG_FILE)
+    runner = Runner(os.path.join('foo', 'bar'))
+    expected_path = os.path.join('foo', 'bar', C.CONFIG_FILE)
     assert runner.config_file_path == expected_path
 
 
@@ -53,18 +53,18 @@ def test_repositories(tmpdir_factory, mock_out_store_directory):
 
 
 def test_pre_commit_path():
-    runner = Runner('foo/bar')
-    expected_path = os.path.join('foo/bar', '.git/hooks/pre-commit')
+    runner = Runner(os.path.join('foo', 'bar'))
+    expected_path = os.path.join('foo', 'bar', '.git', 'hooks', 'pre-commit')
     assert runner.pre_commit_path == expected_path
 
 
 def test_pre_push_path():
-    runner = Runner('foo/bar')
-    expected_path = os.path.join('foo/bar', '.git/hooks/pre-push')
+    runner = Runner(os.path.join('foo', 'bar'))
+    expected_path = os.path.join('foo', 'bar', '.git', 'hooks', 'pre-push')
     assert runner.pre_push_path == expected_path
 
 
 def test_cmd_runner(mock_out_store_directory):
-    runner = Runner('foo/bar')
+    runner = Runner(os.path.join('foo', 'bar'))
     ret = runner.cmd_runner
-    assert ret.prefix_dir == os.path.join(mock_out_store_directory) + '/'
+    assert ret.prefix_dir == os.path.join(mock_out_store_directory) + os.sep

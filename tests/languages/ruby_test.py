@@ -3,8 +3,10 @@ from __future__ import unicode_literals
 import os.path
 
 from pre_commit.languages.ruby import _install_rbenv
+from testing.util import xfailif_windows_no_ruby
 
 
+@xfailif_windows_no_ruby
 def test_install_rbenv(cmd_runner):
     _install_rbenv(cmd_runner)
     # Should have created rbenv directory
@@ -18,11 +20,12 @@ def test_install_rbenv(cmd_runner):
         [
             'bash',
             '-c',
-            '. {prefix}/rbenv/bin/activate && rbenv --help',
+            ". '{prefix}rbenv/bin/activate' && rbenv --help",
         ],
     )
 
 
+@xfailif_windows_no_ruby
 def test_install_rbenv_with_version(cmd_runner):
     _install_rbenv(cmd_runner, version='1.9.3p547')
 
@@ -31,6 +34,6 @@ def test_install_rbenv_with_version(cmd_runner):
         [
             'bash',
             '-c',
-            '. {prefix}/rbenv/bin/activate && rbenv install --help',
+            ". '{prefix}rbenv/bin/activate' && rbenv install --help",
         ],
     )

@@ -1,15 +1,19 @@
 from __future__ import unicode_literals
 
 import contextlib
+import errno
 import functools
 import os
 import os.path
 import shutil
+import stat
 import subprocess
 import tarfile
 import tempfile
 
 import pkg_resources
+
+from pre_commit import five
 
 
 @contextlib.contextmanager
@@ -46,7 +50,7 @@ def clean_path_on_failure(path):
         yield
     except BaseException:
         if os.path.exists(path):
-            shutil.rmtree(path)
+            rmtree(path)
         raise
 
 
@@ -78,7 +82,7 @@ def tmpdir():
     try:
         yield tempdir
     finally:
-        shutil.rmtree(tempdir)
+        rmtree(tempdir)
 
 
 def resource_filename(filename):
@@ -135,6 +139,13 @@ def cmd_output(*cmd, **kwargs):
     if stdin is not None:
         stdin = stdin.encode('UTF-8')
 
+    # py2/py3 on windows are more strict about the types here
+    cmd = [five.n(arg) for arg in cmd]
+    kwargs['env'] = dict(
+        (five.n(key), five.n(value))
+        for key, value in kwargs.pop('env', {}).items()
+    ) or None
+
     popen_kwargs.update(kwargs)
     proc = __popen(cmd, **popen_kwargs)
     stdout, stderr = proc.communicate(stdin)
@@ -150,3 +161,15 @@ def cmd_output(*cmd, **kwargs):
         )
 
     return proc.returncode, stdout, stderr
+
+
+def rmtree(path):
+    """On windows, rmtree fails for readonly dirs."""
+    def handle_remove_readonly(func, path, exc):  # pragma: no cover (windows)
+        excvalue = exc[1]
+        if func in (os.rmdir, os.remove) and excvalue.errno == errno.EACCES:
+            os.chmod(path, stat.S_IRWXU | stat.S_IRWXG | stat.S_IRWXO)
+            func(path)
+        else:
+            raise
+    shutil.rmtree(path, ignore_errors=False, onerror=handle_remove_readonly)

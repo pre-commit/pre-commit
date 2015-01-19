@@ -28,7 +28,7 @@ def _get_default_directory():
     """
     return os.environ.get(
         'PRE_COMMIT_HOME',
-        os.path.join(os.environ['HOME'], '.pre-commit'),
+        os.path.join(os.path.expanduser('~'), '.pre-commit'),
     )
 
 
