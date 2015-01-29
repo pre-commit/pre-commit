@@ -1,6 +1,6 @@
 0.3.5
 =====
-- Support running as `pre-push`.
+- Support running during `pre-push`.  See http://pre-commit.com/#advanced 'pre-commit during push'.
 
 0.3.4
 =====
