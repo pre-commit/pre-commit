@@ -1,3 +1,7 @@
+0.3.6
+=====
+- `args` in venv'd languages are now property quoted.
+
 0.3.5
 =====
 - Support running during `pre-push`.  See http://pre-commit.com/#advanced 'pre-commit during push'.
