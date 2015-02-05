@@ -1,13 +1,16 @@
 from __future__ import unicode_literals
 
+import pipes
+
 
 def file_args_to_stdin(file_args):
     return '\0'.join(list(file_args) + [''])
 
 
 def run_hook(env, hook, file_args):
+    quoted_args = [pipes.quote(arg) for arg in hook['args']]
     return env.run(
-        ' '.join(['xargs', '-0', hook['entry']] + hook['args']),
+        ' '.join(['xargs', '-0', hook['entry']] + quoted_args),
         stdin=file_args_to_stdin(file_args),
         retcode=None,
     )

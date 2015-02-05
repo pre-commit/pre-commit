@@ -27,9 +27,10 @@ def _test_hook_repo(
         args,
         expected,
         expected_return_code=0,
+        config_kwargs=None
 ):
     path = make_repo(tmpdir_factory, repo_path)
-    config = make_config_from_repo(path)
+    config = make_config_from_repo(path, **(config_kwargs or {}))
     repo = Repository.create(config, store)
     hook_dict = [
         hook for repo_hook_id, hook in repo.hooks if repo_hook_id == hook_id
@@ -44,6 +45,23 @@ def test_python_hook(tmpdir_factory, store):
     _test_hook_repo(
         tmpdir_factory, store, 'python_hooks_repo',
         'foo', ['/dev/null'], "['/dev/null']\nHello World\n",
+    )
+
+
+@pytest.mark.integration
+def test_python_hook_args_with_spaces(tmpdir_factory, store):
+    _test_hook_repo(
+        tmpdir_factory, store, 'python_hooks_repo',
+        'foo',
+        [],
+        "['i have spaces', 'and\"\\'quotes', '$and !this']\n"
+        'Hello World\n',
+        config_kwargs={
+            'hooks': [{
+                'id': 'foo',
+                'args': ['i have spaces', 'and"\'quotes', '$and !this'],
+            }]
+        },
     )
 
 
