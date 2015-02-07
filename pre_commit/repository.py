@@ -1,5 +1,7 @@
 from __future__ import unicode_literals
 
+import shutil
+
 from cached_property import cached_property
 
 from pre_commit.languages.all import languages
@@ -64,11 +66,21 @@ class Repository(object):
             language = languages[language_name]
             if (
                 language.ENVIRONMENT_DIR is None or
-                self.cmd_runner.exists(language.ENVIRONMENT_DIR)
+                self.cmd_runner.exists(language.ENVIRONMENT_DIR, '.installed')
             ):
                 # The language is already installed
                 continue
+            # There's potentially incomplete cleanup from previous runs
+            # Clean it up!
+            if self.cmd_runner.exists(language.ENVIRONMENT_DIR):
+                shutil.rmtree(self.cmd_runner.path(language.ENVIRONMENT_DIR))
+
             language.install_environment(self.cmd_runner, language_version)
+            # Touch the .installed file (atomic) to indicate we've installed
+            open(
+                self.cmd_runner.path(language.ENVIRONMENT_DIR, '.installed'),
+                'w',
+            ).close()
 
     def run_hook(self, hook, file_args):
         """Run a hook.
