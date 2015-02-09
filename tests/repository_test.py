@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 import io
 import os.path
+import shutil
 
 import mock
 import pytest
@@ -10,6 +11,7 @@ import pytest
 from pre_commit.clientlib.validate_config import CONFIG_JSON_SCHEMA
 from pre_commit.clientlib.validate_config import validate_config_extra
 from pre_commit.jsonschema_extensions import apply_defaults
+from pre_commit.languages.python import PythonEnv
 from pre_commit.repository import Repository
 from pre_commit.util import cmd_output
 from pre_commit.util import cwd
@@ -264,6 +266,35 @@ def test_reinstall(tmpdir_factory, store):
     # TODO: how to assert this?
     repo = Repository.create(config, store)
     repo.require_installed()
+
+
+def test_control_c_control_c_on_install(tmpdir_factory, store):
+    """Regression test for #186."""
+    path = make_repo(tmpdir_factory, 'python_hooks_repo')
+    config = make_config_from_repo(path)
+    repo = Repository.create(config, store)
+    hook = repo.hooks[0][1]
+
+    class MyKeyboardInterrupt(KeyboardInterrupt):
+        pass
+
+    # To simulate a killed install, we'll make PythonEnv.run raise ^C
+    # and then to simulate a second ^C during cleanup, we'll make shutil.rmtree
+    # raise as well.
+    with pytest.raises(MyKeyboardInterrupt):
+        with mock.patch.object(
+            PythonEnv, 'run', side_effect=MyKeyboardInterrupt,
+        ):
+            with mock.patch.object(shutil, 'rmtree', MyKeyboardInterrupt):
+                repo.run_hook(hook, [])
+
+    # Should have made an environment, however this environment is broken!
+    assert os.path.exists(repo.cmd_runner.path('py_env'))
+
+    # However, it should be perfectly runnable (reinstall after botched
+    # install)
+    retv, stdout, stderr = repo.run_hook(hook, [])
+    assert retv == 0
 
 
 @pytest.mark.integration
