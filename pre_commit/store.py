@@ -81,9 +81,7 @@ class Store(object):
         if os.path.exists(sha_path):
             return os.readlink(sha_path)
 
-        logger.info('Installing environment for {0}.'.format(url))
-        logger.info('Once installed this environment will be reused.')
-        logger.info('This may take a few minutes...')
+        logger.info('Initializing environment for {0}.'.format(url))
 
         dir = tempfile.mkdtemp(prefix='repo', dir=self.directory)
         with clean_path_on_failure(dir):

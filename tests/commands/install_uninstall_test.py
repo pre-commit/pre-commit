@@ -128,9 +128,7 @@ FILES_CHANGED = (
 
 
 NORMAL_PRE_COMMIT_RUN = re.compile(
-    r'^\[INFO\] Installing environment for .+\.\n'
-    r'\[INFO\] Once installed this environment will be reused\.\n'
-    r'\[INFO\] This may take a few minutes\.\.\.\n'
+    r'^\[INFO\] Initializing environment for .+\.\n'
     r'Bash hook\.+Passed\n'
     r'\[master [a-f0-9]{7}\] Commit!\n' +
     FILES_CHANGED +
@@ -180,9 +178,7 @@ def test_environment_not_sourced(tmpdir_factory):
 
 
 FAILING_PRE_COMMIT_RUN = re.compile(
-    r'^\[INFO\] Installing environment for .+\.\n'
-    r'\[INFO\] Once installed this environment will be reused\.\n'
-    r'\[INFO\] This may take a few minutes\.\.\.\n'
+    r'^\[INFO\] Initializing environment for .+\.\n'
     r'Failing hook\.+Failed\n'
     r'hookid: failing_hook\n'
     r'\n'
@@ -258,9 +254,7 @@ def test_install_existing_hook_no_overwrite_idempotent(tmpdir_factory):
 
 FAIL_OLD_HOOK = re.compile(
     r'fail!\n'
-    r'\[INFO\] Installing environment for .+\.\n'
-    r'\[INFO\] Once installed this environment will be reused\.\n'
-    r'\[INFO\] This may take a few minutes\.\.\.\n'
+    r'\[INFO\] Initializing environment for .+\.\n'
     r'Bash hook\.+Passed\n'
 )
 

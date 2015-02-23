@@ -11,7 +11,6 @@ import pytest
 
 from pre_commit import five
 from pre_commit.store import _get_default_directory
-from pre_commit.store import logger
 from pre_commit.store import Store
 from pre_commit.util import cmd_output
 from pre_commit.util import cwd
@@ -80,12 +79,6 @@ def test_does_not_recreate_if_directory_already_exists(store):
     assert not os.path.exists(os.path.join(store.directory, 'README'))
 
 
-@pytest.yield_fixture
-def log_info_mock():
-    with mock.patch.object(logger, 'info', autospec=True) as info_mock:
-        yield info_mock
-
-
 def test_clone(store, tmpdir_factory, log_info_mock):
     path = git_dir(tmpdir_factory)
     with cwd(path):
@@ -95,7 +88,9 @@ def test_clone(store, tmpdir_factory, log_info_mock):
 
     ret = store.clone(path, sha)
     # Should have printed some stuff
-    log_info_mock.assert_called_with('This may take a few minutes...')
+    assert log_info_mock.call_args_list[0][0][0].startswith(
+        'Initializing environment for '
+    )
 
     # Should return a directory inside of the store
     assert os.path.exists(ret)
