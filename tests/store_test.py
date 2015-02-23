@@ -5,6 +5,7 @@ import io
 import os
 import os.path
 import shutil
+import sqlite3
 
 import mock
 import pytest
@@ -14,7 +15,6 @@ from pre_commit.store import _get_default_directory
 from pre_commit.store import Store
 from pre_commit.util import cmd_output
 from pre_commit.util import cwd
-from pre_commit.util import hex_md5
 from testing.fixtures import git_dir
 from testing.util import get_head_sha
 
@@ -74,6 +74,7 @@ def test_does_not_recreate_if_directory_already_exists(store):
     # Note: we're intentionally leaving out the README file.  This is so we can
     # know that `Store` didn't call create
     os.mkdir(store.directory)
+    io.open(store.db_path, 'a+').close()
     # Call require_created, this should not call create
     store.require_created()
     assert not os.path.exists(os.path.join(store.directory, 'README'))
@@ -101,11 +102,13 @@ def test_clone(store, tmpdir_factory, log_info_mock):
     # Should be checked out to the sha we specified
     assert get_head_sha(ret) == sha
 
-    # Assert that we made a symlink from the sha to the repo
-    sha_path = os.path.join(store.directory, sha + '_' + hex_md5(path))
-    assert os.path.exists(sha_path)
-    assert os.path.islink(sha_path)
-    assert os.readlink(sha_path) == ret
+    # Assert there's an entry in the sqlite db for this
+    with sqlite3.connect(store.db_path) as db:
+        path, = db.execute(
+            'SELECT path from repos WHERE repo = ? and ref = ?',
+            [path, sha],
+        ).fetchone()
+        assert path == ret
 
 
 def test_clone_cleans_up_on_checkout_failure(store):
@@ -129,15 +132,22 @@ def test_has_cmd_runner_at_directory(store):
 
 
 def test_clone_when_repo_already_exists(store):
-    # Create a symlink and directory in the store simulating an already
-    # created repository.
+    # Create an entry in the sqlite db that makes it look like the repo has
+    # been cloned.
     store.require_created()
-    repo_dir_path = os.path.join(store.directory, 'repo_dir')
-    os.mkdir(repo_dir_path)
-    os.symlink(
-        repo_dir_path,
-        os.path.join(store.directory, 'fake_sha' + '_' + hex_md5('url')),
-    )
 
-    ret = store.clone('url', 'fake_sha')
-    assert ret == repo_dir_path
+    with sqlite3.connect(store.db_path) as db:
+        db.execute(
+            'INSERT INTO repos (repo, ref, path) '
+            'VALUES ("fake_repo", "fake_ref", "fake_path")'
+        )
+
+    assert store.clone('fake_repo', 'fake_ref') == 'fake_path'
+
+
+def test_require_created_when_directory_exists_but_not_db(store):
+    # In versions <= 0.3.5, there was no sqlite db causing a need for
+    # backward compatibility
+    os.makedirs(store.directory)
+    store.require_created()
+    assert os.path.exists(store.db_path)
