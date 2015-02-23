@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 
+import logging
 import shutil
 
 from cached_property import cached_property
@@ -7,6 +8,9 @@ from cached_property import cached_property
 from pre_commit.languages.all import languages
 from pre_commit.manifest import Manifest
 from pre_commit.prefixed_command_runner import PrefixedCommandRunner
+
+
+logger = logging.getLogger('pre_commit')
 
 
 class Repository(object):
@@ -62,14 +66,28 @@ class Repository(object):
 
     def install(self):
         """Install the hook repository."""
-        for language_name, language_version in self.languages:
+        def language_is_installed(language_name):
             language = languages[language_name]
-            if (
+            return (
                 language.ENVIRONMENT_DIR is None or
                 self.cmd_runner.exists(language.ENVIRONMENT_DIR, '.installed')
-            ):
-                # The language is already installed
+            )
+
+        if not all(
+            language_is_installed(language_name)
+            for language_name, _ in self.languages
+        ):
+            logger.info(
+                'Installing environment for {0}.'.format(self.repo_url)
+            )
+            logger.info('Once installed this environment will be reused.')
+            logger.info('This may take a few minutes...')
+
+        for language_name, language_version in self.languages:
+            language = languages[language_name]
+            if language_is_installed(language_name):
                 continue
+
             # There's potentially incomplete cleanup from previous runs
             # Clean it up!
             if self.cmd_runner.exists(language.ENVIRONMENT_DIR):

@@ -2,6 +2,7 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 import io
+import logging
 import os
 import os.path
 
@@ -113,3 +114,9 @@ def cmd_runner(tmpdir_factory):
 @pytest.yield_fixture
 def runner_with_mocked_store(mock_out_store_directory):
     yield Runner('/')
+
+
+@pytest.yield_fixture
+def log_info_mock():
+    with mock.patch.object(logging.getLogger('pre_commit'), 'info') as mck:
+        yield mck

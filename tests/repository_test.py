@@ -254,18 +254,21 @@ def test_languages(tmpdir_factory, store):
     assert repo.languages == set([('python', 'default')])
 
 
-def test_reinstall(tmpdir_factory, store):
+def test_reinstall(tmpdir_factory, store, log_info_mock):
     path = make_repo(tmpdir_factory, 'python_hooks_repo')
     config = make_config_from_repo(path)
     repo = Repository.create(config, store)
     repo.require_installed()
+    # We print some logging during clone (1) + install (3)
+    assert log_info_mock.call_count == 4
+    log_info_mock.reset_mock()
     # Reinstall with same repo should not trigger another install
-    # TODO: how to assert this?
     repo.require_installed()
+    assert log_info_mock.call_count == 0
     # Reinstall on another run should not trigger another install
-    # TODO: how to assert this?
     repo = Repository.create(config, store)
     repo.require_installed()
+    assert log_info_mock.call_count == 0
 
 
 def test_control_c_control_c_on_install(tmpdir_factory, store):
