@@ -62,7 +62,7 @@ class Store(object):
     def _write_sqlite_db(self):
         # To avoid a race where someone ^Cs between db creation and execution
         # of the CREATE TABLE statement
-        fd, tmpfile = tempfile.mkstemp()
+        fd, tmpfile = tempfile.mkstemp(dir=self.directory)
         # We'll be managing this file ourselves
         os.close(fd)
         # sqlite doesn't close its fd with its contextmanager >.<
