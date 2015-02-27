@@ -31,3 +31,4 @@ class LoggingHandler(logging.Handler):
                 record.getMessage(),
             )
         )
+        sys.stdout.flush()

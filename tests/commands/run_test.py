@@ -275,7 +275,9 @@ def test_stdout_write_bug_py26(
 ):
     with cwd(repo_with_failing_hook):
         # Add bash hook on there again
-        with io.open('.pre-commit-config.yaml', 'a+') as config_file:
+        with io.open(
+            '.pre-commit-config.yaml', 'a+', encoding='UTF-8',
+        ) as config_file:
             config_file.write('        args: ["☃"]\n')
         cmd_output('git', 'add', '.pre-commit-config.yaml')
         stage_a_file()

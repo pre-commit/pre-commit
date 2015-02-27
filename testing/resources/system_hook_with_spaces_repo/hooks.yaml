@@ -1,5 +1,5 @@
 -   id: system-hook-with-spaces
     name: System hook with spaces
-    entry: /usr/bin/python -c 'import sys; print("Hello World")'
+    entry: bash -c 'echo "Hello World"'
     language: system
     files: \.sh$

@@ -6,14 +6,22 @@ import subprocess
 import mock
 import pytest
 
+from pre_commit import five
 from pre_commit.prefixed_command_runner import _replace_cmd
 from pre_commit.prefixed_command_runner import PrefixedCommandRunner
 from pre_commit.util import CalledProcessError
 
 
+def norm_slash(input_tup):
+    return tuple(x.replace('/', os.sep) for x in input_tup)
+
+
 def test_CalledProcessError_str():
     error = CalledProcessError(
-        1, [str('git'), str('status')], 0, (str('stdout'), str('stderr'))
+        1,
+        [five.n('git'), five.n('status')],
+        0,
+        (five.n('stdout'), five.n('stderr')),
     )
     assert str(error) == (
         "Command: ['git', 'status']\n"
@@ -28,7 +36,7 @@ def test_CalledProcessError_str():
 
 def test_CalledProcessError_str_nooutput():
     error = CalledProcessError(
-        1, [str('git'), str('status')], 0, (str(''), str(''))
+        1, [five.n('git'), five.n('status')], 0, (five.n(''), five.n(''))
     )
     assert str(error) == (
         "Command: ['git', 'status']\n"
@@ -65,13 +73,15 @@ def test_replace_cmd(input, kwargs, expected_output):
 
 
 @pytest.mark.parametrize(('input', 'expected_prefix'), (
-    ('.', './'),
-    ('foo', 'foo/'),
-    ('bar/', 'bar/'),
-    ('foo/bar', 'foo/bar/'),
-    ('foo/bar/', 'foo/bar/'),
+    norm_slash(('.', './')),
+    norm_slash(('foo', 'foo/')),
+    norm_slash(('bar/', 'bar/')),
+    norm_slash(('foo/bar', 'foo/bar/')),
+    norm_slash(('foo/bar/', 'foo/bar/')),
 ))
 def test_init_normalizes_path_endings(input, expected_prefix):
+    input = input.replace('/', os.sep)
+    expected_prefix = expected_prefix.replace('/', os.sep)
     instance = PrefixedCommandRunner(input)
     assert instance.prefix_dir == expected_prefix
 
@@ -82,7 +92,8 @@ def test_run_substitutes_prefix(popen_mock, makedirs_mock):
     )
     ret = instance.run(['{prefix}bar', 'baz'], retcode=None)
     popen_mock.assert_called_once_with(
-        ('prefix/bar', 'baz'),
+        [five.n(os.path.join('prefix', 'bar')), five.n('baz')],
+        env=None,
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
@@ -91,12 +102,12 @@ def test_run_substitutes_prefix(popen_mock, makedirs_mock):
 
 
 PATH_TESTS = (
-    ('foo', '', 'foo'),
-    ('foo', 'bar', 'foo/bar'),
-    ('foo/bar', '../baz', 'foo/baz'),
-    ('./', 'bar', 'bar'),
-    ('./', '', '.'),
-    ('/tmp/foo', '/tmp/bar', '/tmp/bar'),
+    norm_slash(('foo', '', 'foo')),
+    norm_slash(('foo', 'bar', 'foo/bar')),
+    norm_slash(('foo/bar', '../baz', 'foo/baz')),
+    norm_slash(('./', 'bar', 'bar')),
+    norm_slash(('./', '', '.')),
+    norm_slash(('/tmp/foo', '/tmp/bar', '/tmp/bar')),
 )
 
 
@@ -110,7 +121,7 @@ def test_path(prefix, path_end, expected_output):
 def test_path_multiple_args():
     instance = PrefixedCommandRunner('foo')
     ret = instance.path('bar', 'baz')
-    assert ret == 'foo/bar/baz'
+    assert ret == os.path.join('foo', 'bar', 'baz')
 
 
 @pytest.mark.parametrize(
@@ -133,12 +144,13 @@ def test_from_command_runner_preserves_popen(popen_mock, makedirs_mock):
     second = PrefixedCommandRunner.from_command_runner(first, 'bar')
     second.run(['foo/bar/baz'], retcode=None)
     popen_mock.assert_called_once_with(
-        ('foo/bar/baz',),
+        [five.n('foo/bar/baz')],
+        env=None,
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
     )
-    makedirs_mock.assert_called_once_with('foo/bar/')
+    makedirs_mock.assert_called_once_with(os.path.join('foo', 'bar') + os.sep)
 
 
 def test_create_path_if_not_exists(in_tmpdir):

@@ -19,6 +19,9 @@ from testing.fixtures import git_dir
 from testing.fixtures import make_config_from_repo
 from testing.fixtures import make_repo
 from testing.util import skipif_slowtests_false
+from testing.util import xfailif_no_pcre_support
+from testing.util import xfailif_windows_no_node
+from testing.util import xfailif_windows_no_ruby
 
 
 def _test_hook_repo(
@@ -39,14 +42,14 @@ def _test_hook_repo(
     ][0]
     ret = repo.run_hook(hook_dict, args)
     assert ret[0] == expected_return_code
-    assert ret[1] == expected
+    assert ret[1].replace('\r\n', '\n') == expected
 
 
 @pytest.mark.integration
 def test_python_hook(tmpdir_factory, store):
     _test_hook_repo(
         tmpdir_factory, store, 'python_hooks_repo',
-        'foo', ['/dev/null'], "['/dev/null']\nHello World\n",
+        'foo', [os.devnull], "['{0}']\nHello World\n".format(os.devnull),
     )
 
 
@@ -71,11 +74,14 @@ def test_python_hook_args_with_spaces(tmpdir_factory, store):
 def test_versioned_python_hook(tmpdir_factory, store):
     _test_hook_repo(
         tmpdir_factory, store, 'python3_hooks_repo',
-        'python3-hook', ['/dev/null'], "3.3\n['/dev/null']\nHello World\n",
+        'python3-hook',
+        [os.devnull],
+        "3.3\n['{0}']\nHello World\n".format(os.devnull),
     )
 
 
 @skipif_slowtests_false
+@xfailif_windows_no_node
 @pytest.mark.integration
 def test_run_a_node_hook(tmpdir_factory, store):
     _test_hook_repo(
@@ -85,6 +91,7 @@ def test_run_a_node_hook(tmpdir_factory, store):
 
 
 @skipif_slowtests_false
+@xfailif_windows_no_node
 @pytest.mark.integration
 def test_run_versioned_node_hook(tmpdir_factory, store):
     _test_hook_repo(
@@ -94,6 +101,7 @@ def test_run_versioned_node_hook(tmpdir_factory, store):
 
 
 @skipif_slowtests_false
+@xfailif_windows_no_ruby
 @pytest.mark.integration
 def test_run_a_ruby_hook(tmpdir_factory, store):
     _test_hook_repo(
@@ -103,6 +111,7 @@ def test_run_a_ruby_hook(tmpdir_factory, store):
 
 
 @skipif_slowtests_false
+@xfailif_windows_no_ruby
 @pytest.mark.integration
 def test_run_versioned_ruby_hook(tmpdir_factory, store):
     _test_hook_repo(
@@ -139,6 +148,7 @@ def test_run_hook_with_spaced_args(tmpdir_factory, store):
     )
 
 
+@xfailif_no_pcre_support
 @pytest.mark.integration
 def test_pcre_hook_no_match(tmpdir_factory, store):
     path = git_dir(tmpdir_factory)
@@ -160,6 +170,7 @@ def test_pcre_hook_no_match(tmpdir_factory, store):
         )
 
 
+@xfailif_no_pcre_support
 @pytest.mark.integration
 def test_pcre_hook_matching(tmpdir_factory, store):
     path = git_dir(tmpdir_factory)
@@ -183,6 +194,7 @@ def test_pcre_hook_matching(tmpdir_factory, store):
         )
 
 
+@xfailif_no_pcre_support
 @pytest.mark.integration
 def test_pcre_many_files(tmpdir_factory, store):
     # This is intended to simulate lots of passing files and one failing file
@@ -202,6 +214,14 @@ def test_pcre_many_files(tmpdir_factory, store):
         )
 
 
+def _norm_pwd(path):
+    # Under windows bash's temp and windows temp is different.
+    # This normalizes to the bash /tmp
+    return cmd_output(
+        'bash', '-c', "cd '{0}' && pwd".format(path),
+    )[1].strip()
+
+
 @pytest.mark.integration
 def test_cwd_of_hook(tmpdir_factory, store):
     # Note: this doubles as a test for `system` hooks
@@ -209,7 +229,7 @@ def test_cwd_of_hook(tmpdir_factory, store):
     with cwd(path):
         _test_hook_repo(
             tmpdir_factory, store, 'prints_cwd_repo',
-            'prints_cwd', ['-L'], path + '\n',
+            'prints_cwd', ['-L'], _norm_pwd(path) + '\n',
         )
 
 
@@ -288,7 +308,9 @@ def test_control_c_control_c_on_install(tmpdir_factory, store):
         with mock.patch.object(
             PythonEnv, 'run', side_effect=MyKeyboardInterrupt,
         ):
-            with mock.patch.object(shutil, 'rmtree', MyKeyboardInterrupt):
+            with mock.patch.object(
+                shutil, 'rmtree', side_effect=MyKeyboardInterrupt,
+            ):
                 repo.run_hook(hook, [])
 
     # Should have made an environment, however this environment is broken!
@@ -347,7 +369,7 @@ def test_tags_on_repositories(in_tmpdir, tmpdir_factory, store):
     )
     ret = repo_1.run_hook(repo_1.hooks[0][1], ['-L'])
     assert ret[0] == 0
-    assert ret[1].strip() == in_tmpdir
+    assert ret[1].strip() == _norm_pwd(in_tmpdir)
 
     repo_2 = Repository.create(
         make_config_from_repo(git_dir_2, sha=tag), store,

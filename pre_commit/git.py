@@ -16,7 +16,7 @@ logger = logging.getLogger('pre_commit')
 
 def get_root():
     path = os.getcwd()
-    while len(path) > 1:
+    while path != os.path.normpath(os.path.join(path, '../')):
         if os.path.exists(os.path.join(path, '.git')):
             return path
         else:

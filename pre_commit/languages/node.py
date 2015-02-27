@@ -13,7 +13,7 @@ ENVIRONMENT_DIR = 'node_env'
 class NodeEnv(helpers.Environment):
     @property
     def env_prefix(self):
-        return '. {{prefix}}{0}/bin/activate &&'.format(ENVIRONMENT_DIR)
+        return ". '{{prefix}}{0}/bin/activate' &&".format(ENVIRONMENT_DIR)
 
 
 @contextlib.contextmanager
@@ -37,7 +37,7 @@ def install_environment(repo_cmd_runner, version='default'):
         repo_cmd_runner.run(cmd)
 
         with in_env(repo_cmd_runner) as node_env:
-            node_env.run('cd {prefix} && npm install -g')
+            node_env.run("cd '{prefix}' && npm install -g")
 
 
 def run_hook(repo_cmd_runner, hook, file_args):
