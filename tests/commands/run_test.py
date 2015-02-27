@@ -305,3 +305,32 @@ def test_get_changed_files():
         '3387edbb1288a580b37fe25225aa0b856b18ad1a',
     )
     assert files == ['CHANGELOG.md', 'setup.py']
+
+
+def test_lots_of_files(mock_out_store_directory, tmpdir_factory):
+    # windows xargs seems to have a bug, here's a regression test for
+    # our workaround
+    git_path = make_consuming_repo(tmpdir_factory, 'python_hooks_repo')
+    with cwd(git_path):
+        # Override files so we run against them
+        with io.open(
+            '.pre-commit-config.yaml', 'a+',
+        ) as config_file:
+            config_file.write('        files: ""\n')
+
+        # Write a crap ton of files
+        for i in range(400):
+            filename = '{0}{1}'.format('a' * 100, i)
+            open(filename, 'w').close()
+
+        cmd_output('bash', '-c', 'git add .')
+        install(Runner(git_path))
+
+        # Don't want to write to home directory
+        env = dict(os.environ, **{'PRE_COMMIT_HOME': tmpdir_factory.get()})
+        cmd_output(
+            'git', 'commit', '-m', 'Commit!',
+            # git commit puts pre-commit to stderr
+            stderr=subprocess.STDOUT,
+            env=env,
+        )
