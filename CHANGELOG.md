@@ -1,3 +1,7 @@
+0.4.2
+=====
+- Limit length of xargs arguments to workaround windows xargs bug
+
 0.4.1
 =====
 - Don't rename across devices when creating sqlite database
