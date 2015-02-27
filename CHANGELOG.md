@@ -1,3 +1,10 @@
+0.4.0
+=====
+- Make ^C^C During installation not cause all subsequent runs to fail
+- Print while installing (instead of while cloning)
+- Use sqlite to manage repositories (instead of symlinks)
+- MVP Windows support
+
 0.3.6
 =====
 - `args` in venv'd languages are now property quoted.
