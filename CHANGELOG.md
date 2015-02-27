@@ -1,3 +1,7 @@
+0.4.1
+=====
+- Don't rename across devices when creating sqlite database
+
 0.4.0
 =====
 - Make ^C^C During installation not cause all subsequent runs to fail
