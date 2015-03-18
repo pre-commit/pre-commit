@@ -39,12 +39,11 @@ setup(
         ]
     },
     install_requires=[
-        'aspy.yaml',
         'cached-property',
         'jsonschema',
         'nodeenv>=0.11.1',
         'pyterminalsize',
-        'pyyaml',
+        'ruamel.yaml',
         'virtualenv',
     ],
     extras_require={

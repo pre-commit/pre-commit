@@ -10,6 +10,7 @@ import sys
 
 import mock
 import pytest
+from ruamel.yaml.comments import CommentedMap
 
 import pre_commit.constants as C
 from pre_commit.commands.install_uninstall import install
@@ -17,7 +18,6 @@ from pre_commit.commands.run import _get_skips
 from pre_commit.commands.run import _has_unmerged_paths
 from pre_commit.commands.run import get_changed_files
 from pre_commit.commands.run import run
-from pre_commit.ordereddict import OrderedDict
 from pre_commit.output import sys_stdout_write_wrapper
 from pre_commit.runner import Runner
 from pre_commit.util import cmd_output
@@ -454,16 +454,16 @@ def test_local_hook_for_stages(
         hook_stage,
         expected_output
 ):
-    config = OrderedDict((
+    config = CommentedMap((
         ('repo', 'local'),
-        ('hooks', (OrderedDict((
+        ('hooks', (CommentedMap((
             ('id', 'pylint'),
             ('name', 'hook 1'),
             ('entry', 'python -m pylint.__main__'),
             ('language', 'system'),
             ('files', r'\.py$'),
             ('stages', stage_for_first_hook)
-        )), OrderedDict((
+        )), CommentedMap((
             ('id', 'do_not_commit'),
             ('name', 'hook 2'),
             ('entry', 'DO NOT COMMIT'),
@@ -488,15 +488,15 @@ def test_local_hook_for_stages(
 
 
 def test_local_hook_passes(repo_with_passing_hook, mock_out_store_directory):
-    config = OrderedDict((
+    config = CommentedMap((
         ('repo', 'local'),
-        ('hooks', (OrderedDict((
+        ('hooks', (CommentedMap((
             ('id', 'pylint'),
             ('name', 'PyLint'),
             ('entry', 'python -m pylint.__main__'),
             ('language', 'system'),
             ('files', r'\.py$'),
-        )), OrderedDict((
+        )), CommentedMap((
             ('id', 'do_not_commit'),
             ('name', 'Block if "DO NOT COMMIT" is found'),
             ('entry', 'DO NOT COMMIT'),
@@ -520,9 +520,9 @@ def test_local_hook_passes(repo_with_passing_hook, mock_out_store_directory):
 
 
 def test_local_hook_fails(repo_with_passing_hook, mock_out_store_directory):
-    config = OrderedDict((
+    config = CommentedMap((
         ('repo', 'local'),
-        ('hooks', [OrderedDict((
+        ('hooks', [CommentedMap((
             ('id', 'no-todo'),
             ('name', 'No TODO'),
             ('entry', 'sh -c "! grep -iI todo $@" --'),
