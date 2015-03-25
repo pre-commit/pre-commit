@@ -1,3 +1,7 @@
+0.4.3
+=====
+- Use reset instead of checkout when checkout out hook repo
+
 0.4.2
 =====
 - Limit length of xargs arguments to workaround windows xargs bug
