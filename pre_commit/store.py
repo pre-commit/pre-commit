@@ -116,7 +116,7 @@ class Store(object):
         with clean_path_on_failure(dir):
             cmd_output('git', 'clone', '--no-checkout', url, dir)
             with cwd(dir):
-                cmd_output('git', 'checkout', sha)
+                cmd_output('git', 'reset', sha, '--hard')
 
         # Update our db with the created repo
         with sqlite3.connect(self.db_path) as db:
