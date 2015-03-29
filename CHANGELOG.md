@@ -1,3 +1,7 @@
+0.4.4
+=====
+- Use sys.executable when executing virtualenv
+
 0.4.3
 =====
 - Use reset instead of checkout when checkout out hook repo
