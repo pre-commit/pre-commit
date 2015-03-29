@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 import contextlib
 import distutils.spawn
 import os
+import sys
 
 import virtualenv
 
@@ -43,7 +44,10 @@ def install_environment(repo_cmd_runner, version='default'):
 
     # Install a virtualenv
     with clean_path_on_failure(repo_cmd_runner.path(ENVIRONMENT_DIR)):
-        venv_cmd = ['virtualenv', '{{prefix}}{0}'.format(ENVIRONMENT_DIR)]
+        venv_cmd = [
+            sys.executable, '-m', 'virtualenv',
+            '{{prefix}}{0}'.format(ENVIRONMENT_DIR)
+        ]
         if version != 'default':
             venv_cmd.extend(['-p', norm_version(version)])
         repo_cmd_runner.run(venv_cmd)
