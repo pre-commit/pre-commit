@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 import argparse
+import os
 import sys
 
 import pkg_resources
@@ -13,6 +14,13 @@ from pre_commit.commands.install_uninstall import uninstall
 from pre_commit.commands.run import run
 from pre_commit.error_handler import error_handler
 from pre_commit.runner import Runner
+
+
+# https://github.com/pre-commit/pre-commit/issues/217
+# On OSX, making a virtualenv using pyvenv at . causes `virtualenv` and `pip`
+# to install packages to the wrong place.  We don't want anything to deal with
+# pyvenv
+os.environ.pop('__PYVENV_LAUNCHER__', None)
 
 
 def main(argv=None):
