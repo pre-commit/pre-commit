@@ -18,6 +18,15 @@ from pre_commit.util import noop_context
 logger = logging.getLogger('pre_commit')
 
 
+class HookExecutor(object):
+    def __init__(self, hook, invoker):
+        self.hook = hook
+        self._invoker = invoker
+
+    def invoke(self, filenames):
+        return self._invoker(self.hook, filenames)
+
+
 def _get_skips(environ):
     skips = environ.get('SKIP', '')
     return set(skip.strip() for skip in skips.split(',') if skip.strip())
@@ -55,21 +64,25 @@ def get_changed_files(new, old):
     )[1].splitlines()
 
 
-def _run_single_hook(runner, repository, hook, args, write, skips=set()):
+def get_filenames(args, include_expr, exclude_expr):
     if args.origin and args.source:
-        get_filenames = git.get_files_matching(
+        getter = git.get_files_matching(
             lambda: get_changed_files(args.origin, args.source),
         )
     elif args.files:
-        get_filenames = git.get_files_matching(lambda: args.files)
+        getter = git.get_files_matching(lambda: args.files)
     elif args.all_files:
-        get_filenames = git.get_all_files_matching
+        getter = git.get_all_files_matching
     elif git.is_in_merge_conflict():
-        get_filenames = git.get_conflicted_files_matching
+        getter = git.get_conflicted_files_matching
     else:
-        get_filenames = git.get_staged_files_matching
+        getter = git.get_staged_files_matching
+    return getter(include_expr, exclude_expr)
 
-    filenames = get_filenames(hook['files'], hook['exclude'])
+
+def _run_single_hook(hook_executor, args, write, skips=frozenset()):
+    hook = hook_executor.hook
+    filenames = get_filenames(args, hook['files'], hook['exclude'])
     if hook['id'] in skips:
         _print_user_skipped(hook, write, args)
         return 0
@@ -82,7 +95,7 @@ def _run_single_hook(runner, repository, hook, args, write, skips=set()):
     write(get_hook_message(_hook_msg_start(hook, args.verbose), end_len=6))
     sys.stdout.flush()
 
-    retcode, stdout, stderr = repository.run_hook(hook, filenames)
+    retcode, stdout, stderr = hook_executor.invoke(filenames)
 
     if retcode != hook['expected_return_value']:
         retcode = 1
@@ -106,32 +119,19 @@ def _run_single_hook(runner, repository, hook, args, write, skips=set()):
     return retcode
 
 
-def _run_hooks(runner, args, write, environ):
+def _run_hooks(hook_executors, args, write, environ):
     """Actually run the hooks."""
-    retval = 0
-
     skips = _get_skips(environ)
-
-    for repo in runner.repositories:
-        for _, hook in repo.hooks:
-            retval |= _run_single_hook(
-                runner, repo, hook, args, write, skips=skips,
-            )
-
+    retval = 0
+    for hook_executor in hook_executors:
+        retval |= _run_single_hook(hook_executor, args, write, skips)
     return retval
 
 
-def _run_hook(runner, args, write):
-    hook_id = args.hook
+def get_hook_executors(runner):
     for repo in runner.repositories:
-        for hook_id_in_repo, hook in repo.hooks:
-            if hook_id == hook_id_in_repo:
-                return _run_single_hook(
-                    runner, repo, hook, args, write=write,
-                )
-    else:
-        write('No hook with id `{0}`\n'.format(hook_id))
-        return 1
+        for _, repo_hook in repo.hooks:
+            yield HookExecutor(repo_hook, repo.run_hook)
 
 
 def _has_unmerged_paths(runner):
@@ -159,7 +159,11 @@ def run(runner, args, write=sys_stdout_write_wrapper, environ=os.environ):
         ctx = staged_files_only(runner.cmd_runner)
 
     with ctx:
+        hook_executors = list(get_hook_executors(runner))
         if args.hook:
-            return _run_hook(runner, args, write=write)
-        else:
-            return _run_hooks(runner, args, write=write, environ=environ)
+            hook_executors = [he for he in hook_executors
+                              if he.hook['id'] == args.hook]
+            if not hook_executors:
+                write('No hook with id `{0}`\n'.format(args.hook))
+                return 1
+        return _run_hooks(hook_executors, args, write, environ)
