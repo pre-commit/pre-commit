@@ -162,9 +162,18 @@ def test_environment_not_sourced(tmpdir_factory):
         with mock.patch.object(sys, 'executable', '/bin/false'):
             assert install(Runner(path)) == 0
 
+        # Use a specific homedir to ignore --user installs
+        homedir = tmpdir_factory.get()
+        # Need this so we can call git commit without sploding
+        with io.open(os.path.join(homedir, '.gitconfig'), 'w') as gitconfig:
+            gitconfig.write(
+                '[user]\n'
+                '    name = Travis CI\n'
+                '    email = user@example.com\n'
+            )
         ret, stdout, stderr = cmd_output(
             'git', 'commit', '--allow-empty', '-m', 'foo',
-            env={'HOME': os.path.expanduser('~')},
+            env={'HOME': homedir},
             retcode=None,
         )
         assert ret == 1
