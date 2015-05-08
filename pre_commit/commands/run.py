@@ -161,8 +161,10 @@ def run(runner, args, write=sys_stdout_write_wrapper, environ=os.environ):
     with ctx:
         hook_executors = list(get_hook_executors(runner))
         if args.hook:
-            hook_executors = [he for he in hook_executors
-                              if he.hook['id'] == args.hook]
+            hook_executors = [
+                he for he in hook_executors
+                if he.hook['id'] == args.hook
+            ]
             if not hook_executors:
                 write('No hook with id `{0}`\n'.format(args.hook))
                 return 1
