@@ -14,10 +14,12 @@ from pre_commit.commands.run import _get_skips
 from pre_commit.commands.run import _has_unmerged_paths
 from pre_commit.commands.run import get_changed_files
 from pre_commit.commands.run import run
+from pre_commit.ordereddict import OrderedDict
 from pre_commit.runner import Runner
 from pre_commit.util import cmd_output
 from pre_commit.util import cwd
 from testing.auto_namedtuple import auto_namedtuple
+from testing.fixtures import add_config_to_repo
 from testing.fixtures import make_consuming_repo
 
 
@@ -81,7 +83,7 @@ def _test_run(repo, options, expected_outputs, expected_ret, stage):
         stage_a_file()
     args = _get_opts(**options)
     ret, printed = _do_run(repo, args)
-    assert ret == expected_ret
+    assert ret == expected_ret, (ret, expected_ret, printed)
     for expected_output_part in expected_outputs:
         assert expected_output_part in printed
 
@@ -313,9 +315,7 @@ def test_lots_of_files(mock_out_store_directory, tmpdir_factory):
     git_path = make_consuming_repo(tmpdir_factory, 'python_hooks_repo')
     with cwd(git_path):
         # Override files so we run against them
-        with io.open(
-            '.pre-commit-config.yaml', 'a+',
-        ) as config_file:
+        with io.open('.pre-commit-config.yaml', 'a+') as config_file:
             config_file.write('        files: ""\n')
 
         # Write a crap ton of files
@@ -334,3 +334,66 @@ def test_lots_of_files(mock_out_store_directory, tmpdir_factory):
             stderr=subprocess.STDOUT,
             env=env,
         )
+
+
+def test_local_hook_passes(
+        repo_with_passing_hook, mock_out_store_directory,
+):
+    config = OrderedDict((
+        ('repo', 'local'),
+        ('hooks', (OrderedDict((
+            ('id', 'pylint'),
+            ('name', 'PyLint'),
+            ('entry', 'python -m pylint.__main__'),
+            ('language', 'system'),
+            ('files', r'\.py$'),
+        )), OrderedDict((
+            ('id', 'do_not_commit'),
+            ('name', 'Block if "DO NOT COMMIT" is found'),
+            ('entry', 'DO NOT COMMIT'),
+            ('language', 'pcre'),
+            ('files', '^(.*)$'),
+        ))))
+    ))
+    add_config_to_repo(repo_with_passing_hook, config)
+
+    with io.open('dummy.py', 'w') as staged_file:
+        staged_file.write('"""TODO: something"""\n')
+    cmd_output('git', 'add', 'dummy.py')
+
+    _test_run(
+        repo_with_passing_hook,
+        options={},
+        expected_outputs=[''],
+        expected_ret=0,
+        stage=False
+    )
+
+
+def test_local_hook_fails(
+        repo_with_passing_hook, mock_out_store_directory,
+):
+    config = OrderedDict((
+        ('repo', 'local'),
+        ('hooks', [OrderedDict((
+            ('id', 'no-todo'),
+            ('name', 'No TODO'),
+            ('entry', 'grep -iI todo'),
+            ('expected_return_value', 1),
+            ('language', 'system'),
+            ('files', ''),
+        ))])
+    ))
+    add_config_to_repo(repo_with_passing_hook, config)
+
+    with io.open('dummy.py', 'w') as staged_file:
+        staged_file.write('"""TODO: something"""\n')
+    cmd_output('git', 'add', 'dummy.py')
+
+    _test_run(
+        repo_with_passing_hook,
+        options={},
+        expected_outputs=[''],
+        expected_ret=1,
+        stage=False
+    )

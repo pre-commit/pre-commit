@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 
+import jsonschema
 import pytest
 
 from pre_commit.clientlib.validate_config import CONFIG_JSON_SCHEMA
@@ -25,7 +26,7 @@ def test_run(input, expected_output):
     assert run(input) == expected_output
 
 
-@pytest.mark.parametrize(('manifest_obj', 'expected'), (
+@pytest.mark.parametrize(('config_obj', 'expected'), (
     ([], False),
     (
         [{
@@ -66,8 +67,8 @@ def test_run(input, expected_output):
         False,
     ),
 ))
-def test_is_valid_according_to_schema(manifest_obj, expected):
-    ret = is_valid_according_to_schema(manifest_obj, CONFIG_JSON_SCHEMA)
+def test_is_valid_according_to_schema(config_obj, expected):
+    ret = is_valid_according_to_schema(config_obj, CONFIG_JSON_SCHEMA)
     assert ret is expected
 
 
@@ -120,4 +121,56 @@ def test_config_with_ok_exclude_regex_passes():
         }],
         CONFIG_JSON_SCHEMA,
     )
+    validate_config_extra(config)
+
+
+@pytest.mark.parametrize('config_obj', (
+    [{
+        'repo': 'local',
+        'sha': 'foo',
+        'hooks': [{
+            'id': 'do_not_commit',
+            'name': 'Block if "DO NOT COMMIT" is found',
+            'entry': 'DO NOT COMMIT',
+            'language': 'pcre',
+            'files': '^(.*)$',
+        }],
+    }],
+))
+def test_config_with_local_hooks_definition_fails(config_obj):
+    with pytest.raises((
+        jsonschema.exceptions.ValidationError, InvalidConfigError
+    )):
+        jsonschema.validate(config_obj, CONFIG_JSON_SCHEMA)
+        config = apply_defaults(config_obj, CONFIG_JSON_SCHEMA)
+        validate_config_extra(config)
+
+
+@pytest.mark.parametrize('config_obj', (
+    [{
+        'repo': 'local',
+        'hooks': [{
+            'id': 'arg-per-line',
+            'name': 'Args per line hook',
+            'entry': 'bin/hook.sh',
+            'language': 'script',
+            'files': '',
+            'args': ['hello', 'world'],
+        }],
+    }],
+    [{
+        'repo': 'local',
+        'hooks': [{
+            'id': 'arg-per-line',
+            'name': 'Args per line hook',
+            'entry': 'bin/hook.sh',
+            'language': 'script',
+            'files': '',
+            'args': ['hello', 'world'],
+        }]
+    }],
+))
+def test_config_with_local_hooks_definition_passes(config_obj):
+    jsonschema.validate(config_obj, CONFIG_JSON_SCHEMA)
+    config = apply_defaults(config_obj, CONFIG_JSON_SCHEMA)
     validate_config_extra(config)

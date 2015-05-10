@@ -60,12 +60,16 @@ def write_config(directory, config):
         config_file.write(ordered_dump([config], **C.YAML_DUMP_KWARGS))
 
 
-def make_consuming_repo(tmpdir_factory, repo_source):
-    path = make_repo(tmpdir_factory, repo_source)
-    config = make_config_from_repo(path)
-    git_path = git_dir(tmpdir_factory)
+def add_config_to_repo(git_path, config):
     write_config(git_path, config)
     with cwd(git_path):
         cmd_output('git', 'add', C.CONFIG_FILE)
         cmd_output('git', 'commit', '-m', 'Add hooks config')
     return git_path
+
+
+def make_consuming_repo(tmpdir_factory, repo_source):
+    path = make_repo(tmpdir_factory, repo_source)
+    config = make_config_from_repo(path)
+    git_path = git_dir(tmpdir_factory)
+    return add_config_to_repo(git_path, config)

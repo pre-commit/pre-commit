@@ -5,6 +5,10 @@ import shutil
 
 from cached_property import cached_property
 
+from pre_commit import git
+from pre_commit.clientlib.validate_config import is_local_hooks
+from pre_commit.clientlib.validate_manifest import MANIFEST_JSON_SCHEMA
+from pre_commit.jsonschema_extensions import apply_defaults
 from pre_commit.languages.all import languages
 from pre_commit.manifest import Manifest
 from pre_commit.prefixed_command_runner import PrefixedCommandRunner
@@ -21,10 +25,13 @@ class Repository(object):
 
     @classmethod
     def create(cls, config, store):
-        repo_path_getter = store.get_repo_path_getter(
-            config['repo'], config['sha']
-        )
-        return cls(config, repo_path_getter)
+        if is_local_hooks(config):
+            return LocalRepository(config)
+        else:
+            repo_path_getter = store.get_repo_path_getter(
+                config['repo'], config['sha']
+            )
+            return cls(config, repo_path_getter)
 
     @cached_property
     def repo_url(self):
@@ -111,3 +118,28 @@ class Repository(object):
         return languages[hook['language']].run_hook(
             self.cmd_runner, hook, file_args,
         )
+
+
+class LocalRepository(Repository):
+    def __init__(self, repo_config, repo_path_getter=None):
+        repo_path_getter = None
+        super(LocalRepository, self).__init__(repo_config, repo_path_getter)
+
+    @cached_property
+    def hooks(self):
+        return tuple(
+            (hook['id'], apply_defaults(hook, MANIFEST_JSON_SCHEMA['items']))
+            for hook in self.repo_config['hooks']
+        )
+
+    @cached_property
+    def cmd_runner(self):
+        return PrefixedCommandRunner(git.get_root())
+
+    @cached_property
+    def sha(self):
+        raise NotImplementedError
+
+    @cached_property
+    def manifest(self):
+        raise NotImplementedError
