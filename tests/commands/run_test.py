@@ -55,6 +55,7 @@ def _get_opts(
         no_stash=False,
         origin='',
         source='',
+        allow_unstaged_config=False,
 ):
     # These are mutually exclusive
     assert not (all_files and files)
@@ -67,6 +68,7 @@ def _get_opts(
         no_stash=no_stash,
         origin=origin,
         source=source,
+        allow_unstaged_config=allow_unstaged_config,
     )
 
 
@@ -397,3 +399,60 @@ def test_local_hook_fails(
         expected_ret=1,
         stage=False
     )
+
+
+def test_allow_unstaged_config_option(repo_with_passing_hook,
+                                      mock_out_store_directory):
+
+    with cwd(repo_with_passing_hook):
+        with io.open(
+            '.pre-commit-config.yaml', 'a+',
+        ) as config_file:
+            # writing a newline should be relatively harmless to get a change
+            config_file.write('\n')
+
+    args = _get_opts(allow_unstaged_config=True)
+    ret, printed = _do_run(repo_with_passing_hook, args)
+    common_msg = 'You have an unstaged config file'
+    warning_msg = 'have specified the --allow-unstaged-config option.'
+
+    assert common_msg in printed
+    assert warning_msg in printed
+    assert ret == 0
+
+
+def test_no_allow_unstaged_config_option(repo_with_passing_hook,
+                                         mock_out_store_directory):
+
+    with cwd(repo_with_passing_hook):
+        with io.open(
+            '.pre-commit-config.yaml', 'a+',
+        ) as config_file:
+            # writing a newline should be relatively harmless to get a change
+            config_file.write('\n')
+
+    args = _get_opts(allow_unstaged_config=False)
+    ret, printed = _do_run(repo_with_passing_hook, args)
+    common_msg = 'You have an unstaged config file'
+    error_msg = 'have not specified the --allow-unstaged-config option.\n'
+
+    assert common_msg in printed
+    assert error_msg in printed
+    assert ret == 1
+
+
+def test_no_stash_suppresses_allow_unstaged_config_option(
+        repo_with_passing_hook, mock_out_store_directory):
+
+    with cwd(repo_with_passing_hook):
+        with io.open(
+            '.pre-commit-config.yaml', 'a+',
+        ) as config_file:
+            # writing a newline should be relatively harmless to get a change
+            config_file.write('\n')
+
+    args = _get_opts(allow_unstaged_config=False, no_stash=True)
+    ret, printed = _do_run(repo_with_passing_hook, args)
+    common_msg = 'You have an unstaged config file'
+
+    assert common_msg not in printed
