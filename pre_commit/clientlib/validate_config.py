@@ -6,6 +6,13 @@ from pre_commit.clientlib.validate_base import is_regex_valid
 from pre_commit.errors import FatalError
 
 
+_LOCAL_HOOKS_MAGIC_REPO_STRING = 'local'
+
+
+def is_local_hooks(repo_entry):
+    return repo_entry['repo'] == _LOCAL_HOOKS_MAGIC_REPO_STRING
+
+
 class InvalidConfigError(FatalError):
     pass
 
@@ -53,7 +60,12 @@ def try_regex(repo, hook, value, field_name):
 
 def validate_config_extra(config):
     for repo in config:
-        if 'sha' not in repo:
+        if is_local_hooks(repo):
+            if 'sha' in repo:
+                raise InvalidConfigError(
+                    '"sha" property provided for local hooks'
+                )
+        elif 'sha' not in repo:
             raise InvalidConfigError(
                 'Missing "sha" field for repository {0}'.format(repo['repo'])
             )

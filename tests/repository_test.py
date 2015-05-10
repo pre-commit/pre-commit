@@ -12,6 +12,7 @@ from pre_commit.clientlib.validate_config import CONFIG_JSON_SCHEMA
 from pre_commit.clientlib.validate_config import validate_config_extra
 from pre_commit.jsonschema_extensions import apply_defaults
 from pre_commit.languages.python import PythonEnv
+from pre_commit.ordereddict import OrderedDict
 from pre_commit.repository import Repository
 from pre_commit.util import cmd_output
 from pre_commit.util import cwd
@@ -377,3 +378,22 @@ def test_tags_on_repositories(in_tmpdir, tmpdir_factory, store):
     ret = repo_2.run_hook(repo_2.hooks[0][1], ['bar'])
     assert ret[0] == 0
     assert ret[1] == 'bar\nHello World\n'
+
+
+def test_local_repository():
+    config = OrderedDict((
+        ('repo', 'local'),
+        ('hooks', [OrderedDict((
+            ('id', 'do_not_commit'),
+            ('name', 'Block if "DO NOT COMMIT" is found'),
+            ('entry', 'DO NOT COMMIT'),
+            ('language', 'pcre'),
+            ('files', '^(.*)$'),
+        ))])
+    ))
+    local_repo = Repository.create(config, 'dummy')
+    with pytest.raises(NotImplementedError):
+        local_repo.sha
+    with pytest.raises(NotImplementedError):
+        local_repo.manifest
+    assert len(local_repo.hooks) == 1

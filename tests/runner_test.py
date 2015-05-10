@@ -5,8 +5,10 @@ import os
 import os.path
 
 import pre_commit.constants as C
+from pre_commit.ordereddict import OrderedDict
 from pre_commit.runner import Runner
 from pre_commit.util import cwd
+from testing.fixtures import add_config_to_repo
 from testing.fixtures import git_dir
 from testing.fixtures import make_consuming_repo
 
@@ -50,6 +52,31 @@ def test_repositories(tmpdir_factory, mock_out_store_directory):
     path = make_consuming_repo(tmpdir_factory, 'script_hooks_repo')
     runner = Runner(path)
     assert len(runner.repositories) == 1
+
+
+def test_local_hooks(tmpdir_factory, mock_out_store_directory):
+    config = OrderedDict((
+        ('repo', 'local'),
+        ('hooks', (OrderedDict((
+            ('id', 'arg-per-line'),
+            ('name', 'Args per line hook'),
+            ('entry', 'bin/hook.sh'),
+            ('language', 'script'),
+            ('files', ''),
+            ('args', ['hello', 'world']),
+        )), OrderedDict((
+            ('id', 'do_not_commit'),
+            ('name', 'Block if "DO NOT COMMIT" is found'),
+            ('entry', 'DO NOT COMMIT'),
+            ('language', 'pcre'),
+            ('files', '^(.*)$'),
+        ))))
+    ))
+    git_path = git_dir(tmpdir_factory)
+    add_config_to_repo(git_path, config)
+    runner = Runner(git_path)
+    assert len(runner.repositories) == 1
+    assert len(runner.repositories[0].hooks) == 2
 
 
 def test_pre_commit_path():

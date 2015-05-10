@@ -18,15 +18,6 @@ from pre_commit.util import noop_context
 logger = logging.getLogger('pre_commit')
 
 
-class HookExecutor(object):
-    def __init__(self, hook, invoker):
-        self.hook = hook
-        self._invoker = invoker
-
-    def invoke(self, filenames):
-        return self._invoker(self.hook, filenames)
-
-
 def _get_skips(environ):
     skips = environ.get('SKIP', '')
     return set(skip.strip() for skip in skips.split(',') if skip.strip())
@@ -80,8 +71,7 @@ def get_filenames(args, include_expr, exclude_expr):
     return getter(include_expr, exclude_expr)
 
 
-def _run_single_hook(hook_executor, args, write, skips=frozenset()):
-    hook = hook_executor.hook
+def _run_single_hook(hook, repo, args, write, skips=frozenset()):
     filenames = get_filenames(args, hook['files'], hook['exclude'])
     if hook['id'] in skips:
         _print_user_skipped(hook, write, args)
@@ -95,7 +85,7 @@ def _run_single_hook(hook_executor, args, write, skips=frozenset()):
     write(get_hook_message(_hook_msg_start(hook, args.verbose), end_len=6))
     sys.stdout.flush()
 
-    retcode, stdout, stderr = hook_executor.invoke(filenames)
+    retcode, stdout, stderr = repo.run_hook(hook, filenames)
 
     if retcode != hook['expected_return_value']:
         retcode = 1
@@ -119,19 +109,19 @@ def _run_single_hook(hook_executor, args, write, skips=frozenset()):
     return retcode
 
 
-def _run_hooks(hook_executors, args, write, environ):
+def _run_hooks(repo_hooks, args, write, environ):
     """Actually run the hooks."""
     skips = _get_skips(environ)
     retval = 0
-    for hook_executor in hook_executors:
-        retval |= _run_single_hook(hook_executor, args, write, skips)
+    for repo, hook in repo_hooks:
+        retval |= _run_single_hook(hook, repo, args, write, skips)
     return retval
 
 
-def get_hook_executors(runner):
+def get_repo_hooks(runner):
     for repo in runner.repositories:
-        for _, repo_hook in repo.hooks:
-            yield HookExecutor(repo_hook, repo.run_hook)
+        for _, hook in repo.hooks:
+            yield (repo, hook)
 
 
 def _has_unmerged_paths(runner):
@@ -159,13 +149,13 @@ def run(runner, args, write=sys_stdout_write_wrapper, environ=os.environ):
         ctx = staged_files_only(runner.cmd_runner)
 
     with ctx:
-        hook_executors = list(get_hook_executors(runner))
+        repo_hooks = list(get_repo_hooks(runner))
         if args.hook:
-            hook_executors = [
-                he for he in hook_executors
-                if he.hook['id'] == args.hook
+            repo_hooks = [
+                (repo, hook) for repo, hook in repo_hooks
+                if hook['id'] == args.hook
             ]
-            if not hook_executors:
+            if not repo_hooks:
                 write('No hook with id `{0}`\n'.format(args.hook))
                 return 1
-        return _run_hooks(hook_executors, args, write, environ)
+        return _run_hooks(repo_hooks, args, write, environ)
