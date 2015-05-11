@@ -130,12 +130,9 @@ def _has_unmerged_paths(runner):
 
 
 def _has_unstaged_config(runner):
-    retcode, stdout, stderr = runner.cmd_runner.run(
-        [
-            'git', 'diff', '--exit-code', runner.config_file_path
-        ],
+    retcode, _, _ = runner.cmd_runner.run(
+        ('git', 'diff', '--exit-code', runner.config_file_path),
         retcode=None,
-        encoding=None,
     )
     # be explicit, other git errors don't mean it has an unstaged config.
     return retcode == 1
@@ -155,13 +152,18 @@ def run(runner, args, write=sys_stdout_write_wrapper, environ=os.environ):
         return 1
     if _has_unstaged_config(runner) and not args.no_stash:
         if args.allow_unstaged_config:
-            logger.warn('You have an unstaged config file and have '
-                        'specified the --allow-unstaged-config option.\n'
-                        'Note that your config will be stashed before the '
-                        'config is parsed unless --no-stash is specified.')
+            logger.warn(
+                'You have an unstaged config file and have specified the '
+                '--allow-unstaged-config option.\n'
+                'Note that your config will be stashed before the config is '
+                'parsed unless --no-stash is specified.',
+            )
         else:
-            logger.error('You have an unstaged config file and have not '
-                         'specified the --allow-unstaged-config option.\n')
+            logger.error(
+                'Your .pre-commit-config.yaml is unstaged.\n'
+                '`git add .pre-commit-config.yaml` to fix this.\n'
+                'Run pre-commit with --allow-unstaged-config to silence this.'
+            )
             return 1
 
     # Don't stash if specified or files are specified
