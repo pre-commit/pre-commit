@@ -338,7 +338,7 @@ def test_control_c_control_c_on_install(tmpdir_factory, store):
                 repo.run_hook(hook, [])
 
     # Should have made an environment, however this environment is broken!
-    assert os.path.exists(repo.cmd_runner.path('py_env'))
+    assert os.path.exists(repo.cmd_runner.path('py_env-default'))
 
     # However, it should be perfectly runnable (reinstall after botched
     # install)

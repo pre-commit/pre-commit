@@ -10,6 +10,7 @@ from pre_commit.clientlib.validate_config import is_local_hooks
 from pre_commit.clientlib.validate_manifest import MANIFEST_JSON_SCHEMA
 from pre_commit.jsonschema_extensions import apply_defaults
 from pre_commit.languages.all import languages
+from pre_commit.languages.helpers import environment_dir
 from pre_commit.manifest import Manifest
 from pre_commit.prefixed_command_runner import PrefixedCommandRunner
 
@@ -73,16 +74,19 @@ class Repository(object):
 
     def install(self):
         """Install the hook repository."""
-        def language_is_installed(language_name):
+        def language_is_installed(language_name, language_version):
             language = languages[language_name]
+            directory = environment_dir(
+                language.ENVIRONMENT_DIR, language_version,
+            )
             return (
-                language.ENVIRONMENT_DIR is None or
-                self.cmd_runner.exists(language.ENVIRONMENT_DIR, '.installed')
+                directory is None or
+                self.cmd_runner.exists(directory, '.installed')
             )
 
         if not all(
-            language_is_installed(language_name)
-            for language_name, _ in self.languages
+            language_is_installed(language_name, language_version)
+            for language_name, language_version in self.languages
         ):
             logger.info(
                 'Installing environment for {0}.'.format(self.repo_url)
@@ -92,20 +96,20 @@ class Repository(object):
 
         for language_name, language_version in self.languages:
             language = languages[language_name]
-            if language_is_installed(language_name):
+            if language_is_installed(language_name, language_version):
                 continue
 
+            directory = environment_dir(
+                language.ENVIRONMENT_DIR, language_version,
+            )
             # There's potentially incomplete cleanup from previous runs
             # Clean it up!
-            if self.cmd_runner.exists(language.ENVIRONMENT_DIR):
-                shutil.rmtree(self.cmd_runner.path(language.ENVIRONMENT_DIR))
+            if self.cmd_runner.exists(directory):
+                shutil.rmtree(self.cmd_runner.path(directory))
 
             language.install_environment(self.cmd_runner, language_version)
             # Touch the .installed file (atomic) to indicate we've installed
-            open(
-                self.cmd_runner.path(language.ENVIRONMENT_DIR, '.installed'),
-                'w',
-            ).close()
+            open(self.cmd_runner.path(directory, '.installed'), 'w').close()
 
     def run_hook(self, hook, file_args):
         """Run a hook.

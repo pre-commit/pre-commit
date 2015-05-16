@@ -10,9 +10,9 @@ from testing.util import xfailif_windows_no_ruby
 def test_install_rbenv(cmd_runner):
     _install_rbenv(cmd_runner)
     # Should have created rbenv directory
-    assert os.path.exists(cmd_runner.path('rbenv'))
+    assert os.path.exists(cmd_runner.path('rbenv-default'))
     # We should have created our `activate` script
-    activate_path = cmd_runner.path('rbenv', 'bin', 'activate')
+    activate_path = cmd_runner.path('rbenv-default', 'bin', 'activate')
     assert os.path.exists(activate_path)
 
     # Should be able to activate using our script and access rbenv
@@ -20,7 +20,7 @@ def test_install_rbenv(cmd_runner):
         [
             'bash',
             '-c',
-            ". '{prefix}rbenv/bin/activate' && rbenv --help",
+            ". '{prefix}rbenv-default/bin/activate' && rbenv --help",
         ],
     )
 
@@ -34,6 +34,6 @@ def test_install_rbenv_with_version(cmd_runner):
         [
             'bash',
             '-c',
-            ". '{prefix}rbenv/bin/activate' && rbenv install --help",
+            ". '{prefix}rbenv-1.9.3p547/bin/activate' && rbenv install --help",
         ],
     )
