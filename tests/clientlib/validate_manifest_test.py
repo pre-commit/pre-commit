@@ -46,6 +46,9 @@ def test_additional_manifest_check_passing(obj):
         [{'id': 'a', 'language': 'not a language', 'files': ''}],
         [{'id': 'a', 'language': 'python3', 'files': ''}],
         [{'id': 'a', 'language': 'python', 'files': 'invalid regex('}],
+        [{'id': 'a', 'language': 'not a language', 'files': ''}],
+        [{'id': 'a', 'language': 'python3', 'files': ''}],
+        [{'id': 'a', 'language': 'python', 'files': '', 'exclude': '('}],
     ),
 )
 def test_additional_manifest_failing(obj):

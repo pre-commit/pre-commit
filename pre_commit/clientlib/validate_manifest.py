@@ -20,6 +20,7 @@ MANIFEST_JSON_SCHEMA = {
             'name': {'type': 'string'},
             'description': {'type': 'string', 'default': ''},
             'entry': {'type': 'string'},
+            'exclude': {'type': 'string', 'default': '^$'},
             'language': {'type': 'string'},
             'language_version': {'type': 'string', 'default': 'default'},
             'files': {'type': 'string'},
@@ -52,8 +53,14 @@ def validate_files(hook_config):
     if not is_regex_valid(hook_config['files']):
         raise InvalidManifestError(
             'Invalid files regex at {0}: {1}'.format(
-                hook_config['id'],
-                hook_config['files'],
+                hook_config['id'], hook_config['files'],
+            )
+        )
+
+    if not is_regex_valid(hook_config.get('exclude', '')):
+        raise InvalidManifestError(
+            'Invalid exclude regex at {0}: {1}'.format(
+                hook_config['id'], hook_config['exclude'],
             )
         )
 

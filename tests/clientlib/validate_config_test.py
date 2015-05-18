@@ -174,3 +174,23 @@ def test_config_with_local_hooks_definition_passes(config_obj):
     jsonschema.validate(config_obj, CONFIG_JSON_SCHEMA)
     config = apply_defaults(config_obj, CONFIG_JSON_SCHEMA)
     validate_config_extra(config)
+
+
+def test_does_not_contain_defaults():
+    """Due to the way our merging works, if this schema has any defaults they
+    will clobber potentially useful values in the backing manifest. #227
+    """
+    to_process = [(CONFIG_JSON_SCHEMA, ())]
+    while to_process:
+        schema, route = to_process.pop()
+        # Check this value
+        if isinstance(schema, dict):
+            if 'default' in schema:
+                raise AssertionError(
+                    'Unexpected default in schema at {0}'.format(
+                        ' => '.join(route),
+                    )
+                )
+
+            for key, value in schema.items():
+                to_process.append((value, route + (key,)))
