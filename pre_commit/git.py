@@ -37,9 +37,10 @@ def is_in_merge_conflict():
 def parse_merge_msg_for_conflicts(merge_msg):
     # Conflicted files start with tabs
     return [
-        line.strip()
+        line.lstrip('#').strip()
         for line in merge_msg.splitlines()
-        if line.startswith('\t')
+        # '#\t' for git 2.4.1
+        if line.startswith(('\t', '#\t'))
     ]
 
 

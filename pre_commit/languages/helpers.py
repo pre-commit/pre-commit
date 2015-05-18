@@ -3,6 +3,13 @@ from __future__ import unicode_literals
 import pipes
 
 
+def environment_dir(ENVIRONMENT_DIR, language_version):
+    if ENVIRONMENT_DIR is None:
+        return None
+    else:
+        return '{0}-{1}'.format(ENVIRONMENT_DIR, language_version)
+
+
 def file_args_to_stdin(file_args):
     return '\0'.join(list(file_args) + [''])
 
@@ -19,8 +26,9 @@ def run_hook(env, hook, file_args):
 
 
 class Environment(object):
-    def __init__(self, repo_cmd_runner):
+    def __init__(self, repo_cmd_runner, language_version):
         self.repo_cmd_runner = repo_cmd_runner
+        self.language_version = language_version
 
     @property
     def env_prefix(self):

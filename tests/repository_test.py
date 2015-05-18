@@ -72,6 +72,29 @@ def test_python_hook_args_with_spaces(tmpdir_factory, store):
 
 
 @pytest.mark.integration
+def test_switch_language_versions_doesnt_clobber(tmpdir_factory, store):
+    # We're using the python3 repo because it prints the python version
+    path = make_repo(tmpdir_factory, 'python3_hooks_repo')
+
+    def run_on_version(version, expected_output):
+        config = make_config_from_repo(
+            path, hooks=[{'id': 'python3-hook', 'language_version': version}],
+        )
+        repo = Repository.create(config, store)
+        hook_dict, = [
+            hook
+            for repo_hook_id, hook in repo.hooks
+            if repo_hook_id == 'python3-hook'
+        ]
+        ret = repo.run_hook(hook_dict, [])
+        assert ret[0] == 0
+        assert ret[1].replace('\r\n', '\n') == expected_output
+
+    run_on_version('python3.4', '3.4\n[]\nHello World\n')
+    run_on_version('python3.3', '3.3\n[]\nHello World\n')
+
+
+@pytest.mark.integration
 def test_versioned_python_hook(tmpdir_factory, store):
     _test_hook_repo(
         tmpdir_factory, store, 'python3_hooks_repo',
@@ -315,7 +338,7 @@ def test_control_c_control_c_on_install(tmpdir_factory, store):
                 repo.run_hook(hook, [])
 
     # Should have made an environment, however this environment is broken!
-    assert os.path.exists(repo.cmd_runner.path('py_env'))
+    assert os.path.exists(repo.cmd_runner.path('py_env-default'))
 
     # However, it should be perfectly runnable (reinstall after botched
     # install)

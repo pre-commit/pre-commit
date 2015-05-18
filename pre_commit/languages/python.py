@@ -19,15 +19,15 @@ class PythonEnv(helpers.Environment):
     def env_prefix(self):
         return ". '{{prefix}}{0}activate' &&".format(
             virtualenv.path_locations(
-                ENVIRONMENT_DIR,
+                helpers.environment_dir(ENVIRONMENT_DIR, self.language_version)
             )[-1].rstrip(os.sep) + os.sep,
             'activate',
         )
 
 
 @contextlib.contextmanager
-def in_env(repo_cmd_runner):
-    yield PythonEnv(repo_cmd_runner)
+def in_env(repo_cmd_runner, language_version):
+    yield PythonEnv(repo_cmd_runner, language_version)
 
 
 def norm_version(version):
@@ -41,20 +41,21 @@ def norm_version(version):
 
 def install_environment(repo_cmd_runner, version='default'):
     assert repo_cmd_runner.exists('setup.py')
+    directory = helpers.environment_dir(ENVIRONMENT_DIR, version)
 
     # Install a virtualenv
-    with clean_path_on_failure(repo_cmd_runner.path(ENVIRONMENT_DIR)):
+    with clean_path_on_failure(repo_cmd_runner.path(directory)):
         venv_cmd = [
             sys.executable, '-m', 'virtualenv',
-            '{{prefix}}{0}'.format(ENVIRONMENT_DIR)
+            '{{prefix}}{0}'.format(directory)
         ]
         if version != 'default':
             venv_cmd.extend(['-p', norm_version(version)])
         repo_cmd_runner.run(venv_cmd)
-        with in_env(repo_cmd_runner) as env:
+        with in_env(repo_cmd_runner, version) as env:
             env.run("cd '{prefix}' && pip install .")
 
 
 def run_hook(repo_cmd_runner, hook, file_args):
-    with in_env(repo_cmd_runner) as env:
+    with in_env(repo_cmd_runner, hook['language_version']) as env:
         return helpers.run_hook(env, hook, file_args)
