@@ -33,7 +33,7 @@ CONFIG_JSON_SCHEMA = {
                     'properties': {
                         'id': {'type': 'string'},
                         'files': {'type': 'string'},
-                        'exclude': {'type': 'string', 'default': '^$'},
+                        'exclude': {'type': 'string'},
                         'language_version': {'type': 'string'},
                         'args': {
                             'type': 'array',
@@ -71,7 +71,7 @@ def validate_config_extra(config):
             )
         for hook in repo['hooks']:
             try_regex(repo, hook['id'], hook.get('files', ''), 'files')
-            try_regex(repo, hook['id'], hook['exclude'], 'exclude')
+            try_regex(repo, hook['id'], hook.get('exclude', ''), 'exclude')
 
 
 load_config = get_validator(
