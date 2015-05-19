@@ -1,3 +1,10 @@
+0.5.0
+=====
+- Add a new "local" hook type for running hooks without remote configuration.
+- Complain loudly when .pre-commit-config.yaml is unstaged.
+- Better support for multiple language versions when running hooks.
+- Allow exclude to be defaulted in repository configuration.
+
 0.4.4
 =====
 - Use sys.executable when executing virtualenv
