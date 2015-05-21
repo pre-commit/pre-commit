@@ -20,3 +20,11 @@ else:  # pragma: no cover (PY3 only)
             return s
         else:
             return s.decode('UTF-8')
+
+
+def to_text(s):
+    return s if isinstance(s, text) else s.decode('UTF-8')
+
+
+def to_bytes(s):
+    return s if isinstance(s, bytes) else s.encode('UTF-8')

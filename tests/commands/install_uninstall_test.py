@@ -105,7 +105,7 @@ def _get_commit_output(
     cmd_output('git', 'add', touch_file)
     # Don't want to write to home directory
     home = home or tmpdir_factory.get()
-    env = dict(env_base, **{'PRE_COMMIT_HOME': home})
+    env = dict(env_base, PRE_COMMIT_HOME=home)
     return cmd_output(
         'git', 'commit', '-m', 'Commit!', '--allow-empty',
         # git commit puts pre-commit to stderr
@@ -414,7 +414,7 @@ def test_installed_from_venv(tmpdir_factory):
 def _get_push_output(tmpdir_factory):
     # Don't want to write to home directory
     home = tmpdir_factory.get()
-    env = dict(os.environ, **{'PRE_COMMIT_HOME': home})
+    env = dict(os.environ, PRE_COMMIT_HOME=home)
     return cmd_output(
         'git', 'push', 'origin', 'HEAD:new_branch',
         # git commit puts pre-commit to stderr

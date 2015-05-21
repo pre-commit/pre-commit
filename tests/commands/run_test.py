@@ -5,6 +5,7 @@ import io
 import os
 import os.path
 import subprocess
+import sys
 
 import mock
 import pytest
@@ -274,6 +275,22 @@ def test_multiple_hooks_same_id(
     assert output.count('Bash hook') == 2
 
 
+def test_non_ascii_hook_id(
+        repo_with_passing_hook, mock_out_store_directory, tmpdir_factory,
+):
+    with cwd(repo_with_passing_hook):
+        install(Runner(repo_with_passing_hook))
+        # Don't want to write to home directory
+        env = dict(os.environ, PRE_COMMIT_HOME=tmpdir_factory.get())
+        _, stdout, _ = cmd_output(
+            sys.executable, '-m', 'pre_commit.main', 'run', '☃',
+            env=env, retcode=None,
+        )
+        assert 'UnicodeDecodeError' not in stdout
+        # Doesn't actually happen, but a reasonable assertion
+        assert 'UnicodeEncodeError' not in stdout
+
+
 def test_stdout_write_bug_py26(
         repo_with_failing_hook, mock_out_store_directory, tmpdir_factory,
 ):
@@ -289,7 +306,7 @@ def test_stdout_write_bug_py26(
         install(Runner(repo_with_failing_hook))
 
         # Don't want to write to home directory
-        env = dict(os.environ, **{'PRE_COMMIT_HOME': tmpdir_factory.get()})
+        env = dict(os.environ, PRE_COMMIT_HOME=tmpdir_factory.get())
         # Have to use subprocess because pytest monkeypatches sys.stdout
         _, stdout, _ = cmd_output(
             'git', 'commit', '-m', 'Commit!',
@@ -329,7 +346,7 @@ def test_lots_of_files(mock_out_store_directory, tmpdir_factory):
         install(Runner(git_path))
 
         # Don't want to write to home directory
-        env = dict(os.environ, **{'PRE_COMMIT_HOME': tmpdir_factory.get()})
+        env = dict(os.environ, PRE_COMMIT_HOME=tmpdir_factory.get())
         cmd_output(
             'git', 'commit', '-m', 'Commit!',
             # git commit puts pre-commit to stderr

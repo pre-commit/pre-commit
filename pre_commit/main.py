@@ -7,6 +7,7 @@ import sys
 import pkg_resources
 
 from pre_commit import color
+from pre_commit import five
 from pre_commit.commands.autoupdate import autoupdate
 from pre_commit.commands.clean import clean
 from pre_commit.commands.install_uninstall import install
@@ -25,6 +26,7 @@ os.environ.pop('__PYVENV_LAUNCHER__', None)
 
 def main(argv=None):
     argv = argv if argv is not None else sys.argv[1:]
+    argv = [five.to_text(arg) for arg in argv]
     parser = argparse.ArgumentParser()
 
     # http://stackoverflow.com/a/8521644/812183
