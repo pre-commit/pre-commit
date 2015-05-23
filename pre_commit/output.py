@@ -77,12 +77,8 @@ def get_hook_message(
         )
 
 
-def sys_stdout_write_wrapper(s, stream=sys.stdout):
-    """Python 2.6 chokes on unicode being passed to sys.stdout.write.
+stdout_byte_stream = getattr(sys.stdout, 'buffer', sys.stdout)
 
-    This is an adapter because PY2 is ok with bytes and PY3 requires text.
-    """
-    assert type(s) is five.text
-    if five.PY2:  # pragma: no cover (PY2)
-        s = s.encode('UTF-8')
-    stream.write(s)
+
+def sys_stdout_write_wrapper(s, stream=stdout_byte_stream):
+    stream.write(five.to_bytes(s))
