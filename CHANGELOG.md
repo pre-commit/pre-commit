@@ -1,3 +1,8 @@
+0.5.1
+=====
+- Fix bug with unknown non-ascii hook-id
+- Avoid crash when .git/hooks is not present in some git clients
+
 0.5.0
 =====
 - Add a new "local" hook type for running hooks without remote configuration.
