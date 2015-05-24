@@ -48,6 +48,9 @@ def install(runner, overwrite=False, hooks=False, hook_type='pre-commit'):
     hook_path = runner.get_hook_path(hook_type)
     legacy_path = hook_path + '.legacy'
 
+    if not os.path.exists(os.path.dirname(hook_path)):
+        os.makedirs(os.path.dirname(hook_path))
+
     # If we have an existing hook, move it to pre-commit.legacy
     if (
         os.path.exists(hook_path) and
