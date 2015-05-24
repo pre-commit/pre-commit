@@ -5,6 +5,7 @@ import io
 import os
 import os.path
 import re
+import shutil
 import subprocess
 import sys
 
@@ -76,6 +77,15 @@ def test_install_pre_commit(tmpdir_factory):
         pre_push=pre_push_template_contents,
     )
     assert pre_push_contents == expected_contents
+
+
+def test_install_hooks_directory_not_present(tmpdir_factory):
+    path = git_dir(tmpdir_factory)
+    # Simulate some git clients which don't make .git/hooks #234
+    shutil.rmtree(os.path.join(path, '.git', 'hooks'))
+    runner = Runner(path)
+    install(runner)
+    assert os.path.exists(runner.pre_commit_path)
 
 
 def test_uninstall_does_not_blow_up_when_not_there(tmpdir_factory):
