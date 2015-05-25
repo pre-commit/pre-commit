@@ -13,7 +13,6 @@ from testing.util import is_valid_according_to_schema
 @pytest.mark.parametrize(
     ('input', 'expected_output'),
     (
-        (['example_hooks.yaml'], 0),
         (['hooks.yaml'], 0),
         (['non_existent_file.yaml'], 1),
         ([get_resource_path('valid_yaml_but_invalid_manifest.yaml')], 1),
