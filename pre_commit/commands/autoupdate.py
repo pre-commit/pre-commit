@@ -8,6 +8,7 @@ from aspy.yaml import ordered_load
 
 import pre_commit.constants as C
 from pre_commit.clientlib.validate_config import CONFIG_JSON_SCHEMA
+from pre_commit.clientlib.validate_config import is_local_hooks
 from pre_commit.clientlib.validate_config import load_config
 from pre_commit.jsonschema_extensions import remove_defaults
 from pre_commit.ordereddict import OrderedDict
@@ -67,6 +68,8 @@ def autoupdate(runner):
     )
 
     for repo_config in input_configs:
+        if is_local_hooks(repo_config):
+            continue
         sys.stdout.write('Updating {0}...'.format(repo_config['repo']))
         sys.stdout.flush()
         try:

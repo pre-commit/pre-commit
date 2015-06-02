@@ -12,10 +12,10 @@ from pre_commit.clientlib.validate_config import CONFIG_JSON_SCHEMA
 from pre_commit.clientlib.validate_config import validate_config_extra
 from pre_commit.jsonschema_extensions import apply_defaults
 from pre_commit.languages.python import PythonEnv
-from pre_commit.ordereddict import OrderedDict
 from pre_commit.repository import Repository
 from pre_commit.util import cmd_output
 from pre_commit.util import cwd
+from testing.fixtures import config_with_local_hooks
 from testing.fixtures import git_dir
 from testing.fixtures import make_config_from_repo
 from testing.fixtures import make_repo
@@ -404,16 +404,7 @@ def test_tags_on_repositories(in_tmpdir, tmpdir_factory, store):
 
 
 def test_local_repository():
-    config = OrderedDict((
-        ('repo', 'local'),
-        ('hooks', [OrderedDict((
-            ('id', 'do_not_commit'),
-            ('name', 'Block if "DO NOT COMMIT" is found'),
-            ('entry', 'DO NOT COMMIT'),
-            ('language', 'pcre'),
-            ('files', '^(.*)$'),
-        ))])
-    ))
+    config = config_with_local_hooks()
     local_repo = Repository.create(config, 'dummy')
     with pytest.raises(NotImplementedError):
         local_repo.sha
