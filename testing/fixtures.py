@@ -35,6 +35,19 @@ def make_repo(tmpdir_factory, repo_source):
     return path
 
 
+def config_with_local_hooks():
+    return OrderedDict((
+        ('repo', 'local'),
+        ('hooks', [OrderedDict((
+            ('id', 'do_not_commit'),
+            ('name', 'Block if "DO NOT COMMIT" is found'),
+            ('entry', 'DO NOT COMMIT'),
+            ('language', 'pcre'),
+            ('files', '^(.*)$'),
+        ))])
+    ))
+
+
 def make_config_from_repo(repo_path, sha=None, hooks=None, check=True):
     manifest = load_manifest(os.path.join(repo_path, C.MANIFEST_FILE))
     config = OrderedDict((

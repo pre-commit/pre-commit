@@ -13,6 +13,9 @@ from pre_commit.runner import Runner
 from pre_commit.util import cmd_output
 from pre_commit.util import cwd
 from testing.auto_namedtuple import auto_namedtuple
+from testing.fixtures import add_config_to_repo
+from testing.fixtures import config_with_local_hooks
+from testing.fixtures import git_dir
 from testing.fixtures import make_config_from_repo
 from testing.fixtures import make_repo
 from testing.fixtures import write_config
@@ -137,3 +140,10 @@ def test_autoupdate_hook_disappearing_repo(
     after = open(C.CONFIG_FILE).read()
     assert ret == 1
     assert before == after
+
+
+def test_autoupdate_local_hooks(tmpdir_factory):
+    git_path = git_dir(tmpdir_factory)
+    config = config_with_local_hooks()
+    path = add_config_to_repo(git_path, config)
+    assert autoupdate(Runner(path)) == 0
