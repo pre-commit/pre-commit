@@ -5,6 +5,7 @@ import shutil
 import pytest
 
 import pre_commit.constants as C
+from pre_commit.clientlib.validate_config import load_config
 from pre_commit.commands.autoupdate import _update_repository
 from pre_commit.commands.autoupdate import autoupdate
 from pre_commit.commands.autoupdate import RepositoryCannotBeUpdatedError
@@ -146,4 +147,24 @@ def test_autoupdate_local_hooks(tmpdir_factory):
     git_path = git_dir(tmpdir_factory)
     config = config_with_local_hooks()
     path = add_config_to_repo(git_path, config)
-    assert autoupdate(Runner(path)) == 0
+    runner = Runner(path)
+    assert autoupdate(runner) == 0
+    new_config_writen = load_config(runner.config_file_path)
+    assert len(new_config_writen) == 1
+    assert new_config_writen[0] == config
+
+
+def test_autoupdate_local_hooks_with_out_of_date_repo(
+        out_of_date_repo, in_tmpdir, mock_out_store_directory
+):
+    stale_config = make_config_from_repo(
+        out_of_date_repo.path, sha=out_of_date_repo.original_sha, check=False,
+    )
+    local_config = config_with_local_hooks()
+    config = [local_config, stale_config]
+    write_config('.', config)
+    runner = Runner('.')
+    assert autoupdate(runner) == 0
+    new_config_writen = load_config(runner.config_file_path)
+    assert len(new_config_writen) == 2
+    assert new_config_writen[0] == local_config

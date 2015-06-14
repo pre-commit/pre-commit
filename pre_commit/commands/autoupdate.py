@@ -69,6 +69,7 @@ def autoupdate(runner):
 
     for repo_config in input_configs:
         if is_local_hooks(repo_config):
+            output_configs.append(repo_config)
             continue
         sys.stdout.write('Updating {0}...'.format(repo_config['repo']))
         sys.stdout.flush()
