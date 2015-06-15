@@ -1,3 +1,7 @@
+0.5.3
+=====
+- Fix autoupdate with "local" hooks - don't purge local hooks.
+
 0.5.2
 =====
 - Fix autoupdate with "local" hooks
