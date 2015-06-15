@@ -433,14 +433,17 @@ def test_allow_unstaged_config_option(
     assert ret == 0
 
 
-def test_no_allow_unstaged_config_option(
-    repo_with_passing_hook, mock_out_store_directory,
-):
-    with cwd(repo_with_passing_hook):
+def modify_config(path):
+    with cwd(path):
         with io.open('.pre-commit-config.yaml', 'a+') as config_file:
             # writing a newline should be relatively harmless to get a change
             config_file.write('\n')
 
+
+def test_no_allow_unstaged_config_option(
+    repo_with_passing_hook, mock_out_store_directory,
+):
+    modify_config(repo_with_passing_hook)
     args = _get_opts(allow_unstaged_config=False)
     ret, printed = _do_run(repo_with_passing_hook, args)
     assert 'Your .pre-commit-config.yaml is unstaged.' in printed
@@ -450,11 +453,25 @@ def test_no_allow_unstaged_config_option(
 def test_no_stash_suppresses_allow_unstaged_config_option(
         repo_with_passing_hook, mock_out_store_directory,
 ):
-    with cwd(repo_with_passing_hook):
-        with io.open('.pre-commit-config.yaml', 'a+') as config_file:
-            # writing a newline should be relatively harmless to get a change
-            config_file.write('\n')
-
+    modify_config(repo_with_passing_hook)
     args = _get_opts(allow_unstaged_config=False, no_stash=True)
+    ret, printed = _do_run(repo_with_passing_hook, args)
+    assert 'Your .pre-commit-config.yaml is unstaged.' not in printed
+
+
+def test_all_files_suppresses_allow_unstaged_config_option(
+        repo_with_passing_hook, mock_out_store_directory,
+):
+    modify_config(repo_with_passing_hook)
+    args = _get_opts(all_files=True)
+    ret, printed = _do_run(repo_with_passing_hook, args)
+    assert 'Your .pre-commit-config.yaml is unstaged.' not in printed
+
+
+def test_files_suppresses_allow_unstaged_config_option(
+        repo_with_passing_hook, mock_out_store_directory,
+):
+    modify_config(repo_with_passing_hook)
+    args = _get_opts(files=['.pre-commit-config.yaml'])
     ret, printed = _do_run(repo_with_passing_hook, args)
     assert 'Your .pre-commit-config.yaml is unstaged.' not in printed
