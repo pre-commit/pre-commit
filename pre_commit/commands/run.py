@@ -139,6 +139,7 @@ def _has_unstaged_config(runner):
 
 
 def run(runner, args, write=sys_stdout_write_wrapper, environ=os.environ):
+    no_stash = args.no_stash or args.all_files or bool(args.files)
     # Set up our logging handler
     logger.addHandler(LoggingHandler(args.color, write=write))
     logger.setLevel(logging.INFO)
@@ -150,7 +151,7 @@ def run(runner, args, write=sys_stdout_write_wrapper, environ=os.environ):
     if bool(args.source) != bool(args.origin):
         logger.error('Specify both --origin and --source.')
         return 1
-    if _has_unstaged_config(runner) and not args.no_stash:
+    if _has_unstaged_config(runner) and not no_stash:
         if args.allow_unstaged_config:
             logger.warn(
                 'You have an unstaged config file and have specified the '
@@ -166,8 +167,7 @@ def run(runner, args, write=sys_stdout_write_wrapper, environ=os.environ):
             )
             return 1
 
-    # Don't stash if specified or files are specified
-    if args.no_stash or args.all_files or args.files:
+    if no_stash:
         ctx = noop_context()
     else:
         ctx = staged_files_only(runner.cmd_runner)
