@@ -27,10 +27,14 @@ IDENTIFYING_HASH = '79f09a650522a87b0da915d0d983b2de'
 
 
 def is_our_pre_commit(filename):
+    if not os.path.exists(filename):
+        return False
     return IDENTIFYING_HASH in io.open(filename).read()
 
 
 def is_previous_pre_commit(filename):
+    if not os.path.exists(filename):
+        return False
     contents = io.open(filename).read()
     return any(hash in contents for hash in PREVIOUS_IDENTIFYING_HASHES)
 
@@ -53,7 +57,7 @@ def install(runner, overwrite=False, hooks=False, hook_type='pre-commit'):
 
     # If we have an existing hook, move it to pre-commit.legacy
     if (
-        os.path.exists(hook_path) and
+        os.path.lexists(hook_path) and
         not is_our_pre_commit(hook_path) and
         not is_previous_pre_commit(hook_path)
     ):
