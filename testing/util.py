@@ -73,3 +73,8 @@ xfailif_no_pcre_support = pytest.mark.xfail(
     not platform_supports_pcre(),
     reason='grep -P is not supported on this platform',
 )
+
+xfailif_no_symlink = pytest.mark.xfail(
+    not hasattr(os, 'symlink'),
+    reason='Symlink is not supported on this platform',
+)

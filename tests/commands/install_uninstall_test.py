@@ -24,6 +24,7 @@ from pre_commit.util import cwd
 from pre_commit.util import resource_filename
 from testing.fixtures import git_dir
 from testing.fixtures import make_consuming_repo
+from testing.util import xfailif_no_symlink
 
 
 def test_is_not_our_pre_commit():
@@ -83,6 +84,15 @@ def test_install_hooks_directory_not_present(tmpdir_factory):
     path = git_dir(tmpdir_factory)
     # Simulate some git clients which don't make .git/hooks #234
     shutil.rmtree(os.path.join(path, '.git', 'hooks'))
+    runner = Runner(path)
+    install(runner)
+    assert os.path.exists(runner.pre_commit_path)
+
+
+@xfailif_no_symlink
+def test_install_hooks_dead_symlink(tmpdir_factory):
+    path = git_dir(tmpdir_factory)
+    os.symlink('/fake/baz', os.path.join(path, '.git', 'hooks', 'pre-commit'))
     runner = Runner(path)
     install(runner)
     assert os.path.exists(runner.pre_commit_path)
