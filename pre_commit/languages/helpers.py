@@ -22,6 +22,7 @@ def run_hook(env, hook, file_args):
         ' '.join(['xargs', '-0', '-s4000', hook['entry']] + quoted_args),
         stdin=file_args_to_stdin(file_args),
         retcode=None,
+        encoding=None,
     )
 
 

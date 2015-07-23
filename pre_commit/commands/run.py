@@ -102,8 +102,9 @@ def _run_single_hook(hook, repo, args, write, skips=frozenset()):
         write('hookid: {0}\n'.format(hook['id']))
         write('\n')
         for output in (stdout, stderr):
+            assert type(output) is bytes, type(output)
             if output.strip():
-                write(output.strip() + '\n')
+                write(output.strip() + b'\n')
         write('\n')
 
     return retcode

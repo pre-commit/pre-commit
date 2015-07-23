@@ -17,4 +17,5 @@ def run_hook(repo_cmd_runner, hook, file_args):
         # TODO: this is duplicated in pre_commit/languages/helpers.py
         stdin=file_args_to_stdin(file_args),
         retcode=None,
+        encoding=None,
     )

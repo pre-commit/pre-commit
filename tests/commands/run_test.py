@@ -1,6 +1,7 @@
 # -*- coding: UTF-8 -*-
 from __future__ import unicode_literals
 
+import functools
 import io
 import os
 import os.path
@@ -16,6 +17,7 @@ from pre_commit.commands.run import _has_unmerged_paths
 from pre_commit.commands.run import get_changed_files
 from pre_commit.commands.run import run
 from pre_commit.ordereddict import OrderedDict
+from pre_commit.output import sys_stdout_write_wrapper
 from pre_commit.runner import Runner
 from pre_commit.util import cmd_output
 from pre_commit.util import cwd
@@ -44,7 +46,7 @@ def stage_a_file():
 
 
 def get_write_mock_output(write_mock):
-    return ''.join(call[0][0] for call in write_mock.call_args_list)
+    return b''.join(call[0][0] for call in write_mock.write.call_args_list)
 
 
 def _get_opts(
@@ -76,7 +78,8 @@ def _get_opts(
 def _do_run(repo, args, environ={}):
     runner = Runner(repo)
     write_mock = mock.Mock()
-    ret = run(runner, args, write=write_mock, environ=environ)
+    write_fn = functools.partial(sys_stdout_write_wrapper, stream=write_mock)
+    ret = run(runner, args, write=write_fn, environ=environ)
     printed = get_write_mock_output(write_mock)
     return ret, printed
 
@@ -97,32 +100,43 @@ def test_run_all_hooks_failing(
     _test_run(
         repo_with_failing_hook,
         {},
-        ('Failing hook', 'Failed', 'hookid: failing_hook', 'Fail\nfoo.py\n'),
+        (
+            b'Failing hook',
+            b'Failed',
+            b'hookid: failing_hook',
+            b'Fail\nfoo.py\n',
+        ),
         1,
         True,
     )
 
 
+def test_arbitrary_bytes_hook(tmpdir_factory, mock_out_store_directory):
+    git_path = make_consuming_repo(tmpdir_factory, 'arbitrary_bytes_repo')
+    with cwd(git_path):
+        _test_run(git_path, {}, (b'\xe2\x98\x83\xb2\n',), 1, True)
+
+
 @pytest.mark.parametrize(
     ('options', 'outputs', 'expected_ret', 'stage'),
     (
-        ({}, ('Bash hook', 'Passed'), 0, True),
-        ({'verbose': True}, ('foo.py\nHello World',), 0, True),
-        ({'hook': 'bash_hook'}, ('Bash hook', 'Passed'), 0, True),
-        ({'hook': 'nope'}, ('No hook with id `nope`',), 1, True),
+        ({}, (b'Bash hook', b'Passed'), 0, True),
+        ({'verbose': True}, (b'foo.py\nHello World',), 0, True),
+        ({'hook': 'bash_hook'}, (b'Bash hook', b'Passed'), 0, True),
+        ({'hook': 'nope'}, (b'No hook with id `nope`',), 1, True),
         (
             {'all_files': True, 'verbose': True},
-            ('foo.py'),
+            (b'foo.py',),
             0,
             True,
         ),
         (
             {'files': ('foo.py',), 'verbose': True},
-            ('foo.py'),
+            (b'foo.py',),
             0,
             True,
         ),
-        ({}, ('Bash hook', '(no files to check)', 'Skipped'), 0, False),
+        ({}, (b'Bash hook', b'(no files to check)', b'Skipped'), 0, False),
     )
 )
 def test_run(
@@ -150,7 +164,7 @@ def test_origin_source_error_msg(
 ):
     args = _get_opts(origin=origin, source=source)
     ret, printed = _do_run(repo_with_passing_hook, args)
-    warning_msg = 'Specify both --origin and --source.'
+    warning_msg = b'Specify both --origin and --source.'
     if expect_failure:
         assert ret == 1
         assert warning_msg in printed
@@ -183,7 +197,7 @@ def test_no_stash(
     args = _get_opts(no_stash=no_stash, all_files=all_files)
     ret, printed = _do_run(repo_with_passing_hook, args)
     assert ret == 0
-    warning_msg = '[WARNING] Unstaged files detected.'
+    warning_msg = b'[WARNING] Unstaged files detected.'
     if expect_stash:
         assert warning_msg in printed
     else:
@@ -200,7 +214,7 @@ def test_has_unmerged_paths(output, expected):
 def test_merge_conflict(in_merge_conflict, mock_out_store_directory):
     ret, printed = _do_run(in_merge_conflict, _get_opts())
     assert ret == 1
-    assert 'Unmerged files.  Resolve before committing.' in printed
+    assert b'Unmerged files.  Resolve before committing.' in printed
 
 
 def test_merge_conflict_modified(in_merge_conflict, mock_out_store_directory):
@@ -211,13 +225,15 @@ def test_merge_conflict_modified(in_merge_conflict, mock_out_store_directory):
 
     ret, printed = _do_run(in_merge_conflict, _get_opts())
     assert ret == 1
-    assert 'Unmerged files.  Resolve before committing.' in printed
+    assert b'Unmerged files.  Resolve before committing.' in printed
 
 
 def test_merge_conflict_resolved(in_merge_conflict, mock_out_store_directory):
     cmd_output('git', 'add', '.')
     ret, printed = _do_run(in_merge_conflict, _get_opts())
-    for msg in ('Checking merge-conflict files only.', 'Bash hook', 'Passed'):
+    for msg in (
+            b'Checking merge-conflict files only.', b'Bash hook', b'Passed',
+    ):
         assert msg in printed
 
 
@@ -242,7 +258,7 @@ def test_skip_hook(repo_with_passing_hook, mock_out_store_directory):
     ret, printed = _do_run(
         repo_with_passing_hook, _get_opts(), {'SKIP': 'bash_hook'},
     )
-    for msg in ('Bash hook', 'Skipped'):
+    for msg in (b'Bash hook', b'Skipped'):
         assert msg in printed
 
 
@@ -250,14 +266,14 @@ def test_hook_id_not_in_non_verbose_output(
         repo_with_passing_hook, mock_out_store_directory
 ):
     ret, printed = _do_run(repo_with_passing_hook, _get_opts(verbose=False))
-    assert '[bash_hook]' not in printed
+    assert b'[bash_hook]' not in printed
 
 
 def test_hook_id_in_verbose_output(
         repo_with_passing_hook, mock_out_store_directory,
 ):
     ret, printed = _do_run(repo_with_passing_hook, _get_opts(verbose=True))
-    assert '[bash_hook] Bash hook' in printed
+    assert b'[bash_hook] Bash hook' in printed
 
 
 def test_multiple_hooks_same_id(
@@ -272,7 +288,7 @@ def test_multiple_hooks_same_id(
 
     ret, output = _do_run(repo_with_passing_hook, _get_opts())
     assert ret == 0
-    assert output.count('Bash hook') == 2
+    assert output.count(b'Bash hook') == 2
 
 
 def test_non_ascii_hook_id(
@@ -383,7 +399,7 @@ def test_local_hook_passes(
     _test_run(
         repo_with_passing_hook,
         options={},
-        expected_outputs=[''],
+        expected_outputs=[b''],
         expected_ret=0,
         stage=False
     )
@@ -412,7 +428,7 @@ def test_local_hook_fails(
     _test_run(
         repo_with_passing_hook,
         options={},
-        expected_outputs=[''],
+        expected_outputs=[b''],
         expected_ret=1,
         stage=False
     )
@@ -428,8 +444,8 @@ def test_allow_unstaged_config_option(
 
     args = _get_opts(allow_unstaged_config=True)
     ret, printed = _do_run(repo_with_passing_hook, args)
-    assert 'You have an unstaged config file' in printed
-    assert 'have specified the --allow-unstaged-config option.' in printed
+    assert b'You have an unstaged config file' in printed
+    assert b'have specified the --allow-unstaged-config option.' in printed
     assert ret == 0
 
 
@@ -446,7 +462,7 @@ def test_no_allow_unstaged_config_option(
     modify_config(repo_with_passing_hook)
     args = _get_opts(allow_unstaged_config=False)
     ret, printed = _do_run(repo_with_passing_hook, args)
-    assert 'Your .pre-commit-config.yaml is unstaged.' in printed
+    assert b'Your .pre-commit-config.yaml is unstaged.' in printed
     assert ret == 1
 
 
@@ -456,7 +472,7 @@ def test_no_stash_suppresses_allow_unstaged_config_option(
     modify_config(repo_with_passing_hook)
     args = _get_opts(allow_unstaged_config=False, no_stash=True)
     ret, printed = _do_run(repo_with_passing_hook, args)
-    assert 'Your .pre-commit-config.yaml is unstaged.' not in printed
+    assert b'Your .pre-commit-config.yaml is unstaged.' not in printed
 
 
 def test_all_files_suppresses_allow_unstaged_config_option(
@@ -465,7 +481,7 @@ def test_all_files_suppresses_allow_unstaged_config_option(
     modify_config(repo_with_passing_hook)
     args = _get_opts(all_files=True)
     ret, printed = _do_run(repo_with_passing_hook, args)
-    assert 'Your .pre-commit-config.yaml is unstaged.' not in printed
+    assert b'Your .pre-commit-config.yaml is unstaged.' not in printed
 
 
 def test_files_suppresses_allow_unstaged_config_option(
@@ -474,4 +490,4 @@ def test_files_suppresses_allow_unstaged_config_option(
     modify_config(repo_with_passing_hook)
     args = _get_opts(files=['.pre-commit-config.yaml'])
     ret, printed = _do_run(repo_with_passing_hook, args)
-    assert 'Your .pre-commit-config.yaml is unstaged.' not in printed
+    assert b'Your .pre-commit-config.yaml is unstaged.' not in printed

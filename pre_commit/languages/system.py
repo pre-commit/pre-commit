@@ -18,4 +18,5 @@ def run_hook(repo_cmd_runner, hook, file_args):
         ['xargs', '-0'] + shlex.split(hook['entry']) + hook['args'],
         stdin=file_args_to_stdin(file_args),
         retcode=None,
+        encoding=None,
     )
