@@ -8,6 +8,7 @@ import shutil
 import mock
 import pytest
 
+from pre_commit import five
 from pre_commit.clientlib.validate_config import CONFIG_JSON_SCHEMA
 from pre_commit.clientlib.validate_config import validate_config_extra
 from pre_commit.jsonschema_extensions import apply_defaults
@@ -43,14 +44,15 @@ def _test_hook_repo(
     ][0]
     ret = repo.run_hook(hook_dict, args)
     assert ret[0] == expected_return_code
-    assert ret[1].replace('\r\n', '\n') == expected
+    assert ret[1].replace(b'\r\n', b'\n') == expected
 
 
 @pytest.mark.integration
 def test_python_hook(tmpdir_factory, store):
     _test_hook_repo(
         tmpdir_factory, store, 'python_hooks_repo',
-        'foo', [os.devnull], "['{0}']\nHello World\n".format(os.devnull),
+        'foo', [os.devnull],
+        b"['" + five.to_bytes(os.devnull) + b"']\nHello World\n"
     )
 
 
@@ -60,8 +62,8 @@ def test_python_hook_args_with_spaces(tmpdir_factory, store):
         tmpdir_factory, store, 'python_hooks_repo',
         'foo',
         [],
-        "['i have spaces', 'and\"\\'quotes', '$and !this']\n"
-        'Hello World\n',
+        b"['i have spaces', 'and\"\\'quotes', '$and !this']\n"
+        b'Hello World\n',
         config_kwargs={
             'hooks': [{
                 'id': 'foo',
@@ -88,10 +90,10 @@ def test_switch_language_versions_doesnt_clobber(tmpdir_factory, store):
         ]
         ret = repo.run_hook(hook_dict, [])
         assert ret[0] == 0
-        assert ret[1].replace('\r\n', '\n') == expected_output
+        assert ret[1].replace(b'\r\n', b'\n') == expected_output
 
-    run_on_version('python3.4', '3.4\n[]\nHello World\n')
-    run_on_version('python3.3', '3.3\n[]\nHello World\n')
+    run_on_version('python3.4', b'3.4\n[]\nHello World\n')
+    run_on_version('python3.3', b'3.3\n[]\nHello World\n')
 
 
 @pytest.mark.integration
@@ -100,7 +102,7 @@ def test_versioned_python_hook(tmpdir_factory, store):
         tmpdir_factory, store, 'python3_hooks_repo',
         'python3-hook',
         [os.devnull],
-        "3.3\n['{0}']\nHello World\n".format(os.devnull),
+        b"3.3\n['" + five.to_bytes(os.devnull) + b"']\nHello World\n",
     )
 
 
@@ -110,7 +112,7 @@ def test_versioned_python_hook(tmpdir_factory, store):
 def test_run_a_node_hook(tmpdir_factory, store):
     _test_hook_repo(
         tmpdir_factory, store, 'node_hooks_repo',
-        'foo', ['/dev/null'], 'Hello World\n',
+        'foo', ['/dev/null'], b'Hello World\n',
     )
 
 
@@ -120,7 +122,7 @@ def test_run_a_node_hook(tmpdir_factory, store):
 def test_run_versioned_node_hook(tmpdir_factory, store):
     _test_hook_repo(
         tmpdir_factory, store, 'node_0_11_8_hooks_repo',
-        'node-11-8-hook', ['/dev/null'], 'v0.11.8\nHello World\n',
+        'node-11-8-hook', ['/dev/null'], b'v0.11.8\nHello World\n',
     )
 
 
@@ -130,7 +132,7 @@ def test_run_versioned_node_hook(tmpdir_factory, store):
 def test_run_a_ruby_hook(tmpdir_factory, store):
     _test_hook_repo(
         tmpdir_factory, store, 'ruby_hooks_repo',
-        'ruby_hook', ['/dev/null'], 'Hello world from a ruby hook\n',
+        'ruby_hook', ['/dev/null'], b'Hello world from a ruby hook\n',
     )
 
 
@@ -142,7 +144,7 @@ def test_run_versioned_ruby_hook(tmpdir_factory, store):
         tmpdir_factory, store, 'ruby_1_9_3_hooks_repo',
         'ruby_hook',
         ['/dev/null'],
-        '1.9.3\n484\nHello world from a ruby hook\n',
+        b'1.9.3\n484\nHello world from a ruby hook\n',
     )
 
 
@@ -150,7 +152,7 @@ def test_run_versioned_ruby_hook(tmpdir_factory, store):
 def test_system_hook_with_spaces(tmpdir_factory, store):
     _test_hook_repo(
         tmpdir_factory, store, 'system_hook_with_spaces_repo',
-        'system-hook-with-spaces', ['/dev/null'], 'Hello World\n',
+        'system-hook-with-spaces', ['/dev/null'], b'Hello World\n',
     )
 
 
@@ -158,7 +160,7 @@ def test_system_hook_with_spaces(tmpdir_factory, store):
 def test_run_a_script_hook(tmpdir_factory, store):
     _test_hook_repo(
         tmpdir_factory, store, 'script_hooks_repo',
-        'bash_hook', ['bar'], 'bar\nHello World\n',
+        'bash_hook', ['bar'], b'bar\nHello World\n',
     )
 
 
@@ -168,7 +170,7 @@ def test_run_hook_with_spaced_args(tmpdir_factory, store):
         tmpdir_factory, store, 'arg_per_line_hooks_repo',
         'arg-per-line',
         ['foo bar', 'baz'],
-        'arg: hello\narg: world\narg: foo bar\narg: baz\n',
+        b'arg: hello\narg: world\narg: foo bar\narg: baz\n',
     )
 
 
@@ -185,12 +187,12 @@ def test_pcre_hook_no_match(tmpdir_factory, store):
 
         _test_hook_repo(
             tmpdir_factory, store, 'pcre_hooks_repo',
-            'regex-with-quotes', ['herp', 'derp'], '',
+            'regex-with-quotes', ['herp', 'derp'], b'',
         )
 
         _test_hook_repo(
             tmpdir_factory, store, 'pcre_hooks_repo',
-            'other-regex', ['herp', 'derp'], '',
+            'other-regex', ['herp', 'derp'], b'',
         )
 
 
@@ -207,13 +209,13 @@ def test_pcre_hook_matching(tmpdir_factory, store):
 
         _test_hook_repo(
             tmpdir_factory, store, 'pcre_hooks_repo',
-            'regex-with-quotes', ['herp', 'derp'], "herp:2:herpfoo'bard\n",
+            'regex-with-quotes', ['herp', 'derp'], b"herp:2:herpfoo'bard\n",
             expected_return_code=123,
         )
 
         _test_hook_repo(
             tmpdir_factory, store, 'pcre_hooks_repo',
-            'other-regex', ['herp', 'derp'], 'derp:1:[INFO] information yo\n',
+            'other-regex', ['herp', 'derp'], b'derp:1:[INFO] information yo\n',
             expected_return_code=123,
         )
 
@@ -233,7 +235,7 @@ def test_pcre_many_files(tmpdir_factory, store):
             tmpdir_factory, store, 'pcre_hooks_repo',
             'other-regex',
             ['/dev/null'] * 15000 + ['herp'],
-            'herp:1:[INFO] info\n',
+            b'herp:1:[INFO] info\n',
             expected_return_code=123,
         )
 
@@ -243,6 +245,7 @@ def _norm_pwd(path):
     # This normalizes to the bash /tmp
     return cmd_output(
         'bash', '-c', "cd '{0}' && pwd".format(path),
+        encoding=None,
     )[1].strip()
 
 
@@ -253,7 +256,7 @@ def test_cwd_of_hook(tmpdir_factory, store):
     with cwd(path):
         _test_hook_repo(
             tmpdir_factory, store, 'prints_cwd_repo',
-            'prints_cwd', ['-L'], _norm_pwd(path) + '\n',
+            'prints_cwd', ['-L'], _norm_pwd(path) + b'\n',
         )
 
 
@@ -400,7 +403,7 @@ def test_tags_on_repositories(in_tmpdir, tmpdir_factory, store):
     )
     ret = repo_2.run_hook(repo_2.hooks[0][1], ['bar'])
     assert ret[0] == 0
-    assert ret[1] == 'bar\nHello World\n'
+    assert ret[1] == b'bar\nHello World\n'
 
 
 def test_local_repository():
