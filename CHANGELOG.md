@@ -1,3 +1,9 @@
+0.5.4
+=====
+- Allow hooks to produce outputs with arbitrary bytes
+- Fix pre-commit install when .git/hooks/pre-commit is a dead symlink
+- Allow an unstaged config when using --files or --all-files
+
 0.5.3
 =====
 - Fix autoupdate with "local" hooks - don't purge local hooks.
