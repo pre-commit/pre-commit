@@ -1,4 +1,4 @@
--   repo: git@github.com:pre-commit/pre-commit-hooks
+-   repo: https://github.com/pre-commit/pre-commit-hooks.git
     sha: cf550fcab3f12015f8676b8278b30e1a5bc10e70
     hooks:
     -   id: trailing-whitespace
@@ -11,12 +11,12 @@
     -   id: name-tests-test
     -   id: requirements-txt-fixer
     -   id: flake8
--   repo: git@github.com:pre-commit/pre-commit
+-   repo: https://github.com/pre-commit/pre-commit.git
     sha: 8dba3281d5051060755459dcf88e28fc26c27526
     hooks:
     -   id: validate_config
     -   id: validate_manifest
--   repo: git@github.com:asottile/reorder_python_imports
+-   repo: https://github.com/asottile/reorder_python_imports.git
     sha: 3d86483455ab5bd06cc1069fdd5ac57be5463f10
     hooks:
     -   id: reorder-python-imports
