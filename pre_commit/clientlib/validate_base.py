@@ -3,12 +3,12 @@ from __future__ import unicode_literals
 
 import argparse
 import os.path
-import pkg_resources
 import re
 import sys
 
 import jsonschema
 import jsonschema.exceptions
+import pkg_resources
 import yaml
 
 from pre_commit.jsonschema_extensions import apply_defaults
