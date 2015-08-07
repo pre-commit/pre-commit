@@ -2,6 +2,7 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 import io
+import os
 import os.path
 import shutil
 
@@ -12,6 +13,7 @@ from pre_commit import five
 from pre_commit.clientlib.validate_config import CONFIG_JSON_SCHEMA
 from pre_commit.clientlib.validate_config import validate_config_extra
 from pre_commit.jsonschema_extensions import apply_defaults
+from pre_commit.languages.python import norm_version
 from pre_commit.languages.python import PythonEnv
 from pre_commit.repository import Repository
 from pre_commit.util import cmd_output
@@ -414,3 +416,15 @@ def test_local_repository():
     with pytest.raises(NotImplementedError):
         local_repo.manifest
     assert len(local_repo.hooks) == 1
+
+
+def test_norm_version_expanduser():  # pragma: no cover
+    home = os.path.expanduser('~')
+    if os.name == 'nt':
+        path = r'~\python343'
+        expected_path = r'C:{0}\python343\python.exe'.format(home)
+    else:
+        path = '~/.pyenv/versions/3.4.3/bin/python'
+        expected_path = home + '/.pyenv/versions/3.4.3/bin/python'
+    result = norm_version(path)
+    assert result == expected_path
