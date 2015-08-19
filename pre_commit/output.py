@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 
+import os
 import subprocess
 import sys
 
@@ -9,9 +10,11 @@ from pre_commit import five
 
 # TODO: smell: import side-effects
 try:
+    if not os.environ.get('TERM'):
+        raise OSError('Cannot determine width without TERM')
     COLS = int(
         subprocess.Popen(
-            ['tput', 'cols'], stdout=subprocess.PIPE,
+            ('tput', 'cols'), stdout=subprocess.PIPE,
         ).communicate()[0] or
         # Default in the case of no terminal
         80
