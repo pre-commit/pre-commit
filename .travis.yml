@@ -11,6 +11,8 @@ script: tox
 before_install:
   - git config --global user.name "Travis CI"
   - git config --global user.email "user@example.com"
+  # Our tests inspect some of *our* git history
+  - git fetch --unshallow
 after_success:
     - coveralls
 sudo: false
