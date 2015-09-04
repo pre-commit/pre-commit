@@ -1,3 +1,13 @@
+0.5.5
+=====
+- Change permissions a few files
+- Rename the validate entrypoints
+- Add --version to some entrypoints
+- Add --no-document to gem installations
+- Use expanduser when finding the python binary
+- Suppress complaint about $TERM when no tty is attached
+- Support pcre hooks on osx through ggrep
+
 0.5.4
 =====
 - Allow hooks to produce outputs with arbitrary bytes
