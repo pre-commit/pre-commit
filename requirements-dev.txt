@@ -5,4 +5,4 @@ coverage
 flake8
 mock
 pylint<1.4
-pytest
+pytest<2.8
