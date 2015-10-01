@@ -27,8 +27,8 @@ def get_short_git_status():
 
 
 @pytest.yield_fixture
-def foo_staged(tmpdir_factory):
-    path = git_dir(tmpdir_factory)
+def foo_staged(tempdir_factory):
+    path = git_dir(tempdir_factory)
     with cwd(path):
         with io.open('foo', 'w') as foo_file:
             foo_file.write(FOO_CONTENTS)
@@ -113,8 +113,8 @@ def test_foo_both_modify_conflicting(foo_staged, cmd_runner):
 
 
 @pytest.yield_fixture
-def img_staged(tmpdir_factory):
-    path = git_dir(tmpdir_factory)
+def img_staged(tempdir_factory):
+    path = git_dir(tempdir_factory)
     with cwd(path):
         img_filename = os.path.join(path, 'img.jpg')
         shutil.copy(get_resource_path('img1.jpg'), img_filename)
@@ -168,8 +168,8 @@ def test_img_conflict(img_staged, cmd_runner):
 
 
 @pytest.yield_fixture
-def submodule_with_commits(tmpdir_factory):
-    path = git_dir(tmpdir_factory)
+def submodule_with_commits(tempdir_factory):
+    path = git_dir(tempdir_factory)
     with cwd(path):
         cmd_output('git', 'commit', '--allow-empty', '-m', 'foo')
         sha1 = cmd_output('git', 'rev-parse', 'HEAD')[1].strip()
@@ -184,8 +184,8 @@ def checkout_submodule(sha):
 
 
 @pytest.yield_fixture
-def sub_staged(submodule_with_commits, tmpdir_factory):
-    path = git_dir(tmpdir_factory)
+def sub_staged(submodule_with_commits, tempdir_factory):
+    path = git_dir(tempdir_factory)
     with cwd(path):
         cmd_output(
             'git', 'submodule', 'add', submodule_with_commits.path, 'sub',

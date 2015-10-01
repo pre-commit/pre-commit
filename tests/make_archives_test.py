@@ -15,9 +15,9 @@ from testing.util import get_head_sha
 from testing.util import skipif_slowtests_false
 
 
-def test_make_archive(tmpdir_factory):
-    output_dir = tmpdir_factory.get()
-    git_path = git_dir(tmpdir_factory)
+def test_make_archive(tempdir_factory):
+    output_dir = tempdir_factory.get()
+    git_path = git_dir(tempdir_factory)
     # Add a files to the git directory
     with cwd(git_path):
         cmd_output('touch', 'foo')
@@ -38,7 +38,7 @@ def test_make_archive(tmpdir_factory):
     assert archive_path == os.path.join(output_dir, 'foo.tar.gz')
     assert os.path.exists(archive_path)
 
-    extract_dir = tmpdir_factory.get()
+    extract_dir = tempdir_factory.get()
 
     # Extract the tar
     with tarfile_open(archive_path) as tf:
@@ -53,8 +53,8 @@ def test_make_archive(tmpdir_factory):
 
 @skipif_slowtests_false
 @pytest.mark.integration
-def test_main(tmpdir_factory):
-    path = tmpdir_factory.get()
+def test_main(tempdir_factory):
+    path = tempdir_factory.get()
 
     # Don't actually want to make these in the current repo
     with mock.patch.object(make_archives, 'RESOURCES_DIR', path):
