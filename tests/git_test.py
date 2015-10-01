@@ -12,14 +12,14 @@ from pre_commit.util import cwd
 from testing.fixtures import git_dir
 
 
-def test_get_root_at_root(tmpdir_factory):
-    path = git_dir(tmpdir_factory)
+def test_get_root_at_root(tempdir_factory):
+    path = git_dir(tempdir_factory)
     with cwd(path):
         assert git.get_root() == path
 
 
-def test_get_root_deeper(tmpdir_factory):
-    path = git_dir(tmpdir_factory)
+def test_get_root_deeper(tempdir_factory):
+    path = git_dir(tempdir_factory)
 
     foo_path = os.path.join(path, 'foo')
     os.mkdir(foo_path)
@@ -27,14 +27,14 @@ def test_get_root_deeper(tmpdir_factory):
         assert git.get_root() == path
 
 
-def test_get_root_not_git_dir(tmpdir_factory):
-    with cwd(tmpdir_factory.get()):
+def test_get_root_not_git_dir(tempdir_factory):
+    with cwd(tempdir_factory.get()):
         with pytest.raises(FatalError):
             git.get_root()
 
 
-def test_is_not_in_merge_conflict(tmpdir_factory):
-    path = git_dir(tmpdir_factory)
+def test_is_not_in_merge_conflict(tempdir_factory):
+    path = git_dir(tempdir_factory)
     with cwd(path):
         assert git.is_in_merge_conflict() is False
 

@@ -9,8 +9,8 @@ from testing.util import get_head_sha
 
 
 @pytest.yield_fixture
-def manifest(store, tmpdir_factory):
-    path = make_repo(tmpdir_factory, 'script_hooks_repo')
+def manifest(store, tempdir_factory):
+    path = make_repo(tempdir_factory, 'script_hooks_repo')
     head_sha = get_head_sha(path)
     repo_path_getter = store.get_repo_path_getter(path, head_sha)
     yield Manifest(repo_path_getter)

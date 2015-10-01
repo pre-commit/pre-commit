@@ -128,11 +128,11 @@ def test_no_commands_run_command(mock_commands):
 
 def test_help_cmd_in_empty_directory(
         mock_commands,
-        tmpdir_factory,
+        tempdir_factory,
         argparse_exit_mock,
         argparse_parse_args_spy,
 ):
-    path = tmpdir_factory.get()
+    path = tempdir_factory.get()
 
     with cwd(path):
         with pytest.raises(CalledExit):

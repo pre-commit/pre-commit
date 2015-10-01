@@ -25,8 +25,8 @@ from testing.util import get_resource_path
 
 
 @pytest.yield_fixture
-def up_to_date_repo(tmpdir_factory):
-    yield make_repo(tmpdir_factory, 'python_hooks_repo')
+def up_to_date_repo(tempdir_factory):
+    yield make_repo(tempdir_factory, 'python_hooks_repo')
 
 
 def test_up_to_date_repo(up_to_date_repo, runner_with_mocked_store):
@@ -53,8 +53,8 @@ def test_autoupdate_up_to_date_repo(
 
 
 @pytest.yield_fixture
-def out_of_date_repo(tmpdir_factory):
-    path = make_repo(tmpdir_factory, 'python_hooks_repo')
+def out_of_date_repo(tempdir_factory):
+    path = make_repo(tempdir_factory, 'python_hooks_repo')
     original_sha = get_head_sha(path)
 
     # Make a commit
@@ -97,8 +97,8 @@ def test_autoupdate_out_of_date_repo(
 
 
 @pytest.yield_fixture
-def hook_disappearing_repo(tmpdir_factory):
-    path = make_repo(tmpdir_factory, 'python_hooks_repo')
+def hook_disappearing_repo(tempdir_factory):
+    path = make_repo(tempdir_factory, 'python_hooks_repo')
     original_sha = get_head_sha(path)
 
     with cwd(path):
@@ -143,8 +143,8 @@ def test_autoupdate_hook_disappearing_repo(
     assert before == after
 
 
-def test_autoupdate_local_hooks(tmpdir_factory):
-    git_path = git_dir(tmpdir_factory)
+def test_autoupdate_local_hooks(tempdir_factory):
+    git_path = git_dir(tempdir_factory)
     config = config_with_local_hooks()
     path = add_config_to_repo(git_path, config)
     runner = Runner(path)

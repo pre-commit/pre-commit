@@ -19,15 +19,15 @@ from testing.util import get_head_sha
 from testing.util import get_resource_path
 
 
-def git_dir(tmpdir_factory):
-    path = tmpdir_factory.get()
+def git_dir(tempdir_factory):
+    path = tempdir_factory.get()
     with cwd(path):
         cmd_output('git', 'init')
     return path
 
 
-def make_repo(tmpdir_factory, repo_source):
-    path = git_dir(tmpdir_factory)
+def make_repo(tempdir_factory, repo_source):
+    path = git_dir(tempdir_factory)
     copy_tree_to_path(get_resource_path(repo_source), path)
     with cwd(path):
         cmd_output('git', 'add', '.')
@@ -83,8 +83,8 @@ def add_config_to_repo(git_path, config):
     return git_path
 
 
-def make_consuming_repo(tmpdir_factory, repo_source):
-    path = make_repo(tmpdir_factory, repo_source)
+def make_consuming_repo(tempdir_factory, repo_source):
+    path = make_repo(tempdir_factory, repo_source)
     config = make_config_from_repo(path)
-    git_path = git_dir(tmpdir_factory)
+    git_path = git_dir(tempdir_factory)
     return add_config_to_repo(git_path, config)

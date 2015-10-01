@@ -20,16 +20,16 @@ def test_init_has_no_side_effects(tmpdir):
     assert os.getcwd() == current_wd
 
 
-def test_create_sets_correct_directory(tmpdir_factory):
-    path = git_dir(tmpdir_factory)
+def test_create_sets_correct_directory(tempdir_factory):
+    path = git_dir(tempdir_factory)
     with cwd(path):
         runner = Runner.create()
         assert runner.git_root == path
         assert os.getcwd() == path
 
 
-def test_create_changes_to_git_root(tmpdir_factory):
-    path = git_dir(tmpdir_factory)
+def test_create_changes_to_git_root(tempdir_factory):
+    path = git_dir(tempdir_factory)
     with cwd(path):
         # Change into some directory, create should set to root
         foo_path = os.path.join(path, 'foo')
@@ -48,13 +48,13 @@ def test_config_file_path():
     assert runner.config_file_path == expected_path
 
 
-def test_repositories(tmpdir_factory, mock_out_store_directory):
-    path = make_consuming_repo(tmpdir_factory, 'script_hooks_repo')
+def test_repositories(tempdir_factory, mock_out_store_directory):
+    path = make_consuming_repo(tempdir_factory, 'script_hooks_repo')
     runner = Runner(path)
     assert len(runner.repositories) == 1
 
 
-def test_local_hooks(tmpdir_factory, mock_out_store_directory):
+def test_local_hooks(tempdir_factory, mock_out_store_directory):
     config = OrderedDict((
         ('repo', 'local'),
         ('hooks', (OrderedDict((
@@ -72,7 +72,7 @@ def test_local_hooks(tmpdir_factory, mock_out_store_directory):
             ('files', '^(.*)$'),
         ))))
     ))
-    git_path = git_dir(tmpdir_factory)
+    git_path = git_dir(tempdir_factory)
     add_config_to_repo(git_path, config)
     runner = Runner(git_path)
     assert len(runner.repositories) == 1

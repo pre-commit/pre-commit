@@ -20,7 +20,7 @@ from testing.fixtures import make_consuming_repo
 
 
 @pytest.yield_fixture
-def tmpdir_factory(tmpdir):
+def tempdir_factory(tmpdir):
     class TmpdirFactory(object):
         def __init__(self):
             self.tmpdir_count = 0
@@ -35,22 +35,22 @@ def tmpdir_factory(tmpdir):
 
 
 @pytest.yield_fixture
-def in_tmpdir(tmpdir_factory):
-    path = tmpdir_factory.get()
+def in_tmpdir(tempdir_factory):
+    path = tempdir_factory.get()
     with cwd(path):
         yield path
 
 
 @pytest.yield_fixture
-def in_merge_conflict(tmpdir_factory):
-    path = make_consuming_repo(tmpdir_factory, 'script_hooks_repo')
+def in_merge_conflict(tempdir_factory):
+    path = make_consuming_repo(tempdir_factory, 'script_hooks_repo')
     with cwd(path):
         cmd_output('touch', 'dummy')
         cmd_output('git', 'add', 'dummy')
         cmd_output('git', 'add', C.CONFIG_FILE)
         cmd_output('git', 'commit', '-m', 'Add config.')
 
-    conflict_path = tmpdir_factory.get()
+    conflict_path = tempdir_factory.get()
     cmd_output('git', 'clone', path, conflict_path)
     with cwd(conflict_path):
         cmd_output('git', 'checkout', 'origin/master', '-b', 'foo')
@@ -91,8 +91,8 @@ def dont_write_to_home_directory():
 
 
 @pytest.yield_fixture
-def mock_out_store_directory(tmpdir_factory):
-    tmpdir = tmpdir_factory.get()
+def mock_out_store_directory(tempdir_factory):
+    tmpdir = tempdir_factory.get()
     with mock.patch.object(
         Store,
         'get_default_directory',
@@ -102,13 +102,13 @@ def mock_out_store_directory(tmpdir_factory):
 
 
 @pytest.yield_fixture
-def store(tmpdir_factory):
-    yield Store(os.path.join(tmpdir_factory.get(), '.pre-commit'))
+def store(tempdir_factory):
+    yield Store(os.path.join(tempdir_factory.get(), '.pre-commit'))
 
 
 @pytest.yield_fixture
-def cmd_runner(tmpdir_factory):
-    yield PrefixedCommandRunner(tmpdir_factory.get())
+def cmd_runner(tempdir_factory):
+    yield PrefixedCommandRunner(tempdir_factory.get())
 
 
 @pytest.yield_fixture

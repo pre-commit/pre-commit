@@ -27,15 +27,15 @@ from testing.fixtures import make_consuming_repo
 
 
 @pytest.yield_fixture
-def repo_with_passing_hook(tmpdir_factory):
-    git_path = make_consuming_repo(tmpdir_factory, 'script_hooks_repo')
+def repo_with_passing_hook(tempdir_factory):
+    git_path = make_consuming_repo(tempdir_factory, 'script_hooks_repo')
     with cwd(git_path):
         yield git_path
 
 
 @pytest.yield_fixture
-def repo_with_failing_hook(tmpdir_factory):
-    git_path = make_consuming_repo(tmpdir_factory, 'failing_hook_repo')
+def repo_with_failing_hook(tempdir_factory):
+    git_path = make_consuming_repo(tempdir_factory, 'failing_hook_repo')
     with cwd(git_path):
         yield git_path
 
@@ -111,8 +111,8 @@ def test_run_all_hooks_failing(
     )
 
 
-def test_arbitrary_bytes_hook(tmpdir_factory, mock_out_store_directory):
-    git_path = make_consuming_repo(tmpdir_factory, 'arbitrary_bytes_repo')
+def test_arbitrary_bytes_hook(tempdir_factory, mock_out_store_directory):
+    git_path = make_consuming_repo(tempdir_factory, 'arbitrary_bytes_repo')
     with cwd(git_path):
         _test_run(git_path, {}, (b'\xe2\x98\x83\xb2\n',), 1, True)
 
@@ -292,12 +292,12 @@ def test_multiple_hooks_same_id(
 
 
 def test_non_ascii_hook_id(
-        repo_with_passing_hook, mock_out_store_directory, tmpdir_factory,
+        repo_with_passing_hook, mock_out_store_directory, tempdir_factory,
 ):
     with cwd(repo_with_passing_hook):
         install(Runner(repo_with_passing_hook))
         # Don't want to write to home directory
-        env = dict(os.environ, PRE_COMMIT_HOME=tmpdir_factory.get())
+        env = dict(os.environ, PRE_COMMIT_HOME=tempdir_factory.get())
         _, stdout, _ = cmd_output(
             sys.executable, '-m', 'pre_commit.main', 'run', '☃',
             env=env, retcode=None,
@@ -308,7 +308,7 @@ def test_non_ascii_hook_id(
 
 
 def test_stdout_write_bug_py26(
-        repo_with_failing_hook, mock_out_store_directory, tmpdir_factory,
+        repo_with_failing_hook, mock_out_store_directory, tempdir_factory,
 ):
     with cwd(repo_with_failing_hook):
         # Add bash hook on there again
@@ -322,7 +322,7 @@ def test_stdout_write_bug_py26(
         install(Runner(repo_with_failing_hook))
 
         # Don't want to write to home directory
-        env = dict(os.environ, PRE_COMMIT_HOME=tmpdir_factory.get())
+        env = dict(os.environ, PRE_COMMIT_HOME=tempdir_factory.get())
         # Have to use subprocess because pytest monkeypatches sys.stdout
         _, stdout, _ = cmd_output(
             'git', 'commit', '-m', 'Commit!',
@@ -344,10 +344,10 @@ def test_get_changed_files():
     assert files == ['CHANGELOG.md', 'setup.py']
 
 
-def test_lots_of_files(mock_out_store_directory, tmpdir_factory):
+def test_lots_of_files(mock_out_store_directory, tempdir_factory):
     # windows xargs seems to have a bug, here's a regression test for
     # our workaround
-    git_path = make_consuming_repo(tmpdir_factory, 'python_hooks_repo')
+    git_path = make_consuming_repo(tempdir_factory, 'python_hooks_repo')
     with cwd(git_path):
         # Override files so we run against them
         with io.open('.pre-commit-config.yaml', 'a+') as config_file:
@@ -362,7 +362,7 @@ def test_lots_of_files(mock_out_store_directory, tmpdir_factory):
         install(Runner(git_path))
 
         # Don't want to write to home directory
-        env = dict(os.environ, PRE_COMMIT_HOME=tmpdir_factory.get())
+        env = dict(os.environ, PRE_COMMIT_HOME=tempdir_factory.get())
         cmd_output(
             'git', 'commit', '-m', 'Commit!',
             # git commit puts pre-commit to stderr
