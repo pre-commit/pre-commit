@@ -175,6 +175,7 @@ def run(runner, args, write=sys_stdout_write_wrapper, environ=os.environ):
 
     with ctx:
         repo_hooks = list(get_repo_hooks(runner))
+
         if args.hook:
             repo_hooks = [
                 (repo, hook) for repo, hook in repo_hooks
@@ -183,4 +184,11 @@ def run(runner, args, write=sys_stdout_write_wrapper, environ=os.environ):
             if not repo_hooks:
                 write('No hook with id `{0}`\n'.format(args.hook))
                 return 1
+
+        # Filter hooks for stages
+        repo_hooks = [
+            (repo, hook) for repo, hook in repo_hooks
+            if not hook['stages'] or args.hook_stage in hook['stages']
+        ]
+
         return _run_hooks(repo_hooks, args, write, environ)

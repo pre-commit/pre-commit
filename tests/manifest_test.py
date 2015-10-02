@@ -29,6 +29,7 @@ def test_manifest_contents(manifest):
         'language': 'script',
         'language_version': 'default',
         'name': 'Bash hook',
+        'stages': [],
     }]
 
 
@@ -44,4 +45,5 @@ def test_hooks(manifest):
         'language': 'script',
         'language_version': 'default',
         'name': 'Bash hook',
+        'stages': [],
     }
