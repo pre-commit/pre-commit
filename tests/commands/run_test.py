@@ -493,7 +493,7 @@ def test_local_hook_fails(
         options={},
         expected_outputs=[b''],
         expected_ret=1,
-        stage=False
+        stage=False,
     )
 
 

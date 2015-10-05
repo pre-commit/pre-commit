@@ -1,3 +1,7 @@
+0.6.0
+=====
+- Filter hooks by stage (commit, push).
+
 0.5.5
 =====
 - Change permissions a few files

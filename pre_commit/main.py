@@ -102,7 +102,7 @@ def main(argv=None):
     )
     run_parser.add_argument(
         '--hook-stage', choices=('commit', 'push'), default='commit',
-        help='The stage during which the hook is fired e.g. commit or push'
+        help='The stage during which the hook is fired e.g. commit or push',
     )
     run_mutex_group = run_parser.add_mutually_exclusive_group(required=False)
     run_mutex_group.add_argument(
