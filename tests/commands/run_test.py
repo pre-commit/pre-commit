@@ -59,6 +59,7 @@ def _get_opts(
         origin='',
         source='',
         allow_unstaged_config=False,
+        hook_stage='commit'
 ):
     # These are mutually exclusive
     assert not (all_files and files)
@@ -68,6 +69,7 @@ def _get_opts(
         color=color,
         verbose=verbose,
         hook=hook,
+        hook_stage=hook_stage,
         no_stash=no_stash,
         origin=origin,
         source=source,
@@ -89,6 +91,7 @@ def _test_run(repo, options, expected_outputs, expected_ret, stage):
         stage_a_file()
     args = _get_opts(**options)
     ret, printed = _do_run(repo, args)
+
     assert ret == expected_ret, (ret, expected_ret, printed)
     for expected_output_part in expected_outputs:
         assert expected_output_part in printed
@@ -369,6 +372,66 @@ def test_lots_of_files(mock_out_store_directory, tempdir_factory):
             stderr=subprocess.STDOUT,
             env=env,
         )
+
+
+@pytest.mark.parametrize(
+    ('hook_stage', 'stage_for_first_hook', 'stage_for_second_hook',
+     'expected_output'),
+    (
+        ('push', ['commit'], ['commit'], [b'', b'']),
+        ('push', ['commit', 'push'], ['commit', 'push'],
+         [b'hook 1', b'hook 2']),
+        ('push', [], [], [b'hook 1', b'hook 2']),
+        ('push', [], ['commit'], [b'hook 1', b'']),
+        ('push', ['push'], ['commit'], [b'hook 1', b'']),
+        ('push', ['commit'], ['push'], [b'', b'hook 2']),
+        ('commit', ['commit', 'push'], ['commit', 'push'],
+         [b'hook 1', b'hook 2']),
+        ('commit', ['commit'], ['commit'], [b'hook 1', b'hook 2']),
+        ('commit', [], [], [b'hook 1', b'hook 2']),
+        ('commit', [], ['commit'], [b'', b'hook 2']),
+        ('commit', ['push'], ['commit'], [b'', b'hook 2']),
+        ('commit', ['commit'], ['push'], [b'hook 1', b'']),
+    )
+)
+def test_local_hook_for_stages(
+        repo_with_passing_hook, mock_out_store_directory,
+        stage_for_first_hook,
+        stage_for_second_hook,
+        hook_stage,
+        expected_output
+):
+    config = OrderedDict((
+        ('repo', 'local'),
+        ('hooks', (OrderedDict((
+            ('id', 'pylint'),
+            ('name', 'hook 1'),
+            ('entry', 'python -m pylint.__main__'),
+            ('language', 'system'),
+            ('files', r'\.py$'),
+            ('stages', stage_for_first_hook)
+        )), OrderedDict((
+            ('id', 'do_not_commit'),
+            ('name', 'hook 2'),
+            ('entry', 'DO NOT COMMIT'),
+            ('language', 'pcre'),
+            ('files', '^(.*)$'),
+            ('stages', stage_for_second_hook)
+        ))))
+    ))
+    add_config_to_repo(repo_with_passing_hook, config)
+
+    with io.open('dummy.py', 'w') as staged_file:
+        staged_file.write('"""TODO: something"""\n')
+    cmd_output('git', 'add', 'dummy.py')
+
+    _test_run(
+        repo_with_passing_hook,
+        {'hook_stage': hook_stage},
+        expected_outputs=expected_output,
+        expected_ret=0,
+        stage=False
+    )
 
 
 def test_local_hook_passes(

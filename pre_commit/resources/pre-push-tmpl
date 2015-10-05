@@ -10,3 +10,5 @@ do
         fi
     fi
 done
+
+args="$args --hook-stage push"
