@@ -389,7 +389,7 @@ def test_lots_of_files(mock_out_store_directory, tempdir_factory):
          [b'hook 1', b'hook 2']),
         ('commit', ['commit'], ['commit'], [b'hook 1', b'hook 2']),
         ('commit', [], [], [b'hook 1', b'hook 2']),
-        ('commit', [], ['commit'], [b'', b'hook 2']),
+        ('commit', [], ['commit'], [b'hook 1', b'hook 2']),
         ('commit', ['push'], ['commit'], [b'', b'hook 2']),
         ('commit', ['commit'], ['push'], [b'hook 1', b'']),
     )
