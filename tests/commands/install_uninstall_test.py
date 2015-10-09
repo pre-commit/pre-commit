@@ -472,3 +472,15 @@ def test_pre_push_integration_accepted(tempdir_factory):
         assert retc == 0
         assert 'Bash hook' in output
         assert 'Passed' in output
+
+
+def test_pre_push_integration_empty_push(tempdir_factory):
+    upstream = make_consuming_repo(tempdir_factory, 'script_hooks_repo')
+    path = tempdir_factory.get()
+    cmd_output('git', 'clone', upstream, path)
+    with cwd(path):
+        install(Runner(path), hook_type='pre-push')
+        _get_push_output(tempdir_factory)
+        retc, output = _get_push_output(tempdir_factory)
+        assert output == 'Everything up-to-date\n'
+        assert retc == 0
