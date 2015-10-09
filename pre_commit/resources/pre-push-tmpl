@@ -11,7 +11,7 @@ do
     fi
 done
 
-if [ "args" != "" ]; then
+if [ "$args" != "" ]; then
     args="$args --hook-stage push"
 else
     # If args is empty, then an attempt to push on an empty

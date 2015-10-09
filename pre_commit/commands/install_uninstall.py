@@ -21,10 +21,11 @@ PREVIOUS_IDENTIFYING_HASHES = (
     'd8ee923c46731b42cd95cc869add4062',
     '49fd668cb42069aa1b6048464be5d395',
     '79f09a650522a87b0da915d0d983b2de',
+    'e358c9dae00eac5d06b38dfdb1e33a8c',
 )
 
 
-IDENTIFYING_HASH = 'e358c9dae00eac5d06b38dfdb1e33a8c'
+IDENTIFYING_HASH = '138fd403232d2ddd5efb44317e38bf03'
 
 
 def is_our_pre_commit(filename):
