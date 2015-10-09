@@ -1,3 +1,7 @@
+0.6.1
+=====
+- Fix pre-push when pushing something that's already up to date
+
 0.6.0
 =====
 - Filter hooks by stage (commit, push).
