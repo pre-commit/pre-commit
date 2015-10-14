@@ -1,3 +1,7 @@
+0.6.2
+=====
+- Use --no-ri --no-rdoc instead of --no-document for gem to fix old gem
+
 0.6.1
 =====
 - Fix pre-push when pushing something that's already up to date
