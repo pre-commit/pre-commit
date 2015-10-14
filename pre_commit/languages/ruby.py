@@ -89,7 +89,7 @@ def install_environment(repo_cmd_runner, version='default'):
                 _install_ruby(ruby_env, version)
             ruby_env.run(
                 'cd {prefix} && gem build *.gemspec'
-                ' && gem install --no-document *.gem',
+                ' && gem install --no-ri --no-rdoc *.gem',
             )
 
 
