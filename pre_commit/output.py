@@ -10,7 +10,7 @@ from pre_commit import five
 
 # TODO: smell: import side-effects
 try:
-    if not os.environ.get('TERM'):
+    if not os.environ.get('TERM'):  # pragma: no cover (dumb terminal)
         raise OSError('Cannot determine width without TERM')
     COLS = int(
         subprocess.Popen(

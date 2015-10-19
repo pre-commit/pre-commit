@@ -16,7 +16,7 @@ def install_environment(repo_cmd_runner, version='default'):
 
 def run_hook(repo_cmd_runner, hook, file_args):
     grep_command = 'grep -H -n -P'
-    if platform == 'darwin':
+    if platform == 'darwin':  # pragma: no cover (osx)
         grep_command = 'ggrep -H -n -P'
 
     # For PCRE the entry is the regular expression to match
