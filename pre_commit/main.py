@@ -10,6 +10,7 @@ from pre_commit import color
 from pre_commit import five
 from pre_commit.commands.autoupdate import autoupdate
 from pre_commit.commands.clean import clean
+from pre_commit.commands.identify import identify
 from pre_commit.commands.install_uninstall import install
 from pre_commit.commands.install_uninstall import uninstall
 from pre_commit.commands.run import run
@@ -66,6 +67,11 @@ def main(argv=None):
         '-t', '--hook-type', choices=('pre-commit', 'pre-push'),
         default='pre-commit',
     )
+
+    identify_parser = subparsers.add_parser(
+        'identify', help='Identify a file, listing tags that apply to it',
+    )
+    identify_parser.add_argument('path')
 
     subparsers.add_parser('clean', help='Clean out pre-commit files.')
 
@@ -145,6 +151,8 @@ def main(argv=None):
             return autoupdate(runner)
         elif args.command == 'run':
             return run(runner, args)
+        elif args.command == 'identify':
+            return identify(args)
         else:
             raise NotImplementedError(
                 'Command {0} not implemented.'.format(args.command)
