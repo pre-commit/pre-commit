@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 
 import os
 import os.path
+import subprocess
 
 from cached_property import cached_property
 
@@ -44,7 +45,9 @@ class Runner(object):
         return repositories
 
     def get_hook_path(self, hook_type):
-        return os.path.join(self.git_root, '.git', 'hooks', hook_type)
+        git_dir = subprocess.check_output('git rev-parse --git-dir',
+                                          shell=True)
+        return os.path.join(git_dir.strip(), 'hooks', hook_type)
 
     @cached_property
     def pre_commit_path(self):
