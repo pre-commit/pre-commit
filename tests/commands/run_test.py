@@ -120,6 +120,29 @@ def test_arbitrary_bytes_hook(tempdir_factory, mock_out_store_directory):
         _test_run(git_path, {}, (b'\xe2\x98\x83\xb2\n',), 1, True)
 
 
+def test_hook_that_modifies_but_returns_zero(
+        tempdir_factory, mock_out_store_directory,
+):
+    git_path = make_consuming_repo(
+        tempdir_factory, 'modified_file_returns_zero_repo',
+    )
+    with cwd(git_path):
+        _test_run(
+            git_path,
+            {},
+            (
+                # The first should fail
+                b'Failed',
+                # With a modified file (the hook's output)
+                b'Modified: foo.py',
+                # The next hook should pass despite the first modifying
+                b'Passed',
+            ),
+            1,
+            True,
+        )
+
+
 @pytest.mark.parametrize(
     ('options', 'outputs', 'expected_ret', 'stage'),
     (

@@ -1,0 +1,10 @@
+-   id: bash_hook
+    name: Bash hook
+    entry: bin/hook.sh
+    language: script
+    files: ''
+-   id: bash_hook2
+    name: Bash hook
+    entry: bin/hook2.sh
+    language: script
+    files: ''
