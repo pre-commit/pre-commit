@@ -87,7 +87,7 @@ def _run_single_hook(hook, repo, args, write, skips=frozenset()):
 
     retcode, stdout, stderr = repo.run_hook(hook, filenames)
 
-    if retcode != hook['expected_return_value']:
+    if retcode:
         retcode = 1
         print_color = color.RED
         pass_fail = 'Failed'

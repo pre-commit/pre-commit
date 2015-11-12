@@ -24,7 +24,6 @@ MANIFEST_JSON_SCHEMA = {
             'language': {'type': 'string'},
             'language_version': {'type': 'string', 'default': 'default'},
             'files': {'type': 'string'},
-            'expected_return_value': {'type': 'number', 'default': 0},
             'stages': {
                 'type': 'array',
                 'default': [],

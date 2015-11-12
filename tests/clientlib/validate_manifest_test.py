@@ -77,7 +77,6 @@ def test_additional_manifest_failing(obj):
                 'language': 'python',
                 'language_version': 'python3.3',
                 'files': r'\.py$',
-                'expected_return_value': 0,
             }],
             True,
         ),
