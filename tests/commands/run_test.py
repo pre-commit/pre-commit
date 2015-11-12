@@ -476,8 +476,7 @@ def test_local_hook_fails(
         ('hooks', [OrderedDict((
             ('id', 'no-todo'),
             ('name', 'No TODO'),
-            ('entry', 'grep -iI todo'),
-            ('expected_return_value', 1),
+            ('entry', 'sh -c "! grep -iI todo $@" --'),
             ('language', 'system'),
             ('files', ''),
         ))])
