@@ -1,3 +1,8 @@
+0.6.3
+=====
+- Remove `expected_return_code`
+- Fail a hook if it makes modifications to the working directory
+
 0.6.2
 =====
 - Use --no-ri --no-rdoc instead of --no-document for gem to fix old gem
