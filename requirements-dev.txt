@@ -1,7 +1,7 @@
 -e .
 
 astroid<1.3.3
-coverage<4
+coverage
 flake8
 mock
 pylint<1.4
