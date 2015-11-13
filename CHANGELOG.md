@@ -1,3 +1,7 @@
+0.6.4
+=====
+- Fix regression introduced in 0.6.3 regarding hooks which make non-utf8 diffs
+
 0.6.3
 =====
 - Remove `expected_return_code`
