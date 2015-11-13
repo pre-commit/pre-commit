@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 for f in $@; do
-    echo modified > "$f"
+    # Non UTF-8 bytes
+    echo -e '\x01\x97' > "$f"
     echo "Modified: $f!"
 done

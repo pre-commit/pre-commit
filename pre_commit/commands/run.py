@@ -85,9 +85,9 @@ def _run_single_hook(hook, repo, args, write, skips=frozenset()):
     write(get_hook_message(_hook_msg_start(hook, args.verbose), end_len=6))
     sys.stdout.flush()
 
-    diff_before = cmd_output('git', 'diff', retcode=None)
+    diff_before = cmd_output('git', 'diff', retcode=None, encoding=None)
     retcode, stdout, stderr = repo.run_hook(hook, filenames)
-    diff_after = cmd_output('git', 'diff', retcode=None)
+    diff_after = cmd_output('git', 'diff', retcode=None, encoding=None)
 
     # If the hook makes changes, fail the commit
     if diff_before != diff_after:
