@@ -25,7 +25,9 @@ def run_hook(repo_cmd_runner, hook, file_args):
             'xargs', '-0', 'sh', '-c',
             # Grep usually returns 0 for matches, and nonzero for non-matches
             # so we flip it here.
-            '! {0} {1} $@'.format(grep_command, shell_escape(hook['entry'])),
+            '! {0} {1} {2} $@'.format(
+                grep_command, ' '.join(hook['args']),
+                shell_escape(hook['entry'])),
             '--',
         ],
         stdin=file_args_to_stdin(file_args),

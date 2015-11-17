@@ -224,6 +224,21 @@ def test_pcre_hook_matching(tempdir_factory, store):
 
 @xfailif_no_pcre_support
 @pytest.mark.integration
+def test_pcre_hook_extra_multiline_option(tempdir_factory, store):
+    path = git_dir(tempdir_factory)
+    with cwd(path):
+        with io.open('herp', 'w') as herp:
+            herp.write("foo\nbar\n")
+
+        _test_hook_repo(
+            tempdir_factory, store, 'pcre_hooks_repo',
+            'regex-with-grep-args', ['herp'], b"herp:1:foo\nbar\n\x00",
+            expected_return_code=123,
+        )
+
+
+@xfailif_no_pcre_support
+@pytest.mark.integration
 def test_pcre_many_files(tempdir_factory, store):
     # This is intended to simulate lots of passing files and one failing file
     # to make sure it still fails.  This is not the case when naively using
