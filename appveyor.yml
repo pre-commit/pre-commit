@@ -6,6 +6,7 @@ environment:
 install:
     - "SET PATH=C:\\Python34;C:\\Python34\\Scripts;%PATH%"
     - pip install tox
+    - pip install virtualenv --upgrade
 
 # Not a C# project
 build: false
