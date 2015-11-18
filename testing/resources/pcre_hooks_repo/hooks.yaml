@@ -8,3 +8,9 @@
     entry: ^\[INFO\]
     language: pcre
     files: ''
+-   id: regex-with-grep-args
+    name: Regex with grep extra arguments
+    entry: foo\sbar
+    language: pcre
+    files: ''
+    args: [-z]
