@@ -78,7 +78,8 @@ def _install_ruby(environment, version):
         environment.run('rbenv install {0}'.format(version))
 
 
-def install_environment(repo_cmd_runner, version='default'):
+def install_environment(repo_cmd_runner, version='default',
+                        additional_dependencies=None):
     directory = helpers.environment_dir(ENVIRONMENT_DIR, version)
     with clean_path_on_failure(repo_cmd_runner.path(directory)):
         # TODO: this currently will fail if there's no version specified and
@@ -91,6 +92,11 @@ def install_environment(repo_cmd_runner, version='default'):
                 'cd {prefix} && gem build *.gemspec'
                 ' && gem install --no-ri --no-rdoc *.gem',
             )
+            if additional_dependencies:
+                ruby_env.run(
+                    'cd {prefix} && gem install --no-document ' + (' ').join(
+                        additional_dependencies)
+                )
 
 
 def run_hook(repo_cmd_runner, hook, file_args):
