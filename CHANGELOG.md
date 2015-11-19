@@ -1,3 +1,7 @@
+0.6.5
+=====
+- Allow args for pcre hooks
+
 0.6.4
 =====
 - Fix regression introduced in 0.6.3 regarding hooks which make non-utf8 diffs
