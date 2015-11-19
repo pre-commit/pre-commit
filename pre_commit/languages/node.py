@@ -23,9 +23,11 @@ def in_env(repo_cmd_runner, language_version):
     yield NodeEnv(repo_cmd_runner, language_version)
 
 
-def install_environment(repo_cmd_runner,
-                        version='default',
-                        additional_dependencies=None):
+def install_environment(
+        repo_cmd_runner,
+        version='default',
+        additional_dependencies=None,
+):
     assert repo_cmd_runner.exists('package.json')
     directory = helpers.environment_dir(ENVIRONMENT_DIR, version)
 

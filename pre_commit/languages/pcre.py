@@ -9,9 +9,11 @@ from pre_commit.util import shell_escape
 ENVIRONMENT_DIR = None
 
 
-def install_environment(repo_cmd_runner,
-                        version='default',
-                        additional_dependencies=None):
+def install_environment(
+        repo_cmd_runner,
+        version='default',
+        additional_dependencies=None,
+):
     """Installation for pcre type is a noop."""
     raise AssertionError('Cannot install pcre repo.')
 
