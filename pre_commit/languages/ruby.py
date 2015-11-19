@@ -8,6 +8,7 @@ from pre_commit.languages import helpers
 from pre_commit.util import CalledProcessError
 from pre_commit.util import clean_path_on_failure
 from pre_commit.util import resource_filename
+from pre_commit.util import shell_escape
 from pre_commit.util import tarfile_open
 
 
@@ -95,9 +96,12 @@ def install_environment(repo_cmd_runner,
             )
             if additional_dependencies:
                 ruby_env.run(
-                    'cd {prefix} && gem install --no-document ' +
-                    ' '.join(additional_dependencies)
-                )
+                    'cd {prefix} && gem install --no-document  {deps}'.format(
+                        ' '.join(
+                            shell_escape(dep) for dep in
+                            additional_dependencies
+                        )
+                    ))
 
 
 def run_hook(repo_cmd_runner, hook, file_args):

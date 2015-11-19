@@ -9,6 +9,7 @@ import virtualenv
 
 from pre_commit.languages import helpers
 from pre_commit.util import clean_path_on_failure
+from pre_commit.util import shell_escape
 
 
 ENVIRONMENT_DIR = 'py_env'
@@ -60,8 +61,11 @@ def install_environment(repo_cmd_runner,
         with in_env(repo_cmd_runner, version) as env:
             env.run("cd '{prefix}' && pip install .")
             if additional_dependencies:
-                env.run("cd '{prefix}' && pip install " +
-                        (' ').join(additional_dependencies))
+                env.run("cd '{prefix}' && pip install  {deps}".format(
+                    ' '.join(
+                        shell_escape(dep) for dep in additional_dependencies
+                    )
+                ))
 
 
 def run_hook(repo_cmd_runner, hook, file_args):
