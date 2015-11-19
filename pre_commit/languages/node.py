@@ -23,7 +23,8 @@ def in_env(repo_cmd_runner, language_version):
     yield NodeEnv(repo_cmd_runner, language_version)
 
 
-def install_environment(repo_cmd_runner, version='default',
+def install_environment(repo_cmd_runner,
+                        version='default',
                         additional_dependencies=None):
     assert repo_cmd_runner.exists('package.json')
     directory = helpers.environment_dir(ENVIRONMENT_DIR, version)
@@ -44,7 +45,7 @@ def install_environment(repo_cmd_runner, version='default',
             node_env.run("cd '{prefix}' && npm install -g")
             if additional_dependencies:
                 node_env.run("cd '{prefix}' && npm install -g " +
-                             (' ').join(additional_dependencies))
+                             ' '.join(additional_dependencies))
 
 
 def run_hook(repo_cmd_runner, hook, file_args):

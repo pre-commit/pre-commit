@@ -55,7 +55,7 @@ class Repository(object):
         dep_dict = defaultdict(lambda: defaultdict(set))
         for _, hook in self.hooks:
             dep_dict[hook['language']][hook['language_version']].update(
-                hook.get('dependencies', []))
+                hook.get('additional_dependencies', []))
         return dep_dict
 
     @cached_property

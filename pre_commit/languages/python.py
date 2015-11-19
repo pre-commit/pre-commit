@@ -42,7 +42,8 @@ def norm_version(version):
     return version
 
 
-def install_environment(repo_cmd_runner, version='default',
+def install_environment(repo_cmd_runner,
+                        version='default',
                         additional_dependencies=None):
     assert repo_cmd_runner.exists('setup.py')
     directory = helpers.environment_dir(ENVIRONMENT_DIR, version)
@@ -59,7 +60,7 @@ def install_environment(repo_cmd_runner, version='default',
         with in_env(repo_cmd_runner, version) as env:
             env.run("cd '{prefix}' && pip install .")
             if additional_dependencies:
-                env.run("cd '{prefix}' && pip install -U" +
+                env.run("cd '{prefix}' && pip install " +
                         (' ').join(additional_dependencies))
 
 
