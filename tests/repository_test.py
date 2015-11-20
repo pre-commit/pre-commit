@@ -224,15 +224,15 @@ def test_pcre_hook_matching(tempdir_factory, store):
 
 @xfailif_no_pcre_support
 @pytest.mark.integration
-def test_pcre_hook_extra_multiline_option(tempdir_factory, store):
+def test_pcre_hook_case_insensitive_option(tempdir_factory, store):
     path = git_dir(tempdir_factory)
     with cwd(path):
         with io.open('herp', 'w') as herp:
-            herp.write("foo\nbar\n")
+            herp.write('FoOoOoObar\n')
 
         _test_hook_repo(
             tempdir_factory, store, 'pcre_hooks_repo',
-            'regex-with-grep-args', ['herp'], b"herp:1:foo\nbar\n\x00",
+            'regex-with-grep-args', ['herp'], b'herp:1:FoOoOoObar\n',
             expected_return_code=123,
         )
 
