@@ -43,9 +43,11 @@ def norm_version(version):
     return version
 
 
-def install_environment(repo_cmd_runner,
-                        version='default',
-                        additional_dependencies=None):
+def install_environment(
+        repo_cmd_runner,
+        version='default',
+        additional_dependencies=None,
+):
     assert repo_cmd_runner.exists('setup.py')
     directory = helpers.environment_dir(ENVIRONMENT_DIR, version)
 

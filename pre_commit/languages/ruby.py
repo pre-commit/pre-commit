@@ -79,9 +79,11 @@ def _install_ruby(environment, version):
         environment.run('rbenv install {0}'.format(version))
 
 
-def install_environment(repo_cmd_runner,
-                        version='default',
-                        additional_dependencies=None):
+def install_environment(
+        repo_cmd_runner,
+        version='default',
+        additional_dependencies=None,
+):
     directory = helpers.environment_dir(ENVIRONMENT_DIR, version)
     with clean_path_on_failure(repo_cmd_runner.path(directory)):
         # TODO: this currently will fail if there's no version specified and
