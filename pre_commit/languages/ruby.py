@@ -93,15 +93,14 @@ def install_environment(
             if version != 'default':
                 _install_ruby(ruby_env, version)
             ruby_env.run(
-                'cd {prefix} && gem build *.gemspec'
-                ' && gem install --no-ri --no-rdoc *.gem',
+                'cd {prefix} && gem build *.gemspec && '
+                'gem install --no-ri --no-rdoc *.gem',
             )
             if additional_dependencies:
                 ruby_env.run(
-                    'cd {prefix} && gem install --no-document ' +
+                    'cd {prefix} && gem install --no-ri --no-rdoc ' +
                     ' '.join(
-                        shell_escape(dep) for dep in
-                        additional_dependencies
+                        shell_escape(dep) for dep in additional_dependencies
                     )
                 )
 
