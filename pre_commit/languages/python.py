@@ -63,11 +63,12 @@ def install_environment(
         with in_env(repo_cmd_runner, version) as env:
             env.run("cd '{prefix}' && pip install .")
             if additional_dependencies:
-                env.run("cd '{prefix}' && pip install  {deps}".format(
+                env.run(
+                    "cd '{prefix}' && pip install " +
                     ' '.join(
                         shell_escape(dep) for dep in additional_dependencies
                     )
-                ))
+                )
 
 
 def run_hook(repo_cmd_runner, hook, file_args):

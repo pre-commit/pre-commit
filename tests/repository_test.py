@@ -5,6 +5,7 @@ import io
 import os
 import os.path
 import shutil
+from collections import defaultdict
 
 import mock
 import pytest
@@ -278,6 +279,7 @@ def mock_repo_config():
         'hooks': [{
             'id': 'pyflakes',
             'files': '\\.py$',
+            'additional_dependencies': ['pep8']
         }],
     }
     config_wrapped = apply_defaults([config], CONFIG_JSON_SCHEMA)
@@ -301,6 +303,52 @@ def test_languages(tempdir_factory, store):
     config = make_config_from_repo(path)
     repo = Repository.create(config, store)
     assert repo.languages == set([('python', 'default')])
+
+
+@pytest.mark.integration
+def test_additional_dependencies(tempdir_factory, store):
+    path = make_repo(tempdir_factory, 'python_hooks_repo')
+    config = make_config_from_repo(path)
+    config['hooks'][0]['additional_dependencies'] = ['pep8']
+    repo = Repository.create(config, store)
+    expected_deps = defaultdict(lambda: defaultdict(set))
+    expected_deps['python']['default'].update(['pep8'])
+    assert repo.additional_dependencies == expected_deps
+
+
+@pytest.mark.integration
+def test_additional_python_dependencies_installed(tempdir_factory, store):
+    path = make_repo(tempdir_factory, 'python_hooks_repo')
+    config = make_config_from_repo(path)
+    config['hooks'][0]['additional_dependencies'] = ['pep8']
+    repo = Repository.create(config, store)
+    repo.run_hook(repo.hooks[0][1], [])
+    output = repo.cmd_runner.run(['pip', 'freeze'])
+    assert 'pep8' in output[1]
+
+
+@pytest.mark.integration
+def test_additional_ruby_dependencies_installed(tempdir_factory, store):
+    path = make_repo(tempdir_factory, 'ruby_hooks_repo')
+    config = make_config_from_repo(path)
+    config['hooks'][0]['additional_dependencies'] = ['rubocop']
+    repo = Repository.create(config, store)
+    repo.run_hook(repo.hooks[0][1], [])
+    output = repo.cmd_runner.run(['gem', 'list', '--local'])
+    assert 'rubocop' in output[1]
+
+
+@pytest.mark.integration
+def test_additional_node_dependencies_installed(tempdir_factory, store):
+    path = make_repo(tempdir_factory, 'node_hooks_repo')
+    config = make_config_from_repo(path)
+    config['hooks'][0]['additional_dependencies'] = ['eslint']
+    repo = Repository.create(config, store)
+    repo.run_hook(repo.hooks[0][1], [])
+    repo.cmd_runner.run(['npm', 'config', 'set', 'global', 'true',
+                         '&&', 'npm', 'ls'])
+    output = repo.cmd_runner.run(['npm', 'ls'])
+    assert 'eslint' in output[1]
 
 
 def test_reinstall(tempdir_factory, store, log_info_mock):

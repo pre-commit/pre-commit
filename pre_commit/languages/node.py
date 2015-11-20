@@ -47,11 +47,13 @@ def install_environment(
         with in_env(repo_cmd_runner, version) as node_env:
             node_env.run("cd '{prefix}' && npm install -g")
             if additional_dependencies:
-                node_env.run("cd '{prefix}' && npm install -g {deps}".format(
+                node_env.run(
+                    "cd '{prefix}' && npm install -g " +
                     ' '.join(
-                        [shell_escape(dep) for dep in additional_dependencies]
+                        [shell_escape(dep) for dep in
+                         additional_dependencies]
                     )
-                ))
+                )
 
 
 def run_hook(repo_cmd_runner, hook, file_args):

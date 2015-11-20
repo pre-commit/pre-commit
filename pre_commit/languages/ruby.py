@@ -98,12 +98,12 @@ def install_environment(
             )
             if additional_dependencies:
                 ruby_env.run(
-                    'cd {prefix} && gem install --no-document  {deps}'.format(
-                        ' '.join(
-                            shell_escape(dep) for dep in
-                            additional_dependencies
-                        )
-                    ))
+                    'cd {prefix} && gem install --no-document ' +
+                    ' '.join(
+                        shell_escape(dep) for dep in
+                        additional_dependencies
+                    )
+                )
 
 
 def run_hook(repo_cmd_runner, hook, file_args):
