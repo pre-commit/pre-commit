@@ -5,7 +5,6 @@ import io
 import os
 import os.path
 import shutil
-from collections import defaultdict
 
 import mock
 import pytest
@@ -14,8 +13,9 @@ from pre_commit import five
 from pre_commit.clientlib.validate_config import CONFIG_JSON_SCHEMA
 from pre_commit.clientlib.validate_config import validate_config_extra
 from pre_commit.jsonschema_extensions import apply_defaults
-from pre_commit.languages.python import norm_version
-from pre_commit.languages.python import PythonEnv
+from pre_commit.languages import node
+from pre_commit.languages import python
+from pre_commit.languages import ruby
 from pre_commit.repository import Repository
 from pre_commit.util import cmd_output
 from pre_commit.util import cwd
@@ -311,44 +311,45 @@ def test_additional_dependencies(tempdir_factory, store):
     config = make_config_from_repo(path)
     config['hooks'][0]['additional_dependencies'] = ['pep8']
     repo = Repository.create(config, store)
-    expected_deps = defaultdict(lambda: defaultdict(set))
-    expected_deps['python']['default'].update(['pep8'])
-    assert repo.additional_dependencies == expected_deps
+    assert repo.additional_dependencies['python']['default'] == set(('pep8',))
 
 
 @pytest.mark.integration
 def test_additional_python_dependencies_installed(tempdir_factory, store):
     path = make_repo(tempdir_factory, 'python_hooks_repo')
     config = make_config_from_repo(path)
-    config['hooks'][0]['additional_dependencies'] = ['pep8']
+    config['hooks'][0]['additional_dependencies'] = ['mccabe']
     repo = Repository.create(config, store)
     repo.run_hook(repo.hooks[0][1], [])
-    output = repo.cmd_runner.run(['pip', 'freeze'])
-    assert 'pep8' in output[1]
+    with python.in_env(repo.cmd_runner, 'default') as env:
+        output = env.run('pip freeze -l')[1]
+        assert 'mccabe' in output
 
 
 @pytest.mark.integration
 def test_additional_ruby_dependencies_installed(tempdir_factory, store):
     path = make_repo(tempdir_factory, 'ruby_hooks_repo')
     config = make_config_from_repo(path)
-    config['hooks'][0]['additional_dependencies'] = ['rubocop']
+    config['hooks'][0]['additional_dependencies'] = ['mime-types']
     repo = Repository.create(config, store)
     repo.run_hook(repo.hooks[0][1], [])
-    output = repo.cmd_runner.run(['gem', 'list', '--local'])
-    assert 'rubocop' in output[1]
+    with ruby.in_env(repo.cmd_runner, 'default') as env:
+        output = env.run('gem list --local')[1]
+        assert 'mime-types' in output
 
 
 @pytest.mark.integration
 def test_additional_node_dependencies_installed(tempdir_factory, store):
     path = make_repo(tempdir_factory, 'node_hooks_repo')
     config = make_config_from_repo(path)
-    config['hooks'][0]['additional_dependencies'] = ['eslint']
+    # Careful to choose a small package that's not depped by npm
+    config['hooks'][0]['additional_dependencies'] = ['lodash']
     repo = Repository.create(config, store)
     repo.run_hook(repo.hooks[0][1], [])
-    repo.cmd_runner.run(['npm', 'config', 'set', 'global', 'true',
-                         '&&', 'npm', 'ls'])
-    output = repo.cmd_runner.run(['npm', 'ls'])
-    assert 'eslint' in output[1]
+    with node.in_env(repo.cmd_runner, 'default') as env:
+        env.run('npm config set global true')
+        output = env.run(('npm ls'))[1]
+        assert 'lodash' in output
 
 
 def test_reinstall(tempdir_factory, store, log_info_mock):
@@ -383,7 +384,7 @@ def test_control_c_control_c_on_install(tempdir_factory, store):
     # raise as well.
     with pytest.raises(MyKeyboardInterrupt):
         with mock.patch.object(
-            PythonEnv, 'run', side_effect=MyKeyboardInterrupt,
+            python.PythonEnv, 'run', side_effect=MyKeyboardInterrupt,
         ):
             with mock.patch.object(
                 shutil, 'rmtree', side_effect=MyKeyboardInterrupt,
@@ -474,5 +475,5 @@ def test_norm_version_expanduser():  # pragma: no cover
     else:
         path = '~/.pyenv/versions/3.4.3/bin/python'
         expected_path = home + '/.pyenv/versions/3.4.3/bin/python'
-    result = norm_version(path)
+    result = python.norm_version(path)
     assert result == expected_path

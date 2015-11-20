@@ -50,8 +50,7 @@ def install_environment(
                 node_env.run(
                     "cd '{prefix}' && npm install -g " +
                     ' '.join(
-                        [shell_escape(dep) for dep in
-                         additional_dependencies]
+                        shell_escape(dep) for dep in additional_dependencies
                     )
                 )
 
