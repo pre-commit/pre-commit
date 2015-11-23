@@ -340,6 +340,7 @@ def test_additional_python_dependencies_installed(tempdir_factory, store):
         assert 'mccabe' in output
 
 
+@xfailif_windows_no_ruby
 @pytest.mark.integration
 def test_additional_ruby_dependencies_installed(tempdir_factory, store):
     path = make_repo(tempdir_factory, 'ruby_hooks_repo')
@@ -352,6 +353,7 @@ def test_additional_ruby_dependencies_installed(tempdir_factory, store):
         assert 'thread_safe' in output
 
 
+@xfailif_windows_no_node
 @pytest.mark.integration
 def test_additional_node_dependencies_installed(tempdir_factory, store):
     path = make_repo(tempdir_factory, 'node_hooks_repo')

@@ -66,7 +66,8 @@ xfailif_windows_no_node = pytest.mark.xfail(
 
 
 def platform_supports_pcre():
-    return cmd_output('grep', '-P', '', os.devnull, retcode=None)[0] == 1
+    output = cmd_output('grep', '-P', 'setup', 'setup.py', retcode=None)
+    return output[0] == 0 and 'from setuptools import setup' in output[1]
 
 
 xfailif_no_pcre_support = pytest.mark.xfail(
