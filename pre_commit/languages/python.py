@@ -22,7 +22,6 @@ class PythonEnv(helpers.Environment):
             virtualenv.path_locations(
                 helpers.environment_dir(ENVIRONMENT_DIR, self.language_version)
             )[-1].rstrip(os.sep) + os.sep,
-            'activate',
         )
 
 
