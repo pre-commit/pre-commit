@@ -55,7 +55,8 @@ class Repository(object):
         dep_dict = defaultdict(lambda: defaultdict(set))
         for _, hook in self.hooks:
             dep_dict[hook['language']][hook['language_version']].update(
-                hook.get('additional_dependencies', []))
+                hook.get('additional_dependencies', []),
+            )
         return dep_dict
 
     @cached_property
@@ -118,7 +119,8 @@ class Repository(object):
 
             language.install_environment(
                 self.cmd_runner, language_version,
-                self.additional_dependencies[language_name][language_version])
+                self.additional_dependencies[language_name][language_version],
+            )
             # Touch the .installed file (atomic) to indicate we've installed
             open(self.cmd_runner.path(directory, '.installed'), 'w').close()
 

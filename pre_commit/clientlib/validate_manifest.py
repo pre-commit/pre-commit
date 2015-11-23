@@ -38,6 +38,10 @@ MANIFEST_JSON_SCHEMA = {
                     'type': 'string',
                 },
             },
+            'additional_dependencies': {
+                'type': 'array',
+                'items': {'type': 'string'},
+            },
         },
         'required': ['id', 'name', 'entry', 'language', 'files'],
     },

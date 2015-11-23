@@ -294,7 +294,6 @@ def mock_repo_config():
         'hooks': [{
             'id': 'pyflakes',
             'files': '\\.py$',
-            'additional_dependencies': ['pep8']
         }],
     }
     config_wrapped = apply_defaults([config], CONFIG_JSON_SCHEMA)
@@ -345,12 +344,12 @@ def test_additional_python_dependencies_installed(tempdir_factory, store):
 def test_additional_ruby_dependencies_installed(tempdir_factory, store):
     path = make_repo(tempdir_factory, 'ruby_hooks_repo')
     config = make_config_from_repo(path)
-    config['hooks'][0]['additional_dependencies'] = ['mime-types']
+    config['hooks'][0]['additional_dependencies'] = ['thread_safe']
     repo = Repository.create(config, store)
     repo.run_hook(repo.hooks[0][1], [])
     with ruby.in_env(repo.cmd_runner, 'default') as env:
         output = env.run('gem list --local')[1]
-        assert 'mime-types' in output
+        assert 'thread_safe' in output
 
 
 @pytest.mark.integration

@@ -41,8 +41,8 @@ CONFIG_JSON_SCHEMA = {
                         },
                         'additional_dependencies': {
                             'type': 'array',
-                            'items': {'type': 'string'}
-                        }
+                            'items': {'type': 'string'},
+                        },
                     },
                     'required': ['id'],
                 }
