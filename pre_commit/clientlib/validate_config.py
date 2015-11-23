@@ -39,6 +39,10 @@ CONFIG_JSON_SCHEMA = {
                             'type': 'array',
                             'items': {'type': 'string'},
                         },
+                        'additional_dependencies': {
+                            'type': 'array',
+                            'items': {'type': 'string'}
+                        }
                     },
                     'required': ['id'],
                 }

@@ -8,6 +8,7 @@ from pre_commit.languages import helpers
 from pre_commit.util import CalledProcessError
 from pre_commit.util import clean_path_on_failure
 from pre_commit.util import resource_filename
+from pre_commit.util import shell_escape
 from pre_commit.util import tarfile_open
 
 
@@ -78,7 +79,11 @@ def _install_ruby(environment, version):
         environment.run('rbenv install {0}'.format(version))
 
 
-def install_environment(repo_cmd_runner, version='default'):
+def install_environment(
+        repo_cmd_runner,
+        version='default',
+        additional_dependencies=None,
+):
     directory = helpers.environment_dir(ENVIRONMENT_DIR, version)
     with clean_path_on_failure(repo_cmd_runner.path(directory)):
         # TODO: this currently will fail if there's no version specified and
@@ -88,9 +93,16 @@ def install_environment(repo_cmd_runner, version='default'):
             if version != 'default':
                 _install_ruby(ruby_env, version)
             ruby_env.run(
-                'cd {prefix} && gem build *.gemspec'
-                ' && gem install --no-ri --no-rdoc *.gem',
+                'cd {prefix} && gem build *.gemspec && '
+                'gem install --no-ri --no-rdoc *.gem',
             )
+            if additional_dependencies:
+                ruby_env.run(
+                    'cd {prefix} && gem install --no-ri --no-rdoc ' +
+                    ' '.join(
+                        shell_escape(dep) for dep in additional_dependencies
+                    )
+                )
 
 
 def run_hook(repo_cmd_runner, hook, file_args):

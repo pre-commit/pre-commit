@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 
 import logging
 import shutil
+from collections import defaultdict
 
 from cached_property import cached_property
 
@@ -48,6 +49,14 @@ class Repository(object):
             (hook['language'], hook['language_version'])
             for _, hook in self.hooks
         )
+
+    @cached_property
+    def additional_dependencies(self):
+        dep_dict = defaultdict(lambda: defaultdict(set))
+        for _, hook in self.hooks:
+            dep_dict[hook['language']][hook['language_version']].update(
+                hook.get('additional_dependencies', []))
+        return dep_dict
 
     @cached_property
     def hooks(self):
@@ -107,7 +116,9 @@ class Repository(object):
             if self.cmd_runner.exists(directory):
                 shutil.rmtree(self.cmd_runner.path(directory))
 
-            language.install_environment(self.cmd_runner, language_version)
+            language.install_environment(
+                self.cmd_runner, language_version,
+                self.additional_dependencies[language_name][language_version])
             # Touch the .installed file (atomic) to indicate we've installed
             open(self.cmd_runner.path(directory, '.installed'), 'w').close()
 

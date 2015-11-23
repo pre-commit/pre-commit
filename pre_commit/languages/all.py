@@ -12,7 +12,11 @@ from pre_commit.languages import system
 # # Use None for no environment
 # ENVIRONMENT_DIR = 'foo_env'
 #
-# def install_environment(repo_cmd_runner, version='default'):
+# def install_environment(
+#         repo_cmd_runner,
+#         version='default',
+#         additional_dependencies=None,
+# ):
 #     """Installs a repository in the given repository.  Note that the current
 #     working directory will already be inside the repository.
 #
