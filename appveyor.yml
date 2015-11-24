@@ -7,6 +7,8 @@ install:
     - "SET PATH=C:\\Python34;C:\\Python34\\Scripts;%PATH%"
     - pip install tox
     - pip install virtualenv --upgrade
+    - "mkdir -p C:\\Temp"
+    - "SET TMPDIR=C:\\Temp"
 
 # Not a C# project
 build: false
@@ -15,5 +17,4 @@ before_test:
   - git config --global user.name "AppVeyor CI"
   - git config --global user.email "user@example.com"
 
-# Workaround for http://help.appveyor.com/discussions/problems/1531-having-issues-with-configured-git-bash
-test_script: bash -c tox
+test_script: tox

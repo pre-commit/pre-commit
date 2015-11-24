@@ -342,7 +342,9 @@ def test_additional_python_dependencies_installed(tempdir_factory, store):
 
 @xfailif_windows_no_ruby
 @pytest.mark.integration
-def test_additional_ruby_dependencies_installed(tempdir_factory, store):
+def test_additional_ruby_dependencies_installed(
+        tempdir_factory, store,
+):  # pragma: no cover (non-windows)
     path = make_repo(tempdir_factory, 'ruby_hooks_repo')
     config = make_config_from_repo(path)
     config['hooks'][0]['additional_dependencies'] = ['thread_safe']
@@ -355,7 +357,9 @@ def test_additional_ruby_dependencies_installed(tempdir_factory, store):
 
 @xfailif_windows_no_node
 @pytest.mark.integration
-def test_additional_node_dependencies_installed(tempdir_factory, store):
+def test_additional_node_dependencies_installed(
+        tempdir_factory, store,
+):  # pragma: no cover (non-windows)
     path = make_repo(tempdir_factory, 'node_hooks_repo')
     config = make_config_from_repo(path)
     # Careful to choose a small package that's not depped by npm
@@ -481,15 +485,3 @@ def test_local_repository():
     with pytest.raises(NotImplementedError):
         local_repo.manifest
     assert len(local_repo.hooks) == 1
-
-
-def test_norm_version_expanduser():  # pragma: no cover
-    home = os.path.expanduser('~')
-    if os.name == 'nt':
-        path = r'~\python343'
-        expected_path = r'C:{0}\python343\python.exe'.format(home)
-    else:
-        path = '~/.pyenv/versions/3.4.3/bin/python'
-        expected_path = home + '/.pyenv/versions/3.4.3/bin/python'
-    result = python.norm_version(path)
-    assert result == expected_path

@@ -31,15 +31,18 @@ def in_env(repo_cmd_runner, language_version):
 
 
 def norm_version(version):
-    version = os.path.expanduser(version)
     if os.name == 'nt':  # pragma: no cover (windows)
-        if not distutils.spawn.find_executable(version):
-            # expanduser introduces a leading slash
-            version = version.strip('\\')
-            # The default place for python on windows is:
-            # C:\PythonXX\python.exe
-            version = r'C:\{0}\python.exe'.format(version.replace('.', ''))
-    return version
+        # Try looking up by name
+        if distutils.spawn.find_executable(version):
+            return version
+
+        # If it is in the form pythonx.x search in the default
+        # place on windows
+        if version.startswith('python'):
+            return r'C:\{0}\python.exe'.format(version.replace('.', ''))
+
+        # Otherwise assume it is a path
+    return os.path.expanduser(version)
 
 
 def install_environment(
