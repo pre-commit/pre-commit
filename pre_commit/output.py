@@ -12,13 +12,14 @@ from pre_commit import five
 try:
     if not os.environ.get('TERM'):  # pragma: no cover (dumb terminal)
         raise OSError('Cannot determine width without TERM')
-    COLS = int(
-        subprocess.Popen(
-            ('tput', 'cols'), stdout=subprocess.PIPE,
-        ).communicate()[0] or
-        # Default in the case of no terminal
-        80
-    )
+    else:  # pragma no cover (windows)
+        COLS = int(
+            subprocess.Popen(
+                ('tput', 'cols'), stdout=subprocess.PIPE,
+            ).communicate()[0] or
+            # Default in the case of no terminal
+            80
+        )
 except OSError:  # pragma: no cover (windows)
     COLS = 80
 

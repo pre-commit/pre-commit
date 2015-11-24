@@ -90,7 +90,9 @@ def test_install_hooks_directory_not_present(tempdir_factory):
 
 
 @xfailif_no_symlink
-def test_install_hooks_dead_symlink(tempdir_factory):
+def test_install_hooks_dead_symlink(
+        tempdir_factory,
+):  # pragma: no cover (non-windows)
     path = git_dir(tempdir_factory)
     os.symlink('/fake/baz', os.path.join(path, '.git', 'hooks', 'pre-commit'))
     runner = Runner(path)
@@ -175,6 +177,14 @@ def test_install_idempotent(tempdir_factory):
         assert NORMAL_PRE_COMMIT_RUN.match(output)
 
 
+def _path_without_us():
+    # Choose a path which *probably* doesn't include us
+    return os.pathsep.join([
+        x for x in os.environ['PATH'].split(os.pathsep)
+        if x.lower() != os.path.dirname(sys.executable).lower()
+    ])
+
+
 def test_environment_not_sourced(tempdir_factory):
     path = make_consuming_repo(tempdir_factory, 'script_hooks_repo')
     with cwd(path):
@@ -193,7 +203,7 @@ def test_environment_not_sourced(tempdir_factory):
             )
         ret, stdout, stderr = cmd_output(
             'git', 'commit', '--allow-empty', '-m', 'foo',
-            env={'HOME': homedir},
+            env={'HOME': homedir, 'PATH': _path_without_us()},
             retcode=None,
         )
         assert ret == 1
@@ -422,6 +432,7 @@ def test_installed_from_venv(tempdir_factory):
             tempdir_factory,
             env_base={
                 'HOME': os.path.expanduser('~'),
+                'PATH': _path_without_us(),
                 'TERM': os.environ.get('TERM', ''),
                 # Windows needs this to import `random`
                 'SYSTEMROOT': os.environ.get('SYSTEMROOT', ''),
