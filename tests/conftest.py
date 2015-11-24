@@ -26,7 +26,7 @@ def tempdir_factory(tmpdir):
             self.tmpdir_count = 0
 
         def get(self):
-            path = os.path.join(tmpdir.strpath, five.text(self.tmpdir_count))
+            path = tmpdir.join(five.text(self.tmpdir_count)).strpath
             self.tmpdir_count += 1
             os.mkdir(path)
             return path
