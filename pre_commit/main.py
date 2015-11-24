@@ -22,6 +22,9 @@ from pre_commit.runner import Runner
 # to install packages to the wrong place.  We don't want anything to deal with
 # pyvenv
 os.environ.pop('__PYVENV_LAUNCHER__', None)
+# https://github.com/pre-commit/pre-commit/issues/300
+# In git 2.6.3 (maybe others), git exports this while running pre-commit hooks
+os.environ.pop('GIT_WORK_TREE', None)
 
 
 def main(argv=None):
