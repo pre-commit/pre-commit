@@ -40,9 +40,9 @@ def repo_with_failing_hook(tempdir_factory):
         yield git_path
 
 
-def stage_a_file():
-    cmd_output('touch', 'foo.py')
-    cmd_output('git', 'add', 'foo.py')
+def stage_a_file(filename='foo.py'):
+    cmd_output('touch', filename)
+    cmd_output('git', 'add', filename)
 
 
 def get_write_mock_output(write_mock):
@@ -127,16 +127,22 @@ def test_hook_that_modifies_but_returns_zero(
         tempdir_factory, 'modified_file_returns_zero_repo',
     )
     with cwd(git_path):
+        stage_a_file('bar.py')
         _test_run(
             git_path,
             {},
             (
                 # The first should fail
                 b'Failed',
-                # With a modified file (the hook's output)
+                # With a modified file (default message + the hook's output)
+                b'Files were modified by this hook. Additional output:\n\n'
                 b'Modified: foo.py',
                 # The next hook should pass despite the first modifying
                 b'Passed',
+                # The next hook should fail
+                b'Failed',
+                # bar.py was modified, but provides no additional output
+                b'Files were modified by this hook.\n',
             ),
             1,
             True,
