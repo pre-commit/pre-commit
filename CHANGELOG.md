@@ -1,3 +1,9 @@
+0.6.6
+=====
+- Add `additional_dependencies` to hook configuration.
+- Fix pre-commit cloning under git 2.6
+- Small improvements for windows
+
 0.6.5
 =====
 - Allow args for pcre hooks
