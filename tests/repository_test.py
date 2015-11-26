@@ -2,6 +2,7 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 import io
+import logging
 import os
 import os.path
 import shutil
@@ -485,3 +486,26 @@ def test_local_repository():
     with pytest.raises(NotImplementedError):
         local_repo.manifest
     assert len(local_repo.hooks) == 1
+
+
+@pytest.yield_fixture
+def fake_log_handler():
+    handler = mock.Mock(level=logging.INFO)
+    logger = logging.getLogger('pre_commit')
+    logger.addHandler(handler)
+    yield handler
+    logger.removeHandler(handler)
+
+
+def test_hook_id_not_present(tempdir_factory, store, fake_log_handler):
+    path = make_repo(tempdir_factory, 'script_hooks_repo')
+    config = make_config_from_repo(path)
+    config['hooks'][0]['id'] = 'i-dont-exist'
+    repo = Repository.create(config, store)
+    with pytest.raises(SystemExit):
+        repo.install()
+    assert fake_log_handler.handle.call_args[0][0].msg == (
+        '`i-dont-exist` is not present in repository {0}.  '
+        'Typo? Perhaps it is introduced in a newer version?  '
+        'Often `pre-commit autoupdate` fixes this.'.format(path)
+    )

@@ -61,7 +61,16 @@ class Repository(object):
 
     @cached_property
     def hooks(self):
-        # TODO: merging in manifest dicts is a smell imo
+        for hook in self.repo_config['hooks']:
+            if hook['id'] not in self.manifest.hooks:
+                logger.error(
+                    '`{0}` is not present in repository {1}.  '
+                    'Typo? Perhaps it is introduced in a newer version?  '
+                    'Often `pre-commit autoupdate` fixes this.'.format(
+                        hook['id'], self.repo_config['repo'],
+                    )
+                )
+                exit(1)
         return tuple(
             (hook['id'], dict(self.manifest.hooks[hook['id']], **hook))
             for hook in self.repo_config['hooks']
