@@ -89,8 +89,10 @@ def _run_single_hook(hook, repo, args, write, skips=frozenset()):
     retcode, stdout, stderr = repo.run_hook(hook, filenames)
     diff_after = cmd_output('git', 'diff', retcode=None, encoding=None)
 
+    file_modifications = diff_before != diff_after
+
     # If the hook makes changes, fail the commit
-    if diff_before != diff_after:
+    if file_modifications:
         retcode = 1
 
     if retcode:
@@ -104,9 +106,19 @@ def _run_single_hook(hook, repo, args, write, skips=frozenset()):
 
     write(color.format_color(pass_fail, print_color, args.color) + '\n')
 
-    if (stdout or stderr) and (retcode or args.verbose):
+    if (stdout or stderr or file_modifications) and (retcode or args.verbose):
         write('hookid: {0}\n'.format(hook['id']))
         write('\n')
+
+        # Print a message if failing due to file modifications
+        if file_modifications:
+            write('Files were modified by this hook.')
+
+            if stdout or stderr:
+                write(' Additional output:\n')
+
+            write('\n')
+
         for output in (stdout, stderr):
             assert type(output) is bytes, type(output)
             if output.strip():
