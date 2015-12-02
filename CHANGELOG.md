@@ -1,3 +1,8 @@
+0.6.7
+- Print a useful message when a hook id is not present
+- Fix printing of non-ascii with unexpected errors
+- Print a message when a hook modifies files but produces no output
+
 0.6.6
 =====
 - Add `additional_dependencies` to hook configuration.
