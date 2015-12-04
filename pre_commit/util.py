@@ -26,6 +26,14 @@ def cwd(path):
         os.chdir(original_cwd)
 
 
+def mkdirp(path):
+    try:
+        os.makedirs(path)
+    except OSError:
+        if not os.path.exists(path):
+            raise
+
+
 def memoize_by_cwd(func):
     """Memoize a function call based on os.getcwd()."""
     @functools.wraps(func)

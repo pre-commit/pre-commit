@@ -21,6 +21,7 @@ from pre_commit.commands.install_uninstall import uninstall
 from pre_commit.runner import Runner
 from pre_commit.util import cmd_output
 from pre_commit.util import cwd
+from pre_commit.util import mkdirp
 from pre_commit.util import resource_filename
 from testing.fixtures import git_dir
 from testing.fixtures import make_consuming_repo
@@ -83,7 +84,9 @@ def test_install_pre_commit(tempdir_factory):
 def test_install_hooks_directory_not_present(tempdir_factory):
     path = git_dir(tempdir_factory)
     # Simulate some git clients which don't make .git/hooks #234
-    shutil.rmtree(os.path.join(path, '.git', 'hooks'))
+    hooks = os.path.join(path, '.git', 'hooks')
+    if os.path.exists(hooks):  # pragma: no cover (latest git)
+        shutil.rmtree(hooks)
     runner = Runner(path)
     install(runner)
     assert os.path.exists(runner.pre_commit_path)
@@ -94,8 +97,9 @@ def test_install_hooks_dead_symlink(
         tempdir_factory,
 ):  # pragma: no cover (non-windows)
     path = git_dir(tempdir_factory)
-    os.symlink('/fake/baz', os.path.join(path, '.git', 'hooks', 'pre-commit'))
     runner = Runner(path)
+    mkdirp(os.path.dirname(runner.pre_commit_path))
+    os.symlink('/fake/baz', os.path.join(path, '.git', 'hooks', 'pre-commit'))
     install(runner)
     assert os.path.exists(runner.pre_commit_path)
 
@@ -249,6 +253,7 @@ def test_install_existing_hooks_no_overwrite(tempdir_factory):
         runner = Runner(path)
 
         # Write out an "old" hook
+        mkdirp(os.path.dirname(runner.pre_commit_path))
         with io.open(runner.pre_commit_path, 'w') as hook_file:
             hook_file.write('#!/usr/bin/env bash\necho "legacy hook"\n')
         make_executable(runner.pre_commit_path)
@@ -274,6 +279,7 @@ def test_install_existing_hook_no_overwrite_idempotent(tempdir_factory):
         runner = Runner(path)
 
         # Write out an "old" hook
+        mkdirp(os.path.dirname(runner.pre_commit_path))
         with io.open(runner.pre_commit_path, 'w') as hook_file:
             hook_file.write('#!/usr/bin/env bash\necho "legacy hook"\n')
         make_executable(runner.pre_commit_path)
@@ -302,6 +308,7 @@ def test_failing_existing_hook_returns_1(tempdir_factory):
         runner = Runner(path)
 
         # Write out a failing "old" hook
+        mkdirp(os.path.dirname(runner.pre_commit_path))
         with io.open(runner.pre_commit_path, 'w') as hook_file:
             hook_file.write('#!/usr/bin/env bash\necho "fail!"\nexit 1\n')
         make_executable(runner.pre_commit_path)
@@ -330,6 +337,7 @@ def test_install_overwrite(tempdir_factory):
         runner = Runner(path)
 
         # Write out the "old" hook
+        mkdirp(os.path.dirname(runner.pre_commit_path))
         with io.open(runner.pre_commit_path, 'w') as hook_file:
             hook_file.write('#!/usr/bin/env bash\necho "legacy hook"\n')
         make_executable(runner.pre_commit_path)
@@ -347,6 +355,7 @@ def test_uninstall_restores_legacy_hooks(tempdir_factory):
         runner = Runner(path)
 
         # Write out an "old" hook
+        mkdirp(os.path.dirname(runner.pre_commit_path))
         with io.open(runner.pre_commit_path, 'w') as hook_file:
             hook_file.write('#!/usr/bin/env bash\necho "legacy hook"\n')
         make_executable(runner.pre_commit_path)
@@ -374,6 +383,7 @@ def test_replace_old_commit_script(tempdir_factory):
             IDENTIFYING_HASH, PREVIOUS_IDENTIFYING_HASHES[-1],
         )
 
+        mkdirp(os.path.dirname(runner.pre_commit_path))
         with io.open(runner.pre_commit_path, 'w') as pre_commit_file:
             pre_commit_file.write(new_contents)
         make_executable(runner.pre_commit_path)
@@ -390,6 +400,7 @@ def test_uninstall_doesnt_remove_not_our_hooks(tempdir_factory):
     path = git_dir(tempdir_factory)
     with cwd(path):
         runner = Runner(path)
+        mkdirp(os.path.dirname(runner.pre_commit_path))
         with io.open(runner.pre_commit_path, 'w') as pre_commit_file:
             pre_commit_file.write('#!/usr/bin/env bash\necho 1\n')
         make_executable(runner.pre_commit_path)

@@ -9,6 +9,7 @@ import stat
 import sys
 
 from pre_commit.logging_handler import LoggingHandler
+from pre_commit.util import mkdirp
 from pre_commit.util import resource_filename
 
 
@@ -54,8 +55,7 @@ def install(runner, overwrite=False, hooks=False, hook_type='pre-commit'):
     hook_path = runner.get_hook_path(hook_type)
     legacy_path = hook_path + '.legacy'
 
-    if not os.path.exists(os.path.dirname(hook_path)):
-        os.makedirs(os.path.dirname(hook_path))
+    mkdirp(os.path.dirname(hook_path))
 
     # If we have an existing hook, move it to pre-commit.legacy
     if (
