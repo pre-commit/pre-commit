@@ -7,7 +7,6 @@ import mock
 import pytest
 
 from pre_commit import five
-from pre_commit.prefixed_command_runner import _replace_cmd
 from pre_commit.prefixed_command_runner import PrefixedCommandRunner
 from pre_commit.util import CalledProcessError
 
@@ -57,19 +56,6 @@ def popen_mock():
 @pytest.fixture
 def makedirs_mock():
     return mock.Mock(spec=os.makedirs)
-
-
-@pytest.mark.parametrize(('input', 'kwargs', 'expected_output'), (
-    ([], {}, []),
-    (['foo'], {}, ['foo']),
-    ([], {'foo': 'bar'}, []),
-    (['{foo}/baz'], {'foo': 'bar'}, ['bar/baz']),
-    (['foo'], {'foo': 'bar'}, ['foo']),
-    (['foo', '{bar}'], {'bar': 'baz'}, ['foo', 'baz']),
-))
-def test_replace_cmd(input, kwargs, expected_output):
-    ret = _replace_cmd(input, **kwargs)
-    assert ret == expected_output
 
 
 @pytest.mark.parametrize(('input', 'expected_prefix'), (

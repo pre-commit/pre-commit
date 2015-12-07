@@ -178,6 +178,22 @@ def test_run_hook_with_spaced_args(tempdir_factory, store):
     )
 
 
+@pytest.mark.integration
+def test_run_hook_with_curly_braced_arguments(tempdir_factory, store):
+    _test_hook_repo(
+        tempdir_factory, store, 'arg_per_line_hooks_repo',
+        'arg-per-line',
+        [],
+        b"arg: hi {1}\narg: I'm {a} problem\n",
+        config_kwargs={
+            'hooks': [{
+                'id': 'arg-per-line',
+                'args': ['hi {1}', "I'm {a} problem"],
+            }]
+        },
+    )
+
+
 @xfailif_no_pcre_support
 @pytest.mark.integration
 def test_pcre_hook_no_match(tempdir_factory, store):
