@@ -1,4 +1,11 @@
+0.6.8
+=====
+- Build as a universal wheel
+- Allow '.format('-like strings in arguments
+- Add an option to require a minimum pre-commit version
+
 0.6.7
+=====
 - Print a useful message when a hook id is not present
 - Fix printing of non-ascii with unexpected errors
 - Print a message when a hook modifies files but produces no output
