@@ -7,10 +7,6 @@ import subprocess
 from pre_commit.util import cmd_output
 
 
-def _replace_cmd(cmd, **kwargs):
-    return [part.format(**kwargs) for part in cmd]
-
-
 class PrefixedCommandRunner(object):
     """A PrefixedCommandRunner allows you to run subprocess commands with
     comand substitution.
@@ -37,7 +33,9 @@ class PrefixedCommandRunner(object):
 
     def run(self, cmd, **kwargs):
         self._create_path_if_not_exists()
-        replaced_cmd = _replace_cmd(cmd, prefix=self.prefix_dir)
+        replaced_cmd = [
+            part.replace('{prefix}', self.prefix_dir) for part in cmd
+        ]
         return cmd_output(*replaced_cmd, __popen=self.__popen, **kwargs)
 
     def path(self, *parts):
