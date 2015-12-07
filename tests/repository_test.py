@@ -5,9 +5,11 @@ import io
 import logging
 import os
 import os.path
+import re
 import shutil
 
 import mock
+import pkg_resources
 import pytest
 
 from pre_commit import five
@@ -24,6 +26,7 @@ from testing.fixtures import config_with_local_hooks
 from testing.fixtures import git_dir
 from testing.fixtures import make_config_from_repo
 from testing.fixtures import make_repo
+from testing.fixtures import modify_manifest
 from testing.util import skipif_slowtests_false
 from testing.util import xfailif_no_pcre_support
 from testing.util import xfailif_windows_no_node
@@ -525,3 +528,33 @@ def test_hook_id_not_present(tempdir_factory, store, fake_log_handler):
         'Typo? Perhaps it is introduced in a newer version?  '
         'Often `pre-commit autoupdate` fixes this.'.format(path)
     )
+
+
+def test_too_new_version(tempdir_factory, store, fake_log_handler):
+    path = make_repo(tempdir_factory, 'script_hooks_repo')
+    with modify_manifest(path) as manifest:
+        manifest[0]['minimum_pre_commit_version'] = '999.0.0'
+    config = make_config_from_repo(path)
+    repo = Repository.create(config, store)
+    with pytest.raises(SystemExit):
+        repo.install()
+    msg = fake_log_handler.handle.call_args[0][0].msg
+    assert re.match(
+        r'^The hook `bash_hook` requires pre-commit version 999\.0\.0 but '
+        r'version \d+\.\d+\.\d+ is installed.  '
+        r'Perhaps run `pip install --upgrade pre-commit`\.$',
+        msg,
+    )
+
+
+@pytest.mark.parametrize(
+    'version',
+    ('0.1.0', pkg_resources.get_distribution('pre-commit').version),
+)
+def test_versions_ok(tempdir_factory, store, version):
+    path = make_repo(tempdir_factory, 'script_hooks_repo')
+    with modify_manifest(path) as manifest:
+        manifest[0]['minimum_pre_commit_version'] = version
+    config = make_config_from_repo(path)
+    # Should succeed
+    Repository.create(config, store).install()

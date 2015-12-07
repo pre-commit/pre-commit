@@ -23,6 +23,9 @@ MANIFEST_JSON_SCHEMA = {
             'exclude': {'type': 'string', 'default': '^$'},
             'language': {'type': 'string'},
             'language_version': {'type': 'string', 'default': 'default'},
+            'minimum_pre_commit_version': {
+                'type': 'string', 'default': '0.0.0',
+            },
             'files': {'type': 'string'},
             'stages': {
                 'type': 'array',

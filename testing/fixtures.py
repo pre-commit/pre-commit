@@ -1,10 +1,12 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
+import contextlib
 import io
 import os.path
 
 from aspy.yaml import ordered_dump
+from aspy.yaml import ordered_load
 
 import pre_commit.constants as C
 from pre_commit.clientlib.validate_config import CONFIG_JSON_SCHEMA
@@ -33,6 +35,17 @@ def make_repo(tempdir_factory, repo_source):
         cmd_output('git', 'add', '.')
         cmd_output('git', 'commit', '-m', 'Add hooks')
     return path
+
+
+@contextlib.contextmanager
+def modify_manifest(path):
+    """Modify the manifest yielded by this context to write to hooks.yaml."""
+    manifest_path = os.path.join(path, C.MANIFEST_FILE)
+    manifest = ordered_load(io.open(manifest_path).read())
+    yield manifest
+    with io.open(manifest_path, 'w') as manifest_file:
+        manifest_file.write(ordered_dump(manifest, **C.YAML_DUMP_KWARGS))
+    cmd_output('git', 'commit', '-am', 'update hooks.yaml', cwd=path)
 
 
 def config_with_local_hooks():

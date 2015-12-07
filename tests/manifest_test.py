@@ -27,6 +27,7 @@ def test_manifest_contents(manifest):
         'id': 'bash_hook',
         'language': 'script',
         'language_version': 'default',
+        'minimum_pre_commit_version': '0.0.0',
         'name': 'Bash hook',
         'stages': [],
     }]
@@ -42,6 +43,7 @@ def test_hooks(manifest):
         'id': 'bash_hook',
         'language': 'script',
         'language_version': 'default',
+        'minimum_pre_commit_version': '0.0.0',
         'name': 'Bash hook',
         'stages': [],
     }
