@@ -4,6 +4,7 @@ import logging
 import shutil
 from collections import defaultdict
 
+import pkg_resources
 from cached_property import cached_property
 
 from pre_commit import git
@@ -17,6 +18,10 @@ from pre_commit.prefixed_command_runner import PrefixedCommandRunner
 
 
 logger = logging.getLogger('pre_commit')
+
+_pre_commit_version = pkg_resources.parse_version(
+    pkg_resources.get_distribution('pre-commit').version
+)
 
 
 class Repository(object):
@@ -68,6 +73,18 @@ class Repository(object):
                     'Typo? Perhaps it is introduced in a newer version?  '
                     'Often `pre-commit autoupdate` fixes this.'.format(
                         hook['id'], self.repo_config['repo'],
+                    )
+                )
+                exit(1)
+            hook_version = pkg_resources.parse_version(
+                self.manifest.hooks[hook['id']]['minimum_pre_commit_version'],
+            )
+            if hook_version > _pre_commit_version:
+                logger.error(
+                    'The hook `{0}` requires pre-commit version {1} but '
+                    'version {2} is installed.  '
+                    'Perhaps run `pip install --upgrade pre-commit`.'.format(
+                        hook['id'], hook_version, _pre_commit_version,
                     )
                 )
                 exit(1)
