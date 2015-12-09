@@ -9,7 +9,6 @@ import os.path
 import mock
 import pytest
 
-import pre_commit.constants as C
 from pre_commit import five
 from pre_commit.prefixed_command_runner import PrefixedCommandRunner
 from pre_commit.runner import Runner
@@ -47,7 +46,6 @@ def in_merge_conflict(tempdir_factory):
     with cwd(path):
         cmd_output('touch', 'dummy')
         cmd_output('git', 'add', 'dummy')
-        cmd_output('git', 'add', C.CONFIG_FILE)
         cmd_output('git', 'commit', '-m', 'Add config.')
 
     conflict_path = tempdir_factory.get()
