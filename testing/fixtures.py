@@ -48,6 +48,20 @@ def modify_manifest(path):
     cmd_output('git', 'commit', '-am', 'update hooks.yaml', cwd=path)
 
 
+@contextlib.contextmanager
+def modify_config(path='.', commit=True):
+    """Modify the config yielded by this context to write to
+    .pre-commit-config.yaml
+    """
+    config_path = os.path.join(path, C.CONFIG_FILE)
+    config = ordered_load(io.open(config_path).read())
+    yield config
+    with io.open(config_path, 'w', encoding='UTF-8') as config_file:
+        config_file.write(ordered_dump(config, **C.YAML_DUMP_KWARGS))
+    if commit:
+        cmd_output('git', 'commit', '-am', 'update config', cwd=path)
+
+
 def config_with_local_hooks():
     return OrderedDict((
         ('repo', 'local'),
