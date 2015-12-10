@@ -11,6 +11,7 @@ import sys
 import mock
 import pytest
 
+import pre_commit.constants as C
 from pre_commit.commands.install_uninstall import install
 from pre_commit.commands.run import _get_skips
 from pre_commit.commands.run import _has_unmerged_paths
@@ -24,6 +25,7 @@ from pre_commit.util import cwd
 from testing.auto_namedtuple import auto_namedtuple
 from testing.fixtures import add_config_to_repo
 from testing.fixtures import make_consuming_repo
+from testing.fixtures import modify_config
 
 
 @pytest.yield_fixture
@@ -313,9 +315,8 @@ def test_multiple_hooks_same_id(
 ):
     with cwd(repo_with_passing_hook):
         # Add bash hook on there again
-        with io.open('.pre-commit-config.yaml', 'a+') as config_file:
-            config_file.write('    - id: bash_hook\n')
-        cmd_output('git', 'add', '.pre-commit-config.yaml')
+        with modify_config() as config:
+            config[0]['hooks'].append({'id': 'bash_hook'})
         stage_a_file()
 
     ret, output = _do_run(repo_with_passing_hook, _get_opts())
@@ -343,12 +344,8 @@ def test_stdout_write_bug_py26(
         repo_with_failing_hook, mock_out_store_directory, tempdir_factory,
 ):
     with cwd(repo_with_failing_hook):
-        # Add bash hook on there again
-        with io.open(
-            '.pre-commit-config.yaml', 'a+', encoding='UTF-8',
-        ) as config_file:
-            config_file.write('        args: ["☃"]\n')
-        cmd_output('git', 'add', '.pre-commit-config.yaml')
+        with modify_config() as config:
+            config[0]['hooks'][0]['args'] = ['☃']
         stage_a_file()
 
         install(Runner(repo_with_failing_hook))
@@ -382,8 +379,8 @@ def test_lots_of_files(mock_out_store_directory, tempdir_factory):
     git_path = make_consuming_repo(tempdir_factory, 'python_hooks_repo')
     with cwd(git_path):
         # Override files so we run against them
-        with io.open('.pre-commit-config.yaml', 'a+') as config_file:
-            config_file.write('        files: ""\n')
+        with modify_config() as config:
+            config[0]['hooks'][0]['files'] = ''
 
         # Write a crap ton of files
         for i in range(400):
@@ -463,9 +460,7 @@ def test_local_hook_for_stages(
     )
 
 
-def test_local_hook_passes(
-        repo_with_passing_hook, mock_out_store_directory,
-):
+def test_local_hook_passes(repo_with_passing_hook, mock_out_store_directory):
     config = OrderedDict((
         ('repo', 'local'),
         ('hooks', (OrderedDict((
@@ -497,9 +492,7 @@ def test_local_hook_passes(
     )
 
 
-def test_local_hook_fails(
-        repo_with_passing_hook, mock_out_store_directory,
-):
+def test_local_hook_fails(repo_with_passing_hook, mock_out_store_directory):
     config = OrderedDict((
         ('repo', 'local'),
         ('hooks', [OrderedDict((
@@ -525,60 +518,47 @@ def test_local_hook_fails(
     )
 
 
-def test_allow_unstaged_config_option(
-        repo_with_passing_hook, mock_out_store_directory,
-):
-    with cwd(repo_with_passing_hook):
-        with io.open('.pre-commit-config.yaml', 'a+') as config_file:
-            # writing a newline should be relatively harmless to get a change
-            config_file.write('\n')
+@pytest.yield_fixture
+def modified_config_repo(repo_with_passing_hook):
+    with modify_config(repo_with_passing_hook, commit=False) as config:
+        # Some minor modification
+        config[0]['hooks'][0]['files'] = ''
+    yield repo_with_passing_hook
 
+
+def test_allow_unstaged_config_option(
+        modified_config_repo, mock_out_store_directory,
+):
     args = _get_opts(allow_unstaged_config=True)
-    ret, printed = _do_run(repo_with_passing_hook, args)
-    assert b'You have an unstaged config file' in printed
-    assert b'have specified the --allow-unstaged-config option.' in printed
+    ret, printed = _do_run(modified_config_repo, args)
+    expected = (
+        b'You have an unstaged config file and have specified the '
+        b'--allow-unstaged-config option.'
+    )
+    assert expected in printed
     assert ret == 0
 
 
-def modify_config(path):
-    with cwd(path):
-        with io.open('.pre-commit-config.yaml', 'a+') as config_file:
-            # writing a newline should be relatively harmless to get a change
-            config_file.write('\n')
-
-
 def test_no_allow_unstaged_config_option(
-    repo_with_passing_hook, mock_out_store_directory,
+        modified_config_repo, mock_out_store_directory,
 ):
-    modify_config(repo_with_passing_hook)
     args = _get_opts(allow_unstaged_config=False)
-    ret, printed = _do_run(repo_with_passing_hook, args)
+    ret, printed = _do_run(modified_config_repo, args)
     assert b'Your .pre-commit-config.yaml is unstaged.' in printed
     assert ret == 1
 
 
-def test_no_stash_suppresses_allow_unstaged_config_option(
-        repo_with_passing_hook, mock_out_store_directory,
+@pytest.mark.parametrize(
+    'opts',
+    (
+        {'allow_unstaged_config': False, 'no_stash': True},
+        {'all_files': True},
+        {'files': [C.CONFIG_FILE]},
+    ),
+)
+def test_unstaged_message_suppressed(
+        modified_config_repo, mock_out_store_directory, opts,
 ):
-    modify_config(repo_with_passing_hook)
-    args = _get_opts(allow_unstaged_config=False, no_stash=True)
-    ret, printed = _do_run(repo_with_passing_hook, args)
-    assert b'Your .pre-commit-config.yaml is unstaged.' not in printed
-
-
-def test_all_files_suppresses_allow_unstaged_config_option(
-        repo_with_passing_hook, mock_out_store_directory,
-):
-    modify_config(repo_with_passing_hook)
-    args = _get_opts(all_files=True)
-    ret, printed = _do_run(repo_with_passing_hook, args)
-    assert b'Your .pre-commit-config.yaml is unstaged.' not in printed
-
-
-def test_files_suppresses_allow_unstaged_config_option(
-        repo_with_passing_hook, mock_out_store_directory,
-):
-    modify_config(repo_with_passing_hook)
-    args = _get_opts(files=['.pre-commit-config.yaml'])
-    ret, printed = _do_run(repo_with_passing_hook, args)
+    args = _get_opts(**opts)
+    ret, printed = _do_run(modified_config_repo, args)
     assert b'Your .pre-commit-config.yaml is unstaged.' not in printed
