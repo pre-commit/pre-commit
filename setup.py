@@ -47,7 +47,7 @@ setup(
         'ordereddict',
         'pyyaml',
         'simplejson',
-        'virtualenv',
+        'virtualenv-hax',
     ],
     entry_points={
         'console_scripts': [

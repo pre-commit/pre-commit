@@ -56,7 +56,7 @@ def install_environment(
     # Install a virtualenv
     with clean_path_on_failure(repo_cmd_runner.path(directory)):
         venv_cmd = [
-            sys.executable, '-m', 'virtualenv',
+            sys.executable, '-m', 'virtualenv_hax',
             '{{prefix}}{0}'.format(directory)
         ]
         if version != 'default':

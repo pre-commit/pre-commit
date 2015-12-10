@@ -3,6 +3,8 @@
 astroid<1.3.3
 coverage
 flake8
+# To ensure py2 creating py3 virtualenv works under test
+future
 mock
 pylint<1.4
 pytest
