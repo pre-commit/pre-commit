@@ -360,6 +360,23 @@ def test_additional_python_dependencies_installed(tempdir_factory, store):
         assert 'mccabe' in output
 
 
+@pytest.mark.integration
+def test_additional_dependencies_roll_forward(tempdir_factory, store):
+    path = make_repo(tempdir_factory, 'python_hooks_repo')
+    config = make_config_from_repo(path)
+    # Run the repo once without additional_dependencies
+    repo = Repository.create(config, store)
+    repo.run_hook(repo.hooks[0][1], [])
+    # Now run it with additional_dependencies
+    config['hooks'][0]['additional_dependencies'] = ['mccabe']
+    repo = Repository.create(config, store)
+    repo.run_hook(repo.hooks[0][1], [])
+    # We should see our additional dependency installed
+    with python.in_env(repo.cmd_runner, 'default') as env:
+        output = env.run('pip freeze -l')[1]
+        assert 'mccabe' in output
+
+
 @xfailif_windows_no_ruby
 @pytest.mark.integration
 def test_additional_ruby_dependencies_installed(
