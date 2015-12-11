@@ -46,7 +46,6 @@ setup(
         'nodeenv>=0.11.1',
         'ordereddict',
         'pyyaml',
-        'simplejson',
         'virtualenv',
     ],
     entry_points={
