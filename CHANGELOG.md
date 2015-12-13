@@ -1,3 +1,7 @@
+0.7.0
+=====
+- Store state about additional_dependencies for rollforward/rollback compatibility
+
 0.6.8
 =====
 - Build as a universal wheel
