@@ -7,6 +7,7 @@ import os.path
 import pre_commit.constants as C
 from pre_commit.ordereddict import OrderedDict
 from pre_commit.runner import Runner
+from pre_commit.util import cmd_output
 from pre_commit.util import cwd
 from testing.fixtures import add_config_to_repo
 from testing.fixtures import git_dir
@@ -79,15 +80,19 @@ def test_local_hooks(tempdir_factory, mock_out_store_directory):
     assert len(runner.repositories[0].hooks) == 2
 
 
-def test_pre_commit_path():
-    runner = Runner(os.path.join('foo', 'bar'))
-    expected_path = os.path.join('foo', 'bar', '.git', 'hooks', 'pre-commit')
+def test_pre_commit_path(in_tmpdir):
+    path = os.path.join('foo', 'bar')
+    cmd_output('git', 'init', path)
+    runner = Runner(path)
+    expected_path = os.path.join(path, '.git', 'hooks', 'pre-commit')
     assert runner.pre_commit_path == expected_path
 
 
 def test_pre_push_path():
-    runner = Runner(os.path.join('foo', 'bar'))
-    expected_path = os.path.join('foo', 'bar', '.git', 'hooks', 'pre-push')
+    path = os.path.join('foo', 'bar')
+    cmd_output('git', 'init', path)
+    runner = Runner(path)
+    expected_path = os.path.join(path, '.git', 'hooks', 'pre-push')
     assert runner.pre_push_path == expected_path
 
 
