@@ -7,6 +7,7 @@ import os.path
 import re
 
 from pre_commit.errors import FatalError
+from pre_commit.util import CalledProcessError
 from pre_commit.util import cmd_output
 from pre_commit.util import memoize_by_cwd
 
@@ -15,16 +16,12 @@ logger = logging.getLogger('pre_commit')
 
 
 def get_root():
-    path = os.getcwd()
-    while path != os.path.normpath(os.path.join(path, '../')):
-        if os.path.exists(os.path.join(path, '.git')):
-            return path
-        else:
-            path = os.path.normpath(os.path.join(path, '../'))
-    raise FatalError(
-        'Called from outside of the gits. '
-        'Please cd to a git repository.'
-    )
+    try:
+        return cmd_output('git', 'rev-parse', '--show-toplevel')[1].strip()
+    except CalledProcessError:
+        raise FatalError(
+            'Called from outside of the gits.  Please cd to a git repository.'
+        )
 
 
 def is_in_merge_conflict():

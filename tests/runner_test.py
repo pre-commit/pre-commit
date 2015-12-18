@@ -24,8 +24,8 @@ def test_create_sets_correct_directory(tempdir_factory):
     path = git_dir(tempdir_factory)
     with cwd(path):
         runner = Runner.create()
-        assert runner.git_root == path
-        assert os.getcwd() == path
+        assert os.path.normcase(runner.git_root) == os.path.normcase(path)
+        assert os.path.normcase(os.getcwd()) == os.path.normcase(path)
 
 
 def test_create_changes_to_git_root(tempdir_factory):
@@ -38,8 +38,8 @@ def test_create_changes_to_git_root(tempdir_factory):
         assert os.getcwd() != path
 
         runner = Runner.create()
-        assert runner.git_root == path
-        assert os.getcwd() == path
+        assert os.path.normcase(runner.git_root) == os.path.normcase(path)
+        assert os.path.normcase(os.getcwd()) == os.path.normcase(path)
 
 
 def test_config_file_path():

@@ -15,7 +15,7 @@ from testing.fixtures import git_dir
 def test_get_root_at_root(tempdir_factory):
     path = git_dir(tempdir_factory)
     with cwd(path):
-        assert git.get_root() == path
+        assert os.path.normcase(git.get_root()) == os.path.normcase(path)
 
 
 def test_get_root_deeper(tempdir_factory):
@@ -24,7 +24,7 @@ def test_get_root_deeper(tempdir_factory):
     foo_path = os.path.join(path, 'foo')
     os.mkdir(foo_path)
     with cwd(foo_path):
-        assert git.get_root() == path
+        assert os.path.normcase(git.get_root()) == os.path.normcase(path)
 
 
 def test_get_root_not_git_dir(tempdir_factory):
