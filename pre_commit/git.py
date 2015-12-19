@@ -24,10 +24,18 @@ def get_root():
         )
 
 
+def get_git_dir(git_root):
+    return os.path.normpath(os.path.join(
+        git_root,
+        cmd_output('git', 'rev-parse', '--git-dir', cwd=git_root)[1].strip(),
+    ))
+
+
 def is_in_merge_conflict():
+    git_dir = get_git_dir('.')
     return (
-        os.path.exists(os.path.join('.git', 'MERGE_MSG')) and
-        os.path.exists(os.path.join('.git', 'MERGE_HEAD'))
+        os.path.exists(os.path.join(git_dir, 'MERGE_MSG')) and
+        os.path.exists(os.path.join(git_dir, 'MERGE_HEAD'))
     )
 
 
@@ -46,7 +54,7 @@ def get_conflicted_files():
     logger.info('Checking merge-conflict files only.')
     # Need to get the conflicted files from the MERGE_MSG because they could
     # have resolved the conflict by choosing one side or the other
-    merge_msg = open(os.path.join('.git', 'MERGE_MSG')).read()
+    merge_msg = open(os.path.join(get_git_dir('.'), 'MERGE_MSG')).read()
     merge_conflict_filenames = parse_merge_msg_for_conflicts(merge_msg)
 
     # This will get the rest of the changes made after the merge.

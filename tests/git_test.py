@@ -43,6 +43,10 @@ def test_is_in_merge_conflict(in_merge_conflict):
     assert git.is_in_merge_conflict() is True
 
 
+def test_is_in_merge_conflict_submodule(in_conflicting_submodule):
+    assert git.is_in_merge_conflict() is True
+
+
 def test_cherry_pick_conflict(in_merge_conflict):
     cmd_output('git', 'merge', '--abort')
     foo_ref = cmd_output('git', 'rev-parse', 'foo')[1].strip()
@@ -109,6 +113,11 @@ def test_get_conflicted_files(in_merge_conflict):
 
     ret = set(git.get_conflicted_files())
     assert ret == set(('conflict_file', 'other_file'))
+
+
+def test_get_conflicted_files_in_submodule(in_conflicting_submodule):
+    resolve_conflict()
+    assert set(git.get_conflicted_files()) == set(('conflict_file',))
 
 
 def test_get_conflicted_files_unstaged_files(in_merge_conflict):

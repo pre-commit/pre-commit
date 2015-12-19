@@ -31,6 +31,10 @@ class Runner(object):
         return cls(root)
 
     @cached_property
+    def git_dir(self):
+        return git.get_git_dir(self.git_root)
+
+    @cached_property
     def config_file_path(self):
         return os.path.join(self.git_root, C.CONFIG_FILE)
 
@@ -44,7 +48,7 @@ class Runner(object):
         return repositories
 
     def get_hook_path(self, hook_type):
-        return os.path.join(self.git_root, '.git', 'hooks', hook_type)
+        return os.path.join(self.git_dir, 'hooks', hook_type)
 
     @cached_property
     def pre_commit_path(self):

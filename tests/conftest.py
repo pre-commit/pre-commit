@@ -15,6 +15,7 @@ from pre_commit.runner import Runner
 from pre_commit.store import Store
 from pre_commit.util import cmd_output
 from pre_commit.util import cwd
+from testing.fixtures import git_dir
 from testing.fixtures import make_consuming_repo
 
 
@@ -40,6 +41,26 @@ def in_tmpdir(tempdir_factory):
         yield path
 
 
+def _make_conflict():
+    cmd_output('git', 'checkout', 'origin/master', '-b', 'foo')
+    with io.open('conflict_file', 'w') as conflict_file:
+        conflict_file.write('herp\nderp\n')
+    cmd_output('git', 'add', 'conflict_file')
+    with io.open('foo_only_file', 'w') as foo_only_file:
+        foo_only_file.write('foo')
+    cmd_output('git', 'add', 'foo_only_file')
+    cmd_output('git', 'commit', '-m', 'conflict_file')
+    cmd_output('git', 'checkout', 'origin/master', '-b', 'bar')
+    with io.open('conflict_file', 'w') as conflict_file:
+        conflict_file.write('harp\nddrp\n')
+    cmd_output('git', 'add', 'conflict_file')
+    with io.open('bar_only_file', 'w') as bar_only_file:
+        bar_only_file.write('bar')
+    cmd_output('git', 'add', 'bar_only_file')
+    cmd_output('git', 'commit', '-m', 'conflict_file')
+    cmd_output('git', 'merge', 'foo', retcode=None)
+
+
 @pytest.yield_fixture
 def in_merge_conflict(tempdir_factory):
     path = make_consuming_repo(tempdir_factory, 'script_hooks_repo')
@@ -51,24 +72,21 @@ def in_merge_conflict(tempdir_factory):
     conflict_path = tempdir_factory.get()
     cmd_output('git', 'clone', path, conflict_path)
     with cwd(conflict_path):
-        cmd_output('git', 'checkout', 'origin/master', '-b', 'foo')
-        with io.open('conflict_file', 'w') as conflict_file:
-            conflict_file.write('herp\nderp\n')
-        cmd_output('git', 'add', 'conflict_file')
-        with io.open('foo_only_file', 'w') as foo_only_file:
-            foo_only_file.write('foo')
-        cmd_output('git', 'add', 'foo_only_file')
-        cmd_output('git', 'commit', '-m', 'conflict_file')
-        cmd_output('git', 'checkout', 'origin/master', '-b', 'bar')
-        with io.open('conflict_file', 'w') as conflict_file:
-            conflict_file.write('harp\nddrp\n')
-        cmd_output('git', 'add', 'conflict_file')
-        with io.open('bar_only_file', 'w') as bar_only_file:
-            bar_only_file.write('bar')
-        cmd_output('git', 'add', 'bar_only_file')
-        cmd_output('git', 'commit', '-m', 'conflict_file')
-        cmd_output('git', 'merge', 'foo', retcode=None)
+        _make_conflict()
         yield os.path.join(conflict_path)
+
+
+@pytest.yield_fixture
+def in_conflicting_submodule(tempdir_factory):
+    git_dir_1 = git_dir(tempdir_factory)
+    git_dir_2 = git_dir(tempdir_factory)
+    with cwd(git_dir_2):
+        cmd_output('git', 'commit', '--allow-empty', '-m', 'init!')
+    with cwd(git_dir_1):
+        cmd_output('git', 'submodule', 'add', git_dir_2, 'sub')
+    with cwd(os.path.join(git_dir_1, 'sub')):
+        _make_conflict()
+        yield
 
 
 @pytest.yield_fixture(scope='session', autouse=True)
