@@ -1,3 +1,7 @@
+0.7.1
+=====
+- Support running pre-commit inside submodules
+
 0.7.0
 =====
 - Store state about additional_dependencies for rollforward/rollback compatibility

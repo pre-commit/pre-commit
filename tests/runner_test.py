@@ -88,7 +88,7 @@ def test_pre_commit_path(in_tmpdir):
     assert runner.pre_commit_path == expected_path
 
 
-def test_pre_push_path():
+def test_pre_push_path(in_tmpdir):
     path = os.path.join('foo', 'bar')
     cmd_output('git', 'init', path)
     runner = Runner(path)
