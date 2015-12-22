@@ -30,6 +30,7 @@ def test_manifest_contents(manifest):
         'minimum_pre_commit_version': '0.0.0',
         'name': 'Bash hook',
         'stages': [],
+        'always_run': False
     }]
 
 
@@ -46,4 +47,5 @@ def test_hooks(manifest):
         'minimum_pre_commit_version': '0.0.0',
         'name': 'Bash hook',
         'stages': [],
+        'always_run': False
     }
