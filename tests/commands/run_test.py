@@ -184,6 +184,12 @@ def test_run(
     _test_run(repo_with_passing_hook, options, outputs, expected_ret, stage)
 
 
+def test_always_run(repo_with_passing_hook, mock_out_store_directory):
+    with modify_config() as config:
+        config[0]['hooks'][0]['always_run'] = True
+    _test_run(repo_with_passing_hook, {}, (b'Bash hook', b'Passed'), 0, False)
+
+
 @pytest.mark.parametrize(
     ('origin', 'source', 'expect_failure'),
     (
