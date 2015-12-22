@@ -17,6 +17,7 @@ MANIFEST_JSON_SCHEMA = {
         'type': 'object',
         'properties': {
             'id': {'type': 'string'},
+            'always_run': {'type': 'boolean'},
             'name': {'type': 'string'},
             'description': {'type': 'string', 'default': ''},
             'entry': {'type': 'string'},
