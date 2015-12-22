@@ -1,12 +1,11 @@
 environment:
     matrix:
         - TOXENV: py27
-        - TOXENV: py34
+        - TOXENV: py35
 
 install:
-    - "SET PATH=C:\\Python34;C:\\Python34\\Scripts;%PATH%"
-    - pip install tox
-    - pip install virtualenv --upgrade
+    - "SET PATH=C:\\Python35;C:\\Python35\\Scripts;%PATH%"
+    - pip install tox virtualenv --upgrade
     - "mkdir -p C:\\Temp"
     - "SET TMPDIR=C:\\Temp"
 
@@ -18,3 +17,7 @@ before_test:
   - git config --global user.email "user@example.com"
 
 test_script: tox
+
+cache:
+  - '%LOCALAPPDATA%\pip\cache'
+  - '%USERPROFILE%\.pre-commit'
