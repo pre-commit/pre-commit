@@ -76,7 +76,7 @@ def _run_single_hook(hook, repo, args, write, skips=frozenset()):
     if hook['id'] in skips:
         _print_user_skipped(hook, write, args)
         return 0
-    elif not filenames:
+    elif not filenames and not hook['always_run']:
         _print_no_files_skipped(hook, write, args)
         return 0
 
