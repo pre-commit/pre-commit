@@ -1,3 +1,7 @@
+0.7.2
+=====
+- Add `always_run` setting for hooks to run even without file changes.
+
 0.7.1
 =====
 - Support running pre-commit inside submodules
