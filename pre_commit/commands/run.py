@@ -72,19 +72,13 @@ def get_filenames(args, include_expr, exclude_expr):
 
 
 def _run_single_hook(hook, repo, args, write, skips=frozenset()):
-    filenames = []
-    # if the hook is marked as always_run, do not compute the files to run
-    # in that case, simply run the script once not matter the changes
-    compute_file_names = 'always_run' not in hook or not hook['always_run']
-
+    filenames = get_filenames(args, hook['files'], hook['exclude'])
     if hook['id'] in skips:
         _print_user_skipped(hook, write, args)
         return 0
-    elif compute_file_names:
-        filenames = get_filenames(args, hook['files'], hook['exclude'])
-        if not filenames:
-            _print_no_files_skipped(hook, write, args)
-            return 0
+    elif not filenames and not hook['always_run']:
+        _print_no_files_skipped(hook, write, args)
+        return 0
 
     # Print the hook and the dots first in case the hook takes hella long to
     # run.
