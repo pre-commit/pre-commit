@@ -22,16 +22,6 @@ from pre_commit.runner import Runner
 # to install packages to the wrong place.  We don't want anything to deal with
 # pyvenv
 os.environ.pop('__PYVENV_LAUNCHER__', None)
-# https://github.com/pre-commit/pre-commit/issues/300
-# In git 2.6.3 (maybe others), git exports this while running pre-commit hooks
-os.environ.pop('GIT_WORK_TREE', None)
-# In git 1.9.1 (maybe others), git exports these while running pre-commit hooks
-# in submodules.  In the general case this causes problems.
-# These are covered by test_install_in_submodule_and_run
-# Causes git clone to clone wrong thing
-os.environ.pop('GIT_DIR', None)
-# Causes 'error invalid object ...' during commit
-os.environ.pop('GIT_INDEX_FILE', None)
 
 
 def main(argv=None):
