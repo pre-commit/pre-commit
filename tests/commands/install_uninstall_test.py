@@ -133,7 +133,7 @@ def _get_commit_output(
     home = home or tempdir_factory.get()
     env = dict(env_base, PRE_COMMIT_HOME=home)
     return cmd_output(
-        'git', 'commit', '-m', 'Commit!', '--allow-empty',
+        'git', 'commit', '-am', 'Commit!', '--allow-empty',
         # git commit puts pre-commit to stderr
         stderr=subprocess.STDOUT,
         env=env,
@@ -175,7 +175,7 @@ def test_install_in_submodule_and_run(tempdir_factory):
     parent_path = git_dir(tempdir_factory)
     with cwd(parent_path):
         cmd_output('git', 'submodule', 'add', src_path, 'sub')
-        cmd_output('git', 'commit', '-am', 'foo')
+        cmd_output('git', 'commit', '-m', 'foo')
 
     sub_pth = os.path.join(parent_path, 'sub')
     with cwd(sub_pth):
@@ -183,6 +183,23 @@ def test_install_in_submodule_and_run(tempdir_factory):
         ret, output = _get_commit_output(tempdir_factory)
         assert ret == 0
         assert NORMAL_PRE_COMMIT_RUN.match(output)
+
+
+def test_commit_am(tempdir_factory):
+    """Regression test for #322."""
+    path = make_consuming_repo(tempdir_factory, 'script_hooks_repo')
+    with cwd(path):
+        # Make an unstaged change
+        open('unstaged', 'w').close()
+        cmd_output('git', 'add', '.')
+        cmd_output('git', 'commit', '-m', 'foo')
+        with io.open('unstaged', 'w') as foo_file:
+            foo_file.write('Oh hai')
+
+        assert install(Runner(path)) == 0
+
+        ret, output = _get_commit_output(tempdir_factory)
+        assert ret == 0
 
 
 def test_install_idempotent(tempdir_factory):

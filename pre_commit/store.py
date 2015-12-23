@@ -14,6 +14,7 @@ from pre_commit.prefixed_command_runner import PrefixedCommandRunner
 from pre_commit.util import clean_path_on_failure
 from pre_commit.util import cmd_output
 from pre_commit.util import cwd
+from pre_commit.util import no_git_env
 
 
 logger = logging.getLogger('pre_commit')
@@ -114,9 +115,11 @@ class Store(object):
 
         dir = tempfile.mkdtemp(prefix='repo', dir=self.directory)
         with clean_path_on_failure(dir):
-            cmd_output('git', 'clone', '--no-checkout', url, dir)
+            cmd_output(
+                'git', 'clone', '--no-checkout', url, dir, env=no_git_env(),
+            )
             with cwd(dir):
-                cmd_output('git', 'reset', sha, '--hard')
+                cmd_output('git', 'reset', sha, '--hard', env=no_git_env())
 
         # Update our db with the created repo
         with sqlite3.connect(self.db_path) as db:

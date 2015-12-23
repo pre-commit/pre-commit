@@ -377,6 +377,7 @@ def test_additional_dependencies_roll_forward(tempdir_factory, store):
         assert 'mccabe' in output
 
 
+@skipif_slowtests_false
 @xfailif_windows_no_ruby
 @pytest.mark.integration
 def test_additional_ruby_dependencies_installed(
@@ -392,6 +393,7 @@ def test_additional_ruby_dependencies_installed(
         assert 'thread_safe' in output
 
 
+@skipif_slowtests_false
 @xfailif_windows_no_node
 @pytest.mark.integration
 def test_additional_node_dependencies_installed(
