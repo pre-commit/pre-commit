@@ -1,3 +1,7 @@
+0.7.3
+=====
+- Fix regression introduced in 0.7.1 breaking `git commit -a`
+
 0.7.2
 =====
 - Add `always_run` setting for hooks to run even without file changes.
