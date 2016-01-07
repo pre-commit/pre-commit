@@ -102,7 +102,7 @@ def guess_git_type_for_file(path):
         return GIT_MODE_SYMLINK
     elif os.path.isfile(path):
         # determine if executable
-        if os.stat(path).st_mode & 0o111:
+        if os.access(path, os.X_OK):
             return GIT_MODE_EXECUTABLE
         else:
             return GIT_MODE_FILE
