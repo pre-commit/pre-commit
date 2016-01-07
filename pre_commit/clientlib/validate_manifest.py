@@ -27,7 +27,11 @@ MANIFEST_JSON_SCHEMA = {
             'minimum_pre_commit_version': {
                 'type': 'string', 'default': '0.0.0',
             },
-            'files': {'type': 'string'},
+            'files': {
+                'type': 'string',
+                # empty regex to match all files
+                'default': '',
+            },
             'stages': {
                 'type': 'array',
                 'default': [],
@@ -35,19 +39,22 @@ MANIFEST_JSON_SCHEMA = {
                     'type': 'string',
                 },
             },
+            'types': {
+                'type': 'array',
+                'items': {'type': 'string'},
+                'default': ['file'],
+            },
             'args': {
                 'type': 'array',
                 'default': [],
-                'items': {
-                    'type': 'string',
-                },
+                'items': {'type': 'string'},
             },
             'additional_dependencies': {
                 'type': 'array',
                 'items': {'type': 'string'},
             },
         },
-        'required': ['id', 'name', 'entry', 'language', 'files'],
+        'required': ['id', 'name', 'entry', 'language'],
     },
 }
 

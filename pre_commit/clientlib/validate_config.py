@@ -44,6 +44,10 @@ CONFIG_JSON_SCHEMA = {
                             'type': 'array',
                             'items': {'type': 'string'},
                         },
+                        'types': {
+                            'type': 'array',
+                            'items': {'type': 'string'}
+                        },
                     },
                     'required': ['id'],
                 }
