@@ -55,24 +55,37 @@ def get_changed_files(new, old):
     )[1].splitlines()
 
 
-def get_filenames(args, include_expr, exclude_expr):
+def get_filenames(args, include_expr, exclude_expr, types):
+    """Return a list of file names and modes to consider for this run.
+
+    :return: a list of tuples of the of the form (path, mode).
+    """
     if args.origin and args.source:
         getter = git.get_files_matching(
             lambda: get_changed_files(args.origin, args.source),
         )
     elif args.files:
-        getter = git.get_files_matching(lambda: args.files)
+        files = [
+            (path, git.guess_git_type_for_file(path))
+            for path in args.files
+        ]
+        getter = git.get_files_matching(lambda: files)
     elif args.all_files:
         getter = git.get_all_files_matching
     elif git.is_in_merge_conflict():
         getter = git.get_conflicted_files_matching
     else:
         getter = git.get_staged_files_matching
-    return getter(include_expr, exclude_expr)
+    return getter(include_expr, exclude_expr, types)
 
 
 def _run_single_hook(hook, repo, args, write, skips=frozenset()):
-    filenames = get_filenames(args, hook['files'], hook['exclude'])
+    filenames = get_filenames(
+        args,
+        hook['files'],
+        hook['exclude'],
+        frozenset(hook['types']) if 'types' in hook else frozenset(['file']),
+    )
     if hook['id'] in skips:
         _print_user_skipped(hook, write, args)
         return 0
