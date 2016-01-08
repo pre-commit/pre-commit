@@ -84,7 +84,7 @@ def _run_single_hook(hook, repo, args, write, skips=frozenset()):
         args,
         hook['files'],
         hook['exclude'],
-        frozenset(hook['types']) if 'types' in hook else frozenset(['file']),
+        frozenset(hook['types']),
     )
     if hook['id'] in skips:
         _print_user_skipped(hook, write, args)
