@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
 from pre_commit.languages.helpers import file_args_to_stdin

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """List of known filename to file type mappings.
 
 The list consists of tuples of (filename regex, list of types).
