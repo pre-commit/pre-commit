@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from pre_commit import git
 from pre_commit.file_classifier.classifier import classify
 
