@@ -85,9 +85,10 @@ def _guess_types_from_shebang(path):
 def _read_interpreter_from_shebang(path):
     """Read an interpreter from a file's shebang.
 
-    The first line of a script is guaranteed to be ASCII, so we read ASCII
-    until we hit a newline (at which point we check if we read a valid shebang)
-    or a non-ASCII character (at which point we bail).
+    The first line of a script which has a valid shebang is guaranteed to be
+    ASCII, so we read ASCII until we hit a newline (at which point we check if
+    we read a valid shebang) or a non-ASCII character (at which point we bail,
+    because this can't be a valid script-with-shebang).
 
     :param path: path to text file
     :return: interpreter, or None if no shebang could be read
