@@ -45,13 +45,14 @@ def install_environment(
         repo_cmd_runner.run(cmd)
 
         with in_env(repo_cmd_runner, version) as node_env:
-            node_env.run("cd '{prefix}' && npm install -g")
+            node_env.run("cd '{prefix}' && npm install -g", encoding=None)
             if additional_dependencies:
                 node_env.run(
                     "cd '{prefix}' && npm install -g " +
                     ' '.join(
                         shell_escape(dep) for dep in additional_dependencies
-                    )
+                    ),
+                    encoding=None,
                 )
 
 

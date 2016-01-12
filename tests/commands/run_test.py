@@ -371,6 +371,33 @@ def test_stdout_write_bug_py26(
         assert 'UnicodeDecodeError' not in stdout
 
 
+def test_hook_install_failure(mock_out_store_directory, tempdir_factory):
+    git_path = make_consuming_repo(tempdir_factory, 'not_installable_repo')
+    with cwd(git_path):
+        install(Runner(git_path))
+
+        # Don't want to write to home directory
+        env = dict(os.environ, PRE_COMMIT_HOME=tempdir_factory.get())
+        _, stdout, _ = cmd_output(
+            'git', 'commit', '-m', 'Commit!',
+            # git commit puts pre-commit to stderr
+            stderr=subprocess.STDOUT,
+            env=env,
+            retcode=None,
+            encoding=None,
+        )
+        assert b'UnicodeDecodeError' not in stdout
+        # Doesn't actually happen, but a reasonable assertion
+        assert b'UnicodeEncodeError' not in stdout
+
+        # Sanity check our output
+        assert (
+            b'An unexpected error has occurred: CalledProcessError: ' in
+            stdout
+        )
+        assert '☃'.encode('UTF-8') + '²'.encode('latin1') in stdout
+
+
 def test_get_changed_files():
     files = get_changed_files(
         '78c682a1d13ba20e7cb735313b9314a74365cd3a',

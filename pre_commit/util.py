@@ -124,26 +124,38 @@ class CalledProcessError(RuntimeError):
         self.expected_returncode = expected_returncode
         self.output = output
 
-    def __str__(self):
+    def to_bytes(self):
         output = []
-        for text in self.output:
-            if text:
-                output.append('\n    ' + text.replace('\n', '\n    '))
+        for maybe_text in self.output:
+            if maybe_text:
+                output.append(
+                    b'\n    ' +
+                    five.to_bytes(maybe_text).replace(b'\n', b'\n    ')
+                )
             else:
-                output.append('(none)')
+                output.append(b'(none)')
 
-        return (
-            'Command: {0!r}\n'
-            'Return code: {1}\n'
-            'Expected return code: {2}\n'
-            'Output: {3}\n'
-            'Errors: {4}\n'.format(
-                self.cmd,
-                self.returncode,
-                self.expected_returncode,
-                *output
-            )
-        )
+        return b''.join((
+            five.to_bytes(
+                'Command: {0!r}\n'
+                'Return code: {1}\n'
+                'Expected return code: {2}\n'.format(
+                    self.cmd, self.returncode, self.expected_returncode
+                )
+            ),
+            b'Output: ', output[0], b'\n',
+            b'Errors: ', output[1], b'\n',
+        ))
+
+    def to_text(self):
+        return self.to_bytes().decode('UTF-8')
+
+    if five.PY3:  # pragma: no cover
+        __bytes__ = to_bytes
+        __str__ = to_text
+    else:
+        __str__ = to_bytes
+        __unicode__ = to_text
 
 
 def cmd_output(*cmd, **kwargs):
