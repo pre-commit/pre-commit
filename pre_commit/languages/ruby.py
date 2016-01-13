@@ -95,13 +95,15 @@ def install_environment(
             ruby_env.run(
                 'cd {prefix} && gem build *.gemspec && '
                 'gem install --no-ri --no-rdoc *.gem',
+                encoding=None,
             )
             if additional_dependencies:
                 ruby_env.run(
                     'cd {prefix} && gem install --no-ri --no-rdoc ' +
                     ' '.join(
                         shell_escape(dep) for dep in additional_dependencies
-                    )
+                    ),
+                    encoding=None,
                 )
 
 

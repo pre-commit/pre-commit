@@ -11,6 +11,7 @@ import mock
 import pytest
 
 from pre_commit import error_handler
+from pre_commit import five
 from pre_commit.errors import FatalError
 from pre_commit.util import cmd_output
 
@@ -82,7 +83,9 @@ def test_log_and_exit(mock_out_store_directory):
             write_fn=mocked_write,
         )
 
-    printed = ''.join(call[0][0] for call in mocked_write.call_args_list)
+    printed = ''.join(
+        five.to_text(call[0][0]) for call in mocked_write.call_args_list
+    )
     assert printed == (
         'msg: FatalError: hai\n'
         'Check the log at ~/.pre-commit/pre-commit.log\n'

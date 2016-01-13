@@ -63,13 +63,14 @@ def install_environment(
             venv_cmd.extend(['-p', norm_version(version)])
         repo_cmd_runner.run(venv_cmd)
         with in_env(repo_cmd_runner, version) as env:
-            env.run("cd '{prefix}' && pip install .")
+            env.run("cd '{prefix}' && pip install .", encoding=None)
             if additional_dependencies:
                 env.run(
                     "cd '{prefix}' && pip install " +
                     ' '.join(
                         shell_escape(dep) for dep in additional_dependencies
-                    )
+                    ),
+                    encoding=None,
                 )
 
 

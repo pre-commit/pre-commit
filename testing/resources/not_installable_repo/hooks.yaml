@@ -1,0 +1,6 @@
+-   id: foo
+    name: Foo
+    entry: foo
+    language: python
+    language_version: python2.7
+    files: \.py$
