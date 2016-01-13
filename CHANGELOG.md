@@ -1,3 +1,7 @@
+0.7.4
+=====
+- Produce error message instead of crashing on non-utf8 installation failure
+
 0.7.3
 =====
 - Fix regression introduced in 0.7.1 breaking `git commit -a`
