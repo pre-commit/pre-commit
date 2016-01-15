@@ -61,6 +61,7 @@ def get_files_matching_func():
             'pre_commit/main.py',
             'pre_commit/git.py',
             'im_a_file_that_doesnt_exist.py',
+            'testing/test_symlink',
             'hooks.yaml',
         )
 
@@ -73,6 +74,7 @@ def test_get_files_matching_base(get_files_matching_func):
         'pre_commit/main.py',
         'pre_commit/git.py',
         'hooks.yaml',
+        'testing/test_symlink'
     ])
 
 
@@ -96,7 +98,7 @@ def test_does_not_include_deleted_fileS(get_files_matching_func):
 
 def test_exclude_removes_files(get_files_matching_func):
     ret = get_files_matching_func('', '\\.py$')
-    assert ret == set(['hooks.yaml'])
+    assert ret == set(['hooks.yaml', 'testing/test_symlink'])
 
 
 def resolve_conflict():
