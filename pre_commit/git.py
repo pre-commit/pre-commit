@@ -89,7 +89,7 @@ def get_files_matching(all_file_list_strategy):
             if (
                 include_regex.search(filename) and
                 not exclude_regex.search(filename) and
-                os.path.exists(filename)
+                os.path.lexists(filename)
             )
         )
     return wrapper
