@@ -1,3 +1,7 @@
+0.7.5
+=====
+- Consider dead symlinks as files when committing
+
 0.7.4
 =====
 - Produce error message instead of crashing on non-utf8 installation failure
