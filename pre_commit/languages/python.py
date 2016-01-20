@@ -5,8 +5,6 @@ import distutils.spawn
 import os
 import sys
 
-import virtualenv
-
 from pre_commit.languages import helpers
 from pre_commit.util import clean_path_on_failure
 from pre_commit.util import shell_escape
@@ -15,13 +13,22 @@ from pre_commit.util import shell_escape
 ENVIRONMENT_DIR = 'py_env'
 
 
+def bin_dir(venv):
+    """On windows there's a different directory for the virtualenv"""
+    if os.name == 'nt':  # pragma: no cover (windows)
+        return os.path.join(venv, 'Scripts')
+    else:
+        return os.path.join(venv, 'bin')
+
+
 class PythonEnv(helpers.Environment):
     @property
     def env_prefix(self):
-        return ". '{{prefix}}{0}activate' &&".format(
-            virtualenv.path_locations(
+        return ". '{{prefix}}{0}{1}activate' &&".format(
+            bin_dir(
                 helpers.environment_dir(ENVIRONMENT_DIR, self.language_version)
-            )[-1].rstrip(os.sep) + os.sep,
+            ),
+            os.sep,
         )
 
 
