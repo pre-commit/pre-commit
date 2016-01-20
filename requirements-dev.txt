@@ -6,3 +6,6 @@ flake8
 mock
 pylint<1.4
 pytest
+
+# setuptools breaks pypy3 with extraneous output
+setuptools<18.5
