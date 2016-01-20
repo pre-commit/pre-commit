@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
@@ -25,6 +26,7 @@ def test_manifest_contents(manifest):
         'entry': 'bin/hook.sh',
         'exclude': '^$',
         'files': '',
+        'types': ['file'],
         'id': 'bash_hook',
         'language': 'script',
         'language_version': 'default',
@@ -42,6 +44,7 @@ def test_hooks(manifest):
         'entry': 'bin/hook.sh',
         'exclude': '^$',
         'files': '',
+        'types': ['file'],
         'id': 'bash_hook',
         'language': 'script',
         'language_version': 'default',

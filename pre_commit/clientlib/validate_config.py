@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
 from pre_commit.clientlib.validate_base import get_run_function
@@ -43,6 +44,10 @@ CONFIG_JSON_SCHEMA = {
                         'additional_dependencies': {
                             'type': 'array',
                             'items': {'type': 'string'},
+                        },
+                        'types': {
+                            'type': 'array',
+                            'items': {'type': 'string'}
                         },
                     },
                     'required': ['id'],
