@@ -1,3 +1,8 @@
+0.7.6
+=====
+- Work under latest virtualenv
+- No longer create empty directories on windows with latest virtualenv
+
 0.7.5
 =====
 - Consider dead symlinks as files when committing
