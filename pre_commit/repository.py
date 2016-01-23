@@ -17,7 +17,7 @@ from pre_commit.clientlib.validate_manifest import MANIFEST_JSON_SCHEMA
 from pre_commit.jsonschema_extensions import apply_defaults
 from pre_commit.languages.all import languages
 from pre_commit.languages.helpers import environment_dir
-from pre_commit.manifest import Manifest
+from pre_commit.manifest import ExternalManifest, Manifest
 from pre_commit.prefixed_command_runner import PrefixedCommandRunner
 
 
@@ -102,7 +102,10 @@ class Repository(object):
 
     @cached_property
     def manifest(self):
-        return Manifest(self.repo_path_getter)
+        m = Manifest(self.repo_path_getter)
+        if not m.exists():
+            m = ExternalManifest(git.get_root())
+        return m
 
     @cached_property
     def cmd_runner(self):
