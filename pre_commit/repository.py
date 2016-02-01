@@ -17,7 +17,8 @@ from pre_commit.clientlib.validate_manifest import MANIFEST_JSON_SCHEMA
 from pre_commit.jsonschema_extensions import apply_defaults
 from pre_commit.languages.all import languages
 from pre_commit.languages.helpers import environment_dir
-from pre_commit.manifest import ExternalManifest, Manifest
+from pre_commit.manifest import ExternalManifest
+from pre_commit.manifest import Manifest
 from pre_commit.prefixed_command_runner import PrefixedCommandRunner
 
 
