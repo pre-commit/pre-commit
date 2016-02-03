@@ -83,7 +83,8 @@ def _do_run(repo, args, environ={}):
     runner = Runner(repo)
     write_mock = mock.Mock()
     write_fn = functools.partial(sys_stdout_write_wrapper, stream=write_mock)
-    ret = run(runner, args, write=write_fn, environ=environ)
+    with cwd(runner.git_root):  # replicates Runner.create behaviour
+        ret = run(runner, args, write=write_fn, environ=environ)
     printed = get_write_mock_output(write_mock)
     return ret, printed
 
