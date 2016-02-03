@@ -110,8 +110,14 @@ def add_config_to_repo(git_path, config):
     return git_path
 
 
-def make_consuming_repo(tempdir_factory, repo_source):
+def make_consuming_repo(tempdir_factory, repo_source, local_hooks=None):
     path = make_repo(tempdir_factory, repo_source)
-    config = make_config_from_repo(path)
+    if local_hooks:
+        config = OrderedDict((
+            ('repo', 'local'),
+            ('hooks', local_hooks),
+        ))
+    else:
+        config = make_config_from_repo(path)
     git_path = git_dir(tempdir_factory)
     return add_config_to_repo(git_path, config)

@@ -42,7 +42,7 @@ def repo_with_failing_hook(tempdir_factory):
         yield git_path
 
 
-def stage_a_file(filename='foo.py'):
+def stage_a_file(filename):
     cmd_output('touch', filename)
     cmd_output('git', 'add', filename)
 
@@ -83,14 +83,15 @@ def _do_run(repo, args, environ={}):
     runner = Runner(repo)
     write_mock = mock.Mock()
     write_fn = functools.partial(sys_stdout_write_wrapper, stream=write_mock)
-    ret = run(runner, args, write=write_fn, environ=environ)
+    with cwd(runner.git_root):  # replicates Runner.create behaviour
+        ret = run(runner, args, write=write_fn, environ=environ)
     printed = get_write_mock_output(write_mock)
     return ret, printed
 
 
-def _test_run(repo, options, expected_outputs, expected_ret, stage):
-    if stage:
-        stage_a_file()
+def _test_run(repo, options, expected_outputs, expected_ret, file_to_stage):
+    if file_to_stage:
+        stage_a_file(file_to_stage)
     args = _get_opts(**options)
     ret, printed = _do_run(repo, args)
 
@@ -112,14 +113,14 @@ def test_run_all_hooks_failing(
             b'Fail\nfoo.py\n',
         ),
         1,
-        True,
+        'foo.py',
     )
 
 
 def test_arbitrary_bytes_hook(tempdir_factory, mock_out_store_directory):
     git_path = make_consuming_repo(tempdir_factory, 'arbitrary_bytes_repo')
     with cwd(git_path):
-        _test_run(git_path, {}, (b'\xe2\x98\x83\xb2\n',), 1, True)
+        _test_run(git_path, {}, (b'\xe2\x98\x83\xb2\n',), 1, 'foo.py')
 
 
 def test_hook_that_modifies_but_returns_zero(
@@ -147,30 +148,30 @@ def test_hook_that_modifies_but_returns_zero(
                 b'Files were modified by this hook.\n',
             ),
             1,
-            True,
+            'foo.py',
         )
 
 
 @pytest.mark.parametrize(
-    ('options', 'outputs', 'expected_ret', 'stage'),
+    ('options', 'outputs', 'expected_ret', 'file_to_stage'),
     (
-        ({}, (b'Bash hook', b'Passed'), 0, True),
-        ({'verbose': True}, (b'foo.py\nHello World',), 0, True),
-        ({'hook': 'bash_hook'}, (b'Bash hook', b'Passed'), 0, True),
-        ({'hook': 'nope'}, (b'No hook with id `nope`',), 1, True),
+        ({}, (b'Bash hook', b'Passed'), 0, 'foo.py'),
+        ({'verbose': True}, (b'foo.py\nHello World',), 0, 'foo.py'),
+        ({'hook': 'bash_hook'}, (b'Bash hook', b'Passed'), 0, 'foo.py'),
+        ({'hook': 'nope'}, (b'No hook with id `nope`',), 1, 'foo.py'),
         (
             {'all_files': True, 'verbose': True},
             (b'foo.py',),
             0,
-            True,
+            'foo.py',
         ),
         (
             {'files': ('foo.py',), 'verbose': True},
             (b'foo.py',),
             0,
-            True,
+            'foo.py',
         ),
-        ({}, (b'Bash hook', b'(no files to check)', b'Skipped'), 0, False),
+        ({}, (b'Bash hook', b'(no files to check)', b'Skipped'), 0, None),
     )
 )
 def test_run(
@@ -178,16 +179,17 @@ def test_run(
         options,
         outputs,
         expected_ret,
-        stage,
+        file_to_stage,
         mock_out_store_directory,
 ):
-    _test_run(repo_with_passing_hook, options, outputs, expected_ret, stage)
+    _test_run(repo_with_passing_hook, options, outputs, expected_ret,
+              file_to_stage)
 
 
 def test_always_run(repo_with_passing_hook, mock_out_store_directory):
     with modify_config() as config:
         config[0]['hooks'][0]['always_run'] = True
-    _test_run(repo_with_passing_hook, {}, (b'Bash hook', b'Passed'), 0, False)
+    _test_run(repo_with_passing_hook, {}, (b'Bash hook', b'Passed'), 0, None)
 
 
 @pytest.mark.parametrize(
@@ -229,7 +231,7 @@ def test_no_stash(
         expect_stash,
         mock_out_store_directory,
 ):
-    stage_a_file()
+    stage_a_file('foo.py')
     # Make unstaged changes
     with open('foo.py', 'w') as foo_file:
         foo_file.write('import os\n')
@@ -323,7 +325,7 @@ def test_multiple_hooks_same_id(
         # Add bash hook on there again
         with modify_config() as config:
             config[0]['hooks'].append({'id': 'bash_hook'})
-        stage_a_file()
+        stage_a_file('foo.py')
 
     ret, output = _do_run(repo_with_passing_hook, _get_opts())
     assert ret == 0
@@ -352,7 +354,7 @@ def test_stdout_write_bug_py26(
     with cwd(repo_with_failing_hook):
         with modify_config() as config:
             config[0]['hooks'][0]['args'] = ['☃']
-        stage_a_file()
+        stage_a_file('foo.py')
 
         install(Runner(repo_with_failing_hook))
 
@@ -489,7 +491,7 @@ def test_local_hook_for_stages(
         {'hook_stage': hook_stage},
         expected_outputs=expected_output,
         expected_ret=0,
-        stage=False
+        file_to_stage=None
     )
 
 
@@ -521,7 +523,7 @@ def test_local_hook_passes(repo_with_passing_hook, mock_out_store_directory):
         options={},
         expected_outputs=[b''],
         expected_ret=0,
-        stage=False
+        file_to_stage=None
     )
 
 
@@ -547,7 +549,7 @@ def test_local_hook_fails(repo_with_passing_hook, mock_out_store_directory):
         options={},
         expected_outputs=[b''],
         expected_ret=1,
-        stage=False,
+        file_to_stage=None
     )
 
 
@@ -595,3 +597,31 @@ def test_unstaged_message_suppressed(
     args = _get_opts(**opts)
     ret, printed = _do_run(modified_config_repo, args)
     assert b'Your .pre-commit-config.yaml is unstaged.' not in printed
+
+
+def test_invoke_precommit_in_subdir(
+        tempdir_factory, mock_out_store_directory,
+):
+    subdir_hook = OrderedDict((
+        ('id', 'subdir_bash_hook'),
+        ('name', 'Selective Bash hook'),
+        ('language', 'system'),
+        ('entry', 'echo OK'),
+        ('files', '^subdir/'),
+    ))
+    git_path = make_consuming_repo(
+        tempdir_factory,
+        'script_hooks_repo',
+        local_hooks=[subdir_hook],
+    )
+    with cwd(git_path):
+        os.mkdir('subdir/')
+        with cwd('subdir/'):
+            cmd_output('touch', 'foo.py')
+            _test_run(
+                git_path,
+                options={'files': ('subdir/foo.py',), 'verbose': True},
+                expected_outputs=(b'foo.py',),
+                expected_ret=0,
+                file_to_stage=None,
+            )

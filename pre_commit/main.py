@@ -8,6 +8,7 @@ import pkg_resources
 
 from pre_commit import color
 from pre_commit import five
+from pre_commit import git
 from pre_commit.commands.autoupdate import autoupdate
 from pre_commit.commands.clean import clean
 from pre_commit.commands.install_uninstall import install
@@ -110,7 +111,8 @@ def main(argv=None):
         help='Run on all the files in the repo.  Implies --no-stash.',
     )
     run_mutex_group.add_argument(
-        '--files', nargs='*', help='Specific filenames to run hooks on.',
+        '--files', nargs='*', default=[],
+        help='Specific filenames to run hooks on.',
     )
 
     help = subparsers.add_parser(
@@ -122,6 +124,11 @@ def main(argv=None):
     if len(argv) == 0:
         argv = ['run']
     args = parser.parse_args(argv)
+    if args.command == 'run':
+        args.files = [
+            os.path.relpath(os.path.abspath(filename), git.get_root())
+            for filename in args.files
+        ]
 
     if args.command == 'help':
         if args.help_cmd:
