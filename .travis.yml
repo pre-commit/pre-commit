@@ -8,9 +8,7 @@ env: # These should match the tox env list
     - TOXENV=pypy
     - TOXENV=pypy3
     - TOXENV=py27 LATEST_GIT=1
-# latest virtualenv combined with downgrading setuptools = sadness
-# https://github.com/pypa/pip/issues/3461
-install: pip install coveralls tox 'virtualenv<14'
+install: pip install coveralls tox
 script: tox
 # Special snowflake.  Our tests depend on making real commits.
 before_install:

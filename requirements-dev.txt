@@ -9,7 +9,3 @@ pytest
 
 # setuptools breaks pypy3 with extraneous output
 setuptools<18.5
-
-# latest virtualenv combined with downgrading setuptools = sadness
-# https://github.com/pypa/pip/issues/3461
-virtualenv<14
