@@ -25,6 +25,7 @@ from pre_commit.util import mkdirp
 from pre_commit.util import resource_filename
 from testing.fixtures import git_dir
 from testing.fixtures import make_consuming_repo
+from testing.util import cmd_output_mocked_pre_commit_home
 from testing.util import xfailif_no_symlink
 
 
@@ -121,23 +122,16 @@ def test_uninstall(tempdir_factory):
     assert not os.path.exists(runner.pre_commit_path)
 
 
-def _get_commit_output(
-        tempdir_factory,
-        touch_file='foo',
-        home=None,
-        env_base=os.environ,
-):
+def _get_commit_output(tempdir_factory, touch_file='foo', **kwargs):
     cmd_output('touch', touch_file)
     cmd_output('git', 'add', touch_file)
-    # Don't want to write to home directory
-    home = home or tempdir_factory.get()
-    env = dict(env_base, PRE_COMMIT_HOME=home)
-    return cmd_output(
+    return cmd_output_mocked_pre_commit_home(
         'git', 'commit', '-am', 'Commit!', '--allow-empty',
         # git commit puts pre-commit to stderr
         stderr=subprocess.STDOUT,
-        env=env,
         retcode=None,
+        tempdir_factory=tempdir_factory,
+        **kwargs
     )[:2]
 
 
@@ -458,7 +452,7 @@ def test_installs_hooks_with_hooks_True(
     with cwd(path):
         install(Runner(path), hooks=True)
         ret, output = _get_commit_output(
-            tempdir_factory, home=mock_out_store_directory,
+            tempdir_factory, pre_commit_home=mock_out_store_directory,
         )
 
         assert ret == 0
@@ -473,7 +467,7 @@ def test_installed_from_venv(tempdir_factory):
         # Should still pick up the python from when we installed
         ret, output = _get_commit_output(
             tempdir_factory,
-            env_base={
+            env={
                 'HOME': os.path.expanduser('~'),
                 'PATH': _path_without_us(),
                 'TERM': os.environ.get('TERM', ''),
@@ -486,14 +480,11 @@ def test_installed_from_venv(tempdir_factory):
 
 
 def _get_push_output(tempdir_factory):
-    # Don't want to write to home directory
-    home = tempdir_factory.get()
-    env = dict(os.environ, PRE_COMMIT_HOME=home)
-    return cmd_output(
+    return cmd_output_mocked_pre_commit_home(
         'git', 'push', 'origin', 'HEAD:new_branch',
-        # git commit puts pre-commit to stderr
+        # git push puts pre-commit to stderr
         stderr=subprocess.STDOUT,
-        env=env,
+        tempdir_factory=tempdir_factory,
         retcode=None,
     )[:2]
 

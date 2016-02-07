@@ -13,7 +13,7 @@ import pytest
 from pre_commit import error_handler
 from pre_commit import five
 from pre_commit.errors import FatalError
-from pre_commit.util import cmd_output
+from testing.util import cmd_output_mocked_pre_commit_home
 
 
 @pytest.yield_fixture
@@ -107,14 +107,14 @@ def test_error_handler_non_ascii_exception(mock_out_store_directory):
 
 
 def test_error_handler_no_tty(tempdir_factory):
-    output = cmd_output(
+    output = cmd_output_mocked_pre_commit_home(
         sys.executable, '-c',
         'from __future__ import unicode_literals\n'
         'from pre_commit.error_handler import error_handler\n'
         'with error_handler():\n'
         '    raise ValueError("\\u2603")\n',
-        env=dict(os.environ, PRE_COMMIT_HOME=tempdir_factory.get()),
         retcode=1,
+        tempdir_factory=tempdir_factory,
     )
     assert output[1].replace('\r', '') == (
         'An unexpected error has occurred: ValueError: ☃\n'

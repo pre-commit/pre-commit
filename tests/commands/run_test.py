@@ -26,6 +26,7 @@ from testing.auto_namedtuple import auto_namedtuple
 from testing.fixtures import add_config_to_repo
 from testing.fixtures import make_consuming_repo
 from testing.fixtures import modify_config
+from testing.util import cmd_output_mocked_pre_commit_home
 
 
 @pytest.yield_fixture
@@ -336,11 +337,9 @@ def test_non_ascii_hook_id(
 ):
     with cwd(repo_with_passing_hook):
         install(Runner(repo_with_passing_hook))
-        # Don't want to write to home directory
-        env = dict(os.environ, PRE_COMMIT_HOME=tempdir_factory.get())
-        _, stdout, _ = cmd_output(
+        _, stdout, _ = cmd_output_mocked_pre_commit_home(
             sys.executable, '-m', 'pre_commit.main', 'run', '☃',
-            env=env, retcode=None,
+            retcode=None, tempdir_factory=tempdir_factory,
         )
         assert 'UnicodeDecodeError' not in stdout
         # Doesn't actually happen, but a reasonable assertion
@@ -357,15 +356,13 @@ def test_stdout_write_bug_py26(
 
         install(Runner(repo_with_failing_hook))
 
-        # Don't want to write to home directory
-        env = dict(os.environ, PRE_COMMIT_HOME=tempdir_factory.get())
         # Have to use subprocess because pytest monkeypatches sys.stdout
-        _, stdout, _ = cmd_output(
+        _, stdout, _ = cmd_output_mocked_pre_commit_home(
             'git', 'commit', '-m', 'Commit!',
             # git commit puts pre-commit to stderr
             stderr=subprocess.STDOUT,
-            env=env,
             retcode=None,
+            tempdir_factory=tempdir_factory,
         )
         assert 'UnicodeEncodeError' not in stdout
         # Doesn't actually happen, but a reasonable assertion
@@ -377,15 +374,13 @@ def test_hook_install_failure(mock_out_store_directory, tempdir_factory):
     with cwd(git_path):
         install(Runner(git_path))
 
-        # Don't want to write to home directory
-        env = dict(os.environ, PRE_COMMIT_HOME=tempdir_factory.get())
-        _, stdout, _ = cmd_output(
+        _, stdout, _ = cmd_output_mocked_pre_commit_home(
             'git', 'commit', '-m', 'Commit!',
             # git commit puts pre-commit to stderr
             stderr=subprocess.STDOUT,
-            env=env,
             retcode=None,
             encoding=None,
+            tempdir_factory=tempdir_factory,
         )
         assert b'UnicodeDecodeError' not in stdout
         # Doesn't actually happen, but a reasonable assertion
@@ -424,13 +419,11 @@ def test_lots_of_files(mock_out_store_directory, tempdir_factory):
         cmd_output('bash', '-c', 'git add .')
         install(Runner(git_path))
 
-        # Don't want to write to home directory
-        env = dict(os.environ, PRE_COMMIT_HOME=tempdir_factory.get())
-        cmd_output(
+        cmd_output_mocked_pre_commit_home(
             'git', 'commit', '-m', 'Commit!',
             # git commit puts pre-commit to stderr
             stderr=subprocess.STDOUT,
-            env=env,
+            tempdir_factory=tempdir_factory,
         )
 
 
@@ -609,13 +602,11 @@ def test_files_running_subdir(
         cmd_output('git', 'add', 'subdir/foo.py')
 
         with cwd('subdir'):
-            # Don't want to write to home directory
-            env = dict(os.environ, PRE_COMMIT_HOME=tempdir_factory.get())
             # Use subprocess to demonstrate behaviour in main
-            _, stdout, _ = cmd_output(
+            _, stdout, _ = cmd_output_mocked_pre_commit_home(
                 sys.executable, '-m', 'pre_commit.main', 'run', '-v',
                 # Files relative to where we are (#339)
                 '--files', 'foo.py',
-                env=env,
+                tempdir_factory=tempdir_factory,
             )
         assert 'subdir/foo.py'.replace('/', os.sep) in stdout
