@@ -83,7 +83,8 @@ def _do_run(repo, args, environ={}):
     runner = Runner(repo)
     write_mock = mock.Mock()
     write_fn = functools.partial(sys_stdout_write_wrapper, stream=write_mock)
-    ret = run(runner, args, write=write_fn, environ=environ)
+    with cwd(runner.git_root):  # replicates Runner.create behaviour
+        ret = run(runner, args, write=write_fn, environ=environ)
     printed = get_write_mock_output(write_mock)
     return ret, printed
 
@@ -595,3 +596,26 @@ def test_unstaged_message_suppressed(
     args = _get_opts(**opts)
     ret, printed = _do_run(modified_config_repo, args)
     assert b'Your .pre-commit-config.yaml is unstaged.' not in printed
+
+
+def test_files_running_subdir(
+        repo_with_passing_hook, mock_out_store_directory, tempdir_factory,
+):
+    with cwd(repo_with_passing_hook):
+        install(Runner(repo_with_passing_hook))
+
+        os.mkdir('subdir')
+        open('subdir/foo.py', 'w').close()
+        cmd_output('git', 'add', 'subdir/foo.py')
+
+        with cwd('subdir'):
+            # Don't want to write to home directory
+            env = dict(os.environ, PRE_COMMIT_HOME=tempdir_factory.get())
+            # Use subprocess to demonstrate behaviour in main
+            _, stdout, _ = cmd_output(
+                sys.executable, '-m', 'pre_commit.main', 'run', '-v',
+                # Files relative to where we are (#339)
+                '--files', 'foo.py',
+                env=env,
+            )
+        assert 'subdir/foo.py' in stdout

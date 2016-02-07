@@ -24,7 +24,7 @@ class Runner(object):
     def create(cls):
         """Creates a PreCommitRunner by doing the following:
             - Finds the root of the current git repository
-            - chdirs to that directory
+            - chdir to that directory
         """
         root = git.get_root()
         os.chdir(root)
