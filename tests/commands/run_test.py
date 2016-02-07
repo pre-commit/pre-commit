@@ -618,4 +618,4 @@ def test_files_running_subdir(
                 '--files', 'foo.py',
                 env=env,
             )
-        assert 'subdir/foo.py' in stdout
+        assert 'subdir/foo.py'.replace('/', os.sep) in stdout
