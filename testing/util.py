@@ -49,6 +49,15 @@ def is_valid_according_to_schema(obj, schema):
         return False
 
 
+def cmd_output_mocked_pre_commit_home(*args, **kwargs):
+    # keyword-only argument
+    tempdir_factory = kwargs.pop('tempdir_factory')
+    pre_commit_home = kwargs.pop('pre_commit_home', tempdir_factory.get())
+    # Don't want to write to the home directory
+    env = dict(kwargs.pop('env', os.environ), PRE_COMMIT_HOME=pre_commit_home)
+    return cmd_output(*args, env=env, **kwargs)
+
+
 skipif_slowtests_false = pytest.mark.skipif(
     os.environ.get('slowtests') == 'false',
     reason='slowtests=false',
