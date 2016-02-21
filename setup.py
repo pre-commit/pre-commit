@@ -41,6 +41,7 @@ setup(
     install_requires=[
         'argparse',
         'aspy.yaml',
+        'backports.shutil_get_terminal_size',
         'cached-property',
         'jsonschema',
         'nodeenv>=0.11.1',
