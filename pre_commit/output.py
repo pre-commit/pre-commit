@@ -1,5 +1,7 @@
 from __future__ import unicode_literals
 
+import os
+import subprocess
 import sys
 
 from backports.shutil_get_terminal_size import get_terminal_size
@@ -7,9 +9,21 @@ from backports.shutil_get_terminal_size import get_terminal_size
 from pre_commit import color
 from pre_commit import five
 
-# TODO: smell: import side-effects
-# TODO: https://github.com/chrippa/backports.shutil_get_terminal_size/issues/4
-COLS = get_terminal_size().columns or 80
+
+def _get_cols_from_tput():  # pragma: no cover (fallback)
+    if not os.environ.get('TERM'):
+        return 80
+    else:
+        return int(
+            subprocess.Popen(
+                ('tput', 'cols'), stdout=subprocess.PIPE,
+            ).communicate()[0] or
+            # Default in the case of no terminal
+            80
+        )
+
+
+COLS = get_terminal_size((0, 0)).columns or _get_cols_from_tput()
 
 
 def get_hook_message(
