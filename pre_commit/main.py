@@ -91,20 +91,20 @@ def main(argv=None):
     )
     run_parser.add_argument(
         '--origin', '-o',
-        help='The origin branch\'s commit_id when using `git push`',
+        help='The origin branch\'s commit_id when using `git push`.',
     )
     run_parser.add_argument(
         '--source', '-s',
-        help='The remote branch\'s commit_id when using `git push`',
+        help='The remote branch\'s commit_id when using `git push`.',
     )
     run_parser.add_argument(
         '--allow-unstaged-config', default=False, action='store_true',
         help='Allow an unstaged config to be present.  Note that this will '
-        'be stashed before parsing unless --no-stash is specified'
+        'be stashed before parsing unless --no-stash is specified.'
     )
     run_parser.add_argument(
         '--hook-stage', choices=('commit', 'push'), default='commit',
-        help='The stage during which the hook is fired e.g. commit or push',
+        help='The stage during which the hook is fired e.g. commit or push.',
     )
     run_mutex_group = run_parser.add_mutually_exclusive_group(required=False)
     run_mutex_group.add_argument(
