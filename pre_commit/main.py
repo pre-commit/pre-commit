@@ -79,7 +79,8 @@ def main(argv=None):
     run_parser.add_argument('hook', nargs='?', help='A single hook-id to run')
     run_parser.add_argument(
         '--color', default='auto', type=color.use_color,
-        help='Whether to use color in output.  Choices are `always`, `never`, or `auto`.  Defaults to `auto`.',
+        help='Whether to use color in output.  Choices are `always`, `never`'
+        ', or `auto`.  Defaults to `auto`.',
     )
     run_parser.add_argument(
         '--no-stash', default=False, action='store_true',
