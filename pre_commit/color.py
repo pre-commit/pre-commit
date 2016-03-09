@@ -27,13 +27,16 @@ def format_color(text, color, use_color_setting):
         return u'{0}{1}{2}'.format(color, text, NORMAL)
 
 
+COLOR_CHOICES = ('auto', 'always', 'never')
+
+
 def use_color(setting):
     """Choose whether to use color based on the command argument.
 
     Args:
         setting - Either `auto`, `always`, or `never`
     """
-    if setting not in ('auto', 'always', 'never'):
+    if setting not in COLOR_CHOICES:
         raise InvalidColorSetting(setting)
 
     return (
