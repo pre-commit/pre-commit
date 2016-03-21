@@ -150,10 +150,10 @@ class CalledProcessError(RuntimeError):
     def to_text(self):
         return self.to_bytes().decode('UTF-8')
 
-    if five.PY3:  # pragma: no cover
+    if five.PY3:  # pragma: no cover (py3)
         __bytes__ = to_bytes
         __str__ = to_text
-    else:
+    else:  # pragma: no cover (py2)
         __str__ = to_bytes
         __unicode__ = to_text
 
