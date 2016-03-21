@@ -16,6 +16,7 @@ from pre_commit import five
 from pre_commit.clientlib.validate_config import CONFIG_JSON_SCHEMA
 from pre_commit.clientlib.validate_config import validate_config_extra
 from pre_commit.jsonschema_extensions import apply_defaults
+from pre_commit.languages import helpers
 from pre_commit.languages import node
 from pre_commit.languages import python
 from pre_commit.languages import ruby
@@ -355,8 +356,8 @@ def test_additional_python_dependencies_installed(tempdir_factory, store):
     config['hooks'][0]['additional_dependencies'] = ['mccabe']
     repo = Repository.create(config, store)
     repo.run_hook(repo.hooks[0][1], [])
-    with python.in_env(repo.cmd_runner, 'default') as env:
-        output = env.run('pip freeze -l')[1]
+    with python.in_env(repo.cmd_runner, 'default'):
+        output = cmd_output('pip', 'freeze', '-l')[1]
         assert 'mccabe' in output
 
 
@@ -372,8 +373,8 @@ def test_additional_dependencies_roll_forward(tempdir_factory, store):
     repo = Repository.create(config, store)
     repo.run_hook(repo.hooks[0][1], [])
     # We should see our additional dependency installed
-    with python.in_env(repo.cmd_runner, 'default') as env:
-        output = env.run('pip freeze -l')[1]
+    with python.in_env(repo.cmd_runner, 'default'):
+        output = cmd_output('pip', 'freeze', '-l')[1]
         assert 'mccabe' in output
 
 
@@ -388,8 +389,8 @@ def test_additional_ruby_dependencies_installed(
     config['hooks'][0]['additional_dependencies'] = ['thread_safe']
     repo = Repository.create(config, store)
     repo.run_hook(repo.hooks[0][1], [])
-    with ruby.in_env(repo.cmd_runner, 'default') as env:
-        output = env.run('gem list --local')[1]
+    with ruby.in_env(repo.cmd_runner, 'default'):
+        output = cmd_output('gem', 'list', '--local')[1]
         assert 'thread_safe' in output
 
 
@@ -405,9 +406,9 @@ def test_additional_node_dependencies_installed(
     config['hooks'][0]['additional_dependencies'] = ['lodash']
     repo = Repository.create(config, store)
     repo.run_hook(repo.hooks[0][1], [])
-    with node.in_env(repo.cmd_runner, 'default') as env:
-        env.run('npm config set global true')
-        output = env.run(('npm ls'))[1]
+    with node.in_env(repo.cmd_runner, 'default'):
+        cmd_output('npm', 'config', 'set', 'global', 'true')
+        output = cmd_output('npm', 'ls')[1]
         assert 'lodash' in output
 
 
@@ -443,7 +444,7 @@ def test_control_c_control_c_on_install(tempdir_factory, store):
     # raise as well.
     with pytest.raises(MyKeyboardInterrupt):
         with mock.patch.object(
-            python.PythonEnv, 'run', side_effect=MyKeyboardInterrupt,
+            helpers, 'run_setup_cmd', side_effect=MyKeyboardInterrupt,
         ):
             with mock.patch.object(
                 shutil, 'rmtree', side_effect=MyKeyboardInterrupt,

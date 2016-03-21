@@ -110,35 +110,6 @@ def test_path_multiple_args():
     assert ret == os.path.join('foo', 'bar', 'baz')
 
 
-@pytest.mark.parametrize(
-    ('prefix', 'path_end', 'expected_output'),
-    tuple(
-        (prefix, path_end, expected_output + os.sep)
-        for prefix, path_end, expected_output in PATH_TESTS
-    ),
-)
-def test_from_command_runner(prefix, path_end, expected_output):
-    first = PrefixedCommandRunner(prefix)
-    second = PrefixedCommandRunner.from_command_runner(first, path_end)
-    assert second.prefix_dir == expected_output
-
-
-def test_from_command_runner_preserves_popen(popen_mock, makedirs_mock):
-    first = PrefixedCommandRunner(
-        'foo', popen=popen_mock, makedirs=makedirs_mock,
-    )
-    second = PrefixedCommandRunner.from_command_runner(first, 'bar')
-    second.run(['foo/bar/baz'], retcode=None)
-    popen_mock.assert_called_once_with(
-        [five.n('foo/bar/baz')],
-        env=None,
-        stdin=subprocess.PIPE,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-    )
-    makedirs_mock.assert_called_once_with(os.path.join('foo', 'bar') + os.sep)
-
-
 def test_create_path_if_not_exists(in_tmpdir):
     instance = PrefixedCommandRunner('foo')
     assert not os.path.exists('foo')

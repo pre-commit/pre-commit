@@ -5,9 +5,11 @@ import distutils.spawn
 import os
 import sys
 
+from pre_commit.envcontext import envcontext
+from pre_commit.envcontext import UNSET
+from pre_commit.envcontext import Var
 from pre_commit.languages import helpers
 from pre_commit.util import clean_path_on_failure
-from pre_commit.util import shell_escape
 
 
 ENVIRONMENT_DIR = 'py_env'
@@ -15,26 +17,26 @@ ENVIRONMENT_DIR = 'py_env'
 
 def bin_dir(venv):
     """On windows there's a different directory for the virtualenv"""
-    if os.name == 'nt':  # pragma: no cover (windows)
-        return os.path.join(venv, 'Scripts')
-    else:
-        return os.path.join(venv, 'bin')
+    bin_part = 'Scripts' if os.name == 'nt' else 'bin'
+    return os.path.join(venv, bin_part)
 
 
-class PythonEnv(helpers.Environment):
-    @property
-    def env_prefix(self):
-        return ". '{{prefix}}{0}{1}activate' &&".format(
-            bin_dir(
-                helpers.environment_dir(ENVIRONMENT_DIR, self.language_version)
-            ),
-            os.sep,
-        )
+def get_env_patch(venv):
+    return (
+        ('PYTHONHOME', UNSET),
+        ('VIRTUAL_ENV', venv),
+        ('PATH', (bin_dir(venv), os.pathsep, Var('PATH'))),
+    )
 
 
 @contextlib.contextmanager
 def in_env(repo_cmd_runner, language_version):
-    yield PythonEnv(repo_cmd_runner, language_version)
+    envdir = os.path.join(
+        repo_cmd_runner.prefix_dir,
+        helpers.environment_dir(ENVIRONMENT_DIR, language_version),
+    )
+    with envcontext(get_env_patch(envdir)):
+        yield
 
 
 def norm_version(version):
@@ -55,9 +57,9 @@ def norm_version(version):
 def install_environment(
         repo_cmd_runner,
         version='default',
-        additional_dependencies=None,
+        additional_dependencies=(),
 ):
-    assert repo_cmd_runner.exists('setup.py')
+    additional_dependencies = tuple(additional_dependencies)
     directory = helpers.environment_dir(ENVIRONMENT_DIR, version)
 
     # Install a virtualenv
@@ -69,18 +71,15 @@ def install_environment(
         if version != 'default':
             venv_cmd.extend(['-p', norm_version(version)])
         repo_cmd_runner.run(venv_cmd)
-        with in_env(repo_cmd_runner, version) as env:
-            env.run("cd '{prefix}' && pip install .", encoding=None)
-            if additional_dependencies:
-                env.run(
-                    "cd '{prefix}' && pip install " +
-                    ' '.join(
-                        shell_escape(dep) for dep in additional_dependencies
-                    ),
-                    encoding=None,
-                )
+        with in_env(repo_cmd_runner, version):
+            helpers.run_setup_cmd(
+                repo_cmd_runner,
+                ('pip', 'install', '.') + additional_dependencies,
+            )
 
 
 def run_hook(repo_cmd_runner, hook, file_args):
-    with in_env(repo_cmd_runner, hook['language_version']) as env:
-        return helpers.run_hook(env, hook, file_args)
+    with in_env(repo_cmd_runner, hook['language_version']):
+        return helpers.run_hook(
+            (hook['entry'],) + tuple(hook['args']), file_args,
+        )

@@ -14,7 +14,7 @@ def test_install_environment_argspec(language):
         args=['repo_cmd_runner', 'version', 'additional_dependencies'],
         varargs=None,
         keywords=None,
-        defaults=('default', None),
+        defaults=('default', ()),
     )
     argspec = inspect.getargspec(languages[language].install_environment)
     assert argspec == expected_argspec

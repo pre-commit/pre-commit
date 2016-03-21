@@ -1,4 +1,3 @@
-
 REBUILD_FLAG =
 
 .PHONY: all
@@ -21,7 +20,7 @@ test: .venv.touch
 
 .PHONY: clean
 clean:
-	find . -iname '*.pyc' | xargs rm -f
+	find . -name '*.pyc' -delete
 	rm -rf .tox
 	rm -rf ./venv-*
 	rm -f .venv.touch
