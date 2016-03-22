@@ -14,6 +14,7 @@ import tempfile
 import pkg_resources
 
 from pre_commit import five
+from pre_commit import parse_shebang
 
 
 @contextlib.contextmanager
@@ -110,6 +111,14 @@ def resource_filename(filename):
     )
 
 
+def make_executable(filename):
+    original_mode = os.stat(filename).st_mode
+    os.chmod(
+        filename,
+        original_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH,
+    )
+
+
 class CalledProcessError(RuntimeError):
     def __init__(self, returncode, cmd, expected_returncode, output=None):
         super(CalledProcessError, self).__init__(
@@ -166,11 +175,13 @@ def cmd_output(*cmd, **kwargs):
     }
 
     # py2/py3 on windows are more strict about the types here
-    cmd = [five.n(arg) for arg in cmd]
+    cmd = tuple(five.n(arg) for arg in cmd)
     kwargs['env'] = dict(
         (five.n(key), five.n(value))
         for key, value in kwargs.pop('env', {}).items()
     ) or None
+
+    cmd = parse_shebang.normalize_cmd(cmd)
 
     popen_kwargs.update(kwargs)
     proc = __popen(cmd, **popen_kwargs)

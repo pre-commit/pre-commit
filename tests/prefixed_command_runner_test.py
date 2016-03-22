@@ -78,7 +78,7 @@ def test_run_substitutes_prefix(popen_mock, makedirs_mock):
     )
     ret = instance.run(['{prefix}bar', 'baz'], retcode=None)
     popen_mock.assert_called_once_with(
-        [five.n(os.path.join('prefix', 'bar')), five.n('baz')],
+        (five.n(os.path.join('prefix', 'bar')), five.n('baz')),
         env=None,
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
@@ -132,4 +132,4 @@ def test_raises_on_error(popen_mock, makedirs_mock):
         instance = PrefixedCommandRunner(
             '.', popen=popen_mock, makedirs=makedirs_mock,
         )
-        instance.run(['foo'])
+        instance.run(['echo'])

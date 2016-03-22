@@ -15,12 +15,12 @@ from pre_commit.commands.install_uninstall import IDENTIFYING_HASH
 from pre_commit.commands.install_uninstall import install
 from pre_commit.commands.install_uninstall import is_our_pre_commit
 from pre_commit.commands.install_uninstall import is_previous_pre_commit
-from pre_commit.commands.install_uninstall import make_executable
 from pre_commit.commands.install_uninstall import PREVIOUS_IDENTIFYING_HASHES
 from pre_commit.commands.install_uninstall import uninstall
 from pre_commit.runner import Runner
 from pre_commit.util import cmd_output
 from pre_commit.util import cwd
+from pre_commit.util import make_executable
 from pre_commit.util import mkdirp
 from pre_commit.util import resource_filename
 from testing.fixtures import git_dir
@@ -473,6 +473,8 @@ def test_installed_from_venv(tempdir_factory):
                 'TERM': os.environ.get('TERM', ''),
                 # Windows needs this to import `random`
                 'SYSTEMROOT': os.environ.get('SYSTEMROOT', ''),
+                # Windows needs this to resolve executables
+                'PATHEXT': os.environ.get('PATHEXT', ''),
             },
         )
         assert ret == 0
