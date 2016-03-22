@@ -42,17 +42,31 @@ def partition(cmd, varargs, _max_length=MAX_LENGTH):
     return tuple(ret)
 
 
-def xargs(cmd, varargs):
-    """A simplified implementation of xargs."""
+def xargs(cmd, varargs, **kwargs):
+    """A simplified implementation of xargs.
+
+    negate: Make nonzero successful and zero a failure
+    """
+    negate = kwargs.pop('negate', False)
     retcode = 0
     stdout = b''
     stderr = b''
 
-    for run_cmd in partition(cmd, varargs):
+    for run_cmd in partition(cmd, varargs, **kwargs):
         proc_retcode, proc_out, proc_err = cmd_output(
             *run_cmd, encoding=None, retcode=None
         )
-        retcode |= proc_retcode
+        # This is *slightly* too clever so I'll explain it.
+        # First the xor boolean table:
+        #     T | F |
+        #   +-------+
+        # T | F | T |
+        # --+-------+
+        # F | T | F |
+        # --+-------+
+        # When negate is True, it has the effect of flipping the return code
+        # Otherwise, the retuncode is unchanged
+        retcode |= bool(proc_retcode) ^ negate
         stdout += proc_out
         stderr += proc_err
 

@@ -45,3 +45,28 @@ def test_xargs_smoke():
     assert ret == 0
     assert out == b'hello world\n'
     assert err == b''
+
+
+exit_cmd = ('bash', '-c', 'exit $1', '--')
+# Abuse max_length to control the exit code
+max_length = len(' '.join(exit_cmd)) + 2
+
+
+def test_xargs_negate():
+    ret, _, _ = xargs.xargs(
+        exit_cmd, ('1',), negate=True, _max_length=max_length,
+    )
+    assert ret == 0
+
+    ret, _, _ = xargs.xargs(
+        exit_cmd, ('1', '0'), negate=True, _max_length=max_length,
+    )
+    assert ret == 1
+
+
+def test_xargs_retcode_normal():
+    ret, _, _ = xargs.xargs(exit_cmd, ('0',), _max_length=max_length)
+    assert ret == 0
+
+    ret, _, _ = xargs.xargs(exit_cmd, ('0', '1'), _max_length=max_length)
+    assert ret == 1

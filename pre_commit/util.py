@@ -67,10 +67,6 @@ def noop_context():
     yield
 
 
-def shell_escape(arg):
-    return "'" + arg.replace("'", "'\"'\"'".strip()) + "'"
-
-
 def no_git_env():
     # Too many bugs dealing with environment variables and GIT:
     # https://github.com/pre-commit/pre-commit/issues/300

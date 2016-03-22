@@ -2,7 +2,6 @@ from __future__ import unicode_literals
 
 from sys import platform
 
-from pre_commit.util import shell_escape
 from pre_commit.xargs import xargs
 
 
@@ -19,21 +18,12 @@ def install_environment(
 
 
 def run_hook(repo_cmd_runner, hook, file_args):
-    grep_command = '{0} -H -n -P'.format(
-        'ggrep' if platform == 'darwin' else 'grep',
-    )
-
     # For PCRE the entry is the regular expression to match
-    return xargs(
-        (
-            'sh', '-c',
-            # Grep usually returns 0 for matches, and nonzero for non-matches
-            # so we flip it here.
-            '! {0} {1} {2} $@'.format(
-                grep_command, ' '.join(hook['args']),
-                shell_escape(hook['entry']),
-            ),
-            '--',
-        ),
-        file_args,
-    )
+    cmd = (
+        'ggrep' if platform == 'darwin' else 'grep',
+        '-H', '-n', '-P',
+    ) + tuple(hook['args']) + (hook['entry'],)
+
+    # Grep usually returns 0 for matches, and nonzero for non-matches so we
+    # negate it here.
+    return xargs(cmd, file_args, negate=True)
