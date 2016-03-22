@@ -1,6 +1,6 @@
 from __future__ import unicode_literals
 
-from pre_commit.languages import helpers
+from pre_commit.xargs import xargs
 
 
 ENVIRONMENT_DIR = None
@@ -16,7 +16,7 @@ def install_environment(
 
 
 def run_hook(repo_cmd_runner, hook, file_args):
-    return helpers.run_hook(
+    return xargs(
         (repo_cmd_runner.prefix_dir + hook['entry'],) + tuple(hook['args']),
         file_args,
     )

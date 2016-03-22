@@ -12,6 +12,7 @@ from pre_commit.util import CalledProcessError
 from pre_commit.util import clean_path_on_failure
 from pre_commit.util import resource_filename
 from pre_commit.util import tarfile_open
+from pre_commit.xargs import xargs
 
 
 ENVIRONMENT_DIR = 'rbenv'
@@ -125,6 +126,4 @@ def install_environment(
 
 def run_hook(repo_cmd_runner, hook, file_args):
     with in_env(repo_cmd_runner, hook['language_version']):
-        return helpers.run_hook(
-            (hook['entry'],) + tuple(hook['args']), file_args,
-        )
+        return xargs((hook['entry'],) + tuple(hook['args']), file_args)

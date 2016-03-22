@@ -2,8 +2,8 @@ from __future__ import unicode_literals
 
 from sys import platform
 
-from pre_commit.languages import helpers
 from pre_commit.util import shell_escape
+from pre_commit.xargs import xargs
 
 
 ENVIRONMENT_DIR = None
@@ -24,7 +24,7 @@ def run_hook(repo_cmd_runner, hook, file_args):
     )
 
     # For PCRE the entry is the regular expression to match
-    return helpers.run_hook(
+    return xargs(
         (
             'sh', '-c',
             # Grep usually returns 0 for matches, and nonzero for non-matches
