@@ -39,16 +39,17 @@ setup(
         ]
     },
     install_requires=[
-        'argparse',
         'aspy.yaml',
         'cached-property',
         'jsonschema',
         'nodeenv>=0.11.1',
-        'ordereddict',
         'pyterminalsize',
         'pyyaml',
         'virtualenv',
     ],
+    extras_require={
+        ':python_version=="2.6"': ['argparse', 'ordereddict'],
+    },
     entry_points={
         'console_scripts': [
             'pre-commit = pre_commit.main:main',
