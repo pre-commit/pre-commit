@@ -1,34 +1,45 @@
 from __future__ import unicode_literals
 
 import contextlib
+import os
 import sys
 
+from pre_commit.envcontext import envcontext
+from pre_commit.envcontext import Var
 from pre_commit.languages import helpers
 from pre_commit.util import clean_path_on_failure
-from pre_commit.util import shell_escape
+from pre_commit.xargs import xargs
 
 
 ENVIRONMENT_DIR = 'node_env'
 
 
-class NodeEnv(helpers.Environment):
-    @property
-    def env_prefix(self):
-        return ". '{{prefix}}{0}/bin/activate' &&".format(
-            helpers.environment_dir(ENVIRONMENT_DIR, self.language_version),
-        )
+def get_env_patch(venv):
+    return (
+        ('NODE_VIRTUAL_ENV', venv),
+        ('NPM_CONFIG_PREFIX', venv),
+        ('npm_config_prefix', venv),
+        ('NODE_PATH', os.path.join(venv, 'lib', 'node_modules')),
+        ('PATH', (os.path.join(venv, 'bin'), os.pathsep, Var('PATH'))),
+    )
 
 
 @contextlib.contextmanager
 def in_env(repo_cmd_runner, language_version):
-    yield NodeEnv(repo_cmd_runner, language_version)
+    envdir = os.path.join(
+        repo_cmd_runner.prefix_dir,
+        helpers.environment_dir(ENVIRONMENT_DIR, language_version),
+    )
+    with envcontext(get_env_patch(envdir)):
+        yield
 
 
 def install_environment(
         repo_cmd_runner,
         version='default',
-        additional_dependencies=None,
+        additional_dependencies=(),
 ):
+    additional_dependencies = tuple(additional_dependencies)
     assert repo_cmd_runner.exists('package.json')
     directory = helpers.environment_dir(ENVIRONMENT_DIR, version)
 
@@ -44,18 +55,13 @@ def install_environment(
 
         repo_cmd_runner.run(cmd)
 
-        with in_env(repo_cmd_runner, version) as node_env:
-            node_env.run("cd '{prefix}' && npm install -g", encoding=None)
-            if additional_dependencies:
-                node_env.run(
-                    "cd '{prefix}' && npm install -g " +
-                    ' '.join(
-                        shell_escape(dep) for dep in additional_dependencies
-                    ),
-                    encoding=None,
-                )
+        with in_env(repo_cmd_runner, version):
+            helpers.run_setup_cmd(
+                repo_cmd_runner,
+                ('npm', 'install', '-g', '.') + additional_dependencies,
+            )
 
 
 def run_hook(repo_cmd_runner, hook, file_args):
-    with in_env(repo_cmd_runner, hook['language_version']) as env:
-        return helpers.run_hook(env, hook, file_args)
+    with in_env(repo_cmd_runner, hook['language_version']):
+        return xargs((hook['entry'],) + tuple(hook['args']), file_args)

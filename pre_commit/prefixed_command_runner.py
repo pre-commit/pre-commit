@@ -45,13 +45,7 @@ class PrefixedCommandRunner(object):
     def exists(self, *parts):
         return os.path.exists(self.path(*parts))
 
-    @classmethod
-    def from_command_runner(cls, command_runner, path_end):
-        """Constructs a new command runner from an existing one by appending
-        `path_end` to the command runner's prefix directory.
-        """
-        return cls(
-            command_runner.path(path_end),
-            popen=command_runner.__popen,
-            makedirs=command_runner.__makedirs,
+    def star(self, end):
+        return tuple(
+            path for path in os.listdir(self.prefix_dir) if path.endswith(end)
         )

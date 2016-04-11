@@ -15,7 +15,7 @@ from pre_commit.languages import system
 # def install_environment(
 #         repo_cmd_runner,
 #         version='default',
-#         additional_dependencies=None,
+#         additional_dependencies=(),
 # ):
 #     """Installs a repository in the given repository.  Note that the current
 #     working directory will already be inside the repository.

@@ -2,30 +2,43 @@ from __future__ import unicode_literals
 
 import contextlib
 import io
+import os.path
 import shutil
 
+from pre_commit.envcontext import envcontext
+from pre_commit.envcontext import Var
 from pre_commit.languages import helpers
 from pre_commit.util import CalledProcessError
 from pre_commit.util import clean_path_on_failure
 from pre_commit.util import resource_filename
-from pre_commit.util import shell_escape
 from pre_commit.util import tarfile_open
+from pre_commit.xargs import xargs
 
 
 ENVIRONMENT_DIR = 'rbenv'
 
 
-class RubyEnv(helpers.Environment):
-    @property
-    def env_prefix(self):
-        return '. {{prefix}}{0}/bin/activate &&'.format(
-            helpers.environment_dir(ENVIRONMENT_DIR, self.language_version)
-        )
+def get_env_patch(venv, language_version):
+    return (
+        ('GEM_HOME', os.path.join(venv, 'gems')),
+        ('RBENV_ROOT', venv),
+        ('RBENV_VERSION', language_version),
+        ('PATH', (
+            os.path.join(venv, 'gems', 'bin'), os.pathsep,
+            os.path.join(venv, 'shims'), os.pathsep,
+            os.path.join(venv, 'bin'), os.pathsep, Var('PATH'),
+        )),
+    )
 
 
 @contextlib.contextmanager
 def in_env(repo_cmd_runner, language_version):
-    yield RubyEnv(repo_cmd_runner, language_version)
+    envdir = os.path.join(
+        repo_cmd_runner.prefix_dir,
+        helpers.environment_dir(ENVIRONMENT_DIR, language_version),
+    )
+    with envcontext(get_env_patch(envdir, language_version)):
+        yield
 
 
 def _install_rbenv(repo_cmd_runner, version='default'):
@@ -71,42 +84,46 @@ def _install_rbenv(repo_cmd_runner, version='default'):
             activate_file.write('export RBENV_VERSION="{0}"\n'.format(version))
 
 
-def _install_ruby(environment, version):
+def _install_ruby(runner, version):
     try:
-        environment.run('rbenv download {0}'.format(version))
+        helpers.run_setup_cmd(runner, ('rbenv', 'download', version))
     except CalledProcessError:  # pragma: no cover (usually find with download)
         # Failed to download from mirror for some reason, build it instead
-        environment.run('rbenv install {0}'.format(version))
+        helpers.run_setup_cmd(runner, ('rbenv', 'install', version))
 
 
 def install_environment(
         repo_cmd_runner,
         version='default',
-        additional_dependencies=None,
+        additional_dependencies=(),
 ):
+    additional_dependencies = tuple(additional_dependencies)
     directory = helpers.environment_dir(ENVIRONMENT_DIR, version)
     with clean_path_on_failure(repo_cmd_runner.path(directory)):
         # TODO: this currently will fail if there's no version specified and
         # there's no system ruby installed.  Is this ok?
         _install_rbenv(repo_cmd_runner, version=version)
-        with in_env(repo_cmd_runner, version) as ruby_env:
+        with in_env(repo_cmd_runner, version):
+            # Need to call this before installing so rbenv's directories are
+            # set up
+            helpers.run_setup_cmd(repo_cmd_runner, ('rbenv', 'init', '-'))
             if version != 'default':
-                _install_ruby(ruby_env, version)
-            ruby_env.run(
-                'cd {prefix} && gem build *.gemspec && '
-                'gem install --no-ri --no-rdoc *.gem',
-                encoding=None,
+                _install_ruby(repo_cmd_runner, version)
+            # Need to call this after installing to set up the shims
+            helpers.run_setup_cmd(repo_cmd_runner, ('rbenv', 'rehash'))
+            helpers.run_setup_cmd(
+                repo_cmd_runner,
+                ('gem', 'build') + repo_cmd_runner.star('.gemspec'),
             )
-            if additional_dependencies:
-                ruby_env.run(
-                    'cd {prefix} && gem install --no-ri --no-rdoc ' +
-                    ' '.join(
-                        shell_escape(dep) for dep in additional_dependencies
-                    ),
-                    encoding=None,
-                )
+            helpers.run_setup_cmd(
+                repo_cmd_runner,
+                (
+                    ('gem', 'install', '--no-ri', '--no-rdoc') +
+                    repo_cmd_runner.star('.gem') + additional_dependencies
+                ),
+            )
 
 
 def run_hook(repo_cmd_runner, hook, file_args):
-    with in_env(repo_cmd_runner, hook['language_version']) as env:
-        return helpers.run_hook(env, hook, file_args)
+    with in_env(repo_cmd_runner, hook['language_version']):
+        return xargs((hook['entry'],) + tuple(hook['args']), file_args)

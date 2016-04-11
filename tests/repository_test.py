@@ -16,6 +16,7 @@ from pre_commit import five
 from pre_commit.clientlib.validate_config import CONFIG_JSON_SCHEMA
 from pre_commit.clientlib.validate_config import validate_config_extra
 from pre_commit.jsonschema_extensions import apply_defaults
+from pre_commit.languages import helpers
 from pre_commit.languages import node
 from pre_commit.languages import python
 from pre_commit.languages import ruby
@@ -233,13 +234,13 @@ def test_pcre_hook_matching(tempdir_factory, store):
         _test_hook_repo(
             tempdir_factory, store, 'pcre_hooks_repo',
             'regex-with-quotes', ['herp', 'derp'], b"herp:2:herpfoo'bard\n",
-            expected_return_code=123,
+            expected_return_code=1,
         )
 
         _test_hook_repo(
             tempdir_factory, store, 'pcre_hooks_repo',
             'other-regex', ['herp', 'derp'], b'derp:1:[INFO] information yo\n',
-            expected_return_code=123,
+            expected_return_code=1,
         )
 
 
@@ -254,7 +255,7 @@ def test_pcre_hook_case_insensitive_option(tempdir_factory, store):
         _test_hook_repo(
             tempdir_factory, store, 'pcre_hooks_repo',
             'regex-with-grep-args', ['herp'], b'herp:1:FoOoOoObar\n',
-            expected_return_code=123,
+            expected_return_code=1,
         )
 
 
@@ -263,7 +264,7 @@ def test_pcre_hook_case_insensitive_option(tempdir_factory, store):
 def test_pcre_many_files(tempdir_factory, store):
     # This is intended to simulate lots of passing files and one failing file
     # to make sure it still fails.  This is not the case when naively using
-    # a system hook with `grep -H -n '...'` and expected_return_code=123.
+    # a system hook with `grep -H -n '...'` and expected_return_code=1.
     path = git_dir(tempdir_factory)
     with cwd(path):
         with io.open('herp', 'w') as herp:
@@ -274,7 +275,7 @@ def test_pcre_many_files(tempdir_factory, store):
             'other-regex',
             ['/dev/null'] * 15000 + ['herp'],
             b'herp:1:[INFO] info\n',
-            expected_return_code=123,
+            expected_return_code=1,
         )
 
 
@@ -354,9 +355,9 @@ def test_additional_python_dependencies_installed(tempdir_factory, store):
     config = make_config_from_repo(path)
     config['hooks'][0]['additional_dependencies'] = ['mccabe']
     repo = Repository.create(config, store)
-    repo.run_hook(repo.hooks[0][1], [])
-    with python.in_env(repo.cmd_runner, 'default') as env:
-        output = env.run('pip freeze -l')[1]
+    repo.require_installed()
+    with python.in_env(repo.cmd_runner, 'default'):
+        output = cmd_output('pip', 'freeze', '-l')[1]
         assert 'mccabe' in output
 
 
@@ -366,14 +367,14 @@ def test_additional_dependencies_roll_forward(tempdir_factory, store):
     config = make_config_from_repo(path)
     # Run the repo once without additional_dependencies
     repo = Repository.create(config, store)
-    repo.run_hook(repo.hooks[0][1], [])
+    repo.require_installed()
     # Now run it with additional_dependencies
     config['hooks'][0]['additional_dependencies'] = ['mccabe']
     repo = Repository.create(config, store)
-    repo.run_hook(repo.hooks[0][1], [])
+    repo.require_installed()
     # We should see our additional dependency installed
-    with python.in_env(repo.cmd_runner, 'default') as env:
-        output = env.run('pip freeze -l')[1]
+    with python.in_env(repo.cmd_runner, 'default'):
+        output = cmd_output('pip', 'freeze', '-l')[1]
         assert 'mccabe' in output
 
 
@@ -387,9 +388,9 @@ def test_additional_ruby_dependencies_installed(
     config = make_config_from_repo(path)
     config['hooks'][0]['additional_dependencies'] = ['thread_safe']
     repo = Repository.create(config, store)
-    repo.run_hook(repo.hooks[0][1], [])
-    with ruby.in_env(repo.cmd_runner, 'default') as env:
-        output = env.run('gem list --local')[1]
+    repo.require_installed()
+    with ruby.in_env(repo.cmd_runner, 'default'):
+        output = cmd_output('gem', 'list', '--local')[1]
         assert 'thread_safe' in output
 
 
@@ -404,10 +405,10 @@ def test_additional_node_dependencies_installed(
     # Careful to choose a small package that's not depped by npm
     config['hooks'][0]['additional_dependencies'] = ['lodash']
     repo = Repository.create(config, store)
-    repo.run_hook(repo.hooks[0][1], [])
-    with node.in_env(repo.cmd_runner, 'default') as env:
-        env.run('npm config set global true')
-        output = env.run(('npm ls'))[1]
+    repo.require_installed()
+    with node.in_env(repo.cmd_runner, 'default'):
+        cmd_output('npm', 'config', 'set', 'global', 'true')
+        output = cmd_output('npm', 'ls')[1]
         assert 'lodash' in output
 
 
@@ -443,7 +444,7 @@ def test_control_c_control_c_on_install(tempdir_factory, store):
     # raise as well.
     with pytest.raises(MyKeyboardInterrupt):
         with mock.patch.object(
-            python.PythonEnv, 'run', side_effect=MyKeyboardInterrupt,
+            helpers, 'run_setup_cmd', side_effect=MyKeyboardInterrupt,
         ):
             with mock.patch.object(
                 shutil, 'rmtree', side_effect=MyKeyboardInterrupt,

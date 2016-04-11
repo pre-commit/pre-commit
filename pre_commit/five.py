@@ -12,6 +12,8 @@ if PY2:  # pragma: no cover (PY2 only)
             return s
         else:
             return s.encode('UTF-8')
+
+    defaults_attr = 'func_defaults'
 else:  # pragma: no cover (PY3 only)
     text = str
 
@@ -20,6 +22,8 @@ else:  # pragma: no cover (PY3 only)
             return s
         else:
             return s.decode('UTF-8')
+
+    defaults_attr = '__defaults__'
 
 
 def to_text(s):

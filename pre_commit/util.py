@@ -14,6 +14,7 @@ import tempfile
 import pkg_resources
 
 from pre_commit import five
+from pre_commit import parse_shebang
 
 
 @contextlib.contextmanager
@@ -67,10 +68,6 @@ def noop_context():
     yield
 
 
-def shell_escape(arg):
-    return "'" + arg.replace("'", "'\"'\"'".strip()) + "'"
-
-
 def no_git_env():
     # Too many bugs dealing with environment variables and GIT:
     # https://github.com/pre-commit/pre-commit/issues/300
@@ -111,6 +108,14 @@ def resource_filename(filename):
     return pkg_resources.resource_filename(
         'pre_commit',
         os.path.join('resources', filename),
+    )
+
+
+def make_executable(filename):
+    original_mode = os.stat(filename).st_mode
+    os.chmod(
+        filename,
+        original_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH,
     )
 
 
@@ -160,7 +165,6 @@ class CalledProcessError(RuntimeError):
 
 def cmd_output(*cmd, **kwargs):
     retcode = kwargs.pop('retcode', 0)
-    stdin = kwargs.pop('stdin', None)
     encoding = kwargs.pop('encoding', 'UTF-8')
     __popen = kwargs.pop('__popen', subprocess.Popen)
 
@@ -170,19 +174,18 @@ def cmd_output(*cmd, **kwargs):
         'stderr': subprocess.PIPE,
     }
 
-    if stdin is not None:
-        stdin = stdin.encode('UTF-8')
-
     # py2/py3 on windows are more strict about the types here
-    cmd = [five.n(arg) for arg in cmd]
+    cmd = tuple(five.n(arg) for arg in cmd)
     kwargs['env'] = dict(
         (five.n(key), five.n(value))
         for key, value in kwargs.pop('env', {}).items()
     ) or None
 
+    cmd = parse_shebang.normalize_cmd(cmd)
+
     popen_kwargs.update(kwargs)
     proc = __popen(cmd, **popen_kwargs)
-    stdout, stderr = proc.communicate(stdin)
+    stdout, stderr = proc.communicate()
     if encoding is not None and stdout is not None:
         stdout = stdout.decode(encoding)
     if encoding is not None and stderr is not None:

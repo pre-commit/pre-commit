@@ -5,10 +5,10 @@ import io
 import logging
 import os
 import os.path
-import stat
 import sys
 
 from pre_commit.logging_handler import LoggingHandler
+from pre_commit.util import make_executable
 from pre_commit.util import mkdirp
 from pre_commit.util import resource_filename
 
@@ -40,14 +40,6 @@ def is_previous_pre_commit(filename):
         return False
     contents = io.open(filename).read()
     return any(hash in contents for hash in PREVIOUS_IDENTIFYING_HASHES)
-
-
-def make_executable(filename):
-    original_mode = os.stat(filename).st_mode
-    os.chmod(
-        filename,
-        original_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH,
-    )
 
 
 def install(runner, overwrite=False, hooks=False, hook_type='pre-commit'):
