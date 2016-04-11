@@ -1,3 +1,9 @@
+0.8.0
+=====
+- Fix --files when running in a subdir
+- Improve --help a bit
+- Switch to pyterminalsize for determining terminal size
+
 0.7.6
 =====
 - Work under latest virtualenv
