@@ -1,10 +1,8 @@
 from __future__ import unicode_literals
 
 import pytest
-from aspy.yaml import ordered_load
 
 from pre_commit.clientlib.validate_base import get_validator
-from pre_commit.ordereddict import OrderedDict
 from testing.util import get_resource_path
 
 
@@ -63,11 +61,3 @@ def test_raises_when_additional_validation_fails(additional_validator):
 def test_returns_object_after_validating(noop_validator):
     ret = noop_validator(get_resource_path('array_yaml_file.yaml'))
     assert ret == ['foo', 'bar']
-
-
-def test_load_strategy(noop_validator):
-    ret = noop_validator(
-        get_resource_path('ordering_data_test.yaml'),
-        load_strategy=ordered_load,
-    )
-    assert type(ret) is OrderedDict

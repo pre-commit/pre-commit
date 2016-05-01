@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 
+import io
 import shutil
 
 import pytest
@@ -9,7 +10,6 @@ from pre_commit.clientlib.validate_config import load_config
 from pre_commit.commands.autoupdate import _update_repository
 from pre_commit.commands.autoupdate import autoupdate
 from pre_commit.commands.autoupdate import RepositoryCannotBeUpdatedError
-from pre_commit.ordereddict import OrderedDict
 from pre_commit.runner import Runner
 from pre_commit.util import cmd_output
 from pre_commit.util import cwd
@@ -33,7 +33,7 @@ def test_up_to_date_repo(up_to_date_repo, runner_with_mocked_store):
     config = make_config_from_repo(up_to_date_repo)
     input_sha = config['sha']
     ret = _update_repository(config, runner_with_mocked_store)
-    assert ret['sha'] == input_sha
+    assert ret == input_sha
 
 
 def test_autoupdate_up_to_date_repo(
@@ -72,12 +72,12 @@ def test_out_of_date_repo(out_of_date_repo, runner_with_mocked_store):
         out_of_date_repo.path, sha=out_of_date_repo.original_sha,
     )
     ret = _update_repository(config, runner_with_mocked_store)
-    assert ret['sha'] != out_of_date_repo.original_sha
-    assert ret['sha'] == out_of_date_repo.head_sha
+    assert ret != out_of_date_repo.original_sha
+    assert ret == out_of_date_repo.head_sha
 
 
 def test_autoupdate_out_of_date_repo(
-        out_of_date_repo, in_tmpdir, mock_out_store_directory
+        out_of_date_repo, in_tmpdir, mock_out_store_directory,
 ):
     # Write out the config
     config = make_config_from_repo(
@@ -85,15 +85,30 @@ def test_autoupdate_out_of_date_repo(
     )
     write_config('.', config)
 
-    before = open(C.CONFIG_FILE).read()
+    before = io.open(C.CONFIG_FILE).read()
     runner = Runner('.')
     ret = autoupdate(runner)
-    after = open(C.CONFIG_FILE).read()
+    after = io.open(C.CONFIG_FILE).read()
     assert ret == 0
     assert before != after
     # Make sure we don't add defaults
     assert 'exclude' not in after
     assert out_of_date_repo.head_sha in after
+
+
+def test_autoupdate_preserves_comments(
+        out_of_date_repo, in_tmpdir, mock_out_store_directory,
+):
+    config = make_config_from_repo(
+        out_of_date_repo.path, sha=out_of_date_repo.original_sha, check=False,
+    )
+    write_config('.', config)
+    with io.open(C.CONFIG_FILE, 'a') as config_file:
+        config_file.write("# I'm a comment!\n")
+    runner = Runner('.')
+    autoupdate(runner)
+    after = io.open(C.CONFIG_FILE).read()
+    assert after.endswith("# I'm a comment!\n")
 
 
 @pytest.yield_fixture
@@ -118,7 +133,7 @@ def test_hook_disppearing_repo_raises(
     config = make_config_from_repo(
         hook_disappearing_repo.path,
         sha=hook_disappearing_repo.original_sha,
-        hooks=[OrderedDict((('id', 'foo'),))],
+        hooks=[{'id': 'foo'}],
     )
     with pytest.raises(RepositoryCannotBeUpdatedError):
         _update_repository(config, runner_with_mocked_store)
@@ -130,7 +145,7 @@ def test_autoupdate_hook_disappearing_repo(
     config = make_config_from_repo(
         hook_disappearing_repo.path,
         sha=hook_disappearing_repo.original_sha,
-        hooks=[OrderedDict((('id', 'foo'),))],
+        hooks=[{'id': 'foo'}],
         check=False,
     )
     write_config('.', config)

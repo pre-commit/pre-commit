@@ -4,8 +4,9 @@ from __future__ import unicode_literals
 import os
 import os.path
 
+from ruamel.yaml.comments import CommentedMap
+
 import pre_commit.constants as C
-from pre_commit.ordereddict import OrderedDict
 from pre_commit.runner import Runner
 from pre_commit.util import cmd_output
 from pre_commit.util import cwd
@@ -56,16 +57,16 @@ def test_repositories(tempdir_factory, mock_out_store_directory):
 
 
 def test_local_hooks(tempdir_factory, mock_out_store_directory):
-    config = OrderedDict((
+    config = CommentedMap((
         ('repo', 'local'),
-        ('hooks', (OrderedDict((
+        ('hooks', (CommentedMap((
             ('id', 'arg-per-line'),
             ('name', 'Args per line hook'),
             ('entry', 'bin/hook.sh'),
             ('language', 'script'),
             ('files', ''),
             ('args', ['hello', 'world']),
-        )), OrderedDict((
+        )), CommentedMap((
             ('id', 'do_not_commit'),
             ('name', 'Block if "DO NOT COMMIT" is found'),
             ('entry', 'DO NOT COMMIT'),

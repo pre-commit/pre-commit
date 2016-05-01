@@ -9,9 +9,9 @@ import sys
 import jsonschema
 import jsonschema.exceptions
 import pkg_resources
-import yaml
 
 from pre_commit.jsonschema_extensions import apply_defaults
+from pre_commit.util import yaml_load
 
 
 def is_regex_valid(regex):
@@ -36,14 +36,14 @@ def get_validator(
             the object read from the file.  The function should either raise
             exception_type on failure.
     """
-    def validate(filename, load_strategy=yaml.load):
+    def validate(filename):
         if not os.path.exists(filename):
             raise exception_type('File {0} does not exist'.format(filename))
 
         file_contents = open(filename, 'r').read()
 
         try:
-            obj = load_strategy(file_contents)
+            obj = yaml_load(file_contents)
         except Exception as e:
             raise exception_type(
                 'Invalid yaml: {0}\n{1}'.format(os.path.relpath(filename), e),
