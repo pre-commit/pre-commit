@@ -1,18 +1,18 @@
 from __future__ import print_function
 from __future__ import unicode_literals
 
-import sys
 import logging
+import sys
 
 from aspy.yaml import ordered_dump
 from aspy.yaml import ordered_load
 
 import pre_commit.constants as C
-from pre_commit.logging_handler import LoggingHandler
 from pre_commit.clientlib.validate_config import CONFIG_JSON_SCHEMA
 from pre_commit.clientlib.validate_config import is_local_hooks
 from pre_commit.clientlib.validate_config import load_config
 from pre_commit.jsonschema_extensions import remove_defaults
+from pre_commit.logging_handler import LoggingHandler
 from pre_commit.ordereddict import OrderedDict
 from pre_commit.repository import Repository
 from pre_commit.util import cmd_output
