@@ -1,6 +1,7 @@
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import logging
 import sys
 
 from aspy.yaml import ordered_dump
@@ -11,10 +12,14 @@ from pre_commit.clientlib.validate_config import CONFIG_JSON_SCHEMA
 from pre_commit.clientlib.validate_config import is_local_hooks
 from pre_commit.clientlib.validate_config import load_config
 from pre_commit.jsonschema_extensions import remove_defaults
+from pre_commit.logging_handler import LoggingHandler
 from pre_commit.ordereddict import OrderedDict
 from pre_commit.repository import Repository
 from pre_commit.util import cmd_output
 from pre_commit.util import cwd
+
+
+logger = logging.getLogger('pre_commit')
 
 
 class RepositoryCannotBeUpdatedError(RuntimeError):
@@ -58,6 +63,10 @@ def _update_repository(repo_config, runner):
 
 def autoupdate(runner):
     """Auto-update the pre-commit config to the latest versions of repos."""
+    # Set up our logging handler
+    logger.addHandler(LoggingHandler(False))
+    logger.setLevel(logging.WARNING)
+
     retv = 0
     output_configs = []
     changed = False
