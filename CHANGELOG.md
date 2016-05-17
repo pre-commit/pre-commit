@@ -1,3 +1,8 @@
+0.8.1
+=====
+- Fix regression introduced in 0.8.1 when already using rbenv with no
+  configured ruby hook version
+
 0.8.0
 =====
 - Fix --files when running in a subdir
