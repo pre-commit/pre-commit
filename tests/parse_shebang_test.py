@@ -108,7 +108,7 @@ def test_find_executable_path_ext(in_tmpdir):
 def test_normexe_does_not_exist():
     with pytest.raises(OSError) as excinfo:
         parse_shebang.normexe('i-dont-exist-lol')
-    assert excinfo.value.args == ('Executable i-dont-exist-lol not found',)
+    assert excinfo.value.args == ('Executable `i-dont-exist-lol` not found',)
 
 
 def test_normexe_already_full_path():

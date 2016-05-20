@@ -181,23 +181,26 @@ def cmd_output(*cmd, **kwargs):
         for key, value in kwargs.pop('env', {}).items()
     ) or None
 
-    cmd = parse_shebang.normalize_cmd(cmd)
-
-    popen_kwargs.update(kwargs)
-    proc = __popen(cmd, **popen_kwargs)
-    stdout, stderr = proc.communicate()
-    if encoding is not None and stdout is not None:
-        stdout = stdout.decode(encoding)
-    if encoding is not None and stderr is not None:
-        stderr = stderr.decode(encoding)
-    returncode = proc.returncode
+    try:
+        cmd = parse_shebang.normalize_cmd(cmd)
+    except parse_shebang.ExecutableNotFoundError as e:
+        returncode, stdout, stderr = (-1, e.args[0].encode('UTF-8'), b'')
+    else:
+        popen_kwargs.update(kwargs)
+        proc = __popen(cmd, **popen_kwargs)
+        stdout, stderr = proc.communicate()
+        if encoding is not None and stdout is not None:
+            stdout = stdout.decode(encoding)
+        if encoding is not None and stderr is not None:
+            stderr = stderr.decode(encoding)
+        returncode = proc.returncode
 
     if retcode is not None and retcode != returncode:
         raise CalledProcessError(
             returncode, cmd, retcode, output=(stdout, stderr),
         )
 
-    return proc.returncode, stdout, stderr
+    return returncode, stdout, stderr
 
 
 def rmtree(path):
