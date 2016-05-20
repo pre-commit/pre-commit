@@ -1,6 +1,10 @@
+0.8.2
+=====
+- Fix a crash introduced in 0.8.0 when an executable was not found
+
 0.8.1
 =====
-- Fix regression introduced in 0.8.1 when already using rbenv with no
+- Fix regression introduced in 0.8.0 when already using rbenv with no
   configured ruby hook version
 
 0.8.0
