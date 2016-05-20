@@ -165,6 +165,16 @@ def test_system_hook_with_spaces(tempdir_factory, store):
 
 
 @pytest.mark.integration
+def test_missing_executable(tempdir_factory, store):
+    _test_hook_repo(
+        tempdir_factory, store, 'not_found_exe',
+        'not-found-exe', ['/dev/null'],
+        b'Executable `i-dont-exist-lol` not found',
+        expected_return_code=1,
+    )
+
+
+@pytest.mark.integration
 def test_run_a_script_hook(tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'script_hooks_repo',

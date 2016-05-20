@@ -1,0 +1,5 @@
+-   id: not-found-exe
+    name: Not found exe
+    entry: i-dont-exist-lol
+    language: system
+    files: ''

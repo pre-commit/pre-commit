@@ -12,6 +12,10 @@ from pre_commit import five
 printable = frozenset(string.printable)
 
 
+class ExecutableNotFoundError(OSError):
+    pass
+
+
 def parse_bytesio(bytesio):
     """Parse the shebang from a file opened for reading binary."""
     if bytesio.read(2) != b'#!':
@@ -70,7 +74,9 @@ def normexe(orig_exe):
     if os.sep not in orig_exe:
         exe = find_executable(orig_exe)
         if exe is None:
-            raise OSError('Executable {0} not found'.format(orig_exe))
+            raise ExecutableNotFoundError(
+                'Executable `{0}` not found'.format(orig_exe),
+            )
         return exe
     else:
         return orig_exe
