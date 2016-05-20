@@ -457,9 +457,9 @@ def test_local_hook_for_stages(
     config = OrderedDict((
         ('repo', 'local'),
         ('hooks', (OrderedDict((
-            ('id', 'pylint'),
+            ('id', 'flake8'),
             ('name', 'hook 1'),
-            ('entry', 'python -m pylint.__main__'),
+            ('entry', 'python -m flake8.__main__'),
             ('language', 'system'),
             ('files', r'\.py$'),
             ('stages', stage_for_first_hook)
@@ -491,9 +491,9 @@ def test_local_hook_passes(repo_with_passing_hook, mock_out_store_directory):
     config = OrderedDict((
         ('repo', 'local'),
         ('hooks', (OrderedDict((
-            ('id', 'pylint'),
-            ('name', 'PyLint'),
-            ('entry', 'python -m pylint.__main__'),
+            ('id', 'flake8'),
+            ('name', 'flake8'),
+            ('entry', 'python -m flake8.__main__'),
             ('language', 'system'),
             ('files', r'\.py$'),
         )), OrderedDict((
