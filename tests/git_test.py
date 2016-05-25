@@ -33,6 +33,16 @@ def test_get_root_not_git_dir(tempdir_factory):
             git.get_root()
 
 
+def test_get_staged_files_deleted(tempdir_factory):
+    path = git_dir(tempdir_factory)
+    with cwd(path):
+        open('test', 'a').close()
+        cmd_output('git', 'add', 'test')
+        cmd_output('git', 'commit', '-m', 'foo', '--allow-empty')
+        cmd_output('git', 'rm', '--cached', 'test')
+        assert git.get_staged_files() == []
+
+
 def test_is_not_in_merge_conflict(tempdir_factory):
     path = git_dir(tempdir_factory)
     with cwd(path):
