@@ -69,7 +69,11 @@ def get_conflicted_files():
 
 @memoize_by_cwd
 def get_staged_files():
-    return cmd_output('git', 'diff', '--staged', '--name-only')[1].splitlines()
+    return cmd_output(
+        'git', 'diff', '--staged', '--name-only',
+        # Everything except for D
+        '--diff-filter=ACMRTUXB'
+    )[1].splitlines()
 
 
 @memoize_by_cwd
