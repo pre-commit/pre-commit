@@ -51,7 +51,7 @@ def _print_user_skipped(hook, write, args):
 
 def get_changed_files(new, old):
     return cmd_output(
-        'git', 'diff', '--name-only', '{0}..{1}'.format(old, new),
+        'git', 'diff', '--name-only', '{0}...{1}'.format(old, new),
     )[1].splitlines()
 
 
