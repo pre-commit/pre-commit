@@ -1,4 +1,5 @@
 language: python
+python: 3.5
 env: # These should match the tox env list
     - TOXENV=py26
     - TOXENV=py27
@@ -30,9 +31,3 @@ cache:
     directories:
         - $HOME/.cache/pip
         - $HOME/.pre-commit
-addons:
-    apt:
-        sources:
-            - deadsnakes
-        packages:
-            - python3.5-dev
