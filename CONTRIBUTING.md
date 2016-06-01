@@ -6,8 +6,8 @@
   a complete list)
   - git (A sufficiently newer version is required to run pre-push tests)
   - python
-  - python3.3 (Required by a test which checks different python versions)
   - python3.4 (Required by a test which checks different python versions)
+  - python3.5 (Required by a test which checks different python versions)
   - tox (or virtualenv)
   - ruby + gem
 
