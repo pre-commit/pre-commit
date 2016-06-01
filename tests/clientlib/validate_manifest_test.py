@@ -75,7 +75,7 @@ def test_additional_manifest_failing(obj):
                 'name': 'b',
                 'entry': 'c',
                 'language': 'python',
-                'language_version': 'python3.3',
+                'language_version': 'python3.4',
                 'files': r'\.py$',
             }],
             True,

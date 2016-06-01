@@ -101,7 +101,7 @@ def test_switch_language_versions_doesnt_clobber(tempdir_factory, store):
         assert ret[1].replace(b'\r\n', b'\n') == expected_output
 
     run_on_version('python3.4', b'3.4\n[]\nHello World\n')
-    run_on_version('python3.3', b'3.3\n[]\nHello World\n')
+    run_on_version('python3.5', b'3.5\n[]\nHello World\n')
 
 
 @pytest.mark.integration
@@ -110,7 +110,7 @@ def test_versioned_python_hook(tempdir_factory, store):
         tempdir_factory, store, 'python3_hooks_repo',
         'python3-hook',
         [os.devnull],
-        b"3.3\n['" + five.to_bytes(os.devnull) + b"']\nHello World\n",
+        b"3.5\n['" + five.to_bytes(os.devnull) + b"']\nHello World\n",
     )
 
 
