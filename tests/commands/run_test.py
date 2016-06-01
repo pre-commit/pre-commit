@@ -401,6 +401,10 @@ def test_get_changed_files():
     )
     assert files == ['CHANGELOG.md', 'setup.py']
 
+    # files changed in source but not in origin should not be returned
+    files = get_changed_files('HEAD~10', 'HEAD')
+    assert files == []
+
 
 def test_lots_of_files(mock_out_store_directory, tempdir_factory):
     # windows xargs seems to have a bug, here's a regression test for
