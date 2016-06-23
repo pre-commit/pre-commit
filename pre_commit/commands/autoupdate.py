@@ -15,6 +15,7 @@ from pre_commit.jsonschema_extensions import remove_defaults
 from pre_commit.logging_handler import LoggingHandler
 from pre_commit.ordereddict import OrderedDict
 from pre_commit.repository import Repository
+from pre_commit.util import CalledProcessError
 from pre_commit.util import cmd_output
 from pre_commit.util import cwd
 
@@ -38,15 +39,20 @@ def _update_repository(repo_config, runner):
 
     with cwd(repo.repo_path_getter.repo_path):
         cmd_output('git', 'fetch')
-        head_sha = cmd_output('git', 'rev-parse', 'origin/master')[1].strip()
+        try:
+            rev = cmd_output(
+                'git', 'describe', 'origin/master', '--tags', '--exact',
+            )[1].strip()
+        except CalledProcessError:
+            rev = cmd_output('git', 'rev-parse', 'origin/master')[1].strip()
 
     # Don't bother trying to update if our sha is the same
-    if head_sha == repo_config['sha']:
+    if rev == repo_config['sha']:
         return repo_config
 
     # Construct a new config with the head sha
     new_config = OrderedDict(repo_config)
-    new_config['sha'] = head_sha
+    new_config['sha'] = rev
     new_repo = Repository.create(new_config, runner.store)
 
     # See if any of our hooks were deleted with the new commits
