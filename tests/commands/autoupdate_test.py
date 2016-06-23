@@ -97,6 +97,26 @@ def test_autoupdate_out_of_date_repo(
 
 
 @pytest.yield_fixture
+def tagged_repo(out_of_date_repo):
+    with cwd(out_of_date_repo.path):
+        cmd_output('git', 'tag', 'v1.2.3')
+    yield out_of_date_repo
+
+
+def test_autoupdate_tagged_repo(
+        tagged_repo, in_tmpdir, mock_out_store_directory,
+):
+    config = make_config_from_repo(
+        tagged_repo.path, sha=tagged_repo.original_sha,
+    )
+    write_config('.', config)
+
+    ret = autoupdate(Runner('.'))
+    assert ret == 0
+    assert 'v1.2.3' in open(C.CONFIG_FILE).read()
+
+
+@pytest.yield_fixture
 def hook_disappearing_repo(tempdir_factory):
     path = make_repo(tempdir_factory, 'python_hooks_repo')
     original_sha = get_head_sha(path)
