@@ -556,7 +556,9 @@ def test_hook_id_not_present(tempdir_factory, store, fake_log_handler):
     assert fake_log_handler.handle.call_args[0][0].msg == (
         '`i-dont-exist` is not present in repository {0}.  '
         'Typo? Perhaps it is introduced in a newer version?  '
-        'Often `pre-commit autoupdate` fixes this.'.format(path)
+        'Often you can fix this by removing the hook, '
+        'running `pre-commit autoupdate`, '
+        'and then adding the hook.'.format(path)
     )
 
 

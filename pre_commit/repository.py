@@ -78,7 +78,9 @@ class Repository(object):
                 logger.error(
                     '`{0}` is not present in repository {1}.  '
                     'Typo? Perhaps it is introduced in a newer version?  '
-                    'Often `pre-commit autoupdate` fixes this.'.format(
+                    'Often you can fix this by removing the hook, running '
+                    '`pre-commit autoupdate`, '
+                    'and then adding the hook.'.format(
                         hook['id'], self.repo_config['repo'],
                     )
                 )
