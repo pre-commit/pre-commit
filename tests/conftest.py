@@ -42,21 +42,35 @@ def in_tmpdir(tempdir_factory):
 
 
 def _make_conflict():
-    cmd_output('git', 'checkout', 'origin/master', '-b', 'foo')
+    cmd_output('git', 'checkout', 'origin/master', '-b', 'common_branch')
+    with io.open('common_file', 'w') as common_file:
+        common_file.write('common line\n')
+    cmd_output('git', 'add', 'common_file')
+    cmd_output('git', 'commit', '-m', 'common_file')
+    cmd_output('git', 'checkout', 'common_branch', '-b', 'foo')
     with io.open('conflict_file', 'w') as conflict_file:
         conflict_file.write('herp\nderp\n')
     cmd_output('git', 'add', 'conflict_file')
     with io.open('foo_only_file', 'w') as foo_only_file:
         foo_only_file.write('foo')
     cmd_output('git', 'add', 'foo_only_file')
+    with io.open('common_file', 'a') as common_file:
+        common_file.write('end\nline\n')
+    cmd_output('git', 'add', 'common_file')
     cmd_output('git', 'commit', '-m', 'conflict_file')
-    cmd_output('git', 'checkout', 'origin/master', '-b', 'bar')
+    cmd_output('git', 'checkout', 'common_branch', '-b', 'bar')
     with io.open('conflict_file', 'w') as conflict_file:
         conflict_file.write('harp\nddrp\n')
     cmd_output('git', 'add', 'conflict_file')
     with io.open('bar_only_file', 'w') as bar_only_file:
         bar_only_file.write('bar')
     cmd_output('git', 'add', 'bar_only_file')
+    with io.open('common_file', 'r') as common_file:
+        common = common_file.read()
+    with io.open('common_file', 'w') as common_file:
+        common_file.write('start\nline\n')
+        common_file.write(common)
+    cmd_output('git', 'add', 'common_file')
     cmd_output('git', 'commit', '-m', 'conflict_file')
     cmd_output('git', 'merge', 'foo', retcode=None)
 
