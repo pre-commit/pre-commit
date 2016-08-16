@@ -20,7 +20,8 @@ def get_root():
         return cmd_output('git', 'rev-parse', '--show-toplevel')[1].strip()
     except CalledProcessError:
         raise FatalError(
-            'Called from outside of the gits.  Please cd to a git repository.'
+            'git failed. Is it installed, and are you in a Git repository '
+            'directory?'
         )
 
 
