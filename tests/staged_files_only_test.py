@@ -280,3 +280,28 @@ def test_stage_non_utf8_changes(foo_staged, cmd_runner):
     with staged_files_only(cmd_runner):
         _test_foo_state(foo_staged)
     _test_foo_state(foo_staged, contents, 'AM', encoding='latin-1')
+
+
+def test_non_utf8_conflicting_diff(foo_staged, cmd_runner):
+    """Regression test for #397"""
+    # The trailing whitespace is important here, this triggers git to produce
+    # an error message which looks like:
+    #
+    # ...patch1471530032:14: trailing whitespace.
+    # [[unprintable character]][[space character]]
+    # error: patch failed: foo:1
+    # error: foo: patch does not apply
+    #
+    # Previously, the error message (though discarded immediately) was being
+    # decoded with the UTF-8 codec (causing a crash)
+    contents = 'ú \n'
+    with io.open('foo', 'w', encoding='latin-1') as foo_file:
+        foo_file.write(contents)
+
+    _test_foo_state(foo_staged, contents, 'AM', encoding='latin-1')
+    with staged_files_only(cmd_runner):
+        _test_foo_state(foo_staged)
+        # Create a conflicting diff that will need to be rolled back
+        with io.open('foo', 'w') as foo_file:
+            foo_file.write('')
+    _test_foo_state(foo_staged, contents, 'AM', encoding='latin-1')
