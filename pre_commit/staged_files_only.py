@@ -45,7 +45,7 @@ def staged_files_only(cmd_runner):
         finally:
             # Try to apply the patch we saved
             try:
-                cmd_runner.run(['git', 'apply', patch_filename])
+                cmd_runner.run(('git', 'apply', patch_filename), encoding=None)
             except CalledProcessError:
                 logger.warning(
                     'Stashed changes conflicted with hook auto-fixes... '
@@ -55,7 +55,7 @@ def staged_files_only(cmd_runner):
                 # by hooks.
                 # Roll back the changes made by hooks.
                 cmd_runner.run(['git', 'checkout', '--', '.'])
-                cmd_runner.run(['git', 'apply', patch_filename])
+                cmd_runner.run(('git', 'apply', patch_filename), encoding=None)
             logger.info('Restored changes from {0}.'.format(patch_filename))
     else:
         # There weren't any staged files so we don't need to do anything
