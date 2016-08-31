@@ -2,6 +2,7 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 import os.path
+import tarfile
 
 import mock
 import pytest
@@ -9,7 +10,6 @@ import pytest
 from pre_commit import make_archives
 from pre_commit.util import cmd_output
 from pre_commit.util import cwd
-from pre_commit.util import tarfile_open
 from testing.fixtures import git_dir
 from testing.util import get_head_sha
 from testing.util import skipif_slowtests_false
@@ -41,7 +41,7 @@ def test_make_archive(tempdir_factory):
     extract_dir = tempdir_factory.get()
 
     # Extract the tar
-    with tarfile_open(archive_path) as tf:
+    with tarfile.open(archive_path) as tf:
         tf.extractall(extract_dir)
 
     # Verify the contents of the tar
