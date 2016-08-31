@@ -1,3 +1,12 @@
+0.9.0
+=====
+- Only consider forward diff in changed files
+- Don't run on staged deleted files that still exist
+- Autoupdate to tags when available
+- Stop supporting python2.6
+- Fix crash with staged files containing unstaged lines which have non-utf8
+  bytes and trailing whitespace
+
 0.8.2
 =====
 - Fix a crash introduced in 0.8.0 when an executable was not found

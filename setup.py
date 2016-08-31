@@ -9,7 +9,7 @@ setup(
         'hooks.'
     ),
     url='https://github.com/pre-commit/pre-commit',
-    version='0.8.2',
+    version='0.9.0',
 
     author='Anthony Sottile',
     author_email='asottile@umich.edu',
@@ -26,7 +26,7 @@ setup(
         'Programming Language :: Python :: Implementation :: PyPy',
     ],
 
-    packages=find_packages('.', exclude=('tests*', 'testing*')),
+    packages=find_packages(exclude=('tests*', 'testing*')),
     package_data={
         'pre_commit': [
             'resources/hook-tmpl',
