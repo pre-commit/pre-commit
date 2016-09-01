@@ -8,7 +8,6 @@ import os.path
 import shutil
 import stat
 import subprocess
-import tarfile
 import tempfile
 
 import pkg_resources
@@ -80,16 +79,6 @@ def no_git_env():
     return dict(
         (k, v) for k, v in os.environ.items() if not k.startswith('GIT_')
     )
-
-
-@contextlib.contextmanager
-def tarfile_open(*args, **kwargs):
-    """Compatibility layer because python2.6"""
-    tf = tarfile.open(*args, **kwargs)
-    try:
-        yield tf
-    finally:
-        tf.close()
 
 
 @contextlib.contextmanager

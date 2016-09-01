@@ -4,6 +4,7 @@ import contextlib
 import io
 import os.path
 import shutil
+import tarfile
 
 from pre_commit.envcontext import envcontext
 from pre_commit.envcontext import Var
@@ -11,7 +12,6 @@ from pre_commit.languages import helpers
 from pre_commit.util import CalledProcessError
 from pre_commit.util import clean_path_on_failure
 from pre_commit.util import resource_filename
-from pre_commit.util import tarfile_open
 from pre_commit.xargs import xargs
 
 
@@ -46,7 +46,7 @@ def in_env(repo_cmd_runner, language_version):
 def _install_rbenv(repo_cmd_runner, version='default'):
     directory = helpers.environment_dir(ENVIRONMENT_DIR, version)
 
-    with tarfile_open(resource_filename('rbenv.tar.gz')) as tf:
+    with tarfile.open(resource_filename('rbenv.tar.gz')) as tf:
         tf.extractall(repo_cmd_runner.path('.'))
     shutil.move(
         repo_cmd_runner.path('rbenv'), repo_cmd_runner.path(directory),
@@ -55,11 +55,11 @@ def _install_rbenv(repo_cmd_runner, version='default'):
     # Only install ruby-build if the version is specified
     if version != 'default':
         # ruby-download
-        with tarfile_open(resource_filename('ruby-download.tar.gz')) as tf:
+        with tarfile.open(resource_filename('ruby-download.tar.gz')) as tf:
             tf.extractall(repo_cmd_runner.path(directory, 'plugins'))
 
         # ruby-build
-        with tarfile_open(resource_filename('ruby-build.tar.gz')) as tf:
+        with tarfile.open(resource_filename('ruby-build.tar.gz')) as tf:
             tf.extractall(repo_cmd_runner.path(directory, 'plugins'))
 
     activate_path = repo_cmd_runner.path(directory, 'bin', 'activate')
