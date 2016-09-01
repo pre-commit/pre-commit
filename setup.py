@@ -41,7 +41,6 @@ setup(
         'cached-property',
         'jsonschema',
         'nodeenv>=0.11.1',
-        'pyterminalsize',
         'pyyaml',
         'virtualenv',
     ],

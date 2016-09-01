@@ -13,6 +13,7 @@ import pytest
 
 import pre_commit.constants as C
 from pre_commit.commands.install_uninstall import install
+from pre_commit.commands.run import _compute_cols
 from pre_commit.commands.run import _get_skips
 from pre_commit.commands.run import _has_unmerged_paths
 from pre_commit.commands.run import get_changed_files
@@ -277,6 +278,23 @@ def test_merge_conflict_resolved(in_merge_conflict, mock_out_store_directory):
             b'Checking merge-conflict files only.', b'Bash hook', b'Passed',
     ):
         assert msg in printed
+
+
+@pytest.mark.parametrize(
+    ('hooks', 'verbose', 'expected'),
+    (
+        ([], True, 80),
+        ([{'id': 'a', 'name': 'a' * 51}], False, 81),
+        ([{'id': 'a', 'name': 'a' * 51}], True, 85),
+        (
+            [{'id': 'a', 'name': 'a' * 51}, {'id': 'b', 'name': 'b' * 52}],
+            False,
+            82,
+        ),
+    ),
+)
+def test_compute_cols(hooks, verbose, expected):
+    assert _compute_cols(hooks, verbose) == expected
 
 
 @pytest.mark.parametrize(
