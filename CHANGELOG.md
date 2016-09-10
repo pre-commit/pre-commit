@@ -1,3 +1,8 @@
+0.9.1
+=====
+- Remove some python2.6 compatibility
+- Fix staged-files-only with external diff tools
+
 0.9.0
 =====
 - Only consider forward diff in changed files
