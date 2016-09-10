@@ -71,6 +71,13 @@ def test_foo_something_unstaged(foo_staged, cmd_runner):
     _test_foo_state(foo_staged, 'herp\nderp\n', 'AM')
 
 
+def test_something_unstaged_ext_diff_tool(foo_staged, cmd_runner, tmpdir):
+    diff_tool = tmpdir.join('diff-tool.sh')
+    diff_tool.write('#!/usr/bin/env bash\necho "$@"\n')
+    cmd_output('git', 'config', 'diff.external', diff_tool.strpath)
+    test_foo_something_unstaged(foo_staged, cmd_runner)
+
+
 def test_foo_something_unstaged_diff_color_always(foo_staged, cmd_runner):
     cmd_output('git', 'config', '--local', 'color.diff', 'always')
     test_foo_something_unstaged(foo_staged, cmd_runner)
