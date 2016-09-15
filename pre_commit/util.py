@@ -131,9 +131,9 @@ class CalledProcessError(RuntimeError):
 
         return b''.join((
             five.to_bytes(
-                'Command: {0!r}\n'
-                'Return code: {1}\n'
-                'Expected return code: {2}\n'.format(
+                'Command: {!r}\n'
+                'Return code: {}\n'
+                'Expected return code: {}\n'.format(
                     self.cmd, self.returncode, self.expected_returncode
                 )
             ),

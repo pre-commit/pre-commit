@@ -60,7 +60,7 @@ def get_hook_message(
     if end_len:
         return start + '.' * (cols - len(start) - end_len - 1)
     else:
-        return '{0}{1}{2}{3}\n'.format(
+        return '{}{}{}{}\n'.format(
             start,
             '.' * (cols - len(start) - len(postfix) - len(end_msg) - 1),
             postfix,

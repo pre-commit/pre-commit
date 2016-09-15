@@ -417,7 +417,7 @@ def test_lots_of_files(mock_out_store_directory, tempdir_factory):
 
         # Write a crap ton of files
         for i in range(400):
-            filename = '{0}{1}'.format('a' * 100, i)
+            filename = '{}{}'.format('a' * 100, i)
             open(filename, 'w').close()
 
         cmd_output('bash', '-c', 'git add .')

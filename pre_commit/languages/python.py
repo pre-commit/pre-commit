@@ -49,7 +49,7 @@ def norm_version(version):
         # If it is in the form pythonx.x search in the default
         # place on windows
         if version.startswith('python'):
-            return r'C:\{0}\python.exe'.format(version.replace('.', ''))
+            return r'C:\{}\python.exe'.format(version.replace('.', ''))
 
         # Otherwise assume it is a path
     return os.path.expanduser(version)
@@ -67,7 +67,7 @@ def install_environment(
     with clean_path_on_failure(repo_cmd_runner.path(directory)):
         venv_cmd = [
             sys.executable, '-m', 'virtualenv',
-            '{{prefix}}{0}'.format(directory)
+            '{{prefix}}{}'.format(directory)
         ]
         if version != 'default':
             venv_cmd.extend(['-p', norm_version(version)])

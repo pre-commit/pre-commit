@@ -75,7 +75,7 @@ def normexe(orig_exe):
         exe = find_executable(orig_exe)
         if exe is None:
             raise ExecutableNotFoundError(
-                'Executable `{0}` not found'.format(orig_exe),
+                'Executable `{}` not found'.format(orig_exe),
             )
         return exe
     else:

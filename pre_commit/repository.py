@@ -76,7 +76,7 @@ class Repository(object):
         for hook in self.repo_config['hooks']:
             if hook['id'] not in self.manifest.hooks:
                 logger.error(
-                    '`{0}` is not present in repository {1}.  '
+                    '`{}` is not present in repository {}.  '
                     'Typo? Perhaps it is introduced in a newer version?  '
                     'Often you can fix this by removing the hook, running '
                     '`pre-commit autoupdate`, '
@@ -90,8 +90,8 @@ class Repository(object):
             )
             if hook_version > _pre_commit_version:
                 logger.error(
-                    'The hook `{0}` requires pre-commit version {1} but '
-                    'version {2} is installed.  '
+                    'The hook `{}` requires pre-commit version {} but '
+                    'version {} is installed.  '
                     'Perhaps run `pip install --upgrade pre-commit`.'.format(
                         hook['id'], hook_version, _pre_commit_version,
                     )
@@ -165,7 +165,7 @@ class Repository(object):
             for language_name, language_version in self.languages
         ):
             logger.info(
-                'Installing environment for {0}.'.format(self.repo_url)
+                'Installing environment for {}.'.format(self.repo_url)
             )
             logger.info('Once installed this environment will be reused.')
             logger.info('This may take a few minutes...')

@@ -111,7 +111,7 @@ class Store(object):
             if result:
                 return result[0]
 
-        logger.info('Initializing environment for {0}.'.format(url))
+        logger.info('Initializing environment for {}.'.format(url))
 
         dir = tempfile.mkdtemp(prefix='repo', dir=self.directory)
         with clean_path_on_failure(dir):

@@ -186,7 +186,7 @@ def test_does_not_contain_defaults():
         if isinstance(schema, dict):
             if 'default' in schema:
                 raise AssertionError(
-                    'Unexpected default in schema at {0}'.format(
+                    'Unexpected default in schema at {}'.format(
                         ' => '.join(route),
                     )
                 )

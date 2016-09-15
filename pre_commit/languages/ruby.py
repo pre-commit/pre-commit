@@ -70,20 +70,20 @@ def _install_rbenv(repo_cmd_runner, version='default'):
         # We also modify the PS1 variable for manual debugging sake.
         activate_file.write(
             '#!/usr/bin/env bash\n'
-            "export RBENV_ROOT='{0}'\n"
+            "export RBENV_ROOT='{directory}'\n"
             'export PATH="$RBENV_ROOT/bin:$PATH"\n'
             'eval "$(rbenv init -)"\n'
             'export PS1="(rbenv)$PS1"\n'
             # This lets us install gems in an isolated and repeatable
             # directory
-            "export GEM_HOME='{0}/gems'\n"
+            "export GEM_HOME='{directory}/gems'\n"
             'export PATH="$GEM_HOME/bin:$PATH"\n'
-            '\n'.format(repo_cmd_runner.path(directory))
+            '\n'.format(directory=repo_cmd_runner.path(directory))
         )
 
         # If we aren't using the system ruby, add a version here
         if version != 'default':
-            activate_file.write('export RBENV_VERSION="{0}"\n'.format(version))
+            activate_file.write('export RBENV_VERSION="{}"\n'.format(version))
 
 
 def _install_ruby(runner, version):

@@ -69,7 +69,7 @@ def write_executable(shebang, filename='run'):
     os.mkdir('bin')
     path = os.path.join('bin', filename)
     with io.open(path, 'w') as f:
-        f.write('#!{0}'.format(shebang))
+        f.write('#!{}'.format(shebang))
     make_executable(path)
     return path
 

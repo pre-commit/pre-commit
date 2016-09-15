@@ -61,7 +61,7 @@ def _update_repository(repo_config, runner):
     if hooks_missing:
         raise RepositoryCannotBeUpdatedError(
             'Cannot update because the tip of master is missing these hooks:\n'
-            '{0}'.format(', '.join(sorted(hooks_missing)))
+            '{}'.format(', '.join(sorted(hooks_missing)))
         )
 
     return new_config
@@ -86,7 +86,7 @@ def autoupdate(runner):
         if is_local_hooks(repo_config):
             output_configs.append(repo_config)
             continue
-        sys.stdout.write('Updating {0}...'.format(repo_config['repo']))
+        sys.stdout.write('Updating {}...'.format(repo_config['repo']))
         sys.stdout.flush()
         try:
             new_repo_config = _update_repository(repo_config, runner)
@@ -99,7 +99,7 @@ def autoupdate(runner):
         if new_repo_config['sha'] != repo_config['sha']:
             changed = True
             print(
-                'updating {0} -> {1}.'.format(
+                'updating {} -> {}.'.format(
                     repo_config['sha'], new_repo_config['sha'],
                 )
             )

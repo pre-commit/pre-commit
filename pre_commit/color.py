@@ -24,7 +24,7 @@ def format_color(text, color, use_color_setting):
     if not use_color_setting:
         return text
     else:
-        return u'{0}{1}{2}'.format(color, text, NORMAL)
+        return '{}{}{}'.format(color, text, NORMAL)
 
 
 COLOR_CHOICES = ('auto', 'always', 'never')

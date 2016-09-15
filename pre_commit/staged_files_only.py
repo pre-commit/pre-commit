@@ -29,10 +29,10 @@ def staged_files_only(cmd_runner):
         encoding=None,
     )
     if retcode and diff_stdout_binary.strip():
-        patch_filename = cmd_runner.path('patch{0}'.format(int(time.time())))
+        patch_filename = cmd_runner.path('patch{}'.format(int(time.time())))
         logger.warning('Unstaged files detected.')
         logger.info(
-            'Stashing unstaged files to {0}.'.format(patch_filename),
+            'Stashing unstaged files to {}.'.format(patch_filename),
         )
         # Save the current unstaged changes as a patch
         with io.open(patch_filename, 'wb') as patch_file:
@@ -56,7 +56,7 @@ def staged_files_only(cmd_runner):
                 # Roll back the changes made by hooks.
                 cmd_runner.run(['git', 'checkout', '--', '.'])
                 cmd_runner.run(('git', 'apply', patch_filename), encoding=None)
-            logger.info('Restored changes from {0}.'.format(patch_filename))
+            logger.info('Restored changes from {}.'.format(patch_filename))
     else:
         # There weren't any staged files so we don't need to do anything
         # special
