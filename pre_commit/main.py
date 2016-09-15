@@ -34,7 +34,7 @@ def main(argv=None):
     parser.add_argument(
         '-V', '--version',
         action='version',
-        version='%(prog)s {0}'.format(
+        version='%(prog)s {}'.format(
             pkg_resources.get_distribution('pre-commit').version
         )
     )
@@ -157,11 +157,11 @@ def main(argv=None):
             return run(runner, args)
         else:
             raise NotImplementedError(
-                'Command {0} not implemented.'.format(args.command)
+                'Command {} not implemented.'.format(args.command)
             )
 
         raise AssertionError(
-            'Command {0} failed to exit with a returncode'.format(args.command)
+            'Command {} failed to exit with a returncode'.format(args.command)
         )
 
 

@@ -57,7 +57,7 @@ CONFIG_JSON_SCHEMA = {
 def try_regex(repo, hook, value, field_name):
     if not is_regex_valid(value):
         raise InvalidConfigError(
-            'Invalid {0} regex at {1}, {2}: {3}'.format(
+            'Invalid {} regex at {}, {}: {}'.format(
                 field_name, repo, hook, value,
             )
         )
@@ -72,7 +72,7 @@ def validate_config_extra(config):
                 )
         elif 'sha' not in repo:
             raise InvalidConfigError(
-                'Missing "sha" field for repository {0}'.format(repo['repo'])
+                'Missing "sha" field for repository {}'.format(repo['repo'])
             )
         for hook in repo['hooks']:
             try_regex(repo, hook['id'], hook.get('files', ''), 'files')

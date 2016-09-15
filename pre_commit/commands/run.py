@@ -24,8 +24,8 @@ def _get_skips(environ):
 
 
 def _hook_msg_start(hook, verbose):
-    return '{0}{1}'.format(
-        '[{0}] '.format(hook['id']) if verbose else '',
+    return '{}{}'.format(
+        '[{}] '.format(hook['id']) if verbose else '',
         hook['name'],
     )
 
@@ -51,7 +51,7 @@ def _print_user_skipped(hook, write, args):
 
 def get_changed_files(new, old):
     return cmd_output(
-        'git', 'diff', '--name-only', '{0}...{1}'.format(old, new),
+        'git', 'diff', '--name-only', '{}...{}'.format(old, new),
     )[1].splitlines()
 
 
@@ -107,7 +107,7 @@ def _run_single_hook(hook, repo, args, write, skips=frozenset()):
     write(color.format_color(pass_fail, print_color, args.color) + '\n')
 
     if (stdout or stderr or file_modifications) and (retcode or args.verbose):
-        write('hookid: {0}\n'.format(hook['id']))
+        write('hookid: {}\n'.format(hook['id']))
         write('\n')
 
         # Print a message if failing due to file modifications
@@ -200,7 +200,7 @@ def run(runner, args, write=sys_stdout_write_wrapper, environ=os.environ):
                 if hook['id'] == args.hook
             ]
             if not repo_hooks:
-                write('No hook with id `{0}`\n'.format(args.hook))
+                write('No hook with id `{}`\n'.format(args.hook))
                 return 1
 
         # Filter hooks for stages

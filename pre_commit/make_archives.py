@@ -61,7 +61,7 @@ def make_archive(name, repo, ref, destdir):
 
 def main():
     for archive_name, repo, ref in REPOS:
-        print('Making {0}.tar.gz for {1}@{2}'.format(archive_name, repo, ref))
+        print('Making {}.tar.gz for {}@{}'.format(archive_name, repo, ref))
         make_archive(archive_name, repo, ref, RESOURCES_DIR)
 
 

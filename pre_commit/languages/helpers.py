@@ -11,4 +11,4 @@ def environment_dir(ENVIRONMENT_DIR, language_version):
     if ENVIRONMENT_DIR is None:
         return None
     else:
-        return '{0}-{1}'.format(ENVIRONMENT_DIR, language_version)
+        return '{}-{}'.format(ENVIRONMENT_DIR, language_version)

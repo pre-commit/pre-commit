@@ -22,9 +22,9 @@ class LoggingHandler(logging.Handler):
 
     def emit(self, record):
         self.__write(
-            u'{0}{1}\n'.format(
+            '{}{}\n'.format(
                 color.format_color(
-                    '[{0}]'.format(record.levelname),
+                    '[{}]'.format(record.levelname),
                     LOG_LEVEL_COLORS[record.levelname],
                     self.use_color,
                 ) + ' ',

@@ -55,7 +55,7 @@ MANIFEST_JSON_SCHEMA = {
 def validate_languages(hook_config):
     if hook_config['language'] not in all_languages:
         raise InvalidManifestError(
-            'Expected language {0} for {1} to be one of {2!r}'.format(
+            'Expected language {} for {} to be one of {!r}'.format(
                 hook_config['id'],
                 hook_config['language'],
                 all_languages,
@@ -66,14 +66,14 @@ def validate_languages(hook_config):
 def validate_files(hook_config):
     if not is_regex_valid(hook_config['files']):
         raise InvalidManifestError(
-            'Invalid files regex at {0}: {1}'.format(
+            'Invalid files regex at {}: {}'.format(
                 hook_config['id'], hook_config['files'],
             )
         )
 
     if not is_regex_valid(hook_config.get('exclude', '')):
         raise InvalidManifestError(
-            'Invalid exclude regex at {0}: {1}'.format(
+            'Invalid exclude regex at {}: {}'.format(
                 hook_config['id'], hook_config['exclude'],
             )
         )

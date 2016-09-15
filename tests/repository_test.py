@@ -293,7 +293,7 @@ def _norm_pwd(path):
     # Under windows bash's temp and windows temp is different.
     # This normalizes to the bash /tmp
     return cmd_output(
-        'bash', '-c', "cd '{0}' && pwd".format(path),
+        'bash', '-c', "cd '{}' && pwd".format(path),
         encoding=None,
     )[1].strip()
 
@@ -554,7 +554,7 @@ def test_hook_id_not_present(tempdir_factory, store, fake_log_handler):
     with pytest.raises(SystemExit):
         repo.install()
     assert fake_log_handler.handle.call_args[0][0].msg == (
-        '`i-dont-exist` is not present in repository {0}.  '
+        '`i-dont-exist` is not present in repository {}.  '
         'Typo? Perhaps it is introduced in a newer version?  '
         'Often you can fix this by removing the hook, '
         'running `pre-commit autoupdate`, '

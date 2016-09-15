@@ -38,7 +38,7 @@ def get_validator(
     """
     def validate(filename, load_strategy=yaml.load):
         if not os.path.exists(filename):
-            raise exception_type('File {0} does not exist'.format(filename))
+            raise exception_type('File {} does not exist'.format(filename))
 
         file_contents = open(filename, 'r').read()
 
@@ -46,14 +46,14 @@ def get_validator(
             obj = load_strategy(file_contents)
         except Exception as e:
             raise exception_type(
-                'Invalid yaml: {0}\n{1}'.format(os.path.relpath(filename), e),
+                'Invalid yaml: {}\n{}'.format(os.path.relpath(filename), e),
             )
 
         try:
             jsonschema.validate(obj, json_schema)
         except jsonschema.exceptions.ValidationError as e:
             raise exception_type(
-                'Invalid content: {0}\n{1}'.format(
+                'Invalid content: {}\n{}'.format(
                     os.path.relpath(filename), e
                 ),
             )
@@ -75,7 +75,7 @@ def get_run_function(filenames_help, validate_strategy, exception_cls):
         parser.add_argument(
             '-V', '--version',
             action='version',
-            version='%(prog)s {0}'.format(
+            version='%(prog)s {}'.format(
                 pkg_resources.get_distribution('pre-commit').version
             )
         )

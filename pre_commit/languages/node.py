@@ -47,7 +47,7 @@ def install_environment(
     with clean_path_on_failure(env_dir):
         cmd = [
             sys.executable, '-m', 'nodeenv', '--prebuilt',
-            '{{prefix}}{0}'.format(directory),
+            '{{prefix}}{}'.format(directory),
         ]
 
         if version != 'default':
