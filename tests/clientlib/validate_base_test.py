@@ -1,10 +1,12 @@
 from __future__ import unicode_literals
 
+import sys
+
 import pytest
-from aspy.yaml import ordered_load
 
 from pre_commit.clientlib.validate_base import get_validator
 from pre_commit.ordereddict import OrderedDict
+from pre_commit.yaml import yaml_load
 from testing.util import get_resource_path
 
 
@@ -68,6 +70,11 @@ def test_returns_object_after_validating(noop_validator):
 def test_load_strategy(noop_validator):
     ret = noop_validator(
         get_resource_path('ordering_data_test.yaml'),
-        load_strategy=ordered_load,
+        load_strategy=yaml_load,
     )
-    assert type(ret) is OrderedDict
+    if sys.version_info[0] < 3:
+        # ruamel.yaml uses a different implementation for Python < 3
+        from ruamel.yaml.compat import ordereddict
+        assert isinstance(ret, ordereddict)
+    else:
+        assert isinstance(ret, OrderedDict)

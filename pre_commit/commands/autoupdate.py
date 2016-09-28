@@ -4,9 +4,6 @@ from __future__ import unicode_literals
 import logging
 import sys
 
-from aspy.yaml import ordered_dump
-from aspy.yaml import ordered_load
-
 import pre_commit.constants as C
 from pre_commit.clientlib.validate_config import CONFIG_JSON_SCHEMA
 from pre_commit.clientlib.validate_config import is_local_hooks
@@ -18,6 +15,8 @@ from pre_commit.repository import Repository
 from pre_commit.util import CalledProcessError
 from pre_commit.util import cmd_output
 from pre_commit.util import cwd
+from pre_commit.yaml import yaml_dump
+from pre_commit.yaml import yaml_load
 
 
 logger = logging.getLogger('pre_commit')
@@ -79,7 +78,7 @@ def autoupdate(runner):
 
     input_configs = load_config(
         runner.config_file_path,
-        load_strategy=ordered_load,
+        load_strategy=yaml_load,
     )
 
     for repo_config in input_configs:
@@ -111,7 +110,7 @@ def autoupdate(runner):
     if changed:
         with open(runner.config_file_path, 'w') as config_file:
             config_file.write(
-                ordered_dump(
+                yaml_dump(
                     remove_defaults(output_configs, CONFIG_JSON_SCHEMA),
                     **C.YAML_DUMP_KWARGS
                 )
