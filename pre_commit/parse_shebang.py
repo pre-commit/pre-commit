@@ -6,8 +6,6 @@ import os.path
 import shlex
 import string
 
-from pre_commit import five
-
 
 printable = frozenset(string.printable)
 
@@ -31,8 +29,7 @@ def parse_bytesio(bytesio):
         if c not in printable:
             return ()
 
-    # shlex.split is horribly broken in py26 on text strings
-    cmd = tuple(shlex.split(five.n(first_line)))
+    cmd = tuple(shlex.split(first_line))
     if cmd[0] == '/usr/bin/env':
         cmd = cmd[1:]
     return cmd
