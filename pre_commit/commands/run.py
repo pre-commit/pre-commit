@@ -30,25 +30,6 @@ def _hook_msg_start(hook, verbose):
     )
 
 
-def _print_no_files_skipped(hook, write, args):
-    write(get_hook_message(
-        _hook_msg_start(hook, args.verbose),
-        postfix='(no files to check) ',
-        end_msg='Skipped',
-        end_color=color.TURQUOISE,
-        use_color=args.color,
-    ))
-
-
-def _print_user_skipped(hook, write, args):
-    write(get_hook_message(
-        _hook_msg_start(hook, args.verbose),
-        end_msg='Skipped',
-        end_color=color.YELLOW,
-        use_color=args.color,
-    ))
-
-
 def get_changed_files(new, old):
     return cmd_output(
         'git', 'diff', '--name-only', '{}...{}'.format(old, new),
@@ -71,18 +52,37 @@ def get_filenames(args, include_expr, exclude_expr):
     return getter(include_expr, exclude_expr)
 
 
-def _run_single_hook(hook, repo, args, write, skips=frozenset()):
+SKIPPED = 'Skipped'
+NO_FILES = '(no files to check)'
+
+
+def _run_single_hook(hook, repo, args, write, skips, cols):
     filenames = get_filenames(args, hook['files'], hook['exclude'])
     if hook['id'] in skips:
-        _print_user_skipped(hook, write, args)
+        write(get_hook_message(
+            _hook_msg_start(hook, args.verbose),
+            end_msg=SKIPPED,
+            end_color=color.YELLOW,
+            use_color=args.color,
+            cols=cols,
+        ))
         return 0
     elif not filenames and not hook['always_run']:
-        _print_no_files_skipped(hook, write, args)
+        write(get_hook_message(
+            _hook_msg_start(hook, args.verbose),
+            postfix=NO_FILES,
+            end_msg=SKIPPED,
+            end_color=color.TURQUOISE,
+            use_color=args.color,
+            cols=cols,
+        ))
         return 0
 
     # Print the hook and the dots first in case the hook takes hella long to
     # run.
-    write(get_hook_message(_hook_msg_start(hook, args.verbose), end_len=6))
+    write(get_hook_message(
+        _hook_msg_start(hook, args.verbose), end_len=6, cols=cols,
+    ))
     sys.stdout.flush()
 
     diff_before = cmd_output('git', 'diff', retcode=None, encoding=None)
@@ -128,12 +128,32 @@ def _run_single_hook(hook, repo, args, write, skips=frozenset()):
     return retcode
 
 
+def _compute_cols(hooks, verbose):
+    """Compute the number of columns to display hook messages.  The widest
+    that will be displayed is in the no files skipped case:
+
+        Hook name...(no files to check) Skipped
+
+    or in the verbose case
+
+        Hook name [hookid]...(no files to check) Skipped
+    """
+    if hooks:
+        name_len = max(len(_hook_msg_start(hook, verbose)) for hook in hooks)
+    else:
+        name_len = 0
+
+    cols = name_len + 3 + len(NO_FILES) + 1 + len(SKIPPED)
+    return max(cols, 80)
+
+
 def _run_hooks(repo_hooks, args, write, environ):
     """Actually run the hooks."""
     skips = _get_skips(environ)
+    cols = _compute_cols([hook for _, hook in repo_hooks], args.verbose)
     retval = 0
     for repo, hook in repo_hooks:
-        retval |= _run_single_hook(hook, repo, args, write, skips)
+        retval |= _run_single_hook(hook, repo, args, write, skips, cols)
     return retval
 
 

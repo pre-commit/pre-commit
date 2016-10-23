@@ -2,13 +2,8 @@ from __future__ import unicode_literals
 
 import sys
 
-from pyterminalsize import get_terminal_size
-
 from pre_commit import color
 from pre_commit import five
-
-
-COLS = get_terminal_size((80, 0)).columns
 
 
 def get_hook_message(
@@ -18,7 +13,7 @@ def get_hook_message(
         end_len=0,
         end_color=None,
         use_color=None,
-        cols=COLS,
+        cols=80,
 ):
     """Prints a message for running a hook.
 
