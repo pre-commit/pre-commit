@@ -71,6 +71,8 @@ def install_environment(
         ]
         if version != 'default':
             venv_cmd.extend(['-p', norm_version(version)])
+        else:
+            venv_cmd.extend(['-p', os.path.realpath(sys.executable)])
         repo_cmd_runner.run(venv_cmd)
         with in_env(repo_cmd_runner, version):
             helpers.run_setup_cmd(
