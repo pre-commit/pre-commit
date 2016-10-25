@@ -1,3 +1,11 @@
+0.9.2
+=====
+- Remove some python2.6 compatibility
+- UI is no longer sized to terminal width, instead 80 characters or longest
+  necessary width.
+- Fix inability to create python hook environments when using venv / pyvenv on
+  osx
+
 0.9.1
 =====
 - Remove some python2.6 compatibility
