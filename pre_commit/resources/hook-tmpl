@@ -52,6 +52,7 @@ else
 fi
 
 if ((PRE_COMMIT_RETV != 0)); then
+    echo 'pre-commit hook failed! See above messages and try again'
     retv=1
 fi
 
