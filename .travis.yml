@@ -19,7 +19,7 @@ before_install:
     - |
         if [ "$LATEST_GIT" = "1" ]; then
             ./latest-git.sh
-            export PATH="/tmp/git:$PATH"
+            export PATH="/tmp/git/bin:$PATH"
         fi
     - git --version
 after_success:
