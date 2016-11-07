@@ -82,6 +82,20 @@ def test_python_hook_args_with_spaces(tempdir_factory, store):
 
 
 @pytest.mark.integration
+def test_python_hook_weird_setup_cfg(tempdir_factory, store):
+    path = git_dir(tempdir_factory)
+    with cwd(path):
+        with io.open('setup.cfg', 'w') as setup_cfg:
+            setup_cfg.write('[install]\ninstall_scripts=/usr/sbin\n')
+
+        _test_hook_repo(
+            tempdir_factory, store, 'python_hooks_repo',
+            'foo', [os.devnull],
+            b"['" + five.to_bytes(os.devnull) + b"']\nHello World\n"
+        )
+
+
+@pytest.mark.integration
 def test_switch_language_versions_doesnt_clobber(tempdir_factory, store):
     # We're using the python3 repo because it prints the python version
     path = make_repo(tempdir_factory, 'python3_hooks_repo')
