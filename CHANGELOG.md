@@ -1,3 +1,7 @@
+0.9.3
+=====
+- Fix python hook installation when a strange setup.cfg exists
+
 0.9.2
 =====
 - Remove some python2.6 compatibility
