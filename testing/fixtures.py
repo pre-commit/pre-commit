@@ -5,9 +5,6 @@ import contextlib
 import io
 import os.path
 
-from aspy.yaml import ordered_dump
-from aspy.yaml import ordered_load
-
 import pre_commit.constants as C
 from pre_commit.clientlib.validate_config import CONFIG_JSON_SCHEMA
 from pre_commit.clientlib.validate_config import validate_config_extra
@@ -16,6 +13,8 @@ from pre_commit.jsonschema_extensions import apply_defaults
 from pre_commit.ordereddict import OrderedDict
 from pre_commit.util import cmd_output
 from pre_commit.util import cwd
+from pre_commit.yaml import yaml_dump
+from pre_commit.yaml import yaml_load
 from testing.util import copy_tree_to_path
 from testing.util import get_head_sha
 from testing.util import get_resource_path
@@ -41,10 +40,10 @@ def make_repo(tempdir_factory, repo_source):
 def modify_manifest(path):
     """Modify the manifest yielded by this context to write to hooks.yaml."""
     manifest_path = os.path.join(path, C.MANIFEST_FILE)
-    manifest = ordered_load(io.open(manifest_path).read())
+    manifest = yaml_load(io.open(manifest_path).read())
     yield manifest
     with io.open(manifest_path, 'w') as manifest_file:
-        manifest_file.write(ordered_dump(manifest, **C.YAML_DUMP_KWARGS))
+        manifest_file.write(yaml_dump(manifest, **C.YAML_DUMP_KWARGS))
     cmd_output('git', 'commit', '-am', 'update hooks.yaml', cwd=path)
 
 
@@ -54,10 +53,10 @@ def modify_config(path='.', commit=True):
     .pre-commit-config.yaml
     """
     config_path = os.path.join(path, C.CONFIG_FILE)
-    config = ordered_load(io.open(config_path).read())
+    config = yaml_load(io.open(config_path).read())
     yield config
     with io.open(config_path, 'w', encoding='UTF-8') as config_file:
-        config_file.write(ordered_dump(config, **C.YAML_DUMP_KWARGS))
+        config_file.write(yaml_dump(config, **C.YAML_DUMP_KWARGS))
     if commit:
         cmd_output('git', 'commit', '-am', 'update config', cwd=path)
 
@@ -99,7 +98,7 @@ def write_config(directory, config):
         assert type(config) is OrderedDict
         config = [config]
     with io.open(os.path.join(directory, C.CONFIG_FILE), 'w') as config_file:
-        config_file.write(ordered_dump(config, **C.YAML_DUMP_KWARGS))
+        config_file.write(yaml_dump(config, **C.YAML_DUMP_KWARGS))
 
 
 def add_config_to_repo(git_path, config):
