@@ -152,8 +152,8 @@ def main(argv=None):
 
     with error_handler():
         add_logging_handler(args.color)
-        git.check_for_cygwin_mismatch()
         runner = Runner.create()
+        git.check_for_cygwin_mismatch()
 
         if args.command == 'install':
             return install(
