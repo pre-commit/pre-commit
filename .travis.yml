@@ -5,7 +5,6 @@ env: # These should match the tox env list
     - TOXENV=py34
     - TOXENV=py35
     - TOXENV=pypy
-    - TOXENV=pypy3
     - TOXENV=py27 LATEST_GIT=1
 install: pip install coveralls tox
 script: tox
