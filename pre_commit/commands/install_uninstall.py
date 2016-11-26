@@ -7,6 +7,7 @@ import os
 import os.path
 import sys
 
+from pre_commit import output
 from pre_commit.logging_handler import LoggingHandler
 from pre_commit.util import make_executable
 from pre_commit.util import mkdirp
@@ -61,7 +62,7 @@ def install(runner, overwrite=False, hooks=False, hook_type='pre-commit'):
     if overwrite and os.path.exists(legacy_path):
         os.remove(legacy_path)
     elif os.path.exists(legacy_path):
-        print(
+        output.write_line(
             'Running in migration mode with existing hooks at {}\n'
             'Use -f to use only pre-commit.'.format(
                 legacy_path,
@@ -83,7 +84,7 @@ def install(runner, overwrite=False, hooks=False, hook_type='pre-commit'):
         pre_commit_file_obj.write(contents)
     make_executable(hook_path)
 
-    print('pre-commit installed at {}'.format(hook_path))
+    output.write_line('pre-commit installed at {}'.format(hook_path))
 
     # If they requested we install all of the hooks, do so.
     if hooks:
@@ -110,10 +111,10 @@ def uninstall(runner, hook_type='pre-commit'):
         return 0
 
     os.remove(hook_path)
-    print('{} uninstalled'.format(hook_type))
+    output.write_line('{} uninstalled'.format(hook_type))
 
     if os.path.exists(legacy_path):
         os.rename(legacy_path, hook_path)
-        print('Restored previous hooks to {}'.format(hook_path))
+        output.write_line('Restored previous hooks to {}'.format(hook_path))
 
     return 0

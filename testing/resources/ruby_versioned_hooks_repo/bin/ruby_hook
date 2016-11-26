@@ -1,5 +1,4 @@
 #!/usr/bin/env ruby
 
 puts RUBY_VERSION
-puts RUBY_PATCHLEVEL
 puts 'Hello world from a ruby hook'

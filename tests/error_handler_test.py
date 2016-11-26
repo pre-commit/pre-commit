@@ -11,7 +11,6 @@ import mock
 import pytest
 
 from pre_commit import error_handler
-from pre_commit import five
 from pre_commit.errors import FatalError
 from testing.util import cmd_output_mocked_pre_commit_home
 
@@ -75,17 +74,13 @@ def test_error_handler_uncaught_error(mocked_log_and_exit):
     )
 
 
-def test_log_and_exit(mock_out_store_directory):
-    mocked_write = mock.Mock()
+def test_log_and_exit(cap_out, mock_out_store_directory):
     with pytest.raises(error_handler.PreCommitSystemExit):
         error_handler._log_and_exit(
             'msg', FatalError('hai'), "I'm a stacktrace",
-            write_fn=mocked_write,
         )
 
-    printed = ''.join(
-        five.to_text(call[0][0]) for call in mocked_write.call_args_list
-    )
+    printed = cap_out.get()
     assert printed == (
         'msg: FatalError: hai\n'
         'Check the log at ~/.pre-commit/pre-commit.log\n'
