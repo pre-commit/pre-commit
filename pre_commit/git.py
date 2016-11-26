@@ -2,7 +2,6 @@ from __future__ import unicode_literals
 
 import functools
 import logging
-import os
 import os.path
 import re
 

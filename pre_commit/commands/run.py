@@ -8,7 +8,6 @@ import sys
 from pre_commit import color
 from pre_commit import git
 from pre_commit import output
-from pre_commit.logging_handler import LoggingHandler
 from pre_commit.output import get_hook_message
 from pre_commit.staged_files_only import staged_files_only
 from pre_commit.util import cmd_output
@@ -178,9 +177,6 @@ def _has_unstaged_config(runner):
 
 def run(runner, args, environ=os.environ):
     no_stash = args.no_stash or args.all_files or bool(args.files)
-    # Set up our logging handler
-    logger.addHandler(LoggingHandler(args.color))
-    logger.setLevel(logging.INFO)
 
     # Check if we have unresolved merge conflict files and fail fast.
     if _has_unmerged_paths(runner):

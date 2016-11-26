@@ -15,6 +15,7 @@ from pre_commit.commands.install_uninstall import install
 from pre_commit.commands.install_uninstall import uninstall
 from pre_commit.commands.run import run
 from pre_commit.error_handler import error_handler
+from pre_commit.logging_handler import add_logging_handler
 from pre_commit.runner import Runner
 
 
@@ -23,6 +24,14 @@ from pre_commit.runner import Runner
 # to install packages to the wrong place.  We don't want anything to deal with
 # pyvenv
 os.environ.pop('__PYVENV_LAUNCHER__', None)
+
+
+def _add_color_option(parser):
+    parser.add_argument(
+        '--color', default='auto', type=color.use_color,
+        metavar='{' + ','.join(color.COLOR_CHOICES) + '}',
+        help='Whether to use color in output.  Defaults to `%(default)s`.',
+    )
 
 
 def main(argv=None):
@@ -44,6 +53,7 @@ def main(argv=None):
     install_parser = subparsers.add_parser(
         'install', help='Install the pre-commit script.',
     )
+    _add_color_option(install_parser)
     install_parser.add_argument(
         '-f', '--overwrite', action='store_true',
         help='Overwrite existing hooks / remove migration mode.',
@@ -63,25 +73,26 @@ def main(argv=None):
     uninstall_parser = subparsers.add_parser(
         'uninstall', help='Uninstall the pre-commit script.',
     )
+    _add_color_option(uninstall_parser)
     uninstall_parser.add_argument(
         '-t', '--hook-type', choices=('pre-commit', 'pre-push'),
         default='pre-commit',
     )
 
-    subparsers.add_parser('clean', help='Clean out pre-commit files.')
+    clean_parser = subparsers.add_parser(
+        'clean', help='Clean out pre-commit files.',
+    )
+    _add_color_option(clean_parser)
 
-    subparsers.add_parser(
+    autoupdate_parser = subparsers.add_parser(
         'autoupdate',
         help="Auto-update pre-commit config to the latest repos' versions.",
     )
+    _add_color_option(autoupdate_parser)
 
     run_parser = subparsers.add_parser('run', help='Run hooks.')
+    _add_color_option(run_parser)
     run_parser.add_argument('hook', nargs='?', help='A single hook-id to run')
-    run_parser.add_argument(
-        '--color', default='auto', type=color.use_color,
-        metavar='{' + ','.join(color.COLOR_CHOICES) + '}',
-        help='Whether to use color in output.  Defaults to `%(default)s`.',
-    )
     run_parser.add_argument(
         '--no-stash', default=False, action='store_true',
         help='Use this option to prevent auto stashing of unstaged files.',
@@ -140,6 +151,7 @@ def main(argv=None):
             parser.parse_args(['--help'])
 
     with error_handler():
+        add_logging_handler(args.color)
         runner = Runner.create()
 
         if args.command == 'install':

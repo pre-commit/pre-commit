@@ -6,6 +6,8 @@ from pre_commit import color
 from pre_commit import output
 
 
+logger = logging.getLogger('pre_commit')
+
 LOG_LEVEL_COLORS = {
     'DEBUG': '',
     'INFO': '',
@@ -30,3 +32,8 @@ class LoggingHandler(logging.Handler):
                 record.getMessage(),
             )
         )
+
+
+def add_logging_handler(*args, **kwargs):
+    logger.addHandler(LoggingHandler(*args, **kwargs))
+    logger.setLevel(logging.INFO)

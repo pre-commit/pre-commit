@@ -3,7 +3,6 @@ from __future__ import unicode_literals
 import contextlib
 import errno
 import functools
-import os
 import os.path
 import shutil
 import stat
