@@ -1,6 +1,5 @@
 from __future__ import unicode_literals
 
-import os
 import os.path
 
 from cached_property import cached_property

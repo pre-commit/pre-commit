@@ -2,19 +2,13 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import io
-import logging
-import os
 import os.path
 import sys
 
 from pre_commit import output
-from pre_commit.logging_handler import LoggingHandler
 from pre_commit.util import make_executable
 from pre_commit.util import mkdirp
 from pre_commit.util import resource_filename
-
-
-logger = logging.getLogger('pre_commit')
 
 
 # This is used to identify the hook file we install
@@ -88,9 +82,6 @@ def install(runner, overwrite=False, hooks=False, hook_type='pre-commit'):
 
     # If they requested we install all of the hooks, do so.
     if hooks:
-        # Set up our logging handler
-        logger.addHandler(LoggingHandler(False))
-        logger.setLevel(logging.INFO)
         for repository in runner.repositories:
             repository.require_installed()
 

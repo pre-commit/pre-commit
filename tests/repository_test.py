@@ -3,7 +3,6 @@ from __future__ import unicode_literals
 
 import io
 import logging
-import os
 import os.path
 import re
 import shutil
