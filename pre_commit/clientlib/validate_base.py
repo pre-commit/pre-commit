@@ -4,13 +4,13 @@ from __future__ import unicode_literals
 import argparse
 import os.path
 import re
-import sys
 
 import jsonschema
 import jsonschema.exceptions
 import pkg_resources
 import yaml
 
+from pre_commit import output
 from pre_commit.jsonschema_extensions import apply_defaults
 
 
@@ -69,7 +69,6 @@ def get_validator(
 
 def get_run_function(filenames_help, validate_strategy, exception_cls):
     def run(argv=None):
-        argv = argv if argv is not None else sys.argv[1:]
         parser = argparse.ArgumentParser()
         parser.add_argument('filenames', nargs='*', help=filenames_help)
         parser.add_argument(
@@ -87,7 +86,7 @@ def get_run_function(filenames_help, validate_strategy, exception_cls):
             try:
                 validate_strategy(filename)
             except exception_cls as e:
-                print(e.args[0])
+                output.write_line(e.args[0])
                 retval = 1
         return retval
     return run

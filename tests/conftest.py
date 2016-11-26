@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
+import functools
 import io
 import logging
 import os
@@ -10,6 +11,7 @@ import mock
 import pytest
 
 from pre_commit import five
+from pre_commit import output
 from pre_commit.prefixed_command_runner import PrefixedCommandRunner
 from pre_commit.runner import Runner
 from pre_commit.store import Store
@@ -136,3 +138,39 @@ def runner_with_mocked_store(mock_out_store_directory):
 def log_info_mock():
     with mock.patch.object(logging.getLogger('pre_commit'), 'info') as mck:
         yield mck
+
+
+class FakeStream(object):
+    def __init__(self):
+        self.data = io.BytesIO()
+
+    def write(self, s):
+        self.data.write(s)
+
+    def flush(self):
+        pass
+
+
+class Fixture(object):
+    def __init__(self, stream):
+        self._stream = stream
+
+    def get_bytes(self):
+        """Get the output as-if no encoding occurred"""
+        data = self._stream.data.getvalue()
+        self._stream = io.BytesIO()
+        return data
+
+    def get(self):
+        """Get the output assuming it was written as UTF-8 bytes"""
+        return self.get_bytes().decode('UTF-8')
+
+
+@pytest.yield_fixture
+def cap_out():
+    stream = FakeStream()
+    write = functools.partial(output.write, stream=stream)
+    write_line = functools.partial(output.write_line, stream=stream)
+    with mock.patch.object(output, 'write', write):
+        with mock.patch.object(output, 'write_line', write_line):
+            yield Fixture(stream)

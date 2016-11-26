@@ -4,8 +4,7 @@ import mock
 import pytest
 
 from pre_commit import color
-from pre_commit.output import get_hook_message
-from pre_commit.output import sys_stdout_write_wrapper
+from pre_commit import output
 
 
 @pytest.mark.parametrize(
@@ -25,16 +24,16 @@ from pre_commit.output import sys_stdout_write_wrapper
 )
 def test_get_hook_message_raises(kwargs):
     with pytest.raises(ValueError):
-        get_hook_message('start', **kwargs)
+        output.get_hook_message('start', **kwargs)
 
 
 def test_case_with_end_len():
-    ret = get_hook_message('start', end_len=5, cols=15)
+    ret = output.get_hook_message('start', end_len=5, cols=15)
     assert ret == 'start' + '.' * 4
 
 
 def test_case_with_end_msg():
-    ret = get_hook_message(
+    ret = output.get_hook_message(
         'start',
         end_msg='end',
         end_color='',
@@ -45,7 +44,7 @@ def test_case_with_end_msg():
 
 
 def test_case_with_end_msg_using_color():
-    ret = get_hook_message(
+    ret = output.get_hook_message(
         'start',
         end_msg='end',
         end_color=color.RED,
@@ -56,7 +55,7 @@ def test_case_with_end_msg_using_color():
 
 
 def test_case_with_postfix_message():
-    ret = get_hook_message(
+    ret = output.get_hook_message(
         'start',
         postfix='post ',
         end_msg='end',
@@ -68,7 +67,7 @@ def test_case_with_postfix_message():
 
 
 def test_make_sure_postfix_is_not_colored():
-    ret = get_hook_message(
+    ret = output.get_hook_message(
         'start',
         postfix='post ',
         end_msg='end',
@@ -81,7 +80,7 @@ def test_make_sure_postfix_is_not_colored():
     )
 
 
-def test_sys_stdout_write_wrapper_writes():
+def test_output_write_writes():
     fake_stream = mock.Mock()
-    sys_stdout_write_wrapper('hello world', fake_stream)
+    output.write('hello world', fake_stream)
     assert fake_stream.write.call_count == 1

@@ -163,10 +163,10 @@ def test_run_a_ruby_hook(tempdir_factory, store):
 @pytest.mark.integration
 def test_run_versioned_ruby_hook(tempdir_factory, store):
     _test_hook_repo(
-        tempdir_factory, store, 'ruby_1_9_3_hooks_repo',
+        tempdir_factory, store, 'ruby_versioned_hooks_repo',
         'ruby_hook',
         ['/dev/null'],
-        b'1.9.3\n551\nHello world from a ruby hook\n',
+        b'2.1.5\nHello world from a ruby hook\n',
     )
 
 

@@ -1,7 +1,6 @@
 # -*- coding: UTF-8 -*-
 from __future__ import unicode_literals
 
-import functools
 import io
 import os
 import os.path
@@ -19,7 +18,6 @@ from pre_commit.commands.run import _has_unmerged_paths
 from pre_commit.commands.run import get_changed_files
 from pre_commit.commands.run import run
 from pre_commit.ordereddict import OrderedDict
-from pre_commit.output import sys_stdout_write_wrapper
 from pre_commit.runner import Runner
 from pre_commit.util import cmd_output
 from pre_commit.util import cwd
@@ -49,10 +47,6 @@ def stage_a_file(filename='foo.py'):
     cmd_output('git', 'add', filename)
 
 
-def get_write_mock_output(write_mock):
-    return b''.join(call[0][0] for call in write_mock.write.call_args_list)
-
-
 def _get_opts(
         all_files=False,
         files=(),
@@ -63,7 +57,7 @@ def _get_opts(
         origin='',
         source='',
         allow_unstaged_config=False,
-        hook_stage='commit'
+        hook_stage='commit',
 ):
     # These are mutually exclusive
     assert not (all_files and files)
@@ -81,21 +75,19 @@ def _get_opts(
     )
 
 
-def _do_run(repo, args, environ={}):
+def _do_run(cap_out, repo, args, environ={}):
     runner = Runner(repo)
-    write_mock = mock.Mock()
-    write_fn = functools.partial(sys_stdout_write_wrapper, stream=write_mock)
     with cwd(runner.git_root):  # replicates Runner.create behaviour
-        ret = run(runner, args, write=write_fn, environ=environ)
-    printed = get_write_mock_output(write_mock)
+        ret = run(runner, args, environ=environ)
+    printed = cap_out.get_bytes()
     return ret, printed
 
 
-def _test_run(repo, options, expected_outputs, expected_ret, stage):
+def _test_run(cap_out, repo, opts, expected_outputs, expected_ret, stage):
     if stage:
         stage_a_file()
-    args = _get_opts(**options)
-    ret, printed = _do_run(repo, args)
+    args = _get_opts(**opts)
+    ret, printed = _do_run(cap_out, repo, args)
 
     assert ret == expected_ret, (ret, expected_ret, printed)
     for expected_output_part in expected_outputs:
@@ -103,9 +95,10 @@ def _test_run(repo, options, expected_outputs, expected_ret, stage):
 
 
 def test_run_all_hooks_failing(
-        repo_with_failing_hook, mock_out_store_directory
+        cap_out, repo_with_failing_hook, mock_out_store_directory,
 ):
     _test_run(
+        cap_out,
         repo_with_failing_hook,
         {},
         (
@@ -114,19 +107,21 @@ def test_run_all_hooks_failing(
             b'hookid: failing_hook',
             b'Fail\nfoo.py\n',
         ),
-        1,
-        True,
+        expected_ret=1,
+        stage=True,
     )
 
 
-def test_arbitrary_bytes_hook(tempdir_factory, mock_out_store_directory):
+def test_arbitrary_bytes_hook(
+        cap_out, tempdir_factory, mock_out_store_directory,
+):
     git_path = make_consuming_repo(tempdir_factory, 'arbitrary_bytes_repo')
     with cwd(git_path):
-        _test_run(git_path, {}, (b'\xe2\x98\x83\xb2\n',), 1, True)
+        _test_run(cap_out, git_path, {}, (b'\xe2\x98\x83\xb2\n',), 1, True)
 
 
 def test_hook_that_modifies_but_returns_zero(
-        tempdir_factory, mock_out_store_directory,
+        cap_out, tempdir_factory, mock_out_store_directory,
 ):
     git_path = make_consuming_repo(
         tempdir_factory, 'modified_file_returns_zero_repo',
@@ -134,6 +129,7 @@ def test_hook_that_modifies_but_returns_zero(
     with cwd(git_path):
         stage_a_file('bar.py')
         _test_run(
+            cap_out,
             git_path,
             {},
             (
@@ -177,6 +173,7 @@ def test_hook_that_modifies_but_returns_zero(
     )
 )
 def test_run(
+        cap_out,
         repo_with_passing_hook,
         options,
         outputs,
@@ -184,13 +181,29 @@ def test_run(
         stage,
         mock_out_store_directory,
 ):
-    _test_run(repo_with_passing_hook, options, outputs, expected_ret, stage)
+    _test_run(
+        cap_out,
+        repo_with_passing_hook,
+        options,
+        outputs,
+        expected_ret,
+        stage,
+    )
 
 
-def test_always_run(repo_with_passing_hook, mock_out_store_directory):
+def test_always_run(
+        cap_out, repo_with_passing_hook, mock_out_store_directory,
+):
     with modify_config() as config:
         config[0]['hooks'][0]['always_run'] = True
-    _test_run(repo_with_passing_hook, {}, (b'Bash hook', b'Passed'), 0, False)
+    _test_run(
+        cap_out,
+        repo_with_passing_hook,
+        {},
+        (b'Bash hook', b'Passed'),
+        0,
+        stage=False,
+    )
 
 
 @pytest.mark.parametrize(
@@ -203,10 +216,10 @@ def test_always_run(repo_with_passing_hook, mock_out_store_directory):
 )
 def test_origin_source_error_msg(
         repo_with_passing_hook, origin, source, expect_failure,
-        mock_out_store_directory,
+        mock_out_store_directory, cap_out,
 ):
     args = _get_opts(origin=origin, source=source)
-    ret, printed = _do_run(repo_with_passing_hook, args)
+    ret, printed = _do_run(cap_out, repo_with_passing_hook, args)
     warning_msg = b'Specify both --origin and --source.'
     if expect_failure:
         assert ret == 1
@@ -226,6 +239,7 @@ def test_origin_source_error_msg(
     ),
 )
 def test_no_stash(
+        cap_out,
         repo_with_passing_hook,
         no_stash,
         all_files,
@@ -238,7 +252,7 @@ def test_no_stash(
         foo_file.write('import os\n')
 
     args = _get_opts(no_stash=no_stash, all_files=all_files)
-    ret, printed = _do_run(repo_with_passing_hook, args)
+    ret, printed = _do_run(cap_out, repo_with_passing_hook, args)
     assert ret == 0
     warning_msg = b'[WARNING] Unstaged files detected.'
     if expect_stash:
@@ -254,26 +268,30 @@ def test_has_unmerged_paths(output, expected):
     assert _has_unmerged_paths(mock_runner) is expected
 
 
-def test_merge_conflict(in_merge_conflict, mock_out_store_directory):
-    ret, printed = _do_run(in_merge_conflict, _get_opts())
+def test_merge_conflict(cap_out, in_merge_conflict, mock_out_store_directory):
+    ret, printed = _do_run(cap_out, in_merge_conflict, _get_opts())
     assert ret == 1
     assert b'Unmerged files.  Resolve before committing.' in printed
 
 
-def test_merge_conflict_modified(in_merge_conflict, mock_out_store_directory):
+def test_merge_conflict_modified(
+        cap_out, in_merge_conflict, mock_out_store_directory,
+):
     # Touch another file so we have unstaged non-conflicting things
     assert os.path.exists('dummy')
     with open('dummy', 'w') as dummy_file:
         dummy_file.write('bar\nbaz\n')
 
-    ret, printed = _do_run(in_merge_conflict, _get_opts())
+    ret, printed = _do_run(cap_out, in_merge_conflict, _get_opts())
     assert ret == 1
     assert b'Unmerged files.  Resolve before committing.' in printed
 
 
-def test_merge_conflict_resolved(in_merge_conflict, mock_out_store_directory):
+def test_merge_conflict_resolved(
+        cap_out, in_merge_conflict, mock_out_store_directory,
+):
     cmd_output('git', 'add', '.')
-    ret, printed = _do_run(in_merge_conflict, _get_opts())
+    ret, printed = _do_run(cap_out, in_merge_conflict, _get_opts())
     for msg in (
             b'Checking merge-conflict files only.', b'Bash hook', b'Passed',
     ):
@@ -314,30 +332,34 @@ def test_get_skips(environ, expected_output):
     assert ret == expected_output
 
 
-def test_skip_hook(repo_with_passing_hook, mock_out_store_directory):
+def test_skip_hook(cap_out, repo_with_passing_hook, mock_out_store_directory):
     ret, printed = _do_run(
-        repo_with_passing_hook, _get_opts(), {'SKIP': 'bash_hook'},
+        cap_out, repo_with_passing_hook, _get_opts(), {'SKIP': 'bash_hook'},
     )
     for msg in (b'Bash hook', b'Skipped'):
         assert msg in printed
 
 
 def test_hook_id_not_in_non_verbose_output(
-        repo_with_passing_hook, mock_out_store_directory
+        cap_out, repo_with_passing_hook, mock_out_store_directory,
 ):
-    ret, printed = _do_run(repo_with_passing_hook, _get_opts(verbose=False))
+    ret, printed = _do_run(
+        cap_out, repo_with_passing_hook, _get_opts(verbose=False),
+    )
     assert b'[bash_hook]' not in printed
 
 
 def test_hook_id_in_verbose_output(
-        repo_with_passing_hook, mock_out_store_directory,
+        cap_out, repo_with_passing_hook, mock_out_store_directory,
 ):
-    ret, printed = _do_run(repo_with_passing_hook, _get_opts(verbose=True))
+    ret, printed = _do_run(
+        cap_out, repo_with_passing_hook, _get_opts(verbose=True),
+    )
     assert b'[bash_hook] Bash hook' in printed
 
 
 def test_multiple_hooks_same_id(
-        repo_with_passing_hook, mock_out_store_directory,
+        cap_out, repo_with_passing_hook, mock_out_store_directory,
 ):
     with cwd(repo_with_passing_hook):
         # Add bash hook on there again
@@ -345,7 +367,7 @@ def test_multiple_hooks_same_id(
             config[0]['hooks'].append({'id': 'bash_hook'})
         stage_a_file()
 
-    ret, output = _do_run(repo_with_passing_hook, _get_opts())
+    ret, output = _do_run(cap_out, repo_with_passing_hook, _get_opts())
     assert ret == 0
     assert output.count(b'Bash hook') == 2
 
@@ -470,11 +492,12 @@ def test_lots_of_files(mock_out_store_directory, tempdir_factory):
     )
 )
 def test_local_hook_for_stages(
+        cap_out,
         repo_with_passing_hook, mock_out_store_directory,
         stage_for_first_hook,
         stage_for_second_hook,
         hook_stage,
-        expected_output
+        expected_output,
 ):
     config = OrderedDict((
         ('repo', 'local'),
@@ -501,6 +524,7 @@ def test_local_hook_for_stages(
     cmd_output('git', 'add', 'dummy.py')
 
     _test_run(
+        cap_out,
         repo_with_passing_hook,
         {'hook_stage': hook_stage},
         expected_outputs=expected_output,
@@ -509,7 +533,9 @@ def test_local_hook_for_stages(
     )
 
 
-def test_local_hook_passes(repo_with_passing_hook, mock_out_store_directory):
+def test_local_hook_passes(
+        cap_out, repo_with_passing_hook, mock_out_store_directory,
+):
     config = OrderedDict((
         ('repo', 'local'),
         ('hooks', (OrderedDict((
@@ -533,15 +559,18 @@ def test_local_hook_passes(repo_with_passing_hook, mock_out_store_directory):
     cmd_output('git', 'add', 'dummy.py')
 
     _test_run(
+        cap_out,
         repo_with_passing_hook,
-        options={},
+        opts={},
         expected_outputs=[b''],
         expected_ret=0,
-        stage=False
+        stage=False,
     )
 
 
-def test_local_hook_fails(repo_with_passing_hook, mock_out_store_directory):
+def test_local_hook_fails(
+        cap_out, repo_with_passing_hook, mock_out_store_directory,
+):
     config = OrderedDict((
         ('repo', 'local'),
         ('hooks', [OrderedDict((
@@ -559,8 +588,9 @@ def test_local_hook_fails(repo_with_passing_hook, mock_out_store_directory):
     cmd_output('git', 'add', 'dummy.py')
 
     _test_run(
+        cap_out,
         repo_with_passing_hook,
-        options={},
+        opts={},
         expected_outputs=[b''],
         expected_ret=1,
         stage=False,
@@ -576,10 +606,10 @@ def modified_config_repo(repo_with_passing_hook):
 
 
 def test_allow_unstaged_config_option(
-        modified_config_repo, mock_out_store_directory,
+        cap_out, modified_config_repo, mock_out_store_directory,
 ):
     args = _get_opts(allow_unstaged_config=True)
-    ret, printed = _do_run(modified_config_repo, args)
+    ret, printed = _do_run(cap_out, modified_config_repo, args)
     expected = (
         b'You have an unstaged config file and have specified the '
         b'--allow-unstaged-config option.'
@@ -589,10 +619,10 @@ def test_allow_unstaged_config_option(
 
 
 def test_no_allow_unstaged_config_option(
-        modified_config_repo, mock_out_store_directory,
+        cap_out, modified_config_repo, mock_out_store_directory,
 ):
     args = _get_opts(allow_unstaged_config=False)
-    ret, printed = _do_run(modified_config_repo, args)
+    ret, printed = _do_run(cap_out, modified_config_repo, args)
     assert b'Your .pre-commit-config.yaml is unstaged.' in printed
     assert ret == 1
 
@@ -606,10 +636,10 @@ def test_no_allow_unstaged_config_option(
     ),
 )
 def test_unstaged_message_suppressed(
-        modified_config_repo, mock_out_store_directory, opts,
+        cap_out, modified_config_repo, mock_out_store_directory, opts,
 ):
     args = _get_opts(**opts)
-    ret, printed = _do_run(modified_config_repo, args)
+    ret, printed = _do_run(cap_out, modified_config_repo, args)
     assert b'Your .pre-commit-config.yaml is unstaged.' not in printed
 
 

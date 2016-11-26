@@ -66,5 +66,13 @@ def get_hook_message(
 stdout_byte_stream = getattr(sys.stdout, 'buffer', sys.stdout)
 
 
-def sys_stdout_write_wrapper(s, stream=stdout_byte_stream):
+def write(s, stream=stdout_byte_stream):
     stream.write(five.to_bytes(s))
+    stream.flush()
+
+
+def write_line(s=None, stream=stdout_byte_stream):
+    if s is not None:
+        stream.write(five.to_bytes(s))
+    stream.write(b'\n')
+    stream.flush()

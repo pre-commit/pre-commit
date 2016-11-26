@@ -2,12 +2,12 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import logging
-import sys
 
 from aspy.yaml import ordered_dump
 from aspy.yaml import ordered_load
 
 import pre_commit.constants as C
+from pre_commit import output
 from pre_commit.clientlib.validate_config import CONFIG_JSON_SCHEMA
 from pre_commit.clientlib.validate_config import is_local_hooks
 from pre_commit.clientlib.validate_config import load_config
@@ -86,26 +86,23 @@ def autoupdate(runner):
         if is_local_hooks(repo_config):
             output_configs.append(repo_config)
             continue
-        sys.stdout.write('Updating {}...'.format(repo_config['repo']))
-        sys.stdout.flush()
+        output.write('Updating {}...'.format(repo_config['repo']))
         try:
             new_repo_config = _update_repository(repo_config, runner)
         except RepositoryCannotBeUpdatedError as error:
-            print(error.args[0])
+            output.write_line(error.args[0])
             output_configs.append(repo_config)
             retv = 1
             continue
 
         if new_repo_config['sha'] != repo_config['sha']:
             changed = True
-            print(
-                'updating {} -> {}.'.format(
-                    repo_config['sha'], new_repo_config['sha'],
-                )
-            )
+            output.write_line('updating {} -> {}.'.format(
+                repo_config['sha'], new_repo_config['sha'],
+            ))
             output_configs.append(new_repo_config)
         else:
-            print('already up to date.')
+            output.write_line('already up to date.')
             output_configs.append(repo_config)
 
     if changed:

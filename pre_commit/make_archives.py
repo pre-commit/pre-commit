@@ -6,6 +6,7 @@ import os.path
 import tarfile
 
 from pre_commit import five
+from pre_commit import output
 from pre_commit.util import cmd_output
 from pre_commit.util import cwd
 from pre_commit.util import rmtree
@@ -61,7 +62,9 @@ def make_archive(name, repo, ref, destdir):
 
 def main():
     for archive_name, repo, ref in REPOS:
-        print('Making {}.tar.gz for {}@{}'.format(archive_name, repo, ref))
+        output.write_line('Making {}.tar.gz for {}@{}'.format(
+            archive_name, repo, ref,
+        ))
         make_archive(archive_name, repo, ref, RESOURCES_DIR)
 
 

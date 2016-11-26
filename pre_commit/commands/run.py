@@ -7,9 +7,9 @@ import sys
 
 from pre_commit import color
 from pre_commit import git
+from pre_commit import output
 from pre_commit.logging_handler import LoggingHandler
 from pre_commit.output import get_hook_message
-from pre_commit.output import sys_stdout_write_wrapper
 from pre_commit.staged_files_only import staged_files_only
 from pre_commit.util import cmd_output
 from pre_commit.util import noop_context
@@ -56,10 +56,10 @@ SKIPPED = 'Skipped'
 NO_FILES = '(no files to check)'
 
 
-def _run_single_hook(hook, repo, args, write, skips, cols):
+def _run_single_hook(hook, repo, args, skips, cols):
     filenames = get_filenames(args, hook['files'], hook['exclude'])
     if hook['id'] in skips:
-        write(get_hook_message(
+        output.write(get_hook_message(
             _hook_msg_start(hook, args.verbose),
             end_msg=SKIPPED,
             end_color=color.YELLOW,
@@ -68,7 +68,7 @@ def _run_single_hook(hook, repo, args, write, skips, cols):
         ))
         return 0
     elif not filenames and not hook['always_run']:
-        write(get_hook_message(
+        output.write(get_hook_message(
             _hook_msg_start(hook, args.verbose),
             postfix=NO_FILES,
             end_msg=SKIPPED,
@@ -80,7 +80,7 @@ def _run_single_hook(hook, repo, args, write, skips, cols):
 
     # Print the hook and the dots first in case the hook takes hella long to
     # run.
-    write(get_hook_message(
+    output.write(get_hook_message(
         _hook_msg_start(hook, args.verbose), end_len=6, cols=cols,
     ))
     sys.stdout.flush()
@@ -104,26 +104,25 @@ def _run_single_hook(hook, repo, args, write, skips, cols):
         print_color = color.GREEN
         pass_fail = 'Passed'
 
-    write(color.format_color(pass_fail, print_color, args.color) + '\n')
+    output.write_line(color.format_color(pass_fail, print_color, args.color))
 
     if (stdout or stderr or file_modifications) and (retcode or args.verbose):
-        write('hookid: {}\n'.format(hook['id']))
-        write('\n')
+        output.write_line('hookid: {}\n'.format(hook['id']))
 
         # Print a message if failing due to file modifications
         if file_modifications:
-            write('Files were modified by this hook.')
+            output.write('Files were modified by this hook.')
 
             if stdout or stderr:
-                write(' Additional output:\n')
+                output.write_line(' Additional output:')
 
-            write('\n')
+            output.write_line()
 
-        for output in (stdout, stderr):
-            assert type(output) is bytes, type(output)
-            if output.strip():
-                write(output.strip() + b'\n')
-        write('\n')
+        for out in (stdout, stderr):
+            assert type(out) is bytes, type(out)
+            if out.strip():
+                output.write_line(out.strip())
+        output.write_line()
 
     return retcode
 
@@ -147,13 +146,13 @@ def _compute_cols(hooks, verbose):
     return max(cols, 80)
 
 
-def _run_hooks(repo_hooks, args, write, environ):
+def _run_hooks(repo_hooks, args, environ):
     """Actually run the hooks."""
     skips = _get_skips(environ)
     cols = _compute_cols([hook for _, hook in repo_hooks], args.verbose)
     retval = 0
     for repo, hook in repo_hooks:
-        retval |= _run_single_hook(hook, repo, args, write, skips, cols)
+        retval |= _run_single_hook(hook, repo, args, skips, cols)
     return retval
 
 
@@ -177,10 +176,10 @@ def _has_unstaged_config(runner):
     return retcode == 1
 
 
-def run(runner, args, write=sys_stdout_write_wrapper, environ=os.environ):
+def run(runner, args, environ=os.environ):
     no_stash = args.no_stash or args.all_files or bool(args.files)
     # Set up our logging handler
-    logger.addHandler(LoggingHandler(args.color, write=write))
+    logger.addHandler(LoggingHandler(args.color))
     logger.setLevel(logging.INFO)
 
     # Check if we have unresolved merge conflict files and fail fast.
@@ -220,7 +219,7 @@ def run(runner, args, write=sys_stdout_write_wrapper, environ=os.environ):
                 if hook['id'] == args.hook
             ]
             if not repo_hooks:
-                write('No hook with id `{}`\n'.format(args.hook))
+                output.write_line('No hook with id `{}`'.format(args.hook))
                 return 1
 
         # Filter hooks for stages
@@ -229,4 +228,4 @@ def run(runner, args, write=sys_stdout_write_wrapper, environ=os.environ):
             if not hook['stages'] or args.hook_stage in hook['stages']
         ]
 
-        return _run_hooks(repo_hooks, args, write, environ)
+        return _run_hooks(repo_hooks, args, environ)
