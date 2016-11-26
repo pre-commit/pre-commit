@@ -4,6 +4,7 @@ import functools
 import logging
 import os.path
 import re
+import sys
 
 from pre_commit.errors import FatalError
 from pre_commit.util import CalledProcessError
@@ -102,3 +103,26 @@ def get_files_matching(all_file_list_strategy):
 get_staged_files_matching = get_files_matching(get_staged_files)
 get_all_files_matching = get_files_matching(get_all_files)
 get_conflicted_files_matching = get_files_matching(get_conflicted_files)
+
+
+def check_for_cygwin_mismatch():
+    """See https://github.com/pre-commit/pre-commit/issues/354"""
+    if sys.platform in ('cygwin', 'win32'):  # pragma: no cover (windows)
+        is_cygwin_python = sys.platform == 'cygwin'
+        toplevel = cmd_output('git', 'rev-parse', '--show-toplevel')[1]
+        is_cygwin_git = toplevel.startswith('/')
+
+        if is_cygwin_python ^ is_cygwin_git:
+            exe_type = {True: '(cygwin)', False: '(windows)'}
+            logger.warn(
+                'pre-commit has detected a mix of cygwin python / git\n'
+                'This combination is not supported, it is likely you will '
+                'receive an error later in the program.\n'
+                'Make sure to use cygwin git+python while using cygwin\n'
+                'These can be installed through the cygwin installer.\n'
+                ' - python {}\n'
+                ' - git {}\n'.format(
+                    exe_type[is_cygwin_python],
+                    exe_type[is_cygwin_git],
+                )
+            )
