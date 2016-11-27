@@ -11,6 +11,7 @@ import pytest
 
 from pre_commit import five
 from pre_commit import output
+from pre_commit.logging_handler import add_logging_handler
 from pre_commit.prefixed_command_runner import PrefixedCommandRunner
 from pre_commit.runner import Runner
 from pre_commit.store import Store
@@ -90,7 +91,7 @@ def in_conflicting_submodule(tempdir_factory):
         yield
 
 
-@pytest.yield_fixture(scope='session', autouse=True)
+@pytest.yield_fixture(autouse=True, scope='session')
 def dont_write_to_home_directory():
     """pre_commit.store.Store will by default write to the home directory
     We'll mock out `Store.get_default_directory` to raise invariantly so we
@@ -105,6 +106,11 @@ def dont_write_to_home_directory():
         side_effect=YouForgotToExplicitlyChooseAStoreDirectory,
     ):
         yield
+
+
+@pytest.fixture(autouse=True, scope='session')
+def configure_logging():
+    add_logging_handler(use_color=False)
 
 
 @pytest.yield_fixture
