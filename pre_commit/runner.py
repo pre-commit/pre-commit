@@ -4,7 +4,6 @@ import os.path
 
 from cached_property import cached_property
 
-import pre_commit.constants as C
 from pre_commit import git
 from pre_commit.clientlib.validate_config import load_config
 from pre_commit.repository import Repository
@@ -16,19 +15,19 @@ class Runner(object):
     repository under test.
     """
 
-    def __init__(self, git_root, config_file=None):
+    def __init__(self, git_root, config_file):
         self.git_root = git_root
-        self.config_file = config_file or C.CONFIG_FILE
+        self.config_file = config_file
 
     @classmethod
-    def create(cls, config_file=None):
+    def create(cls, config_file):
         """Creates a PreCommitRunner by doing the following:
             - Finds the root of the current git repository
             - chdir to that directory
         """
         root = git.get_root()
         os.chdir(root)
-        return cls(root, config_file=config_file)
+        return cls(root, config_file)
 
     @cached_property
     def git_dir(self):

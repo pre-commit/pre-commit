@@ -35,7 +35,10 @@ def _add_color_option(parser):
 
 
 def _add_config_option(parser):
-    parser.add_argument('-c', '--config', help='Path to alternate config file')
+    parser.add_argument(
+        '-c', '--config', default='.pre-commit-config.yaml',
+        help='Path to alternate config file'
+    )
 
 
 def main(argv=None):
@@ -43,6 +46,7 @@ def main(argv=None):
     argv = [five.to_text(arg) for arg in argv]
     parser = argparse.ArgumentParser()
 
+    parser.set_defaults(config='.pre-commit-config.yaml')
     # http://stackoverflow.com/a/8521644/812183
     parser.add_argument(
         '-V', '--version',
@@ -58,6 +62,7 @@ def main(argv=None):
         'install', help='Install the pre-commit script.',
     )
     _add_color_option(install_parser)
+    _add_config_option(install_parser)
     install_parser.add_argument(
         '-f', '--overwrite', action='store_true',
         help='Overwrite existing hooks / remove migration mode.',
@@ -78,6 +83,7 @@ def main(argv=None):
         'uninstall', help='Uninstall the pre-commit script.',
     )
     _add_color_option(uninstall_parser)
+    _add_config_option(uninstall_parser)
     uninstall_parser.add_argument(
         '-t', '--hook-type', choices=('pre-commit', 'pre-push'),
         default='pre-commit',
@@ -87,7 +93,7 @@ def main(argv=None):
         'clean', help='Clean out pre-commit files.',
     )
     _add_color_option(clean_parser)
-
+    _add_config_option(clean_parser)
     autoupdate_parser = subparsers.add_parser(
         'autoupdate',
         help="Auto-update pre-commit config to the latest repos' versions.",
@@ -97,6 +103,7 @@ def main(argv=None):
 
     run_parser = subparsers.add_parser('run', help='Run hooks.')
     _add_color_option(run_parser)
+    _add_config_option(run_parser)
     run_parser.add_argument('hook', nargs='?', help='A single hook-id to run')
     run_parser.add_argument(
         '--no-stash', default=False, action='store_true',
@@ -124,7 +131,6 @@ def main(argv=None):
         '--hook-stage', choices=('commit', 'push'), default='commit',
         help='The stage during which the hook is fired e.g. commit or push.',
     )
-    _add_config_option(run_parser)
     run_mutex_group = run_parser.add_mutually_exclusive_group(required=False)
     run_mutex_group.add_argument(
         '--all-files', '-a', action='store_true', default=False,
@@ -158,10 +164,7 @@ def main(argv=None):
 
     with error_handler():
         add_logging_handler(args.color)
-        runner_kwargs = {}
-        if hasattr(args, 'config_file'):
-            runner_kwargs['config_file'] = args.config_file
-        runner = Runner.create(**runner_kwargs)
+        runner = Runner.create(args.config)
         git.check_for_cygwin_mismatch()
 
         if args.command == 'install':

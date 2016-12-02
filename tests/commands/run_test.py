@@ -75,7 +75,7 @@ def _get_opts(
 
 
 def _do_run(cap_out, repo, args, environ={}):
-    runner = Runner(repo)
+    runner = Runner(repo, C.CONFIG_FILE)
     with cwd(runner.git_root):  # replicates Runner.create behaviour
         ret = run(runner, args, environ=environ)
     printed = cap_out.get_bytes()
@@ -375,7 +375,7 @@ def test_non_ascii_hook_id(
         repo_with_passing_hook, mock_out_store_directory, tempdir_factory,
 ):
     with cwd(repo_with_passing_hook):
-        install(Runner(repo_with_passing_hook))
+        install(Runner(repo_with_passing_hook, C.CONFIG_FILE))
         _, stdout, _ = cmd_output_mocked_pre_commit_home(
             sys.executable, '-m', 'pre_commit.main', 'run', '☃',
             retcode=None, tempdir_factory=tempdir_factory,
@@ -393,7 +393,7 @@ def test_stdout_write_bug_py26(
             config[0]['hooks'][0]['args'] = ['☃']
         stage_a_file()
 
-        install(Runner(repo_with_failing_hook))
+        install(Runner(repo_with_failing_hook, C.CONFIG_FILE))
 
         # Have to use subprocess because pytest monkeypatches sys.stdout
         _, stdout, _ = cmd_output_mocked_pre_commit_home(
@@ -411,7 +411,7 @@ def test_stdout_write_bug_py26(
 def test_hook_install_failure(mock_out_store_directory, tempdir_factory):
     git_path = make_consuming_repo(tempdir_factory, 'not_installable_repo')
     with cwd(git_path):
-        install(Runner(git_path))
+        install(Runner(git_path, C.CONFIG_FILE))
 
         _, stdout, _ = cmd_output_mocked_pre_commit_home(
             'git', 'commit', '-m', 'Commit!',
@@ -460,7 +460,7 @@ def test_lots_of_files(mock_out_store_directory, tempdir_factory):
             open(filename, 'w').close()
 
         cmd_output('bash', '-c', 'git add .')
-        install(Runner(git_path))
+        install(Runner(git_path, C.CONFIG_FILE))
 
         cmd_output_mocked_pre_commit_home(
             'git', 'commit', '-m', 'Commit!',
@@ -646,7 +646,7 @@ def test_files_running_subdir(
         repo_with_passing_hook, mock_out_store_directory, tempdir_factory,
 ):
     with cwd(repo_with_passing_hook):
-        install(Runner(repo_with_passing_hook))
+        install(Runner(repo_with_passing_hook, C.CONFIG_FILE))
 
         os.mkdir('subdir')
         open('subdir/foo.py', 'w').close()

@@ -45,7 +45,7 @@ def test_autoupdate_up_to_date_repo(
 
     before = open(C.CONFIG_FILE).read()
     assert '^$' not in before
-    runner = Runner('.')
+    runner = Runner('.', C.CONFIG_FILE)
     ret = autoupdate(runner)
     after = open(C.CONFIG_FILE).read()
     assert ret == 0
@@ -86,7 +86,7 @@ def test_autoupdate_out_of_date_repo(
     write_config('.', config)
 
     before = open(C.CONFIG_FILE).read()
-    runner = Runner('.')
+    runner = Runner('.', C.CONFIG_FILE)
     ret = autoupdate(runner)
     after = open(C.CONFIG_FILE).read()
     assert ret == 0
@@ -111,7 +111,7 @@ def test_autoupdate_tagged_repo(
     )
     write_config('.', config)
 
-    ret = autoupdate(Runner('.'))
+    ret = autoupdate(Runner('.', C.CONFIG_FILE))
     assert ret == 0
     assert 'v1.2.3' in open(C.CONFIG_FILE).read()
 
@@ -156,7 +156,7 @@ def test_autoupdate_hook_disappearing_repo(
     write_config('.', config)
 
     before = open(C.CONFIG_FILE).read()
-    runner = Runner('.')
+    runner = Runner('.', C.CONFIG_FILE)
     ret = autoupdate(runner)
     after = open(C.CONFIG_FILE).read()
     assert ret == 1
@@ -167,7 +167,7 @@ def test_autoupdate_local_hooks(tempdir_factory):
     git_path = git_dir(tempdir_factory)
     config = config_with_local_hooks()
     path = add_config_to_repo(git_path, config)
-    runner = Runner(path)
+    runner = Runner(path, C.CONFIG_FILE)
     assert autoupdate(runner) == 0
     new_config_writen = load_config(runner.config_file_path)
     assert len(new_config_writen) == 1
@@ -183,7 +183,7 @@ def test_autoupdate_local_hooks_with_out_of_date_repo(
     local_config = config_with_local_hooks()
     config = [local_config, stale_config]
     write_config('.', config)
-    runner = Runner('.')
+    runner = Runner('.', C.CONFIG_FILE)
     assert autoupdate(runner) == 0
     new_config_writen = load_config(runner.config_file_path)
     assert len(new_config_writen) == 2

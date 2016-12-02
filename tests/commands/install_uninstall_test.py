@@ -10,6 +10,7 @@ import sys
 
 import mock
 
+import pre_commit.constants as C
 from pre_commit.commands.install_uninstall import IDENTIFYING_HASH
 from pre_commit.commands.install_uninstall import install
 from pre_commit.commands.install_uninstall import is_our_pre_commit
@@ -53,7 +54,7 @@ def test_is_previous_pre_commit(in_tmpdir):
 
 def test_install_pre_commit(tempdir_factory):
     path = git_dir(tempdir_factory)
-    runner = Runner(path)
+    runner = Runner(path, C.CONFIG_FILE)
     ret = install(runner)
     assert ret == 0
     assert os.path.exists(runner.pre_commit_path)
@@ -87,7 +88,7 @@ def test_install_hooks_directory_not_present(tempdir_factory):
     hooks = os.path.join(path, '.git', 'hooks')
     if os.path.exists(hooks):  # pragma: no cover (latest git)
         shutil.rmtree(hooks)
-    runner = Runner(path)
+    runner = Runner(path, C.CONFIG_FILE)
     install(runner)
     assert os.path.exists(runner.pre_commit_path)
 
@@ -97,7 +98,7 @@ def test_install_hooks_dead_symlink(
         tempdir_factory,
 ):  # pragma: no cover (non-windows)
     path = git_dir(tempdir_factory)
-    runner = Runner(path)
+    runner = Runner(path, C.CONFIG_FILE)
     mkdirp(os.path.dirname(runner.pre_commit_path))
     os.symlink('/fake/baz', os.path.join(path, '.git', 'hooks', 'pre-commit'))
     install(runner)
@@ -106,14 +107,14 @@ def test_install_hooks_dead_symlink(
 
 def test_uninstall_does_not_blow_up_when_not_there(tempdir_factory):
     path = git_dir(tempdir_factory)
-    runner = Runner(path)
+    runner = Runner(path, C.CONFIG_FILE)
     ret = uninstall(runner)
     assert ret == 0
 
 
 def test_uninstall(tempdir_factory):
     path = git_dir(tempdir_factory)
-    runner = Runner(path)
+    runner = Runner(path, C.CONFIG_FILE)
     assert not os.path.exists(runner.pre_commit_path)
     install(runner)
     assert os.path.exists(runner.pre_commit_path)
@@ -156,7 +157,7 @@ NORMAL_PRE_COMMIT_RUN = re.compile(
 def test_install_pre_commit_and_run(tempdir_factory):
     path = make_consuming_repo(tempdir_factory, 'script_hooks_repo')
     with cwd(path):
-        assert install(Runner(path)) == 0
+        assert install(Runner(path, C.CONFIG_FILE)) == 0
 
         ret, output = _get_commit_output(tempdir_factory)
         assert ret == 0
@@ -172,7 +173,7 @@ def test_install_in_submodule_and_run(tempdir_factory):
 
     sub_pth = os.path.join(parent_path, 'sub')
     with cwd(sub_pth):
-        assert install(Runner(sub_pth)) == 0
+        assert install(Runner(sub_pth, C.CONFIG_FILE)) == 0
         ret, output = _get_commit_output(tempdir_factory)
         assert ret == 0
         assert NORMAL_PRE_COMMIT_RUN.match(output)
@@ -189,7 +190,7 @@ def test_commit_am(tempdir_factory):
         with io.open('unstaged', 'w') as foo_file:
             foo_file.write('Oh hai')
 
-        assert install(Runner(path)) == 0
+        assert install(Runner(path, C.CONFIG_FILE)) == 0
 
         ret, output = _get_commit_output(tempdir_factory)
         assert ret == 0
@@ -198,8 +199,8 @@ def test_commit_am(tempdir_factory):
 def test_install_idempotent(tempdir_factory):
     path = make_consuming_repo(tempdir_factory, 'script_hooks_repo')
     with cwd(path):
-        assert install(Runner(path)) == 0
-        assert install(Runner(path)) == 0
+        assert install(Runner(path, C.CONFIG_FILE)) == 0
+        assert install(Runner(path, C.CONFIG_FILE)) == 0
 
         ret, output = _get_commit_output(tempdir_factory)
         assert ret == 0
@@ -219,7 +220,7 @@ def test_environment_not_sourced(tempdir_factory):
     with cwd(path):
         # Patch the executable to simulate rming virtualenv
         with mock.patch.object(sys, 'executable', '/bin/false'):
-            assert install(Runner(path)) == 0
+            assert install(Runner(path, C.CONFIG_FILE)) == 0
 
         # Use a specific homedir to ignore --user installs
         homedir = tempdir_factory.get()
@@ -257,7 +258,7 @@ FAILING_PRE_COMMIT_RUN = re.compile(
 def test_failing_hooks_returns_nonzero(tempdir_factory):
     path = make_consuming_repo(tempdir_factory, 'failing_hook_repo')
     with cwd(path):
-        assert install(Runner(path)) == 0
+        assert install(Runner(path, C.CONFIG_FILE)) == 0
 
         ret, output = _get_commit_output(tempdir_factory)
         assert ret == 1
@@ -275,7 +276,7 @@ EXISTING_COMMIT_RUN = re.compile(
 def test_install_existing_hooks_no_overwrite(tempdir_factory):
     path = make_consuming_repo(tempdir_factory, 'script_hooks_repo')
     with cwd(path):
-        runner = Runner(path)
+        runner = Runner(path, C.CONFIG_FILE)
 
         # Write out an "old" hook
         mkdirp(os.path.dirname(runner.pre_commit_path))
@@ -301,7 +302,7 @@ def test_install_existing_hooks_no_overwrite(tempdir_factory):
 def test_install_existing_hook_no_overwrite_idempotent(tempdir_factory):
     path = make_consuming_repo(tempdir_factory, 'script_hooks_repo')
     with cwd(path):
-        runner = Runner(path)
+        runner = Runner(path, C.CONFIG_FILE)
 
         # Write out an "old" hook
         mkdirp(os.path.dirname(runner.pre_commit_path))
@@ -330,7 +331,7 @@ FAIL_OLD_HOOK = re.compile(
 def test_failing_existing_hook_returns_1(tempdir_factory):
     path = make_consuming_repo(tempdir_factory, 'script_hooks_repo')
     with cwd(path):
-        runner = Runner(path)
+        runner = Runner(path, C.CONFIG_FILE)
 
         # Write out a failing "old" hook
         mkdirp(os.path.dirname(runner.pre_commit_path))
@@ -349,7 +350,7 @@ def test_failing_existing_hook_returns_1(tempdir_factory):
 def test_install_overwrite_no_existing_hooks(tempdir_factory):
     path = make_consuming_repo(tempdir_factory, 'script_hooks_repo')
     with cwd(path):
-        assert install(Runner(path), overwrite=True) == 0
+        assert install(Runner(path, C.CONFIG_FILE), overwrite=True) == 0
 
         ret, output = _get_commit_output(tempdir_factory)
         assert ret == 0
@@ -359,7 +360,7 @@ def test_install_overwrite_no_existing_hooks(tempdir_factory):
 def test_install_overwrite(tempdir_factory):
     path = make_consuming_repo(tempdir_factory, 'script_hooks_repo')
     with cwd(path):
-        runner = Runner(path)
+        runner = Runner(path, C.CONFIG_FILE)
 
         # Write out the "old" hook
         mkdirp(os.path.dirname(runner.pre_commit_path))
@@ -377,7 +378,7 @@ def test_install_overwrite(tempdir_factory):
 def test_uninstall_restores_legacy_hooks(tempdir_factory):
     path = make_consuming_repo(tempdir_factory, 'script_hooks_repo')
     with cwd(path):
-        runner = Runner(path)
+        runner = Runner(path, C.CONFIG_FILE)
 
         # Write out an "old" hook
         mkdirp(os.path.dirname(runner.pre_commit_path))
@@ -398,7 +399,7 @@ def test_uninstall_restores_legacy_hooks(tempdir_factory):
 def test_replace_old_commit_script(tempdir_factory):
     path = make_consuming_repo(tempdir_factory, 'script_hooks_repo')
     with cwd(path):
-        runner = Runner(path)
+        runner = Runner(path, C.CONFIG_FILE)
 
         # Install a script that looks like our old script
         pre_commit_contents = io.open(
@@ -424,7 +425,7 @@ def test_replace_old_commit_script(tempdir_factory):
 def test_uninstall_doesnt_remove_not_our_hooks(tempdir_factory):
     path = git_dir(tempdir_factory)
     with cwd(path):
-        runner = Runner(path)
+        runner = Runner(path, C.CONFIG_FILE)
         mkdirp(os.path.dirname(runner.pre_commit_path))
         with io.open(runner.pre_commit_path, 'w') as pre_commit_file:
             pre_commit_file.write('#!/usr/bin/env bash\necho 1\n')
@@ -449,7 +450,7 @@ def test_installs_hooks_with_hooks_True(
 ):
     path = make_consuming_repo(tempdir_factory, 'script_hooks_repo')
     with cwd(path):
-        install(Runner(path), hooks=True)
+        install(Runner(path, C.CONFIG_FILE), hooks=True)
         ret, output = _get_commit_output(
             tempdir_factory, pre_commit_home=mock_out_store_directory,
         )
@@ -461,7 +462,7 @@ def test_installs_hooks_with_hooks_True(
 def test_installed_from_venv(tempdir_factory):
     path = make_consuming_repo(tempdir_factory, 'script_hooks_repo')
     with cwd(path):
-        install(Runner(path))
+        install(Runner(path, C.CONFIG_FILE))
         # No environment so pre-commit is not on the path when running!
         # Should still pick up the python from when we installed
         ret, output = _get_commit_output(
@@ -495,7 +496,7 @@ def test_pre_push_integration_failing(tempdir_factory):
     path = tempdir_factory.get()
     cmd_output('git', 'clone', upstream, path)
     with cwd(path):
-        install(Runner(path), hook_type='pre-push')
+        install(Runner(path, C.CONFIG_FILE), hook_type='pre-push')
         # commit succeeds because pre-commit is only installed for pre-push
         assert _get_commit_output(tempdir_factory)[0] == 0
 
@@ -511,7 +512,7 @@ def test_pre_push_integration_accepted(tempdir_factory):
     path = tempdir_factory.get()
     cmd_output('git', 'clone', upstream, path)
     with cwd(path):
-        install(Runner(path), hook_type='pre-push')
+        install(Runner(path, C.CONFIG_FILE), hook_type='pre-push')
         assert _get_commit_output(tempdir_factory)[0] == 0
 
         retc, output = _get_push_output(tempdir_factory)
@@ -525,7 +526,7 @@ def test_pre_push_integration_empty_push(tempdir_factory):
     path = tempdir_factory.get()
     cmd_output('git', 'clone', upstream, path)
     with cwd(path):
-        install(Runner(path), hook_type='pre-push')
+        install(Runner(path, C.CONFIG_FILE), hook_type='pre-push')
         _get_push_output(tempdir_factory)
         retc, output = _get_push_output(tempdir_factory)
         assert output == 'Everything up-to-date\n'
