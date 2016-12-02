@@ -34,6 +34,10 @@ def _add_color_option(parser):
     )
 
 
+def _add_config_option(parser):
+    parser.add_argument('-c', '--config', help='Path to alternate config file')
+
+
 def main(argv=None):
     argv = argv if argv is not None else sys.argv[1:]
     argv = [five.to_text(arg) for arg in argv]
@@ -89,6 +93,7 @@ def main(argv=None):
         help="Auto-update pre-commit config to the latest repos' versions.",
     )
     _add_color_option(autoupdate_parser)
+    _add_config_option(autoupdate_parser)
 
     run_parser = subparsers.add_parser('run', help='Run hooks.')
     _add_color_option(run_parser)
@@ -119,6 +124,7 @@ def main(argv=None):
         '--hook-stage', choices=('commit', 'push'), default='commit',
         help='The stage during which the hook is fired e.g. commit or push.',
     )
+    _add_config_option(run_parser)
     run_mutex_group = run_parser.add_mutually_exclusive_group(required=False)
     run_mutex_group.add_argument(
         '--all-files', '-a', action='store_true', default=False,
@@ -152,7 +158,10 @@ def main(argv=None):
 
     with error_handler():
         add_logging_handler(args.color)
-        runner = Runner.create()
+        runner_kwargs = {}
+        if hasattr(args, 'config_file'):
+            runner_kwargs['config_file'] = args.config_file
+        runner = Runner.create(**runner_kwargs)
         git.check_for_cygwin_mismatch()
 
         if args.command == 'install':

@@ -16,18 +16,19 @@ class Runner(object):
     repository under test.
     """
 
-    def __init__(self, git_root):
+    def __init__(self, git_root, config_file=None):
         self.git_root = git_root
+        self.config_file = config_file or C.CONFIG_FILE
 
     @classmethod
-    def create(cls):
+    def create(cls, config_file=None):
         """Creates a PreCommitRunner by doing the following:
             - Finds the root of the current git repository
             - chdir to that directory
         """
         root = git.get_root()
         os.chdir(root)
-        return cls(root)
+        return cls(root, config_file=config_file)
 
     @cached_property
     def git_dir(self):
@@ -35,7 +36,7 @@ class Runner(object):
 
     @cached_property
     def config_file_path(self):
-        return os.path.join(self.git_root, C.CONFIG_FILE)
+        return os.path.join(self.git_root, self.config_file)
 
     @cached_property
     def repositories(self):
