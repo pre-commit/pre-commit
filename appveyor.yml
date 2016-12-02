@@ -13,8 +13,6 @@ install:
 build: false
 
 before_test:
-  - git config --global user.name "AppVeyor CI"
-  - git config --global user.email "user@example.com"
   # Shut up CRLF messages
   - git config --global core.safecrlf false
 

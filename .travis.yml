@@ -8,10 +8,7 @@ env: # These should match the tox env list
     - TOXENV=py27 LATEST_GIT=1
 install: pip install coveralls tox
 script: tox
-# Special snowflake.  Our tests depend on making real commits.
 before_install:
-    - git config --global user.name "Travis CI"
-    - git config --global user.email "user@example.com"
     # Our tests inspect some of *our* git history
     - git fetch --unshallow
     - git --version
