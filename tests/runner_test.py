@@ -79,6 +79,38 @@ def test_local_hooks(tempdir_factory, mock_out_store_directory):
     assert len(runner.repositories[0].hooks) == 2
 
 
+def test_local_hooks_alt_config(tempdir_factory, mock_out_store_directory):
+    config = OrderedDict((
+        ('repo', 'local'),
+        ('hooks', (OrderedDict((
+            ('id', 'arg-per-line'),
+            ('name', 'Args per line hook'),
+            ('entry', 'bin/hook.sh'),
+            ('language', 'script'),
+            ('files', ''),
+            ('args', ['hello', 'world']),
+        )), OrderedDict((
+            ('id', 'ugly-format-json'),
+            ('name', 'Ugly format json'),
+            ('entry', 'ugly-format-json'),
+            ('language', 'python'),
+            ('files', ''),
+        )), OrderedDict((
+            ('id', 'do_not_commit'),
+            ('name', 'Block if "DO NOT COMMIT" is found'),
+            ('entry', 'DO NOT COMMIT'),
+            ('language', 'pcre'),
+            ('files', '^(.*)$'),
+        ))))
+    ))
+    git_path = git_dir(tempdir_factory)
+    alt_config_file = 'alternate_config.yaml'
+    add_config_to_repo(git_path, config, config_file=alt_config_file)
+    runner = Runner(git_path, alt_config_file)
+    assert len(runner.repositories) == 1
+    assert len(runner.repositories[0].hooks) == 3
+
+
 def test_pre_commit_path(in_tmpdir):
     path = os.path.join('foo', 'bar')
     cmd_output('git', 'init', path)

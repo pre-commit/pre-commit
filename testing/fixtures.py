@@ -94,18 +94,24 @@ def make_config_from_repo(repo_path, sha=None, hooks=None, check=True):
         return config
 
 
-def write_config(directory, config):
+def read_config(directory, config_file=C.CONFIG_FILE):
+    config_path = os.path.join(directory, config_file)
+    config = ordered_load(io.open(config_path).read())
+    return config
+
+
+def write_config(directory, config, config_file=C.CONFIG_FILE):
     if type(config) is not list:
         assert type(config) is OrderedDict
         config = [config]
-    with io.open(os.path.join(directory, C.CONFIG_FILE), 'w') as config_file:
-        config_file.write(ordered_dump(config, **C.YAML_DUMP_KWARGS))
+    with io.open(os.path.join(directory, config_file), 'w') as outfile:
+        outfile.write(ordered_dump(config, **C.YAML_DUMP_KWARGS))
 
 
-def add_config_to_repo(git_path, config):
-    write_config(git_path, config)
+def add_config_to_repo(git_path, config, config_file=C.CONFIG_FILE):
+    write_config(git_path, config, config_file=config_file)
     with cwd(git_path):
-        cmd_output('git', 'add', C.CONFIG_FILE)
+        cmd_output('git', 'add', config_file)
         cmd_output('git', 'commit', '-m', 'Add hooks config')
     return git_path
 

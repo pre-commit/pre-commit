@@ -24,6 +24,7 @@ from testing.auto_namedtuple import auto_namedtuple
 from testing.fixtures import add_config_to_repo
 from testing.fixtures import make_consuming_repo
 from testing.fixtures import modify_config
+from testing.fixtures import read_config
 from testing.util import cmd_output_mocked_pre_commit_home
 
 
@@ -74,19 +75,20 @@ def _get_opts(
     )
 
 
-def _do_run(cap_out, repo, args, environ={}):
-    runner = Runner(repo, C.CONFIG_FILE)
+def _do_run(cap_out, repo, args, environ={}, config_file=C.CONFIG_FILE):
+    runner = Runner(repo, config_file)
     with cwd(runner.git_root):  # replicates Runner.create behaviour
         ret = run(runner, args, environ=environ)
     printed = cap_out.get_bytes()
     return ret, printed
 
 
-def _test_run(cap_out, repo, opts, expected_outputs, expected_ret, stage):
+def _test_run(cap_out, repo, opts, expected_outputs, expected_ret, stage,
+              config_file=C.CONFIG_FILE):
     if stage:
         stage_a_file()
     args = _get_opts(**opts)
-    ret, printed = _do_run(cap_out, repo, args)
+    ret, printed = _do_run(cap_out, repo, args, config_file=config_file)
 
     assert ret == expected_ret, (ret, expected_ret, printed)
     for expected_output_part in expected_outputs:
@@ -202,6 +204,26 @@ def test_always_run(
         (b'Bash hook', b'Passed'),
         0,
         stage=False,
+    )
+
+
+def test_always_run_alt_config(
+        cap_out, repo_with_passing_hook, mock_out_store_directory,
+):
+    repo_root = '.'
+    config = read_config(repo_root)
+    config[0]['hooks'][0]['always_run'] = True
+    alt_config_file = 'alternate_config.yaml'
+    add_config_to_repo(repo_root, config, config_file=alt_config_file)
+
+    _test_run(
+        cap_out,
+        repo_with_passing_hook,
+        {},
+        (b'Bash hook', b'Passed'),
+        0,
+        stage=False,
+        config_file=alt_config_file
     )
 
 
