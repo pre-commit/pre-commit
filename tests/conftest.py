@@ -9,6 +9,7 @@ import os.path
 import mock
 import pytest
 
+import pre_commit.constants as C
 from pre_commit import five
 from pre_commit import output
 from pre_commit.logging_handler import add_logging_handler
@@ -136,7 +137,7 @@ def cmd_runner(tempdir_factory):
 
 @pytest.yield_fixture
 def runner_with_mocked_store(mock_out_store_directory):
-    yield Runner('/')
+    yield Runner('/', C.CONFIG_FILE)
 
 
 @pytest.yield_fixture

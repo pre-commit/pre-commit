@@ -34,6 +34,13 @@ def _add_color_option(parser):
     )
 
 
+def _add_config_option(parser):
+    parser.add_argument(
+        '-c', '--config', default='.pre-commit-config.yaml',
+        help='Path to alternate config file'
+    )
+
+
 def main(argv=None):
     argv = argv if argv is not None else sys.argv[1:]
     argv = [five.to_text(arg) for arg in argv]
@@ -54,6 +61,7 @@ def main(argv=None):
         'install', help='Install the pre-commit script.',
     )
     _add_color_option(install_parser)
+    _add_config_option(install_parser)
     install_parser.add_argument(
         '-f', '--overwrite', action='store_true',
         help='Overwrite existing hooks / remove migration mode.',
@@ -74,6 +82,7 @@ def main(argv=None):
         'uninstall', help='Uninstall the pre-commit script.',
     )
     _add_color_option(uninstall_parser)
+    _add_config_option(uninstall_parser)
     uninstall_parser.add_argument(
         '-t', '--hook-type', choices=('pre-commit', 'pre-push'),
         default='pre-commit',
@@ -83,15 +92,17 @@ def main(argv=None):
         'clean', help='Clean out pre-commit files.',
     )
     _add_color_option(clean_parser)
-
+    _add_config_option(clean_parser)
     autoupdate_parser = subparsers.add_parser(
         'autoupdate',
         help="Auto-update pre-commit config to the latest repos' versions.",
     )
     _add_color_option(autoupdate_parser)
+    _add_config_option(autoupdate_parser)
 
     run_parser = subparsers.add_parser('run', help='Run hooks.')
     _add_color_option(run_parser)
+    _add_config_option(run_parser)
     run_parser.add_argument('hook', nargs='?', help='A single hook-id to run')
     run_parser.add_argument(
         '--no-stash', default=False, action='store_true',
@@ -152,7 +163,7 @@ def main(argv=None):
 
     with error_handler():
         add_logging_handler(args.color)
-        runner = Runner.create()
+        runner = Runner.create(args.config)
         git.check_for_cygwin_mismatch()
 
         if args.command == 'install':
