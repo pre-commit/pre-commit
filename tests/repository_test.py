@@ -12,11 +12,13 @@ import pkg_resources
 import pytest
 
 from pre_commit import five
+from pre_commit import parse_shebang
 from pre_commit.clientlib.validate_config import CONFIG_JSON_SCHEMA
 from pre_commit.clientlib.validate_config import validate_config_extra
 from pre_commit.jsonschema_extensions import apply_defaults
 from pre_commit.languages import helpers
 from pre_commit.languages import node
+from pre_commit.languages import pcre
 from pre_commit.languages import python
 from pre_commit.languages import ruby
 from pre_commit.repository import Repository
@@ -185,6 +187,25 @@ def test_missing_executable(tempdir_factory, store):
         b'Executable `i-dont-exist-lol` not found',
         expected_return_code=1,
     )
+
+
+@pytest.mark.integration
+def test_missing_pcre_support(tempdir_factory, store):
+    orig_find_executable = parse_shebang.find_executable
+
+    def no_grep(exe, **kwargs):
+        if exe == pcre.GREP:
+            return None
+        else:
+            return orig_find_executable(exe, **kwargs)
+
+    with mock.patch.object(parse_shebang, 'find_executable', no_grep):
+        _test_hook_repo(
+            tempdir_factory, store, 'pcre_hooks_repo',
+            'regex-with-quotes', ['/dev/null'],
+            'Executable `{}` not found'.format(pcre.GREP).encode('UTF-8'),
+            expected_return_code=1,
+        )
 
 
 @pytest.mark.integration
