@@ -224,16 +224,17 @@ def test_environment_not_sourced(tempdir_factory):
 
         # Use a specific homedir to ignore --user installs
         homedir = tempdir_factory.get()
-        # Need this so we can call git commit without sploding
-        with io.open(os.path.join(homedir, '.gitconfig'), 'w') as gitconfig:
-            gitconfig.write(
-                '[user]\n'
-                '    name = Travis CI\n'
-                '    email = user@example.com\n'
-            )
         ret, stdout, stderr = cmd_output(
             'git', 'commit', '--allow-empty', '-m', 'foo',
-            env={'HOME': homedir, 'PATH': _path_without_us()},
+            env={
+                'HOME': homedir,
+                'PATH': _path_without_us(),
+                # Git needs this to make a commit
+                'GIT_AUTHOR_NAME': os.environ['GIT_AUTHOR_NAME'],
+                'GIT_COMMITTER_NAME': os.environ['GIT_COMMITTER_NAME'],
+                'GIT_AUTHOR_EMAIL': os.environ['GIT_AUTHOR_EMAIL'],
+                'GIT_COMMITTER_EMAIL': os.environ['GIT_COMMITTER_EMAIL'],
+            },
             retcode=None,
         )
         assert ret == 1
@@ -475,6 +476,11 @@ def test_installed_from_venv(tempdir_factory):
                 'SYSTEMROOT': os.environ.get('SYSTEMROOT', ''),
                 # Windows needs this to resolve executables
                 'PATHEXT': os.environ.get('PATHEXT', ''),
+                # Git needs this to make a commit
+                'GIT_AUTHOR_NAME': os.environ['GIT_AUTHOR_NAME'],
+                'GIT_COMMITTER_NAME': os.environ['GIT_COMMITTER_NAME'],
+                'GIT_AUTHOR_EMAIL': os.environ['GIT_AUTHOR_EMAIL'],
+                'GIT_COMMITTER_EMAIL': os.environ['GIT_COMMITTER_EMAIL'],
             },
         )
         assert ret == 0
