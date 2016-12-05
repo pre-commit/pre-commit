@@ -6,6 +6,7 @@ import random
 import pytest
 
 from pre_commit.util import clean_path_on_failure
+from pre_commit.util import cmd_output
 from pre_commit.util import cwd
 from pre_commit.util import memoize_by_cwd
 from pre_commit.util import tmpdir
@@ -81,3 +82,9 @@ def test_tmpdir():
     with tmpdir() as tempdir:
         assert os.path.exists(tempdir)
     assert not os.path.exists(tempdir)
+
+
+def test_cmd_output_exe_not_found():
+    ret, out, _ = cmd_output('i-dont-exist', retcode=None)
+    assert ret == 1
+    assert out == 'Executable `i-dont-exist` not found'

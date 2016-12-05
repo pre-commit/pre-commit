@@ -11,7 +11,8 @@ printable = frozenset(string.printable)
 
 
 class ExecutableNotFoundError(OSError):
-    pass
+    def to_output(self):
+        return (1, self.args[0].encode('UTF-8'), b'')
 
 
 def parse_bytesio(bytesio):

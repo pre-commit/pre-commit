@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
+from pre_commit import parse_shebang
 from pre_commit.util import cmd_output
 
 
@@ -51,6 +52,11 @@ def xargs(cmd, varargs, **kwargs):
     retcode = 0
     stdout = b''
     stderr = b''
+
+    try:
+        parse_shebang.normexe(cmd[0])
+    except parse_shebang.ExecutableNotFoundError as e:
+        return e.to_output()
 
     for run_cmd in partition(cmd, varargs, **kwargs):
         proc_retcode, proc_out, proc_err = cmd_output(

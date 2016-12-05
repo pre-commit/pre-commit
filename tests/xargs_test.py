@@ -64,6 +64,11 @@ def test_xargs_negate():
     assert ret == 1
 
 
+def test_xargs_negate_command_not_found():
+    ret, _, _ = xargs.xargs(('cmd-not-found',), ('1',), negate=True)
+    assert ret != 0
+
+
 def test_xargs_retcode_normal():
     ret, _, _ = xargs.xargs(exit_cmd, ('0',), _max_length=max_length)
     assert ret == 0
