@@ -1,3 +1,10 @@
+0.9.4
+=====
+- Warn when cygwin / python mismatch
+- Add --config for customizing configuration during run
+- Update rbenv + plugins to latest versions
+- pcre hooks now fail when grep / ggrep are not present
+
 0.9.3
 =====
 - Fix python hook installation when a strange setup.cfg exists
