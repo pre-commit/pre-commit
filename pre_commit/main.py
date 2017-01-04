@@ -12,6 +12,7 @@ from pre_commit import git
 from pre_commit.commands.autoupdate import autoupdate
 from pre_commit.commands.clean import clean
 from pre_commit.commands.install_uninstall import install
+from pre_commit.commands.install_uninstall import install_hooks
 from pre_commit.commands.install_uninstall import uninstall
 from pre_commit.commands.run import run
 from pre_commit.error_handler import error_handler
@@ -77,6 +78,17 @@ def main(argv=None):
         '-t', '--hook-type', choices=('pre-commit', 'pre-push'),
         default='pre-commit',
     )
+
+    install_hooks_parser = subparsers.add_parser(
+        'install-hooks',
+        help=(
+            'Install hook environemnts for all environemnts in the config '
+            'file.  You may find `pre-commit install --install-hooks` more '
+            'useful.'
+        ),
+    )
+    _add_color_option(install_hooks_parser)
+    _add_config_option(install_hooks_parser)
 
     uninstall_parser = subparsers.add_parser(
         'uninstall', help='Uninstall the pre-commit script.',
@@ -171,6 +183,8 @@ def main(argv=None):
                 runner, overwrite=args.overwrite, hooks=args.install_hooks,
                 hook_type=args.hook_type,
             )
+        elif args.command == 'install-hooks':
+            return install_hooks(runner)
         elif args.command == 'uninstall':
             return uninstall(runner, hook_type=args.hook_type)
         elif args.command == 'clean':

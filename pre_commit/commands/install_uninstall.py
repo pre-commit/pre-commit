@@ -82,10 +82,14 @@ def install(runner, overwrite=False, hooks=False, hook_type='pre-commit'):
 
     # If they requested we install all of the hooks, do so.
     if hooks:
-        for repository in runner.repositories:
-            repository.require_installed()
+        install_hooks(runner)
 
     return 0
+
+
+def install_hooks(runner):
+    for repository in runner.repositories:
+        repository.require_installed()
 
 
 def uninstall(runner, hook_type='pre-commit'):

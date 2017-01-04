@@ -15,17 +15,19 @@ from testing.auto_namedtuple import auto_namedtuple
 @pytest.yield_fixture
 def mock_commands():
     with mock.patch.object(main, 'autoupdate') as autoupdate_mock:
-        with mock.patch.object(main, 'clean') as clean_mock:
+        with mock.patch.object(main, 'install_hooks') as install_hooks_mock:
             with mock.patch.object(main, 'install') as install_mock:
                 with mock.patch.object(main, 'uninstall') as uninstall_mock:
                     with mock.patch.object(main, 'run') as run_mock:
-                        yield auto_namedtuple(
-                            autoupdate_mock=autoupdate_mock,
-                            clean_mock=clean_mock,
-                            install_mock=install_mock,
-                            uninstall_mock=uninstall_mock,
-                            run_mock=run_mock,
-                        )
+                        with mock.patch.object(main, 'clean') as clean_mock:
+                            yield auto_namedtuple(
+                                autoupdate_mock=autoupdate_mock,
+                                clean_mock=clean_mock,
+                                install_mock=install_mock,
+                                install_hooks_mock=install_hooks_mock,
+                                uninstall_mock=uninstall_mock,
+                                run_mock=run_mock,
+                            )
 
 
 class CalledExit(Exception):
@@ -118,6 +120,12 @@ def test_autoupdate_command(mock_commands):
 def test_run_command(mock_commands):
     main.main(['run'])
     assert mock_commands.run_mock.call_count == 1
+    assert_only_one_mock_called(mock_commands)
+
+
+def test_install_hooks_command(mock_commands):
+    main.main(('install-hooks',))
+    assert mock_commands.install_hooks_mock.call_count == 1
     assert_only_one_mock_called(mock_commands)
 
 
