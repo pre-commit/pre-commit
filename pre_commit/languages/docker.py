@@ -78,9 +78,11 @@ def run_hook(repo_cmd_runner, hook, file_args):
     cmd = (
         'docker', 'run',
         '--rm',
-        '-v', '{}:/src'.format(os.getcwd()),
+        '-u', '{}:{}'.format(os.getuid(), os.getgid()),
+        '-v', '{}:/src:rw'.format(os.getcwd()),
         '--workdir', '/src',
         '--entrypoint', hook['entry'],
         docker_tag(repo_cmd_runner)
     )
+
     return xargs(cmd + tuple(hook['args']), file_args)
