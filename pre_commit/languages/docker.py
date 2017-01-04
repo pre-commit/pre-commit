@@ -6,8 +6,9 @@ import os
 
 from pre_commit import five
 from pre_commit.languages import helpers
+from pre_commit.util import CalledProcessError
 from pre_commit.util import clean_path_on_failure
-from pre_commit.util import mkdirp
+from pre_commit.util import cmd_output
 from pre_commit.xargs import xargs
 
 
@@ -26,7 +27,10 @@ def docker_tag(repo_cmd_runner):
 
 
 def docker_is_running():
-    return xargs(('docker',), ['ps'])[0] == 0
+    try:
+        return cmd_output('docker', 'ps')[0] == 0
+    except CalledProcessError:
+        return False
 
 
 def assert_docker_available():
@@ -59,7 +63,7 @@ def install_environment(
     assert_docker_available()
 
     directory = helpers.environment_dir(ENVIRONMENT_DIR, 'default')
-    mkdirp(os.path.join(repo_cmd_runner.path(), directory))
+    os.mkdir(repo_cmd_runner.path(directory))
 
     # Docker doesn't really have relevant disk environment, but pre-commit
     # still needs to cleanup it's state files on failure
@@ -73,8 +77,6 @@ def run_hook(repo_cmd_runner, hook, file_args):
     # Rebuild the docker image in case it has gone missing, as many people do
     # automated cleanup of docker images.
     build_docker_image(repo_cmd_runner)
-    # the docker lib doesn't return stdout on non-zero exit codes,
-    # so we run the container directly on the command line
     cmd = (
         'docker', 'run',
         '--rm',
