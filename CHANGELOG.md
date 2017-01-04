@@ -1,3 +1,9 @@
+0.10.0
+======
+- Add an `install-hooks` command similar to `install --install-hooks` but
+  without the `install` side-effects.
+- Adds support for docker based hooks.
+
 0.9.4
 =====
 - Warn when cygwin / python mismatch
