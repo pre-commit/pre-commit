@@ -39,13 +39,16 @@ def assert_docker_available():
     )
 
 
-def build_docker_image(repo_cmd_runner):
+def build_docker_image(repo_cmd_runner, **kwargs):
+    pull = kwargs.pop('pull')
+    assert not kwargs, kwargs
     cmd = (
-        'docker', 'build', '--pull',
+        'docker', 'build', '.',
         '--tag', docker_tag(repo_cmd_runner),
         '--label', PRE_COMMIT_LABEL,
-        '.'
     )
+    if pull:
+        cmd += ('--pull',)
     helpers.run_setup_cmd(repo_cmd_runner, cmd)
 
 
@@ -62,21 +65,22 @@ def install_environment(
     )
     assert_docker_available()
 
-    directory = helpers.environment_dir(ENVIRONMENT_DIR, 'default')
-    os.mkdir(repo_cmd_runner.path(directory))
+    directory = repo_cmd_runner.path(helpers.environment_dir(
+        ENVIRONMENT_DIR, 'default',
+    ))
 
     # Docker doesn't really have relevant disk environment, but pre-commit
     # still needs to cleanup it's state files on failure
-    env_dir = repo_cmd_runner.path(directory)
-    with clean_path_on_failure(env_dir):
-        build_docker_image(repo_cmd_runner)
+    with clean_path_on_failure(directory):
+        build_docker_image(repo_cmd_runner, pull=True)
+        os.mkdir(directory)
 
 
 def run_hook(repo_cmd_runner, hook, file_args):
     assert_docker_available()
     # Rebuild the docker image in case it has gone missing, as many people do
     # automated cleanup of docker images.
-    build_docker_image(repo_cmd_runner)
+    build_docker_image(repo_cmd_runner, pull=False)
     cmd = (
         'docker', 'run',
         '--rm',
