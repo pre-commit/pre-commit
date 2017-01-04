@@ -16,7 +16,7 @@ PRE_COMMIT_LABEL = 'PRE_COMMIT'
 
 
 def md5(s):
-    return five.to_text(hashlib.md5(s).hexdigest())
+    return hashlib.md5(five.to_bytes(s)).hexdigest()
 
 
 def docker_tag(repo_cmd_runner):
