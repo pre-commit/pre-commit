@@ -29,6 +29,7 @@ from testing.fixtures import git_dir
 from testing.fixtures import make_config_from_repo
 from testing.fixtures import make_repo
 from testing.fixtures import modify_manifest
+from testing.util import skipif_cant_run_docker
 from testing.util import skipif_slowtests_false
 from testing.util import xfailif_no_pcre_support
 from testing.util import xfailif_windows_no_node
@@ -126,6 +127,29 @@ def test_versioned_python_hook(tempdir_factory, store):
         'python3-hook',
         [os.devnull],
         b"3.5\n['" + five.to_bytes(os.devnull) + b"']\nHello World\n",
+    )
+
+
+@skipif_slowtests_false
+@skipif_cant_run_docker
+@pytest.mark.integration
+def test_run_a_docker_hook(tempdir_factory, store):
+    _test_hook_repo(
+        tempdir_factory, store, 'docker_hooks_repo',
+        'docker-hook',
+        ['Hello World from docker'], b'Hello World from docker\n',
+    )
+
+
+@skipif_slowtests_false
+@skipif_cant_run_docker
+@pytest.mark.integration
+def test_run_a_failing_docker_hook(tempdir_factory, store):
+    _test_hook_repo(
+        tempdir_factory, store, 'docker_hooks_repo',
+        'docker-hook-failing',
+        ['Hello World from docker'], b'',
+        expected_return_code=1
     )
 
 

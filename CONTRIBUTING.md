@@ -2,7 +2,7 @@
 
 ## Local development
 
-- The tests depend on having at least the following installed (possibly not
+- The complete test suite depends on having at least the following installed (possibly not
   a complete list)
   - git (A sufficiently newer version is required to run pre-push tests)
   - python
@@ -10,6 +10,7 @@
   - python3.5 (Required by a test which checks different python versions)
   - tox (or virtualenv)
   - ruby + gem
+  - docker
 
 ### Setting up an environemnt
 
@@ -63,7 +64,7 @@ function_call(
 ```
 
 Some notable features:
-- The intial parenthese is at the end of the line
+- The initial parenthesis is at the end of the line
 - Parameters are indented one indentation level further than the function name
 - The last parameter contains a trailing comma (This helps make `git blame`
   more accurate and reduces merge conflicts when adding / removing parameters).

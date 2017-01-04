@@ -6,6 +6,7 @@ import shutil
 import jsonschema
 import pytest
 
+from pre_commit.languages.docker import docker_is_running
 from pre_commit.util import cmd_output
 from pre_commit.util import cwd
 
@@ -56,6 +57,11 @@ def cmd_output_mocked_pre_commit_home(*args, **kwargs):
     env = dict(kwargs.pop('env', os.environ), PRE_COMMIT_HOME=pre_commit_home)
     return cmd_output(*args, env=env, **kwargs)
 
+
+skipif_cant_run_docker = pytest.mark.skipif(
+    docker_is_running() is False,
+    reason='Docker isn\'t running or can\'t  be accessed'
+)
 
 skipif_slowtests_false = pytest.mark.skipif(
     os.environ.get('slowtests') == 'false',

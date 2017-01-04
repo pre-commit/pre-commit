@@ -20,7 +20,9 @@ before_install:
     - git --version
 after_success:
     - coveralls
-sudo: false
+sudo: required
+services:
+    - docker
 cache:
     directories:
         - $HOME/.cache/pip
