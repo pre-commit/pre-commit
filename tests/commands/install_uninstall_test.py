@@ -13,6 +13,7 @@ import mock
 import pre_commit.constants as C
 from pre_commit.commands.install_uninstall import IDENTIFYING_HASH
 from pre_commit.commands.install_uninstall import install
+from pre_commit.commands.install_uninstall import install_hooks
 from pre_commit.commands.install_uninstall import is_our_pre_commit
 from pre_commit.commands.install_uninstall import is_previous_pre_commit
 from pre_commit.commands.install_uninstall import PREVIOUS_IDENTIFYING_HASHES
@@ -452,6 +453,20 @@ def test_installs_hooks_with_hooks_True(
     path = make_consuming_repo(tempdir_factory, 'script_hooks_repo')
     with cwd(path):
         install(Runner(path, C.CONFIG_FILE), hooks=True)
+        ret, output = _get_commit_output(
+            tempdir_factory, pre_commit_home=mock_out_store_directory,
+        )
+
+        assert ret == 0
+        assert PRE_INSTALLED.match(output)
+
+
+def test_install_hooks_command(tempdir_factory, mock_out_store_directory):
+    path = make_consuming_repo(tempdir_factory, 'script_hooks_repo')
+    with cwd(path):
+        runner = Runner(path, C.CONFIG_FILE)
+        install(runner)
+        install_hooks(runner)
         ret, output = _get_commit_output(
             tempdir_factory, pre_commit_home=mock_out_store_directory,
         )
