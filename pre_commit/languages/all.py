@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 
+from pre_commit.languages import docker
 from pre_commit.languages import node
 from pre_commit.languages import pcre
 from pre_commit.languages import python
@@ -40,6 +41,7 @@ from pre_commit.languages import system
 #     """
 
 languages = {
+    'docker': docker,
     'node': node,
     'pcre': pcre,
     'python': python,
