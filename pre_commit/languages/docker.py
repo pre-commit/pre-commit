@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 import hashlib
 import os
+import shlex
 
 from pre_commit import five
 from pre_commit.languages import helpers
@@ -82,7 +83,7 @@ def run_hook(repo_cmd_runner, hook, file_args):
     # automated cleanup of docker images.
     build_docker_image(repo_cmd_runner, pull=False)
 
-    entry_parts = hook['entry'].split(' ')
+    entry_parts = shlex.split(hook['entry'])
     entry_executable, entry_args = entry_parts[0], entry_parts[1:]
 
     cmd = (
