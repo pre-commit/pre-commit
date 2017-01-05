@@ -3,7 +3,6 @@ from __future__ import unicode_literals
 
 import hashlib
 import os
-import shlex
 
 from pre_commit import five
 from pre_commit.languages import helpers
@@ -83,8 +82,8 @@ def run_hook(repo_cmd_runner, hook, file_args):
     # automated cleanup of docker images.
     build_docker_image(repo_cmd_runner, pull=False)
 
-    entry_parts = shlex.split(hook['entry'])
-    entry_executable, entry_args = entry_parts[0], entry_parts[1:]
+    hook_cmd = helpers.to_cmd(hook)
+    entry_executable, cmd_rest = hook_cmd[0], hook_cmd[1:]
 
     cmd = (
         'docker', 'run',
@@ -94,6 +93,6 @@ def run_hook(repo_cmd_runner, hook, file_args):
         '--workdir', '/src',
         '--entrypoint', entry_executable,
         docker_tag(repo_cmd_runner)
-    )
+    ) + cmd_rest
 
-    return xargs(cmd + tuple(entry_args) + tuple(hook['args']), file_args)
+    return xargs(cmd, file_args)

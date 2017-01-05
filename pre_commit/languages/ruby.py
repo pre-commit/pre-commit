@@ -128,4 +128,4 @@ def install_environment(
 
 def run_hook(repo_cmd_runner, hook, file_args):
     with in_env(repo_cmd_runner, hook['language_version']):
-        return xargs((hook['entry'],) + tuple(hook['args']), file_args)
+        return xargs(helpers.to_cmd(hook), file_args)
