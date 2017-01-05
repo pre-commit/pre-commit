@@ -1,3 +1,8 @@
+0.10.1
+======
+- shlex entry of docker based hooks.
+- Make shlex behaviour of entry more consistent.
+
 0.10.0
 ======
 - Add an `install-hooks` command similar to `install --install-hooks` but
