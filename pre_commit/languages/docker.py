@@ -89,6 +89,7 @@ def run_hook(repo_cmd_runner, hook, file_args):
     cmd = (
         'docker', 'run',
         '--rm',
+        '-u', '{}:{}'.format(os.getuid(), os.getgid()),
         '-v', '{}:/src:rw'.format(os.getcwd()),
         '--workdir', '/src',
         '--entrypoint', entry_executable,
