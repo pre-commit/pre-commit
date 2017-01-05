@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 import hashlib
 import os
+import shlex
 
 from pre_commit import five
 from pre_commit.languages import helpers
@@ -81,14 +82,18 @@ def run_hook(repo_cmd_runner, hook, file_args):
     # Rebuild the docker image in case it has gone missing, as many people do
     # automated cleanup of docker images.
     build_docker_image(repo_cmd_runner, pull=False)
+
+    entry_parts = shlex.split(hook['entry'])
+    entry_executable, entry_args = entry_parts[0], entry_parts[1:]
+
     cmd = (
         'docker', 'run',
         '--rm',
         '-u', '{}:{}'.format(os.getuid(), os.getgid()),
         '-v', '{}:/src:rw'.format(os.getcwd()),
         '--workdir', '/src',
-        '--entrypoint', hook['entry'],
+        '--entrypoint', entry_executable,
         docker_tag(repo_cmd_runner)
     )
 
-    return xargs(cmd + tuple(hook['args']), file_args)
+    return xargs(cmd + tuple(entry_args) + tuple(hook['args']), file_args)

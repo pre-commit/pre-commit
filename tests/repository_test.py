@@ -144,6 +144,17 @@ def test_run_a_docker_hook(tempdir_factory, store):
 @skipif_slowtests_false
 @skipif_cant_run_docker
 @pytest.mark.integration
+def test_run_a_docker_hook_with_entry_args(tempdir_factory, store):
+    _test_hook_repo(
+        tempdir_factory, store, 'docker_hooks_repo',
+        'docker-hook-arg',
+        ['Hello World from docker'], b'Hello World from docker',
+    )
+
+
+@skipif_slowtests_false
+@skipif_cant_run_docker
+@pytest.mark.integration
 def test_run_a_failing_docker_hook(tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'docker_hooks_repo',
