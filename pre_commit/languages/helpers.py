@@ -1,5 +1,7 @@
 from __future__ import unicode_literals
 
+import shlex
+
 from pre_commit.util import cmd_output
 
 
@@ -12,3 +14,7 @@ def environment_dir(ENVIRONMENT_DIR, language_version):
         return None
     else:
         return '{}-{}'.format(ENVIRONMENT_DIR, language_version)
+
+
+def to_cmd(hook):
+    return tuple(shlex.split(hook['entry'])) + tuple(hook['args'])

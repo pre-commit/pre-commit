@@ -1,7 +1,6 @@
 from __future__ import unicode_literals
 
-import shlex
-
+from pre_commit.languages import helpers
 from pre_commit.xargs import xargs
 
 
@@ -18,6 +17,4 @@ def install_environment(
 
 
 def run_hook(repo_cmd_runner, hook, file_args):
-    return xargs(
-        tuple(shlex.split(hook['entry'])) + tuple(hook['args']), file_args,
-    )
+    return xargs(helpers.to_cmd(hook), file_args)
