@@ -5,12 +5,12 @@ import os
 from pre_commit.languages import helpers
 from pre_commit.util import clean_path_on_failure
 from pre_commit.util import cwd
-from pre_commit.languages import helpers
 from pre_commit.xargs import xargs
 
 ENVIRONMENT_DIR = 'swift_env'
 BUILD_DIR = '.build'
 BUILD_CONFIG = 'release'
+
 
 def install_environment(
         repo_cmd_runner,
@@ -30,6 +30,7 @@ def install_environment(
             '-c', BUILD_CONFIG,
             '--build-path', os.path.join(directory, BUILD_DIR),
         ))
+
 
 def run_hook(repo_cmd_runner, hook, file_args):
     directory = repo_cmd_runner.path(helpers.environment_dir(
