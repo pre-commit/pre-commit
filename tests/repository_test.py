@@ -215,6 +215,14 @@ def test_system_hook_with_spaces(tempdir_factory, store):
 
 
 @pytest.mark.integration
+def test_swift_hook(tempdir_factory, store):
+    _test_hook_repo(
+        tempdir_factory, store, 'swift_hooks_repo',
+        'swift-hooks-repo', [], b'Hello, world!\n',
+    )
+
+
+@pytest.mark.integration
 def test_missing_executable(tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'not_found_exe',
