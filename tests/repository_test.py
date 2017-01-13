@@ -30,6 +30,7 @@ from testing.fixtures import make_config_from_repo
 from testing.fixtures import make_repo
 from testing.fixtures import modify_manifest
 from testing.util import skipif_cant_run_docker
+from testing.util import skipif_cant_run_swift
 from testing.util import skipif_slowtests_false
 from testing.util import xfailif_no_pcre_support
 from testing.util import xfailif_windows_no_node
@@ -214,6 +215,7 @@ def test_system_hook_with_spaces(tempdir_factory, store):
     )
 
 
+@skipif_cant_run_swift
 @pytest.mark.integration
 def test_swift_hook(tempdir_factory, store):
     _test_hook_repo(
