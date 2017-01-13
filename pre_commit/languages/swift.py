@@ -4,7 +4,6 @@ import os
 
 from pre_commit.languages import helpers
 from pre_commit.util import clean_path_on_failure
-from pre_commit.util import cwd
 from pre_commit.xargs import xargs
 
 ENVIRONMENT_DIR = 'swift_env'
@@ -36,5 +35,6 @@ def run_hook(repo_cmd_runner, hook, file_args):
     directory = repo_cmd_runner.path(helpers.environment_dir(
         ENVIRONMENT_DIR, 'default',
     ))
-    with(cwd(os.path.join(directory, BUILD_DIR, BUILD_CONFIG))):
-        return xargs(helpers.to_cmd(hook), file_args)
+    cmd = helpers.to_cmd(hook)
+    full_binary_path = os.path.join(directory, BUILD_DIR, BUILD_CONFIG, cmd[0])
+    return xargs((full_binary_path,) + cmd[1:], file_args)
