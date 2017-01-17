@@ -1,5 +1,9 @@
 language: python
 python: 3.5
+dist: trusty
+sudo: required
+services:
+    - docker
 env: # These should match the tox env list
     - TOXENV=py27
     - TOXENV=py34
@@ -18,11 +22,11 @@ before_install:
             export PATH="/tmp/git/bin:$PATH"
         fi
     - git --version
+    - |
+        ./get-swift.sh
+        export PATH="/tmp/swift/usr/bin:$PATH"
 after_success:
     - coveralls
-sudo: required
-services:
-    - docker
 cache:
     directories:
         - $HOME/.cache/pip
