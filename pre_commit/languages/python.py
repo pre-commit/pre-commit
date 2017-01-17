@@ -32,8 +32,7 @@ def get_env_patch(venv):
 
 @contextlib.contextmanager
 def in_env(repo_cmd_runner, language_version):
-    envdir = os.path.join(
-        repo_cmd_runner.prefix_dir,
+    envdir = repo_cmd_runner.path(
         helpers.environment_dir(ENVIRONMENT_DIR, language_version),
     )
     with envcontext(get_env_patch(envdir)):

@@ -6,6 +6,7 @@ import shutil
 import jsonschema
 import pytest
 
+from pre_commit import parse_shebang
 from pre_commit.languages.docker import docker_is_running
 from pre_commit.util import cmd_output
 from pre_commit.util import cwd
@@ -66,6 +67,11 @@ skipif_cant_run_docker = pytest.mark.skipif(
 skipif_slowtests_false = pytest.mark.skipif(
     os.environ.get('slowtests') == 'false',
     reason='slowtests=false',
+)
+
+skipif_cant_run_swift = pytest.mark.skipif(
+    parse_shebang.find_executable('swift') is None,
+    reason='swift isn\'t installed or can\'t be found'
 )
 
 xfailif_windows_no_ruby = pytest.mark.xfail(

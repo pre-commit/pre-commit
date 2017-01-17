@@ -14,7 +14,7 @@ from pre_commit.xargs import xargs
 ENVIRONMENT_DIR = 'node_env'
 
 
-def get_env_patch(venv):
+def get_env_patch(venv):  # pragma: windows no cover
     return (
         ('NODE_VIRTUAL_ENV', venv),
         ('NPM_CONFIG_PREFIX', venv),
@@ -25,9 +25,8 @@ def get_env_patch(venv):
 
 
 @contextlib.contextmanager
-def in_env(repo_cmd_runner, language_version):
-    envdir = os.path.join(
-        repo_cmd_runner.prefix_dir,
+def in_env(repo_cmd_runner, language_version):  # pragma: windows no cover
+    envdir = repo_cmd_runner.path(
         helpers.environment_dir(ENVIRONMENT_DIR, language_version),
     )
     with envcontext(get_env_patch(envdir)):
@@ -38,7 +37,7 @@ def install_environment(
         repo_cmd_runner,
         version='default',
         additional_dependencies=(),
-):
+):  # pragma: windows no cover
     additional_dependencies = tuple(additional_dependencies)
     assert repo_cmd_runner.exists('package.json')
     directory = helpers.environment_dir(ENVIRONMENT_DIR, version)
@@ -62,6 +61,6 @@ def install_environment(
             )
 
 
-def run_hook(repo_cmd_runner, hook, file_args):
+def run_hook(repo_cmd_runner, hook, file_args):  # pragma: windows no cover
     with in_env(repo_cmd_runner, hook['language_version']):
         return xargs(helpers.to_cmd(hook), file_args)

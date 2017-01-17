@@ -18,7 +18,7 @@ from pre_commit.xargs import xargs
 ENVIRONMENT_DIR = 'rbenv'
 
 
-def get_env_patch(venv, language_version):
+def get_env_patch(venv, language_version):  # pragma: windows no cover
     patches = (
         ('GEM_HOME', os.path.join(venv, 'gems')),
         ('RBENV_ROOT', venv),
@@ -34,16 +34,17 @@ def get_env_patch(venv, language_version):
 
 
 @contextlib.contextmanager
-def in_env(repo_cmd_runner, language_version):
-    envdir = os.path.join(
-        repo_cmd_runner.prefix_dir,
+def in_env(repo_cmd_runner, language_version):  # pragma: windows no cover
+    envdir = repo_cmd_runner.path(
         helpers.environment_dir(ENVIRONMENT_DIR, language_version),
     )
     with envcontext(get_env_patch(envdir, language_version)):
         yield
 
 
-def _install_rbenv(repo_cmd_runner, version='default'):
+def _install_rbenv(
+        repo_cmd_runner, version='default',
+):  # pragma: windows no cover
     directory = helpers.environment_dir(ENVIRONMENT_DIR, version)
 
     with tarfile.open(resource_filename('rbenv.tar.gz')) as tf:
@@ -86,7 +87,7 @@ def _install_rbenv(repo_cmd_runner, version='default'):
             activate_file.write('export RBENV_VERSION="{}"\n'.format(version))
 
 
-def _install_ruby(runner, version):
+def _install_ruby(runner, version):  # pragma: windows no cover
     try:
         helpers.run_setup_cmd(runner, ('rbenv', 'download', version))
     except CalledProcessError:  # pragma: no cover (usually find with download)
@@ -98,7 +99,7 @@ def install_environment(
         repo_cmd_runner,
         version='default',
         additional_dependencies=(),
-):
+):  # pragma: windows no cover
     additional_dependencies = tuple(additional_dependencies)
     directory = helpers.environment_dir(ENVIRONMENT_DIR, version)
     with clean_path_on_failure(repo_cmd_runner.path(directory)):
@@ -126,6 +127,6 @@ def install_environment(
             )
 
 
-def run_hook(repo_cmd_runner, hook, file_args):
+def run_hook(repo_cmd_runner, hook, file_args):  # pragma: windows no cover
     with in_env(repo_cmd_runner, hook['language_version']):
         return xargs(helpers.to_cmd(hook), file_args)

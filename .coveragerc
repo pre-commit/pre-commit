@@ -14,6 +14,8 @@ omit =
 exclude_lines =
     # Have to re-enable the standard pragma
     \#\s*pragma: no cover
+    # We optionally substitute this
+    ${COVERAGE_IGNORE_WINDOWS}
 
     # Don't complain if tests don't hit defensive assertion code:
     ^\s*raise AssertionError\b

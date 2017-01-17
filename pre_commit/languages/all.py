@@ -6,6 +6,7 @@ from pre_commit.languages import pcre
 from pre_commit.languages import python
 from pre_commit.languages import ruby
 from pre_commit.languages import script
+from pre_commit.languages import swift
 from pre_commit.languages import system
 
 # A language implements the following constant and two functions in its module:
@@ -47,6 +48,7 @@ languages = {
     'python': python,
     'ruby': ruby,
     'script': script,
+    'swift': swift,
     'system': system,
 }
 

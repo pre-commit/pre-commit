@@ -16,30 +16,30 @@ ENVIRONMENT_DIR = 'docker'
 PRE_COMMIT_LABEL = 'PRE_COMMIT'
 
 
-def md5(s):
+def md5(s):  # pragma: windows no cover
     return hashlib.md5(five.to_bytes(s)).hexdigest()
 
 
-def docker_tag(repo_cmd_runner):
+def docker_tag(repo_cmd_runner):  # pragma: windows no cover
     return 'pre-commit-{}'.format(
         md5(os.path.basename(repo_cmd_runner.path()))
     ).lower()
 
 
-def docker_is_running():
+def docker_is_running():  # pragma: windows no cover
     try:
         return cmd_output('docker', 'ps')[0] == 0
     except CalledProcessError:
         return False
 
 
-def assert_docker_available():
+def assert_docker_available():  # pragma: windows no cover
     assert docker_is_running(), (
         'Docker is either not running or not configured in this environment'
     )
 
 
-def build_docker_image(repo_cmd_runner, **kwargs):
+def build_docker_image(repo_cmd_runner, **kwargs):  # pragma: windows no cover
     pull = kwargs.pop('pull')
     assert not kwargs, kwargs
     cmd = (
@@ -56,7 +56,7 @@ def install_environment(
         repo_cmd_runner,
         version='default',
         additional_dependencies=(),
-):
+):  # pragma: windows no cover
     assert repo_cmd_runner.exists('Dockerfile'), (
         'No Dockerfile was found in the hook repository'
     )
@@ -65,9 +65,9 @@ def install_environment(
     )
     assert_docker_available()
 
-    directory = repo_cmd_runner.path(helpers.environment_dir(
-        ENVIRONMENT_DIR, 'default',
-    ))
+    directory = repo_cmd_runner.path(
+        helpers.environment_dir(ENVIRONMENT_DIR, 'default'),
+    )
 
     # Docker doesn't really have relevant disk environment, but pre-commit
     # still needs to cleanup it's state files on failure
@@ -76,7 +76,7 @@ def install_environment(
         os.mkdir(directory)
 
 
-def run_hook(repo_cmd_runner, hook, file_args):
+def run_hook(repo_cmd_runner, hook, file_args):  # pragma: windows no cover
     assert_docker_available()
     # Rebuild the docker image in case it has gone missing, as many people do
     # automated cleanup of docker images.
