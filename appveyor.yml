@@ -1,4 +1,7 @@
 environment:
+    global:
+        COVERAGE_IGNORE_WINDOWS: '# pragma: windows no cover'
+        TOX_TESTENV_PASSENV: COVERAGE_IGNORE_WINDOWS
     matrix:
         - TOXENV: py27
         - TOXENV: py35

@@ -14,20 +14,14 @@ BUILD_DIR = '.build'
 BUILD_CONFIG = 'release'
 
 
-def get_env_patch(venv):
+def get_env_patch(venv):  # pragma: windows no cover
     bin_path = os.path.join(venv, BUILD_DIR, BUILD_CONFIG)
-    patches = (
-        ('PATH', (
-            bin_path, os.pathsep, Var('PATH'),
-        )),
-    )
-    return patches
+    return (('PATH', (bin_path, os.pathsep, Var('PATH'))),)
 
 
 @contextlib.contextmanager
-def in_env(repo_cmd_runner):
-    envdir = os.path.join(
-        repo_cmd_runner.prefix_dir,
+def in_env(repo_cmd_runner):  # pragma: windows no cover
+    envdir = repo_cmd_runner.path(
         helpers.environment_dir(ENVIRONMENT_DIR, 'default'),
     )
     with envcontext(get_env_patch(envdir)):
@@ -38,13 +32,13 @@ def install_environment(
         repo_cmd_runner,
         version='default',
         additional_dependencies=(),
-):
+):  # pragma: windows no cover
     assert version == 'default', (
         'Pre-commit does not support language_version for docker '
     )
-    directory = repo_cmd_runner.path(helpers.environment_dir(
-        ENVIRONMENT_DIR, 'default',
-    ))
+    directory = repo_cmd_runner.path(
+        helpers.environment_dir(ENVIRONMENT_DIR, 'default'),
+    )
 
     # Build the swift package
     with clean_path_on_failure(directory):
@@ -57,6 +51,6 @@ def install_environment(
         ))
 
 
-def run_hook(repo_cmd_runner, hook, file_args):
+def run_hook(repo_cmd_runner, hook, file_args):  # pragma: windows no cover
     with in_env(repo_cmd_runner):
         return xargs(helpers.to_cmd(hook), file_args)

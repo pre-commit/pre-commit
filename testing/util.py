@@ -1,12 +1,12 @@
 from __future__ import unicode_literals
 
-import distutils
 import os.path
 import shutil
 
 import jsonschema
 import pytest
 
+from pre_commit import parse_shebang
 from pre_commit.languages.docker import docker_is_running
 from pre_commit.util import cmd_output
 from pre_commit.util import cwd
@@ -70,7 +70,7 @@ skipif_slowtests_false = pytest.mark.skipif(
 )
 
 skipif_cant_run_swift = pytest.mark.skipif(
-    distutils.spawn.find_executable('swift') is None,
+    parse_shebang.find_executable('swift') is None,
     reason='swift isn\'t installed or can\'t be found'
 )
 
