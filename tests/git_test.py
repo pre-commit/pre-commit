@@ -80,25 +80,22 @@ def get_files_matching_func():
 
 def test_get_files_matching_base(get_files_matching_func):
     ret = get_files_matching_func('', '^$')
-    assert ret == set([
+    assert ret == {
         'pre_commit/main.py',
         'pre_commit/git.py',
         'hooks.yaml',
         'testing/test_symlink'
-    ])
+    }
 
 
 def test_get_files_matching_total_match(get_files_matching_func):
     ret = get_files_matching_func('^.*\\.py$', '^$')
-    assert ret == set([
-        'pre_commit/main.py',
-        'pre_commit/git.py',
-    ])
+    assert ret == {'pre_commit/main.py', 'pre_commit/git.py'}
 
 
 def test_does_search_instead_of_match(get_files_matching_func):
     ret = get_files_matching_func('\\.yaml$', '^$')
-    assert ret == set(['hooks.yaml'])
+    assert ret == {'hooks.yaml'}
 
 
 def test_does_not_include_deleted_fileS(get_files_matching_func):
@@ -108,7 +105,7 @@ def test_does_not_include_deleted_fileS(get_files_matching_func):
 
 def test_exclude_removes_files(get_files_matching_func):
     ret = get_files_matching_func('', '\\.py$')
-    assert ret == set(['hooks.yaml', 'testing/test_symlink'])
+    assert ret == {'hooks.yaml', 'testing/test_symlink'}
 
 
 def resolve_conflict():
@@ -124,12 +121,12 @@ def test_get_conflicted_files(in_merge_conflict):
     cmd_output('git', 'add', 'other_file')
 
     ret = set(git.get_conflicted_files())
-    assert ret == set(('conflict_file', 'other_file'))
+    assert ret == {'conflict_file', 'other_file'}
 
 
 def test_get_conflicted_files_in_submodule(in_conflicting_submodule):
     resolve_conflict()
-    assert set(git.get_conflicted_files()) == set(('conflict_file',))
+    assert set(git.get_conflicted_files()) == {'conflict_file'}
 
 
 def test_get_conflicted_files_unstaged_files(in_merge_conflict):
@@ -142,7 +139,7 @@ def test_get_conflicted_files_unstaged_files(in_merge_conflict):
         bar_only_file.write('new contents!\n')
 
     ret = set(git.get_conflicted_files())
-    assert ret == set(('conflict_file',))
+    assert ret == {'conflict_file'}
 
 
 MERGE_MSG = "Merge branch 'foo' into bar\n\nConflicts:\n\tconflict_file\n"
