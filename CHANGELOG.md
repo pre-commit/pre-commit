@@ -1,3 +1,7 @@
+0.11.0
+======
+- SwiftPM support.
+
 0.10.1
 ======
 - shlex entry of docker based hooks.
