@@ -21,4 +21,4 @@ class Manifest(object):
 
     @cached_property
     def hooks(self):
-        return dict((hook['id'], hook) for hook in self.manifest_contents)
+        return {hook['id']: hook for hook in self.manifest_contents}

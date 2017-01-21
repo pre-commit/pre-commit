@@ -57,10 +57,10 @@ class Repository(object):
 
     @cached_property
     def languages(self):
-        return set(
+        return {
             (hook['language'], hook['language_version'])
             for _, hook in self.hooks
-        )
+        }
 
     @cached_property
     def additional_dependencies(self):

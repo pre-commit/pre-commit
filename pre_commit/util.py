@@ -75,9 +75,9 @@ def no_git_env():
     # while running pre-commit hooks in submodules.
     # GIT_DIR: Causes git clone to clone wrong thing
     # GIT_INDEX_FILE: Causes 'error invalid object ...' during commit
-    return dict(
-        (k, v) for k, v in os.environ.items() if not k.startswith('GIT_')
-    )
+    return {
+        k: v for k, v in os.environ.items() if not k.startswith('GIT_')
+    }
 
 
 @contextlib.contextmanager
@@ -164,10 +164,10 @@ def cmd_output(*cmd, **kwargs):
 
     # py2/py3 on windows are more strict about the types here
     cmd = tuple(five.n(arg) for arg in cmd)
-    kwargs['env'] = dict(
-        (five.n(key), five.n(value))
+    kwargs['env'] = {
+        five.n(key): five.n(value)
         for key, value in kwargs.pop('env', {}).items()
-    ) or None
+    } or None
 
     try:
         cmd = parse_shebang.normalize_cmd(cmd)

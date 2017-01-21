@@ -19,7 +19,7 @@ logger = logging.getLogger('pre_commit')
 
 def _get_skips(environ):
     skips = environ.get('SKIP', '')
-    return set(skip.strip() for skip in skips.split(',') if skip.strip())
+    return {skip.strip() for skip in skips.split(',') if skip.strip()}
 
 
 def _hook_msg_start(hook, verbose):

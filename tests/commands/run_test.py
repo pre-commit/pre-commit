@@ -339,13 +339,13 @@ def test_compute_cols(hooks, verbose, expected):
 @pytest.mark.parametrize(
     ('environ', 'expected_output'),
     (
-        ({}, set([])),
-        ({'SKIP': ''}, set([])),
-        ({'SKIP': ','}, set([])),
-        ({'SKIP': ',foo'}, set(['foo'])),
-        ({'SKIP': 'foo'}, set(['foo'])),
-        ({'SKIP': 'foo,bar'}, set(['foo', 'bar'])),
-        ({'SKIP': ' foo , bar'}, set(['foo', 'bar'])),
+        ({}, set()),
+        ({'SKIP': ''}, set()),
+        ({'SKIP': ','}, set()),
+        ({'SKIP': ',foo'}, {'foo'}),
+        ({'SKIP': 'foo'}, {'foo'}),
+        ({'SKIP': 'foo,bar'}, {'foo', 'bar'}),
+        ({'SKIP': ' foo , bar'}, {'foo', 'bar'}),
     ),
 )
 def test_get_skips(environ, expected_output):

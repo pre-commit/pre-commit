@@ -426,7 +426,7 @@ def test_languages(tempdir_factory, store):
     path = make_repo(tempdir_factory, 'python_hooks_repo')
     config = make_config_from_repo(path)
     repo = Repository.create(config, store)
-    assert repo.languages == set([('python', 'default')])
+    assert repo.languages == {('python', 'default')}
 
 
 @pytest.mark.integration
@@ -435,7 +435,7 @@ def test_additional_dependencies(tempdir_factory, store):
     config = make_config_from_repo(path)
     config['hooks'][0]['additional_dependencies'] = ['pep8']
     repo = Repository.create(config, store)
-    assert repo.additional_dependencies['python']['default'] == set(('pep8',))
+    assert repo.additional_dependencies['python']['default'] == {'pep8'}
 
 
 @pytest.mark.integration
