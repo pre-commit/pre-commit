@@ -1,15 +1,17 @@
 language: python
-python: 3.5
 dist: trusty
 sudo: required
 services:
     - docker
-env: # These should match the tox env list
-    - TOXENV=py27
-    - TOXENV=py34
-    - TOXENV=py35
-    - TOXENV=pypy
-    - TOXENV=py27 LATEST_GIT=1
+matrix:
+    include:
+        -   env: TOXENV=py27
+        -   env: TOXENV=py27 LATEST_GIT=1
+        -   env: TOXENV=py35
+            python: 3.5
+        -   env: TOXENV=py36
+            python: 3.6
+        -   env: TOXENV=pypy
 install: pip install coveralls tox
 script: tox
 before_install:
@@ -22,11 +24,8 @@ before_install:
             export PATH="/tmp/git/bin:$PATH"
         fi
     - git --version
-    - |
-        ./get-swift.sh
-        export PATH="/tmp/swift/usr/bin:$PATH"
-after_success:
-    - coveralls
+    - './get-swift.sh && export PATH="/tmp/swift/usr/bin:$PATH"'
+after_success: coveralls
 cache:
     directories:
         - $HOME/.cache/pip

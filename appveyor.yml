@@ -4,10 +4,10 @@ environment:
         TOX_TESTENV_PASSENV: COVERAGE_IGNORE_WINDOWS
     matrix:
         - TOXENV: py27
-        - TOXENV: py35
+        - TOXENV: py36
 
 install:
-    - "SET PATH=C:\\Python35;C:\\Python35\\Scripts;%PATH%"
+    - "SET PATH=C:\\Python36;C:\\Python36\\Scripts;%PATH%"
     - pip install tox virtualenv --upgrade
     - "mkdir -p C:\\Temp"
     - "SET TMPDIR=C:\\Temp"
