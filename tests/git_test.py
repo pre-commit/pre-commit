@@ -68,11 +68,11 @@ def test_cherry_pick_conflict(in_merge_conflict):
 def get_files_matching_func():
     def get_filenames():
         return (
+            '.pre-commit-hooks.yaml',
             'pre_commit/main.py',
             'pre_commit/git.py',
             'im_a_file_that_doesnt_exist.py',
             'testing/test_symlink',
-            'hooks.yaml',
         )
 
     return git.get_files_matching(get_filenames)
@@ -81,9 +81,9 @@ def get_files_matching_func():
 def test_get_files_matching_base(get_files_matching_func):
     ret = get_files_matching_func('', '^$')
     assert ret == {
+        '.pre-commit-hooks.yaml',
         'pre_commit/main.py',
         'pre_commit/git.py',
-        'hooks.yaml',
         'testing/test_symlink'
     }
 
@@ -95,7 +95,7 @@ def test_get_files_matching_total_match(get_files_matching_func):
 
 def test_does_search_instead_of_match(get_files_matching_func):
     ret = get_files_matching_func('\\.yaml$', '^$')
-    assert ret == {'hooks.yaml'}
+    assert ret == {'.pre-commit-hooks.yaml'}
 
 
 def test_does_not_include_deleted_fileS(get_files_matching_func):
@@ -105,7 +105,7 @@ def test_does_not_include_deleted_fileS(get_files_matching_func):
 
 def test_exclude_removes_files(get_files_matching_func):
     ret = get_files_matching_func('', '\\.py$')
-    assert ret == {'hooks.yaml', 'testing/test_symlink'}
+    assert ret == {'.pre-commit-hooks.yaml', 'testing/test_symlink'}
 
 
 def resolve_conflict():

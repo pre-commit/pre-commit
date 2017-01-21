@@ -1,0 +1,5 @@
+-   id: system-hook-with-spaces
+    name: System hook with spaces
+    entry: bash -c 'echo "Hello World"'
+    language: system
+    files: \.sh$
