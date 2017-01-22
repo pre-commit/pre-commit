@@ -104,7 +104,7 @@ class Repository(object):
 
     @cached_property
     def manifest(self):
-        return Manifest(self.repo_path_getter)
+        return Manifest(self.repo_path_getter, self.repo_url)
 
     @cached_property
     def cmd_runner(self):

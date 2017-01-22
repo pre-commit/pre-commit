@@ -39,13 +39,17 @@ def make_repo(tempdir_factory, repo_source):
 
 @contextlib.contextmanager
 def modify_manifest(path):
-    """Modify the manifest yielded by this context to write to hooks.yaml."""
+    """Modify the manifest yielded by this context to write to
+    .pre-commit-hooks.yaml.
+    """
     manifest_path = os.path.join(path, C.MANIFEST_FILE)
     manifest = ordered_load(io.open(manifest_path).read())
     yield manifest
     with io.open(manifest_path, 'w') as manifest_file:
         manifest_file.write(ordered_dump(manifest, **C.YAML_DUMP_KWARGS))
-    cmd_output('git', 'commit', '-am', 'update hooks.yaml', cwd=path)
+    cmd_output(
+        'git', 'commit', '-am', 'update .pre-commit-hooks.yaml', cwd=path,
+    )
 
 
 @contextlib.contextmanager
@@ -75,8 +79,11 @@ def config_with_local_hooks():
     ))
 
 
-def make_config_from_repo(repo_path, sha=None, hooks=None, check=True):
-    manifest = load_manifest(os.path.join(repo_path, C.MANIFEST_FILE))
+def make_config_from_repo(
+        repo_path, sha=None, hooks=None, check=True, legacy=False,
+):
+    filename = C.MANIFEST_FILE_LEGACY if legacy else C.MANIFEST_FILE
+    manifest = load_manifest(os.path.join(repo_path, filename))
     config = OrderedDict((
         ('repo', repo_path),
         ('sha', sha or get_head_sha(repo_path)),

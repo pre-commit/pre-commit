@@ -45,7 +45,7 @@ def _test_hook_repo(
         args,
         expected,
         expected_return_code=0,
-        config_kwargs=None
+        config_kwargs=None,
 ):
     path = make_repo(tempdir_factory, repo_path)
     config = make_config_from_repo(path, **(config_kwargs or {}))
@@ -212,6 +212,15 @@ def test_system_hook_with_spaces(tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'system_hook_with_spaces_repo',
         'system-hook-with-spaces', ['/dev/null'], b'Hello World\n',
+    )
+
+
+@pytest.mark.integration
+def test_repo_with_legacy_hooks_yaml(tempdir_factory, store):
+    _test_hook_repo(
+        tempdir_factory, store, 'legacy_hooks_yaml_repo',
+        'system-hook-with-spaces', ['/dev/null'], b'Hello World\n',
+        config_kwargs={'legacy': True},
     )
 
 
