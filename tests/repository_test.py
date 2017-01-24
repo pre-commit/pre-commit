@@ -207,6 +207,30 @@ def test_run_versioned_ruby_hook(tempdir_factory, store):
     )
 
 
+@skipif_slowtests_false
+@xfailif_windows_no_ruby
+@pytest.mark.integration
+def test_run_ruby_hook_with_disable_shared_gems(
+        tempdir_factory,
+        store,
+        tmpdir,
+):
+    """Make sure a Gemfile in the project doesn't interfere."""
+    tmpdir.join('Gemfile').write('gem "lol_hai"')
+    tmpdir.join('.bundle').mkdir()
+    tmpdir.join('.bundle', 'config').write(
+        'BUNDLE_DISABLE_SHARED_GEMS: true\n'
+        'BUNDLE_PATH: vendor/gem\n'
+    )
+    with cwd(tmpdir.strpath):
+        _test_hook_repo(
+            tempdir_factory, store, 'ruby_versioned_hooks_repo',
+            'ruby_hook',
+            ['/dev/null'],
+            b'2.1.5\nHello world from a ruby hook\n',
+        )
+
+
 @pytest.mark.integration
 def test_system_hook_with_spaces(tempdir_factory, store):
     _test_hook_repo(
