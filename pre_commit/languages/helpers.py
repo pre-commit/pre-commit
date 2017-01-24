@@ -18,3 +18,18 @@ def environment_dir(ENVIRONMENT_DIR, language_version):
 
 def to_cmd(hook):
     return tuple(shlex.split(hook['entry'])) + tuple(hook['args'])
+
+
+def assert_version_default(binary, version):
+    if version != 'default':
+        raise AssertionError(
+            'For now, pre-commit requires system-installed {}'.format(binary),
+        )
+
+
+def assert_no_additional_deps(lang, additional_deps):
+    if additional_deps:
+        raise AssertionError(
+            'For now, pre-commit does not support '
+            'additional_dependencies for {}'.format(lang),
+        )

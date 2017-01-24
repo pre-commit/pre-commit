@@ -60,9 +60,8 @@ def install_environment(
     assert repo_cmd_runner.exists('Dockerfile'), (
         'No Dockerfile was found in the hook repository'
     )
-    assert version == 'default', (
-        'Pre-commit does not support language_version for docker '
-    )
+    helpers.assert_version_default('docker', version)
+    helpers.assert_no_additional_deps('docker', additional_dependencies)
     assert_docker_available()
 
     directory = repo_cmd_runner.path(
