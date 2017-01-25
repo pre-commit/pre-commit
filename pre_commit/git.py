@@ -32,6 +32,11 @@ def get_git_dir(git_root):
     ))
 
 
+def get_remote_url(git_root):
+    ret = cmd_output('git', 'config', 'remote.origin.url', cwd=git_root)[1]
+    return ret.strip()
+
+
 def is_in_merge_conflict():
     git_dir = get_git_dir('.')
     return (

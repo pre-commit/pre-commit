@@ -258,6 +258,14 @@ def test_swift_hook(tempdir_factory, store):
 
 
 @pytest.mark.integration
+def test_golang_hook(tempdir_factory, store):
+    _test_hook_repo(
+        tempdir_factory, store, 'golang_hooks_repo',
+        'golang-hook', [], b'hello world\n',
+    )
+
+
+@pytest.mark.integration
 def test_missing_executable(tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'not_found_exe',

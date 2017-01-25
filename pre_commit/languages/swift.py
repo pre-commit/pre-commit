@@ -33,9 +33,8 @@ def install_environment(
         version='default',
         additional_dependencies=(),
 ):  # pragma: windows no cover
-    assert version == 'default', (
-        'Pre-commit does not support language_version for docker '
-    )
+    helpers.assert_version_default('swift', version)
+    helpers.assert_no_additional_deps('swift', additional_dependencies)
     directory = repo_cmd_runner.path(
         helpers.environment_dir(ENVIRONMENT_DIR, 'default'),
     )
