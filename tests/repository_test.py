@@ -553,13 +553,11 @@ def test_additional_golang_dependencies_installed(
     config['hooks'][0]['additional_dependencies'] = ['github.com/firba1/tpol']
     repo = Repository.create(config, store)
     repo.require_installed()
-    with golang.in_env(repo.cmd_runner):
-        gopath = repo.cmd_runner.path(helpers.environment_dir(
-            golang.ENVIRONMENT_DIR, 'default',
-        ))
-        env = dict(os.environ, GOPATH=gopath)
-        output = cmd_output('go', 'list', '...', env=env)[1]
-        assert 'github.com/firba1/tpol' in output
+    binaries = os.listdir(repo.cmd_runner.path(
+        helpers.environment_dir(golang.ENVIRONMENT_DIR, 'default'),
+        'bin',
+    ))
+    assert 'tpol' in binaries
 
 
 def test_reinstall(tempdir_factory, store, log_info_mock):
