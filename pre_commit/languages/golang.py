@@ -15,14 +15,14 @@ from pre_commit.xargs import xargs
 ENVIRONMENT_DIR = 'golangenv'
 
 
-def get_env_patch(venv):  # pragma: windows no cover
+def get_env_patch(venv):
     return (
         ('PATH', (os.path.join(venv, 'bin'), os.pathsep, Var('PATH'))),
     )
 
 
 @contextlib.contextmanager
-def in_env(repo_cmd_runner):  # pragma: windows no cover
+def in_env(repo_cmd_runner):
     envdir = repo_cmd_runner.path(
         helpers.environment_dir(ENVIRONMENT_DIR, 'default'),
     )
@@ -47,7 +47,7 @@ def install_environment(
         repo_cmd_runner,
         version='default',
         additional_dependencies=(),
-):  # pragma: windows no cover
+):
     helpers.assert_version_default('golang', version)
     helpers.assert_no_additional_deps('golang', additional_dependencies)
     directory = repo_cmd_runner.path(
@@ -67,6 +67,6 @@ def install_environment(
         cmd_output('go', 'get', './...', cwd=repo_src_dir, env=env)
 
 
-def run_hook(repo_cmd_runner, hook, file_args):  # pragma: windows no cover
+def run_hook(repo_cmd_runner, hook, file_args):
     with in_env(repo_cmd_runner):
         return xargs(helpers.to_cmd(hook), file_args)
