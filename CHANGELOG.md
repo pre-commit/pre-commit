@@ -1,3 +1,11 @@
+0.12.0
+======
+- The new default file for implementing hooks in remote repositories is now
+  .pre-commit-hooks.yaml to encourage repositories to add the metadata.  As
+  such, the previous hooks.yaml is now deprecated and generates a warning.
+- Fix bug with local configuration interfering with ruby hooks
+- Added support for hooks written in golang.
+
 0.11.0
 ======
 - SwiftPM support.
