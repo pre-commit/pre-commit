@@ -6,7 +6,7 @@ import pytest
 
 import pre_commit.constants as C
 from pre_commit.clientlib.validate_config import load_config
-from pre_commit.commands.autoupdate import _update_repository
+from pre_commit.commands.autoupdate import _update_repo
 from pre_commit.commands.autoupdate import autoupdate
 from pre_commit.commands.autoupdate import RepositoryCannotBeUpdatedError
 from pre_commit.ordereddict import OrderedDict
@@ -32,7 +32,7 @@ def up_to_date_repo(tempdir_factory):
 def test_up_to_date_repo(up_to_date_repo, runner_with_mocked_store):
     config = make_config_from_repo(up_to_date_repo)
     input_sha = config['sha']
-    ret = _update_repository(config, runner_with_mocked_store)
+    ret = _update_repo(config, runner_with_mocked_store, tags_only=False)
     assert ret['sha'] == input_sha
 
 
@@ -45,8 +45,7 @@ def test_autoupdate_up_to_date_repo(
 
     before = open(C.CONFIG_FILE).read()
     assert '^$' not in before
-    runner = Runner('.', C.CONFIG_FILE)
-    ret = autoupdate(runner)
+    ret = autoupdate(Runner('.', C.CONFIG_FILE), tags_only=False)
     after = open(C.CONFIG_FILE).read()
     assert ret == 0
     assert before == after
@@ -71,7 +70,7 @@ def test_out_of_date_repo(out_of_date_repo, runner_with_mocked_store):
     config = make_config_from_repo(
         out_of_date_repo.path, sha=out_of_date_repo.original_sha,
     )
-    ret = _update_repository(config, runner_with_mocked_store)
+    ret = _update_repo(config, runner_with_mocked_store, tags_only=False)
     assert ret['sha'] != out_of_date_repo.original_sha
     assert ret['sha'] == out_of_date_repo.head_sha
 
@@ -86,8 +85,7 @@ def test_autoupdate_out_of_date_repo(
     write_config('.', config)
 
     before = open(C.CONFIG_FILE).read()
-    runner = Runner('.', C.CONFIG_FILE)
-    ret = autoupdate(runner)
+    ret = autoupdate(Runner('.', C.CONFIG_FILE), tags_only=False)
     after = open(C.CONFIG_FILE).read()
     assert ret == 0
     assert before != after
@@ -111,7 +109,28 @@ def test_autoupdate_tagged_repo(
     )
     write_config('.', config)
 
-    ret = autoupdate(Runner('.', C.CONFIG_FILE))
+    ret = autoupdate(Runner('.', C.CONFIG_FILE), tags_only=False)
+    assert ret == 0
+    assert 'v1.2.3' in open(C.CONFIG_FILE).read()
+
+
+@pytest.yield_fixture
+def tagged_repo_with_more_commits(tagged_repo):
+    with cwd(tagged_repo.path):
+        cmd_output('git', 'commit', '--allow-empty', '-m', 'commit!')
+    yield tagged_repo
+
+
+def test_autoupdate_tags_only(
+        tagged_repo_with_more_commits, in_tmpdir, mock_out_store_directory,
+):
+    config = make_config_from_repo(
+        tagged_repo_with_more_commits.path,
+        sha=tagged_repo_with_more_commits.original_sha,
+    )
+    write_config('.', config)
+
+    ret = autoupdate(Runner('.', C.CONFIG_FILE), tags_only=True)
     assert ret == 0
     assert 'v1.2.3' in open(C.CONFIG_FILE).read()
 
@@ -141,7 +160,7 @@ def test_hook_disppearing_repo_raises(
         hooks=[OrderedDict((('id', 'foo'),))],
     )
     with pytest.raises(RepositoryCannotBeUpdatedError):
-        _update_repository(config, runner_with_mocked_store)
+        _update_repo(config, runner_with_mocked_store, tags_only=False)
 
 
 def test_autoupdate_hook_disappearing_repo(
@@ -156,8 +175,7 @@ def test_autoupdate_hook_disappearing_repo(
     write_config('.', config)
 
     before = open(C.CONFIG_FILE).read()
-    runner = Runner('.', C.CONFIG_FILE)
-    ret = autoupdate(runner)
+    ret = autoupdate(Runner('.', C.CONFIG_FILE), tags_only=False)
     after = open(C.CONFIG_FILE).read()
     assert ret == 1
     assert before == after
@@ -168,7 +186,7 @@ def test_autoupdate_local_hooks(tempdir_factory):
     config = config_with_local_hooks()
     path = add_config_to_repo(git_path, config)
     runner = Runner(path, C.CONFIG_FILE)
-    assert autoupdate(runner) == 0
+    assert autoupdate(runner, tags_only=False) == 0
     new_config_writen = load_config(runner.config_file_path)
     assert len(new_config_writen) == 1
     assert new_config_writen[0] == config
@@ -184,7 +202,7 @@ def test_autoupdate_local_hooks_with_out_of_date_repo(
     config = [local_config, stale_config]
     write_config('.', config)
     runner = Runner('.', C.CONFIG_FILE)
-    assert autoupdate(runner) == 0
+    assert autoupdate(runner, tags_only=False) == 0
     new_config_writen = load_config(runner.config_file_path)
     assert len(new_config_writen) == 2
     assert new_config_writen[0] == local_config
