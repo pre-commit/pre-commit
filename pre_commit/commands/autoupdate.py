@@ -21,7 +21,7 @@ class RepositoryCannotBeUpdatedError(RuntimeError):
     pass
 
 
-def _update_repository(repo_config, runner):
+def _update_repo(repo_config, runner, tags_only):
     """Updates a repository to the tip of `master`.  If the repository cannot
     be updated because a hook that is configured does not exist in `master`,
     this raises a RepositoryCannotBeUpdatedError
@@ -33,10 +33,13 @@ def _update_repository(repo_config, runner):
 
     with cwd(repo.repo_path_getter.repo_path):
         cmd_output('git', 'fetch')
+        tag_cmd = ('git', 'describe', 'origin/master', '--tags')
+        if tags_only:
+            tag_cmd += ('--abbrev=0',)
+        else:
+            tag_cmd += ('--exact',)
         try:
-            rev = cmd_output(
-                'git', 'describe', 'origin/master', '--tags', '--exact',
-            )[1].strip()
+            rev = cmd_output(*tag_cmd)[1].strip()
         except CalledProcessError:
             rev = cmd_output('git', 'rev-parse', 'origin/master')[1].strip()
 
@@ -61,7 +64,7 @@ def _update_repository(repo_config, runner):
     return new_config
 
 
-def autoupdate(runner):
+def autoupdate(runner, tags_only):
     """Auto-update the pre-commit config to the latest versions of repos."""
     retv = 0
     output_configs = []
@@ -78,7 +81,7 @@ def autoupdate(runner):
             continue
         output.write('Updating {}...'.format(repo_config['repo']))
         try:
-            new_repo_config = _update_repository(repo_config, runner)
+            new_repo_config = _update_repo(repo_config, runner, tags_only)
         except RepositoryCannotBeUpdatedError as error:
             output.write_line(error.args[0])
             output_configs.append(repo_config)

@@ -111,6 +111,9 @@ def main(argv=None):
     )
     _add_color_option(autoupdate_parser)
     _add_config_option(autoupdate_parser)
+    autoupdate_parser.add_argument(
+        '--tags-only', action='store_true', help='Update to tags only.',
+    )
 
     run_parser = subparsers.add_parser('run', help='Run hooks.')
     _add_color_option(run_parser)
@@ -190,7 +193,7 @@ def main(argv=None):
         elif args.command == 'clean':
             return clean(runner)
         elif args.command == 'autoupdate':
-            return autoupdate(runner)
+            return autoupdate(runner, args.tags_only)
         elif args.command == 'run':
             return run(runner, args)
         else:
