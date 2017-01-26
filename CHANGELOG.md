@@ -1,3 +1,8 @@
+0.12.1
+======
+- golang hooks now support additional_dependencies
+- Added a --tags-only option to pre-commit autoupdate
+
 0.12.0
 ======
 - The new default file for implementing hooks in remote repositories is now
