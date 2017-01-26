@@ -16,6 +16,7 @@ from pre_commit import parse_shebang
 from pre_commit.clientlib.validate_config import CONFIG_JSON_SCHEMA
 from pre_commit.clientlib.validate_config import validate_config_extra
 from pre_commit.jsonschema_extensions import apply_defaults
+from pre_commit.languages import golang
 from pre_commit.languages import helpers
 from pre_commit.languages import node
 from pre_commit.languages import pcre
@@ -540,6 +541,25 @@ def test_additional_node_dependencies_installed(
         cmd_output('npm', 'config', 'set', 'global', 'true')
         output = cmd_output('npm', 'ls')[1]
         assert 'lodash' in output
+
+
+@pytest.mark.integration
+def test_additional_golang_dependencies_installed(
+        tempdir_factory, store,
+):
+    path = make_repo(tempdir_factory, 'golang_hooks_repo')
+    config = make_config_from_repo(path)
+    # A small go package
+    deps = ['github.com/golang/example/hello']
+    config['hooks'][0]['additional_dependencies'] = deps
+    repo = Repository.create(config, store)
+    repo.require_installed()
+    binaries = os.listdir(repo.cmd_runner.path(
+        helpers.environment_dir(golang.ENVIRONMENT_DIR, 'default'), 'bin',
+    ))
+    # normalize for windows
+    binaries = [os.path.splitext(binary)[0] for binary in binaries]
+    assert 'hello' in binaries
 
 
 def test_reinstall(tempdir_factory, store, log_info_mock):

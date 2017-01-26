@@ -9,6 +9,7 @@ from pre_commit.envcontext import Var
 from pre_commit.languages import helpers
 from pre_commit.util import clean_path_on_failure
 from pre_commit.util import cmd_output
+from pre_commit.util import rmtree
 from pre_commit.xargs import xargs
 
 
@@ -49,7 +50,6 @@ def install_environment(
         additional_dependencies=(),
 ):
     helpers.assert_version_default('golang', version)
-    helpers.assert_no_additional_deps('golang', additional_dependencies)
     directory = repo_cmd_runner.path(
         helpers.environment_dir(ENVIRONMENT_DIR, 'default'),
     )
@@ -65,6 +65,11 @@ def install_environment(
 
         env = dict(os.environ, GOPATH=directory)
         cmd_output('go', 'get', './...', cwd=repo_src_dir, env=env)
+        for dependency in additional_dependencies:
+            cmd_output('go', 'get', dependency, cwd=repo_src_dir, env=env)
+        # Same some disk space, we don't need these after installation
+        rmtree(repo_cmd_runner.path(directory, 'src'))
+        rmtree(repo_cmd_runner.path(directory, 'pkg'))
 
 
 def run_hook(repo_cmd_runner, hook, file_args):
