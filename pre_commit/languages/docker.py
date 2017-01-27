@@ -43,12 +43,14 @@ def build_docker_image(repo_cmd_runner, **kwargs):  # pragma: windows no cover
     pull = kwargs.pop('pull')
     assert not kwargs, kwargs
     cmd = (
-        'docker', 'build', '.',
+        'docker', 'build',
         '--tag', docker_tag(repo_cmd_runner),
         '--label', PRE_COMMIT_LABEL,
     )
     if pull:
         cmd += ('--pull',)
+    # This must come last for old versions of docker.  See #477
+    cmd += ('.',)
     helpers.run_setup_cmd(repo_cmd_runner, cmd)
 
 
