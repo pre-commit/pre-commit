@@ -1,3 +1,7 @@
+0.12.2
+======
+- Fix docker hooks on older (<1.12) docker
+
 0.12.1
 ======
 - golang hooks now support additional_dependencies
