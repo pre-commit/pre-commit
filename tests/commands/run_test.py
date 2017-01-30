@@ -5,6 +5,7 @@ import io
 import os.path
 import subprocess
 import sys
+from collections import OrderedDict
 
 import mock
 import pytest
@@ -16,7 +17,6 @@ from pre_commit.commands.run import _get_skips
 from pre_commit.commands.run import _has_unmerged_paths
 from pre_commit.commands.run import get_changed_files
 from pre_commit.commands.run import run
-from pre_commit.ordereddict import OrderedDict
 from pre_commit.runner import Runner
 from pre_commit.util import cmd_output
 from pre_commit.util import cwd

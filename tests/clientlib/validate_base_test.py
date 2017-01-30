@@ -1,10 +1,11 @@
 from __future__ import unicode_literals
 
+from collections import OrderedDict
+
 import pytest
 from aspy.yaml import ordered_load
 
 from pre_commit.clientlib.validate_base import get_validator
-from pre_commit.ordereddict import OrderedDict
 from testing.util import get_resource_path
 
 

@@ -2,9 +2,9 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 import os.path
+from collections import OrderedDict
 
 import pre_commit.constants as C
-from pre_commit.ordereddict import OrderedDict
 from pre_commit.runner import Runner
 from pre_commit.util import cmd_output
 from pre_commit.util import cwd
