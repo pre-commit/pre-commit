@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import contextlib
 import io
 import os.path
+from collections import OrderedDict
 
 from aspy.yaml import ordered_dump
 from aspy.yaml import ordered_load
@@ -13,7 +14,6 @@ from pre_commit.clientlib.validate_config import CONFIG_JSON_SCHEMA
 from pre_commit.clientlib.validate_config import validate_config_extra
 from pre_commit.clientlib.validate_manifest import load_manifest
 from pre_commit.jsonschema_extensions import apply_defaults
-from pre_commit.ordereddict import OrderedDict
 from pre_commit.util import cmd_output
 from pre_commit.util import cwd
 from testing.util import copy_tree_to_path

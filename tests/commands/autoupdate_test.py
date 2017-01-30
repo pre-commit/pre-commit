@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 import shutil
+from collections import OrderedDict
 
 import pytest
 
@@ -9,7 +10,6 @@ from pre_commit.clientlib.validate_config import load_config
 from pre_commit.commands.autoupdate import _update_repo
 from pre_commit.commands.autoupdate import autoupdate
 from pre_commit.commands.autoupdate import RepositoryCannotBeUpdatedError
-from pre_commit.ordereddict import OrderedDict
 from pre_commit.runner import Runner
 from pre_commit.util import cmd_output
 from pre_commit.util import cwd
