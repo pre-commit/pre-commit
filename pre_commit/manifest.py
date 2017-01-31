@@ -22,9 +22,7 @@ class Manifest(object):
         repo_path = self.repo_path_getter.repo_path
         default_path = os.path.join(repo_path, C.MANIFEST_FILE)
         legacy_path = os.path.join(repo_path, C.MANIFEST_FILE_LEGACY)
-        if os.path.exists(default_path):
-            return load_manifest(default_path)
-        else:
+        if os.path.exists(legacy_path) and not os.path.exists(default_path):
             logger.warning(
                 '{} uses legacy {} to provide hooks.\n'
                 'In newer versions, this file is called {}\n'
@@ -36,6 +34,8 @@ class Manifest(object):
                 )
             )
             return load_manifest(legacy_path)
+        else:
+            return load_manifest(default_path)
 
     @cached_property
     def hooks(self):

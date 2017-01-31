@@ -51,6 +51,35 @@ def test_autoupdate_up_to_date_repo(
     assert before == after
 
 
+def test_autoupdate_old_revision_broken(
+    tempdir_factory, in_tmpdir, mock_out_store_directory,
+):
+    """In $FUTURE_VERSION, hooks.yaml will no longer be supported.  This
+    asserts that when that day comes, pre-commit will be able to autoupdate
+    despite not being able to read hooks.yaml in that repository.
+    """
+    path = make_repo(tempdir_factory, 'python_hooks_repo')
+    config = make_config_from_repo(path, check=False)
+
+    with cwd(path):
+        cmd_output('git', 'mv', C.MANIFEST_FILE, 'nope.yaml')
+        cmd_output('git', 'commit', '-m', 'simulate old repo')
+        # Assume this is the revision the user's old repository was at
+        rev = get_head_sha(path)
+        cmd_output('git', 'mv', 'nope.yaml', C.MANIFEST_FILE)
+        cmd_output('git', 'commit', '-m', 'move hooks file')
+        update_rev = get_head_sha(path)
+
+    config['sha'] = rev
+    write_config('.', config)
+    before = open(C.CONFIG_FILE).read()
+    ret = autoupdate(Runner('.', C.CONFIG_FILE), tags_only=False)
+    after = open(C.CONFIG_FILE).read()
+    assert ret == 0
+    assert before != after
+    assert update_rev in after
+
+
 @pytest.yield_fixture
 def out_of_date_repo(tempdir_factory):
     path = make_repo(tempdir_factory, 'python_hooks_repo')
