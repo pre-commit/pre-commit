@@ -477,7 +477,20 @@ def test_additional_dependencies(tempdir_factory, store):
     config = make_config_from_repo(path)
     config['hooks'][0]['additional_dependencies'] = ['pep8']
     repo = Repository.create(config, store)
-    assert repo.additional_dependencies['python']['default'] == {'pep8'}
+    assert repo.additional_dependencies['python']['default'] == ['pep8']
+
+
+@pytest.mark.integration
+def test_additional_dependencies_duplicated(
+        tempdir_factory, store, log_warning_mock,
+):
+    path = make_repo(tempdir_factory, 'ruby_hooks_repo')
+    config = make_config_from_repo(path)
+    config['hooks'][0]['additional_dependencies'] = [
+        'thread_safe', 'tins', 'thread_safe']
+    repo = Repository.create(config, store)
+    assert repo.additional_dependencies['ruby']['default'] == [
+        'thread_safe', 'tins']
 
 
 @pytest.mark.integration
@@ -517,12 +530,13 @@ def test_additional_ruby_dependencies_installed(
 ):  # pragma: no cover (non-windows)
     path = make_repo(tempdir_factory, 'ruby_hooks_repo')
     config = make_config_from_repo(path)
-    config['hooks'][0]['additional_dependencies'] = ['thread_safe']
+    config['hooks'][0]['additional_dependencies'] = ['thread_safe', 'tins']
     repo = Repository.create(config, store)
     repo.require_installed()
     with ruby.in_env(repo.cmd_runner, 'default'):
         output = cmd_output('gem', 'list', '--local')[1]
         assert 'thread_safe' in output
+        assert 'tins' in output
 
 
 @skipif_slowtests_false
