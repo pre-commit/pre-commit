@@ -64,7 +64,7 @@ class Repository(object):
 
     @cached_property
     def additional_dependencies(self):
-        dep_dict = defaultdict(lambda: defaultdict(set))
+        dep_dict = defaultdict(lambda: defaultdict(_UniqueList))
         for _, hook in self.hooks:
             dep_dict[hook['language']][hook['language_version']].update(
                 hook.get('additional_dependencies', []),
@@ -222,3 +222,14 @@ class LocalRepository(Repository):
     @cached_property
     def manifest(self):
         raise NotImplementedError
+
+
+class _UniqueList(list):
+    def __init__(self):
+        self._set = set()
+
+    def update(self, obj):
+        for item in obj:
+            if item not in self._set:
+                self._set.add(item)
+                self.append(item)
