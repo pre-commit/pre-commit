@@ -179,6 +179,7 @@ class Repository(object):
             language.install_environment(
                 self.cmd_runner, language_version,
                 self.additional_dependencies[language_name][language_version],
+                is_local_hooks(self.repo_config),
             )
             # Write our state to indicate we're installed
             write_state(venv, language_name, language_version)

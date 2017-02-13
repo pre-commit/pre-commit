@@ -571,6 +571,34 @@ def test_additional_golang_dependencies_installed(
     assert 'hello' in binaries
 
 
+@skipif_slowtests_false
+@xfailif_windows_no_ruby
+@pytest.mark.integration
+def test_install_local_ruby_hook(
+        tempdir_factory, store,
+):  # pragma: no cover (non-windows)
+    config = config_with_local_hooks('ruby')
+    config['hooks'][0]['additional_dependencies'] = ['thread_safe']
+    repo = Repository.create(config, store)
+    repo.require_installed()
+    with ruby.in_env(repo.cmd_runner, 'default'):
+        output = cmd_output('gem', 'list', '--local')[1]
+        assert 'thread_safe' in output
+
+
+@pytest.mark.integration
+def test_install_local_python_hook(
+        tempdir_factory, store,
+):  # pragma: no cover (non-windows)
+    config = config_with_local_hooks('python')
+    config['hooks'][0]['additional_dependencies'] = ['mccabe']
+    repo = Repository.create(config, store)
+    repo.require_installed()
+    with python.in_env(repo.cmd_runner, 'default'):
+        output = cmd_output('pip', 'freeze', '-l')[1]
+        assert 'mccabe' in output
+
+
 def test_reinstall(tempdir_factory, store, log_info_mock):
     path = make_repo(tempdir_factory, 'python_hooks_repo')
     config = make_config_from_repo(path)

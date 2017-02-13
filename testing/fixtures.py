@@ -66,14 +66,14 @@ def modify_config(path='.', commit=True):
         cmd_output('git', 'commit', '-am', 'update config', cwd=path)
 
 
-def config_with_local_hooks():
+def config_with_local_hooks(language='pcre'):
     return OrderedDict((
         ('repo', 'local'),
         ('hooks', [OrderedDict((
-            ('id', 'do_not_commit'),
-            ('name', 'Block if "DO NOT COMMIT" is found'),
-            ('entry', 'DO NOT COMMIT'),
-            ('language', 'pcre'),
+            ('id', language),
+            ('name', language),
+            ('entry', language),
+            ('language', language),
             ('files', '^(.*)$'),
         ))])
     ))
