@@ -2,9 +2,19 @@ z40=0000000000000000000000000000000000000000
 while read local_ref local_sha remote_ref remote_sha
 do
     if [ "$local_sha" != $z40 ]; then
-        if [ "$remote_sha" = $z40 ];
-        then
-            args="run --all-files"
+        if [ "$remote_sha" = $z40 ]; then
+            # First ancestor not found in remote
+            first_ancestor=$(git rev-list --topo-order --reverse "$local_sha" --not --remotes="$1" | head -n 1)
+            if [ -n "$first_ancestor" ]; then
+                # Check that the ancestor has at least one parent
+                git rev-list --max-parents=0 "$local_sha" | grep "$first_ancestor" > /dev/null
+                if [ $? -ne 0 ]; then
+                    args="run --all-files"
+                else
+                    source=$(git rev-parse "$first_ancestor"^)
+                    args="run --origin $local_sha --source $source"
+                fi
+            fi
         else
             args="run --origin $local_sha --source $remote_sha"
         fi
