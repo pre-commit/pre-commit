@@ -11,7 +11,7 @@ def install_environment(
         repo_cmd_runner,
         version='default',
         additional_dependencies=(),
-        is_local_hook = False,
+        is_local_hook=False,
 ):
     """Installation for script type is a noop."""
     raise AssertionError('Cannot install script repo.')

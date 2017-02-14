@@ -11,7 +11,6 @@ import pkg_resources
 from cached_property import cached_property
 
 from pre_commit import five
-from pre_commit import git
 from pre_commit.clientlib.validate_config import is_local_hooks
 from pre_commit.clientlib.validate_manifest import MANIFEST_JSON_SCHEMA
 from pre_commit.jsonschema_extensions import apply_defaults
@@ -38,13 +37,13 @@ class Repository(object):
         self.__installed = False
 
     @classmethod
-    def create(cls, config, store):
+    def create(cls, config, store, owner):
+        repo_path_getter = store.get_repo_path_getter(
+            config['repo'], config['sha'], owner
+        )
         if is_local_hooks(config):
-            return LocalRepository(config)
+            return LocalRepository(config, repo_path_getter)
         else:
-            repo_path_getter = store.get_repo_path_getter(
-                config['repo'], config['sha']
-            )
             return cls(config, repo_path_getter)
 
     @cached_property
@@ -198,23 +197,12 @@ class Repository(object):
 
 
 class LocalRepository(Repository):
-    def __init__(self, repo_config):
-        super(LocalRepository, self).__init__(repo_config, None)
-
     @cached_property
     def hooks(self):
         return tuple(
             (hook['id'], apply_defaults(hook, MANIFEST_JSON_SCHEMA['items']))
             for hook in self.repo_config['hooks']
         )
-
-    @cached_property
-    def cmd_runner(self):
-        return PrefixedCommandRunner(git.get_root())
-
-    @cached_property
-    def manifest(self):
-        raise NotImplementedError
 
 
 class _UniqueList(list):

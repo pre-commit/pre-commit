@@ -58,7 +58,7 @@ def install_environment(
         repo_cmd_runner,
         version='default',
         additional_dependencies=(),
-        is_local_hook = False,
+        is_local_hook=False,
 ):
     additional_dependencies = tuple(additional_dependencies)
     directory = helpers.environment_dir(ENVIRONMENT_DIR, version)
@@ -74,7 +74,7 @@ def install_environment(
         else:
             venv_cmd.extend(['-p', os.path.realpath(sys.executable)])
         repo_cmd_runner.run(venv_cmd, cwd='/')
-        to_install = () if is_local_hook else ('.')
+        to_install = () if is_local_hook else ('.',)
         to_install += additional_dependencies
         with in_env(repo_cmd_runner, version):
             helpers.run_setup_cmd(

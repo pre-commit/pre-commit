@@ -50,11 +50,12 @@ def _test_hook_repo(
 ):
     path = make_repo(tempdir_factory, repo_path)
     config = make_config_from_repo(path, **(config_kwargs or {}))
-    repo = Repository.create(config, store)
+    repo = Repository.create(config, store, path)
     hook_dict = [
         hook for repo_hook_id, hook in repo.hooks if repo_hook_id == hook_id
     ][0]
     ret = repo.run_hook(hook_dict, args)
+    print ret
     assert ret[0] == expected_return_code
     assert ret[1].replace(b'\r\n', b'\n') == expected
 
@@ -108,7 +109,7 @@ def test_switch_language_versions_doesnt_clobber(tempdir_factory, store):
         config = make_config_from_repo(
             path, hooks=[{'id': 'python3-hook', 'language_version': version}],
         )
-        repo = Repository.create(config, store)
+        repo = Repository.create(config, store, path)
         hook_dict, = [
             hook
             for repo_hook_id, hook in repo.hooks
@@ -462,7 +463,7 @@ def test_repo_url(mock_repo_config):
 def test_languages(tempdir_factory, store):
     path = make_repo(tempdir_factory, 'python_hooks_repo')
     config = make_config_from_repo(path)
-    repo = Repository.create(config, store)
+    repo = Repository.create(config, store, path)
     assert repo.languages == {('python', 'default')}
 
 
@@ -471,7 +472,7 @@ def test_additional_dependencies(tempdir_factory, store):
     path = make_repo(tempdir_factory, 'python_hooks_repo')
     config = make_config_from_repo(path)
     config['hooks'][0]['additional_dependencies'] = ['pep8']
-    repo = Repository.create(config, store)
+    repo = Repository.create(config, store, path)
     assert repo.additional_dependencies['python']['default'] == ['pep8']
 
 
@@ -483,7 +484,7 @@ def test_additional_dependencies_duplicated(
     config = make_config_from_repo(path)
     config['hooks'][0]['additional_dependencies'] = [
         'thread_safe', 'tins', 'thread_safe']
-    repo = Repository.create(config, store)
+    repo = Repository.create(config, store, path)
     assert repo.additional_dependencies['ruby']['default'] == [
         'thread_safe', 'tins']
 
@@ -493,7 +494,7 @@ def test_additional_python_dependencies_installed(tempdir_factory, store):
     path = make_repo(tempdir_factory, 'python_hooks_repo')
     config = make_config_from_repo(path)
     config['hooks'][0]['additional_dependencies'] = ['mccabe']
-    repo = Repository.create(config, store)
+    repo = Repository.create(config, store, path)
     repo.require_installed()
     with python.in_env(repo.cmd_runner, 'default'):
         output = cmd_output('pip', 'freeze', '-l')[1]
@@ -505,11 +506,11 @@ def test_additional_dependencies_roll_forward(tempdir_factory, store):
     path = make_repo(tempdir_factory, 'python_hooks_repo')
     config = make_config_from_repo(path)
     # Run the repo once without additional_dependencies
-    repo = Repository.create(config, store)
+    repo = Repository.create(config, store, path)
     repo.require_installed()
     # Now run it with additional_dependencies
     config['hooks'][0]['additional_dependencies'] = ['mccabe']
-    repo = Repository.create(config, store)
+    repo = Repository.create(config, store, path)
     repo.require_installed()
     # We should see our additional dependency installed
     with python.in_env(repo.cmd_runner, 'default'):
@@ -526,7 +527,7 @@ def test_additional_ruby_dependencies_installed(
     path = make_repo(tempdir_factory, 'ruby_hooks_repo')
     config = make_config_from_repo(path)
     config['hooks'][0]['additional_dependencies'] = ['thread_safe', 'tins']
-    repo = Repository.create(config, store)
+    repo = Repository.create(config, store, path)
     repo.require_installed()
     with ruby.in_env(repo.cmd_runner, 'default'):
         output = cmd_output('gem', 'list', '--local')[1]
@@ -544,7 +545,7 @@ def test_additional_node_dependencies_installed(
     config = make_config_from_repo(path)
     # Careful to choose a small package that's not depped by npm
     config['hooks'][0]['additional_dependencies'] = ['lodash']
-    repo = Repository.create(config, store)
+    repo = Repository.create(config, store, path)
     repo.require_installed()
     with node.in_env(repo.cmd_runner, 'default'):
         cmd_output('npm', 'config', 'set', 'global', 'true')
@@ -561,7 +562,7 @@ def test_additional_golang_dependencies_installed(
     # A small go package
     deps = ['github.com/golang/example/hello']
     config['hooks'][0]['additional_dependencies'] = deps
-    repo = Repository.create(config, store)
+    repo = Repository.create(config, store, path)
     repo.require_installed()
     binaries = os.listdir(repo.cmd_runner.path(
         helpers.environment_dir(golang.ENVIRONMENT_DIR, 'default'), 'bin',
@@ -579,7 +580,8 @@ def test_install_local_ruby_hook(
 ):  # pragma: no cover (non-windows)
     config = config_with_local_hooks('ruby')
     config['hooks'][0]['additional_dependencies'] = ['thread_safe']
-    repo = Repository.create(config, store)
+    validate_config_extra([config])
+    repo = Repository.create(config, store, '/path/to/repo/')
     repo.require_installed()
     with ruby.in_env(repo.cmd_runner, 'default'):
         output = cmd_output('gem', 'list', '--local')[1]
@@ -592,7 +594,8 @@ def test_install_local_python_hook(
 ):  # pragma: no cover (non-windows)
     config = config_with_local_hooks('python')
     config['hooks'][0]['additional_dependencies'] = ['mccabe']
-    repo = Repository.create(config, store)
+    validate_config_extra([config])
+    repo = Repository.create(config, store, '/path/to/repo/')
     repo.require_installed()
     with python.in_env(repo.cmd_runner, 'default'):
         output = cmd_output('pip', 'freeze', '-l')[1]
@@ -602,7 +605,7 @@ def test_install_local_python_hook(
 def test_reinstall(tempdir_factory, store, log_info_mock):
     path = make_repo(tempdir_factory, 'python_hooks_repo')
     config = make_config_from_repo(path)
-    repo = Repository.create(config, store)
+    repo = Repository.create(config, store, path)
     repo.require_installed()
     # We print some logging during clone (1) + install (3)
     assert log_info_mock.call_count == 4
@@ -611,7 +614,7 @@ def test_reinstall(tempdir_factory, store, log_info_mock):
     repo.require_installed()
     assert log_info_mock.call_count == 0
     # Reinstall on another run should not trigger another install
-    repo = Repository.create(config, store)
+    repo = Repository.create(config, store, path)
     repo.require_installed()
     assert log_info_mock.call_count == 0
 
@@ -620,7 +623,7 @@ def test_control_c_control_c_on_install(tempdir_factory, store):
     """Regression test for #186."""
     path = make_repo(tempdir_factory, 'python_hooks_repo')
     config = make_config_from_repo(path)
-    repo = Repository.create(config, store)
+    repo = Repository.create(config, store, path)
     hook = repo.hooks[0][1]
 
     class MyKeyboardInterrupt(KeyboardInterrupt):
@@ -657,7 +660,7 @@ def test_really_long_file_paths(tempdir_factory, store):
     config = make_config_from_repo(path)
 
     with cwd(really_long_path):
-        repo = Repository.create(config, store)
+        repo = Repository.create(config, store, path)
         repo.require_installed()
 
 
@@ -666,11 +669,11 @@ def test_config_overrides_repo_specifics(tempdir_factory, store):
     path = make_repo(tempdir_factory, 'script_hooks_repo')
     config = make_config_from_repo(path)
 
-    repo = Repository.create(config, store)
+    repo = Repository.create(config, store, path)
     assert repo.hooks[0][1]['files'] == ''
     # Set the file regex to something else
     config['hooks'][0]['files'] = '\\.sh$'
-    repo = Repository.create(config, store)
+    repo = Repository.create(config, store, path)
     assert repo.hooks[0][1]['files'] == '\\.sh$'
 
 
@@ -690,26 +693,18 @@ def test_tags_on_repositories(in_tmpdir, tempdir_factory, store):
     )
 
     repo_1 = Repository.create(
-        make_config_from_repo(git_dir_1, sha=tag), store,
+        make_config_from_repo(git_dir_1, sha=tag), store, git_dir_1
     )
     ret = repo_1.run_hook(repo_1.hooks[0][1], ['-L'])
     assert ret[0] == 0
     assert ret[1].strip() == _norm_pwd(in_tmpdir)
 
     repo_2 = Repository.create(
-        make_config_from_repo(git_dir_2, sha=tag), store,
+        make_config_from_repo(git_dir_2, sha=tag), store, git_dir_2
     )
     ret = repo_2.run_hook(repo_2.hooks[0][1], ['bar'])
     assert ret[0] == 0
     assert ret[1] == b'bar\nHello World\n'
-
-
-def test_local_repository():
-    config = config_with_local_hooks()
-    local_repo = Repository.create(config, 'dummy')
-    with pytest.raises(NotImplementedError):
-        local_repo.manifest
-    assert len(local_repo.hooks) == 1
 
 
 @pytest.yield_fixture
@@ -725,7 +720,7 @@ def test_hook_id_not_present(tempdir_factory, store, fake_log_handler):
     path = make_repo(tempdir_factory, 'script_hooks_repo')
     config = make_config_from_repo(path)
     config['hooks'][0]['id'] = 'i-dont-exist'
-    repo = Repository.create(config, store)
+    repo = Repository.create(config, store, path)
     with pytest.raises(SystemExit):
         repo.install()
     assert fake_log_handler.handle.call_args[0][0].msg == (
@@ -740,7 +735,7 @@ def test_too_new_version(tempdir_factory, store, fake_log_handler):
     with modify_manifest(path) as manifest:
         manifest[0]['minimum_pre_commit_version'] = '999.0.0'
     config = make_config_from_repo(path)
-    repo = Repository.create(config, store)
+    repo = Repository.create(config, store, path)
     with pytest.raises(SystemExit):
         repo.install()
     msg = fake_log_handler.handle.call_args[0][0].msg
@@ -762,4 +757,4 @@ def test_versions_ok(tempdir_factory, store, version):
         manifest[0]['minimum_pre_commit_version'] = version
     config = make_config_from_repo(path)
     # Should succeed
-    Repository.create(config, store).install()
+    Repository.create(config, store, path).install()

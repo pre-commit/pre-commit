@@ -32,7 +32,7 @@ def install_environment(
         repo_cmd_runner,
         version='default',
         additional_dependencies=(),
-        is_local_hook = False,
+        is_local_hook=False,
 ):  # pragma: windows no cover
     helpers.assert_version_default('swift', version)
     helpers.assert_no_additional_deps('swift', additional_dependencies)

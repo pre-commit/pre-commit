@@ -37,7 +37,7 @@ def install_environment(
         repo_cmd_runner,
         version='default',
         additional_dependencies=(),
-        is_local_hook = False,
+        is_local_hook=False,
 ):  # pragma: windows no cover
     additional_dependencies = tuple(additional_dependencies)
     assert repo_cmd_runner.exists('package.json')
