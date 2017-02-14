@@ -8,6 +8,7 @@ import pytest
 
 from pre_commit import parse_shebang
 from pre_commit.languages.docker import docker_is_running
+from pre_commit.languages.pcre import GREP
 from pre_commit.util import cmd_output
 from pre_commit.util import cwd
 
@@ -86,7 +87,7 @@ xfailif_windows_no_node = pytest.mark.xfail(
 
 
 def platform_supports_pcre():
-    output = cmd_output('grep', '-P', "name='pre", 'setup.py', retcode=None)
+    output = cmd_output(GREP, '-P', "name='pre", 'setup.py', retcode=None)
     return output[0] == 0 and "name='pre_commit'," in output[1]
 
 
