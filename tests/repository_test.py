@@ -55,7 +55,6 @@ def _test_hook_repo(
         hook for repo_hook_id, hook in repo.hooks if repo_hook_id == hook_id
     ][0]
     ret = repo.run_hook(hook_dict, args)
-    print ret
     assert ret[0] == expected_return_code
     assert ret[1].replace(b'\r\n', b'\n') == expected
 
