@@ -70,7 +70,6 @@ def validate_config_extra(config):
                 raise InvalidConfigError(
                     '"sha" property provided for local hooks'
                 )
-            repo['sha'] = 'local'
         elif 'sha' not in repo:
             raise InvalidConfigError(
                 'Missing "sha" field for repository {}'.format(repo['repo'])

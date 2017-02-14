@@ -11,10 +11,15 @@ from pre_commit.languages.all import languages
 @pytest.mark.parametrize('language', all_languages)
 def test_install_environment_argspec(language):
     expected_argspec = inspect.ArgSpec(
-        args=['repo_cmd_runner', 'version', 'additional_dependencies'],
+        args=[
+            'repo_cmd_runner',
+            'version',
+            'additional_dependencies',
+            'is_local_hook',
+        ],
         varargs=None,
         keywords=None,
-        defaults=('default', ()),
+        defaults=('default', (), False),
     )
     argspec = inspect.getargspec(languages[language].install_environment)
     assert argspec == expected_argspec

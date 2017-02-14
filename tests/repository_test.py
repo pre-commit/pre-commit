@@ -580,7 +580,6 @@ def test_install_local_ruby_hook(
 ):  # pragma: no cover (non-windows)
     config = config_with_local_hooks('ruby')
     config['hooks'][0]['additional_dependencies'] = ['thread_safe']
-    validate_config_extra([config])
     repo = Repository.create(config, store, '/path/to/repo/')
     repo.require_installed()
     with ruby.in_env(repo.cmd_runner, 'default'):
@@ -594,7 +593,6 @@ def test_install_local_python_hook(
 ):  # pragma: no cover (non-windows)
     config = config_with_local_hooks('python')
     config['hooks'][0]['additional_dependencies'] = ['mccabe']
-    validate_config_extra([config])
     repo = Repository.create(config, store, '/path/to/repo/')
     repo.require_installed()
     with python.in_env(repo.cmd_runner, 'default'):

@@ -11,6 +11,7 @@ import pkg_resources
 from cached_property import cached_property
 
 from pre_commit import five
+from pre_commit.clientlib.validate_config import _LOCAL_HOOKS_MAGIC_REPO_STRING
 from pre_commit.clientlib.validate_config import is_local_hooks
 from pre_commit.clientlib.validate_manifest import MANIFEST_JSON_SCHEMA
 from pre_commit.jsonschema_extensions import apply_defaults
@@ -39,7 +40,10 @@ class Repository(object):
     @classmethod
     def create(cls, config, store, owner):
         repo_path_getter = store.get_repo_path_getter(
-            config['repo'], config['sha'], owner
+            config['repo'],
+            _LOCAL_HOOKS_MAGIC_REPO_STRING if
+            is_local_hooks(config) else config['sha'],
+            owner,
         )
         if is_local_hooks(config):
             return LocalRepository(config, repo_path_getter)
