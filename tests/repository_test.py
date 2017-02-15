@@ -458,11 +458,6 @@ def test_repo_url(mock_repo_config):
     assert repo.repo_url == 'git@github.com:pre-commit/pre-commit-hooks'
 
 
-def test_sha(mock_repo_config):
-    repo = Repository(mock_repo_config, None)
-    assert repo.sha == '5e713f8878b7d100c0e059f8cc34be4fc2e8f897'
-
-
 @pytest.mark.integration
 def test_languages(tempdir_factory, store):
     path = make_repo(tempdir_factory, 'python_hooks_repo')
@@ -684,8 +679,6 @@ def test_tags_on_repositories(in_tmpdir, tempdir_factory, store):
 def test_local_repository():
     config = config_with_local_hooks()
     local_repo = Repository.create(config, 'dummy')
-    with pytest.raises(NotImplementedError):
-        local_repo.sha
     with pytest.raises(NotImplementedError):
         local_repo.manifest
     assert len(local_repo.hooks) == 1
