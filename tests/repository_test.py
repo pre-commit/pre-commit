@@ -11,11 +11,10 @@ import mock
 import pkg_resources
 import pytest
 
+from pre_commit import constants as C
 from pre_commit import five
 from pre_commit import parse_shebang
-from pre_commit.clientlib.validate_config import CONFIG_JSON_SCHEMA
-from pre_commit.clientlib.validate_config import validate_config_extra
-from pre_commit.jsonschema_extensions import apply_defaults
+from pre_commit.clientlib.validate_manifest import load_manifest
 from pre_commit.languages import golang
 from pre_commit.languages import helpers
 from pre_commit.languages import node
@@ -30,6 +29,7 @@ from testing.fixtures import git_dir
 from testing.fixtures import make_config_from_repo
 from testing.fixtures import make_repo
 from testing.fixtures import modify_manifest
+from testing.util import get_resource_path
 from testing.util import skipif_cant_run_docker
 from testing.util import skipif_cant_run_swift
 from testing.util import skipif_slowtests_false
@@ -51,9 +51,9 @@ def _test_hook_repo(
     path = make_repo(tempdir_factory, repo_path)
     config = make_config_from_repo(path, **(config_kwargs or {}))
     repo = Repository.create(config, store)
-    hook_dict = [
+    hook_dict, = [
         hook for repo_hook_id, hook in repo.hooks if repo_hook_id == hook_id
-    ][0]
+    ]
     ret = repo.run_hook(hook_dict, args)
     assert ret[0] == expected_return_code
     assert ret[1].replace(b'\r\n', b'\n') == expected
@@ -438,26 +438,6 @@ def test_lots_of_files(tempdir_factory, store):
     )
 
 
-@pytest.fixture
-def mock_repo_config():
-    config = {
-        'repo': 'git@github.com:pre-commit/pre-commit-hooks',
-        'sha': '5e713f8878b7d100c0e059f8cc34be4fc2e8f897',
-        'hooks': [{
-            'id': 'pyflakes',
-            'files': '\\.py$',
-        }],
-    }
-    config_wrapped = apply_defaults([config], CONFIG_JSON_SCHEMA)
-    validate_config_extra(config_wrapped)
-    return config_wrapped[0]
-
-
-def test_repo_url(mock_repo_config):
-    repo = Repository(mock_repo_config, None)
-    assert repo.repo_url == 'git@github.com:pre-commit/pre-commit-hooks'
-
-
 @pytest.mark.integration
 def test_venvs(tempdir_factory, store):
     path = make_repo(tempdir_factory, 'python_hooks_repo')
@@ -684,6 +664,21 @@ def test_local_repository():
     with pytest.raises(NotImplementedError):
         local_repo.manifest
     assert len(local_repo.hooks) == 1
+
+
+def test_local_python_repo(store):
+    # Make a "local" hooks repo that just installs our other hooks repo
+    repo_path = get_resource_path('python_hooks_repo')
+    manifest = load_manifest(os.path.join(repo_path, C.MANIFEST_FILE))
+    hooks = [
+        dict(hook, additional_dependencies=[repo_path]) for hook in manifest
+    ]
+    config = {'repo': 'local', 'hooks': hooks}
+    repo = Repository.create(config, store)
+    (_, hook), = repo.hooks
+    ret = repo.run_hook(hook, ('filename',))
+    assert ret[0] == 0
+    assert ret[1].replace(b'\r\n', b'\n') == b"['filename']\nHello World\n"
 
 
 @pytest.yield_fixture

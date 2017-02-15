@@ -12,8 +12,10 @@ from cached_property import cached_property
 from pre_commit.prefixed_command_runner import PrefixedCommandRunner
 from pre_commit.util import clean_path_on_failure
 from pre_commit.util import cmd_output
+from pre_commit.util import copy_tree_to_path
 from pre_commit.util import cwd
 from pre_commit.util import no_git_env
+from pre_commit.util import resource_filename
 
 
 logger = logging.getLogger('pre_commit')
@@ -34,16 +36,6 @@ def _get_default_directory():
 
 class Store(object):
     get_default_directory = staticmethod(_get_default_directory)
-
-    class RepoPathGetter(object):
-        def __init__(self, repo, ref, store):
-            self._repo = repo
-            self._ref = ref
-            self._store = store
-
-        @cached_property
-        def repo_path(self):
-            return self._store.clone(self._repo, self._ref)
 
     def __init__(self, directory=None):
         if directory is None:
@@ -91,45 +83,55 @@ class Store(object):
 
     def require_created(self):
         """Require the pre-commit file store to be created."""
-        if self.__created:
-            return
+        if not self.__created:
+            self._create()
+            self.__created = True
 
-        self._create()
-        self.__created = True
-
-    def clone(self, url, ref):
-        """Clone the given url and checkout the specific ref."""
+    def _new_repo(self, repo, ref, make_strategy):
         self.require_created()
 
         # Check if we already exist
         with sqlite3.connect(self.db_path) as db:
             result = db.execute(
                 'SELECT path FROM repos WHERE repo = ? AND ref = ?',
-                [url, ref],
+                [repo, ref],
             ).fetchone()
             if result:
                 return result[0]
 
-        logger.info('Initializing environment for {}.'.format(url))
+        logger.info('Initializing environment for {}.'.format(repo))
 
-        dir = tempfile.mkdtemp(prefix='repo', dir=self.directory)
-        with clean_path_on_failure(dir):
-            cmd_output(
-                'git', 'clone', '--no-checkout', url, dir, env=no_git_env(),
-            )
-            with cwd(dir):
-                cmd_output('git', 'reset', ref, '--hard', env=no_git_env())
+        directory = tempfile.mkdtemp(prefix='repo', dir=self.directory)
+        with clean_path_on_failure(directory):
+            make_strategy(directory)
 
         # Update our db with the created repo
         with sqlite3.connect(self.db_path) as db:
             db.execute(
                 'INSERT INTO repos (repo, ref, path) VALUES (?, ?, ?)',
-                [url, ref, dir],
+                [repo, ref, directory],
             )
-        return dir
+        return directory
 
-    def get_repo_path_getter(self, repo, ref):
-        return self.RepoPathGetter(repo, ref, self)
+    def clone(self, repo, ref):
+        """Clone the given url and checkout the specific ref."""
+        def clone_strategy(directory):
+            cmd_output(
+                'git', 'clone', '--no-checkout', repo, directory,
+                env=no_git_env(),
+            )
+            with cwd(directory):
+                cmd_output('git', 'reset', ref, '--hard', env=no_git_env())
+
+        return self._new_repo(repo, ref, clone_strategy)
+
+    def make_local(self, deps):
+        def make_local_strategy(directory):
+            copy_tree_to_path(resource_filename('empty_template'), directory)
+        return self._new_repo(
+            'local:{}'.format(','.join(sorted(deps))), 'N/A',
+            make_local_strategy,
+        )
 
     @cached_property
     def cmd_runner(self):

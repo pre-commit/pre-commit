@@ -34,7 +34,9 @@ setup(
             'resources/rbenv.tar.gz',
             'resources/ruby-build.tar.gz',
             'resources/ruby-download.tar.gz',
-        ]
+            'resources/empty_template/*',
+            'resources/empty_template/.npmignore',
+        ],
     },
     install_requires=[
         'aspy.yaml',

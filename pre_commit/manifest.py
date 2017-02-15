@@ -13,15 +13,14 @@ logger = logging.getLogger('pre_commit')
 
 
 class Manifest(object):
-    def __init__(self, repo_path_getter, repo_url):
-        self.repo_path_getter = repo_path_getter
+    def __init__(self, repo_path, repo_url):
+        self.repo_path = repo_path
         self.repo_url = repo_url
 
     @cached_property
     def manifest_contents(self):
-        repo_path = self.repo_path_getter.repo_path
-        default_path = os.path.join(repo_path, C.MANIFEST_FILE)
-        legacy_path = os.path.join(repo_path, C.MANIFEST_FILE_LEGACY)
+        default_path = os.path.join(self.repo_path, C.MANIFEST_FILE)
+        legacy_path = os.path.join(self.repo_path, C.MANIFEST_FILE_LEGACY)
         if os.path.exists(legacy_path) and not os.path.exists(default_path):
             logger.warning(
                 '{} uses legacy {} to provide hooks.\n'
