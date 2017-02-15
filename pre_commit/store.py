@@ -36,14 +36,14 @@ class Store(object):
     get_default_directory = staticmethod(_get_default_directory)
 
     class RepoPathGetter(object):
-        def __init__(self, repo, sha, store):
+        def __init__(self, repo, ref, store):
             self._repo = repo
-            self._sha = sha
+            self._ref = ref
             self._store = store
 
         @cached_property
         def repo_path(self):
-            return self._store.clone(self._repo, self._sha)
+            return self._store.clone(self._repo, self._ref)
 
     def __init__(self, directory=None):
         if directory is None:
@@ -97,15 +97,15 @@ class Store(object):
         self._create()
         self.__created = True
 
-    def clone(self, url, sha):
-        """Clone the given url and checkout the specific sha."""
+    def clone(self, url, ref):
+        """Clone the given url and checkout the specific ref."""
         self.require_created()
 
         # Check if we already exist
         with sqlite3.connect(self.db_path) as db:
             result = db.execute(
                 'SELECT path FROM repos WHERE repo = ? AND ref = ?',
-                [url, sha],
+                [url, ref],
             ).fetchone()
             if result:
                 return result[0]
@@ -118,18 +118,18 @@ class Store(object):
                 'git', 'clone', '--no-checkout', url, dir, env=no_git_env(),
             )
             with cwd(dir):
-                cmd_output('git', 'reset', sha, '--hard', env=no_git_env())
+                cmd_output('git', 'reset', ref, '--hard', env=no_git_env())
 
         # Update our db with the created repo
         with sqlite3.connect(self.db_path) as db:
             db.execute(
                 'INSERT INTO repos (repo, ref, path) VALUES (?, ?, ?)',
-                [url, sha, dir],
+                [url, ref, dir],
             )
         return dir
 
-    def get_repo_path_getter(self, repo, sha):
-        return self.RepoPathGetter(repo, sha, self)
+    def get_repo_path_getter(self, repo, ref):
+        return self.RepoPathGetter(repo, ref, self)
 
     @cached_property
     def cmd_runner(self):

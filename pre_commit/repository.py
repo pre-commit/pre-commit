@@ -52,10 +52,6 @@ class Repository(object):
         return self.repo_config['repo']
 
     @cached_property
-    def sha(self):
-        return self.repo_config['sha']
-
-    @cached_property
     def languages(self):
         return {
             (hook['language'], hook['language_version'])
@@ -214,10 +210,6 @@ class LocalRepository(Repository):
     @cached_property
     def cmd_runner(self):
         return PrefixedCommandRunner(git.get_root())
-
-    @cached_property
-    def sha(self):
-        raise NotImplementedError
 
     @cached_property
     def manifest(self):
