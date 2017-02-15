@@ -459,11 +459,12 @@ def test_repo_url(mock_repo_config):
 
 
 @pytest.mark.integration
-def test_languages(tempdir_factory, store):
+def test_venvs(tempdir_factory, store):
     path = make_repo(tempdir_factory, 'python_hooks_repo')
     config = make_config_from_repo(path)
     repo = Repository.create(config, store)
-    assert repo.languages == {('python', 'default')}
+    venv, = repo._venvs
+    assert venv == (mock.ANY, 'python', 'default', [])
 
 
 @pytest.mark.integration
@@ -472,7 +473,8 @@ def test_additional_dependencies(tempdir_factory, store):
     config = make_config_from_repo(path)
     config['hooks'][0]['additional_dependencies'] = ['pep8']
     repo = Repository.create(config, store)
-    assert repo.additional_dependencies['python']['default'] == ['pep8']
+    venv, = repo._venvs
+    assert venv == (mock.ANY, 'python', 'default', ['pep8'])
 
 
 @pytest.mark.integration
@@ -481,11 +483,11 @@ def test_additional_dependencies_duplicated(
 ):
     path = make_repo(tempdir_factory, 'ruby_hooks_repo')
     config = make_config_from_repo(path)
-    config['hooks'][0]['additional_dependencies'] = [
-        'thread_safe', 'tins', 'thread_safe']
+    deps = ['thread_safe', 'tins', 'thread_safe']
+    config['hooks'][0]['additional_dependencies'] = deps
     repo = Repository.create(config, store)
-    assert repo.additional_dependencies['ruby']['default'] == [
-        'thread_safe', 'tins']
+    venv, = repo._venvs
+    assert venv == (mock.ANY, 'ruby', 'default', ['thread_safe', 'tins'])
 
 
 @pytest.mark.integration
@@ -495,7 +497,7 @@ def test_additional_python_dependencies_installed(tempdir_factory, store):
     config['hooks'][0]['additional_dependencies'] = ['mccabe']
     repo = Repository.create(config, store)
     repo.require_installed()
-    with python.in_env(repo.cmd_runner, 'default'):
+    with python.in_env(repo._cmd_runner, 'default'):
         output = cmd_output('pip', 'freeze', '-l')[1]
         assert 'mccabe' in output
 
@@ -512,7 +514,7 @@ def test_additional_dependencies_roll_forward(tempdir_factory, store):
     repo = Repository.create(config, store)
     repo.require_installed()
     # We should see our additional dependency installed
-    with python.in_env(repo.cmd_runner, 'default'):
+    with python.in_env(repo._cmd_runner, 'default'):
         output = cmd_output('pip', 'freeze', '-l')[1]
         assert 'mccabe' in output
 
@@ -528,7 +530,7 @@ def test_additional_ruby_dependencies_installed(
     config['hooks'][0]['additional_dependencies'] = ['thread_safe', 'tins']
     repo = Repository.create(config, store)
     repo.require_installed()
-    with ruby.in_env(repo.cmd_runner, 'default'):
+    with ruby.in_env(repo._cmd_runner, 'default'):
         output = cmd_output('gem', 'list', '--local')[1]
         assert 'thread_safe' in output
         assert 'tins' in output
@@ -546,7 +548,7 @@ def test_additional_node_dependencies_installed(
     config['hooks'][0]['additional_dependencies'] = ['lodash']
     repo = Repository.create(config, store)
     repo.require_installed()
-    with node.in_env(repo.cmd_runner, 'default'):
+    with node.in_env(repo._cmd_runner, 'default'):
         cmd_output('npm', 'config', 'set', 'global', 'true')
         output = cmd_output('npm', 'ls')[1]
         assert 'lodash' in output
@@ -563,7 +565,7 @@ def test_additional_golang_dependencies_installed(
     config['hooks'][0]['additional_dependencies'] = deps
     repo = Repository.create(config, store)
     repo.require_installed()
-    binaries = os.listdir(repo.cmd_runner.path(
+    binaries = os.listdir(repo._cmd_runner.path(
         helpers.environment_dir(golang.ENVIRONMENT_DIR, 'default'), 'bin',
     ))
     # normalize for windows
@@ -611,7 +613,7 @@ def test_control_c_control_c_on_install(tempdir_factory, store):
                 repo.run_hook(hook, [])
 
     # Should have made an environment, however this environment is broken!
-    assert os.path.exists(repo.cmd_runner.path('py_env-default'))
+    assert os.path.exists(repo._cmd_runner.path('py_env-default'))
 
     # However, it should be perfectly runnable (reinstall after botched
     # install)
@@ -699,7 +701,7 @@ def test_hook_id_not_present(tempdir_factory, store, fake_log_handler):
     config['hooks'][0]['id'] = 'i-dont-exist'
     repo = Repository.create(config, store)
     with pytest.raises(SystemExit):
-        repo.install()
+        repo.require_installed()
     assert fake_log_handler.handle.call_args[0][0].msg == (
         '`i-dont-exist` is not present in repository {}.  '
         'Typo? Perhaps it is introduced in a newer version?  '
@@ -714,7 +716,7 @@ def test_too_new_version(tempdir_factory, store, fake_log_handler):
     config = make_config_from_repo(path)
     repo = Repository.create(config, store)
     with pytest.raises(SystemExit):
-        repo.install()
+        repo.require_installed()
     msg = fake_log_handler.handle.call_args[0][0].msg
     assert re.match(
         r'^The hook `bash_hook` requires pre-commit version 999\.0\.0 but '
@@ -734,4 +736,4 @@ def test_versions_ok(tempdir_factory, store, version):
         manifest[0]['minimum_pre_commit_version'] = version
     config = make_config_from_repo(path)
     # Should succeed
-    Repository.create(config, store).install()
+    Repository.create(config, store).require_installed()
