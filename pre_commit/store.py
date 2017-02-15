@@ -44,18 +44,7 @@ class Store(object):
 
         @cached_property
         def repo_path(self):
-            return self._store.clone(self._repo, self._ref)
-
-    class LocalRepoPathGetter(RepoPathGetter):
-        def __init__(self, repo, sha, store, owner):
-            super(Store.LocalRepoPathGetter, self).__init__(
-                repo, sha, store,
-            )
-            self._owner = owner
-
-        @cached_property
-        def repo_path(self):
-            return self._store.initialize_local_repo(self._owner)
+            return self._store.initialize_repo(self._repo, self._sha)
 
     def __init__(self, directory=None):
         if directory is None:
@@ -109,69 +98,44 @@ class Store(object):
         self._create()
         self.__created = True
 
-    def find_local_path(self, repo, ref):
+    def initialize_repo(self, repo, sha):
+        """Initializes the repository by cloning a remote or preparing an
+           empty local folder for local hooks. If the repo if 'local',
+           the sha used is the path to git_root of this repo so that several
+           local hooks for different projects are separated."""
+        self.require_created()
+
+        # Check if we already exist
         with sqlite3.connect(self.db_path) as db:
             result = db.execute(
                 'SELECT path FROM repos WHERE repo = ? AND ref = ?',
-                [repo, ref],
+                [repo, sha],
             ).fetchone()
             if result:
                 return result[0]
 
-    def store_path(self, repo, ref, path):
+        logger.info('Initializing environment for {}.'.format(repo))
+
+        dir = tempfile.mkdtemp(prefix='repo', dir=self.directory)
+        if repo != _LOCAL_HOOKS_MAGIC_REPO_STRING:
+            with clean_path_on_failure(dir):
+                cmd_output(
+                    'git', 'clone', '--no-checkout', repo, dir,
+                    env=no_git_env(),
+                )
+                with cwd(dir):
+                    cmd_output('git', 'reset', sha, '--hard', env=no_git_env())
+
+        # Update our db with the created repo
         with sqlite3.connect(self.db_path) as db:
             db.execute(
                 'INSERT INTO repos (repo, ref, path) VALUES (?, ?, ?)',
-                [repo, ref, path],
+                [repo, sha, dir],
             )
-
-    def clone(self, url, sha):
-        """Clone the given url and checkout the specific sha."""
-        self.require_created()
-
-        # Check if we already exist
-        local_path = self.find_local_path(url, sha)
-        if local_path:
-            return local_path
-
-        logger.info('Initializing environment for {}.'.format(url))
-
-        dir = tempfile.mkdtemp(prefix='repo', dir=self.directory)
-        with clean_path_on_failure(dir):
-            cmd_output(
-                'git', 'clone', '--no-checkout', url, dir, env=no_git_env(),
-            )
-            with cwd(dir):
-                cmd_output('git', 'reset', ref, '--hard', env=no_git_env())
-
-        # Update our db with the created repo
-        self.store_path(url, sha, dir)
         return dir
 
-    def initialize_local_repo(self, owner):
-        """Initializes a repo in the default repository for the local repo"""
-        self.require_created()
-        local_path = self.find_local_path(
-            _LOCAL_HOOKS_MAGIC_REPO_STRING, owner,
-        )
-        if local_path:
-            return local_path
-
-        logger.info('Initializing environment for {}.'.format(
-            _LOCAL_HOOKS_MAGIC_REPO_STRING,
-        ))
-
-        dir = tempfile.mkdtemp(prefix='repo', dir=self.directory)
-
-        # Update our db with the created repo
-        self.store_path(_LOCAL_HOOKS_MAGIC_REPO_STRING, owner, dir)
-        return dir
-
-    def get_repo_path_getter(self, repo, sha, owner=None):
-        if sha == _LOCAL_HOOKS_MAGIC_REPO_STRING:
-            return self.LocalRepoPathGetter(repo, sha, self, owner)
-        else:
-            return self.RepoPathGetter(repo, sha, self)
+    def get_repo_path_getter(self, repo, sha):
+        return self.RepoPathGetter(repo, sha, self)
 
     @cached_property
     def cmd_runner(self):

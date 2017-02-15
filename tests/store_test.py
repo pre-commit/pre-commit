@@ -79,14 +79,14 @@ def test_does_not_recreate_if_directory_already_exists(store):
     assert not os.path.exists(os.path.join(store.directory, 'README'))
 
 
-def test_clone(store, tempdir_factory, log_info_mock):
+def test_initialize_repo(store, tempdir_factory, log_info_mock):
     path = git_dir(tempdir_factory)
     with cwd(path):
         cmd_output('git', 'commit', '--allow-empty', '-m', 'foo')
         sha = get_head_sha(path)
         cmd_output('git', 'commit', '--allow-empty', '-m', 'bar')
 
-    ret = store.clone(path, sha)
+    ret = store.initialize_repo(path, sha)
     # Should have printed some stuff
     assert log_info_mock.call_args_list[0][0][0].startswith(
         'Initializing environment for '
@@ -98,7 +98,7 @@ def test_clone(store, tempdir_factory, log_info_mock):
     # Directory should start with `repo`
     _, dirname = os.path.split(ret)
     assert dirname.startswith('repo')
-    # Should be checked out to the sha we specified
+    # Should be checked out to the sha we specifieds
     assert get_head_sha(ret) == sha
 
     # Assert there's an entry in the sqlite db for this
@@ -110,11 +110,11 @@ def test_clone(store, tempdir_factory, log_info_mock):
         assert path == ret
 
 
-def test_clone_cleans_up_on_checkout_failure(store):
+def test_initialize_repo_cleans_up_on_checkout_failure(store):
     try:
         # This raises an exception because you can't clone something that
         # doesn't exist!
-        store.clone('/i_dont_exist_lol', 'fake_sha')
+        store.initialize_repo('/i_dont_exist_lol', 'fake_sha')
     except Exception as e:
         assert '/i_dont_exist_lol' in five.text(e)
 
@@ -130,7 +130,7 @@ def test_has_cmd_runner_at_directory(store):
     assert ret.prefix_dir == store.directory + os.sep
 
 
-def test_clone_when_repo_already_exists(store):
+def test_initialize_repo_when_repo_already_exists(store):
     # Create an entry in the sqlite db that makes it look like the repo has
     # been cloned.
     store.require_created()
@@ -141,7 +141,7 @@ def test_clone_when_repo_already_exists(store):
             'VALUES ("fake_repo", "fake_ref", "fake_path")'
         )
 
-    assert store.clone('fake_repo', 'fake_ref') == 'fake_path'
+    assert store.initialize_repo('fake_repo', 'fake_ref') == 'fake_path'
 
 
 def test_require_created_when_directory_exists_but_not_db(store):
