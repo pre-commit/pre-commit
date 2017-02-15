@@ -44,7 +44,7 @@ class Store(object):
 
         @cached_property
         def repo_path(self):
-            return self._store.initialize_repo(self._repo, self._sha)
+            return self._store.initialize_repo(self._repo, self._ref)
 
     def __init__(self, directory=None):
         if directory is None:
