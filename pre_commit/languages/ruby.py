@@ -100,6 +100,7 @@ def install_environment(
         repo_cmd_runner,
         version='default',
         additional_dependencies=(),
+        is_local_hook=False,
 ):  # pragma: windows no cover
     additional_dependencies = tuple(additional_dependencies)
     directory = helpers.environment_dir(ENVIRONMENT_DIR, version)
@@ -115,15 +116,18 @@ def install_environment(
                 _install_ruby(repo_cmd_runner, version)
             # Need to call this after installing to set up the shims
             helpers.run_setup_cmd(repo_cmd_runner, ('rbenv', 'rehash'))
-            helpers.run_setup_cmd(
-                repo_cmd_runner,
-                ('gem', 'build') + repo_cmd_runner.star('.gemspec'),
-            )
+            if not is_local_hook:
+                helpers.run_setup_cmd(
+                    repo_cmd_runner,
+                    ('gem', 'build') + repo_cmd_runner.star('.gemspec'),
+                )
+            to_install = () if is_local_hook else repo_cmd_runner.star('.gem')
+            to_install += additional_dependencies
             helpers.run_setup_cmd(
                 repo_cmd_runner,
                 (
                     ('gem', 'install', '--no-ri', '--no-rdoc') +
-                    repo_cmd_runner.star('.gem') + additional_dependencies
+                    to_install
                 ),
             )
 

@@ -58,6 +58,7 @@ def install_environment(
         repo_cmd_runner,
         version='default',
         additional_dependencies=(),
+        is_local_hook=False,
 ):  # pragma: windows no cover
     assert repo_cmd_runner.exists('Dockerfile'), (
         'No Dockerfile was found in the hook repository'

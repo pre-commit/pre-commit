@@ -9,6 +9,7 @@ import tempfile
 
 from cached_property import cached_property
 
+from pre_commit.clientlib.validate_config import _LOCAL_HOOKS_MAGIC_REPO_STRING
 from pre_commit.prefixed_command_runner import PrefixedCommandRunner
 from pre_commit.util import clean_path_on_failure
 from pre_commit.util import cmd_output
@@ -43,7 +44,7 @@ class Store(object):
 
         @cached_property
         def repo_path(self):
-            return self._store.clone(self._repo, self._ref)
+            return self._store.initialize_repo(self._repo, self._ref)
 
     def __init__(self, directory=None):
         if directory is None:
@@ -97,39 +98,44 @@ class Store(object):
         self._create()
         self.__created = True
 
-    def clone(self, url, ref):
-        """Clone the given url and checkout the specific ref."""
+    def initialize_repo(self, repo, sha):
+        """Initializes the repository by cloning a remote or preparing an
+           empty local folder for local hooks. If the repo if 'local',
+           the sha used is the path to git_root of this repo so that several
+           local hooks for different projects are separated."""
         self.require_created()
 
         # Check if we already exist
         with sqlite3.connect(self.db_path) as db:
             result = db.execute(
                 'SELECT path FROM repos WHERE repo = ? AND ref = ?',
-                [url, ref],
+                [repo, sha],
             ).fetchone()
             if result:
                 return result[0]
 
-        logger.info('Initializing environment for {}.'.format(url))
+        logger.info('Initializing environment for {}.'.format(repo))
 
         dir = tempfile.mkdtemp(prefix='repo', dir=self.directory)
-        with clean_path_on_failure(dir):
-            cmd_output(
-                'git', 'clone', '--no-checkout', url, dir, env=no_git_env(),
-            )
-            with cwd(dir):
-                cmd_output('git', 'reset', ref, '--hard', env=no_git_env())
+        if repo != _LOCAL_HOOKS_MAGIC_REPO_STRING:
+            with clean_path_on_failure(dir):
+                cmd_output(
+                    'git', 'clone', '--no-checkout', repo, dir,
+                    env=no_git_env(),
+                )
+                with cwd(dir):
+                    cmd_output('git', 'reset', sha, '--hard', env=no_git_env())
 
         # Update our db with the created repo
         with sqlite3.connect(self.db_path) as db:
             db.execute(
                 'INSERT INTO repos (repo, ref, path) VALUES (?, ?, ?)',
-                [url, ref, dir],
+                [repo, sha, dir],
             )
         return dir
 
-    def get_repo_path_getter(self, repo, ref):
-        return self.RepoPathGetter(repo, ref, self)
+    def get_repo_path_getter(self, repo, sha):
+        return self.RepoPathGetter(repo, sha, self)
 
     @cached_property
     def cmd_runner(self):

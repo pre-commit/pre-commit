@@ -38,13 +38,14 @@ class Repository(object):
         self.__installed = False
 
     @classmethod
-    def create(cls, config, store):
+    def create(cls, config, store, owner):
+        repo_path_getter = store.get_repo_path_getter(
+            config['repo'],
+            owner if is_local_hooks(config) else config['sha'],
+        )
         if is_local_hooks(config):
-            return LocalRepository(config)
+            return LocalRepository(config, repo_path_getter)
         else:
-            repo_path_getter = store.get_repo_path_getter(
-                config['repo'], config['sha']
-            )
             return cls(config, repo_path_getter)
 
     @cached_property
@@ -103,6 +104,16 @@ class Repository(object):
     @cached_property
     def cmd_runner(self):
         return PrefixedCommandRunner(self.repo_path_getter.repo_path)
+
+    @cached_property
+    def local_cmd_runner(self):
+        return self.cmd_runner
+
+    def language_cmd_runner(self, language):
+        if language in ['script', 'system']:
+            return self.local_cmd_runner
+        else:
+            return self.cmd_runner
 
     def require_installed(self):
         if self.__installed:
@@ -179,6 +190,7 @@ class Repository(object):
             language.install_environment(
                 self.cmd_runner, language_version,
                 self.additional_dependencies[language_name][language_version],
+                is_local_hooks(self.repo_config),
             )
             # Write our state to indicate we're installed
             write_state(venv, language_name, language_version)
@@ -192,14 +204,11 @@ class Repository(object):
         """
         self.require_installed()
         return languages[hook['language']].run_hook(
-            self.cmd_runner, hook, file_args,
+            self.language_cmd_runner(hook['language']), hook, file_args,
         )
 
 
 class LocalRepository(Repository):
-    def __init__(self, repo_config):
-        super(LocalRepository, self).__init__(repo_config, None)
-
     @cached_property
     def hooks(self):
         return tuple(
@@ -208,12 +217,8 @@ class LocalRepository(Repository):
         )
 
     @cached_property
-    def cmd_runner(self):
+    def local_cmd_runner(self):
         return PrefixedCommandRunner(git.get_root())
-
-    @cached_property
-    def manifest(self):
-        raise NotImplementedError
 
 
 class _UniqueList(list):

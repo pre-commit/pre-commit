@@ -48,6 +48,7 @@ def install_environment(
         repo_cmd_runner,
         version='default',
         additional_dependencies=(),
+        is_local_hook=False,
 ):
     helpers.assert_version_default('golang', version)
     directory = repo_cmd_runner.path(

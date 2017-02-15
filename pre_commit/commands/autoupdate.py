@@ -30,7 +30,7 @@ def _update_repo(repo_config, runner, tags_only):
     Args:
         repo_config - A config for a repository
     """
-    repo = Repository.create(repo_config, runner.store)
+    repo = Repository.create(repo_config, runner.store, runner.git_root)
 
     with cwd(repo.repo_path_getter.repo_path):
         cmd_output('git', 'fetch')
@@ -51,7 +51,7 @@ def _update_repo(repo_config, runner, tags_only):
     # Construct a new config with the head sha
     new_config = OrderedDict(repo_config)
     new_config['sha'] = rev
-    new_repo = Repository.create(new_config, runner.store)
+    new_repo = Repository.create(new_config, runner.store, runner.git_root)
 
     # See if any of our hooks were deleted with the new commits
     hooks = {hook['id'] for hook in repo.repo_config['hooks']}
