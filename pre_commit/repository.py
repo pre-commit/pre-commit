@@ -11,6 +11,7 @@ import pkg_resources
 from cached_property import cached_property
 
 from pre_commit import five
+from pre_commit import git
 from pre_commit.clientlib.validate_config import is_local_hooks
 from pre_commit.clientlib.validate_manifest import MANIFEST_JSON_SCHEMA
 from pre_commit.jsonschema_extensions import apply_defaults
@@ -104,6 +105,16 @@ class Repository(object):
     def cmd_runner(self):
         return PrefixedCommandRunner(self.repo_path_getter.repo_path)
 
+    @cached_property
+    def local_cmd_runner(self):
+        return self.cmd_runner
+
+    def language_cmd_runner(self, language):
+        if language in ['script', 'system']:
+            return self.local_cmd_runner
+        else:
+            return self.cmd_runner
+
     def require_installed(self):
         if self.__installed:
             return
@@ -193,7 +204,7 @@ class Repository(object):
         """
         self.require_installed()
         return languages[hook['language']].run_hook(
-            self.cmd_runner, hook, file_args,
+            self.language_cmd_runner(hook['language']), hook, file_args,
         )
 
 
@@ -204,6 +215,10 @@ class LocalRepository(Repository):
             (hook['id'], apply_defaults(hook, MANIFEST_JSON_SCHEMA['items']))
             for hook in self.repo_config['hooks']
         )
+
+    @cached_property
+    def local_cmd_runner(self):
+        return PrefixedCommandRunner(git.get_root())
 
 
 class _UniqueList(list):
