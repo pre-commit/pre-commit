@@ -1,3 +1,10 @@
+0.13.0
+======
+- Autoupdate now works even when the current state is broken.
+- Improve pre-push fileset on new branches
+- Allow "language local" hooks, hooks which install dependencies using
+  `additional_dependencies` and `language` are now allowed in `repo: local`.
+
 0.12.2
 ======
 - Fix docker hooks on older (<1.12) docker
