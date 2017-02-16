@@ -5,14 +5,12 @@ import collections
 import contextlib
 import os
 
-from pre_commit import five
-
 
 UNSET = collections.namedtuple('UNSET', ())()
 
 
 Var = collections.namedtuple('Var', ('name', 'default'))
-setattr(Var.__new__, five.defaults_attr, ('',))
+setattr(Var.__new__, '__defaults__', ('',))
 
 
 def format_env(parts, env):

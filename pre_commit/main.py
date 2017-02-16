@@ -4,8 +4,7 @@ import argparse
 import os
 import sys
 
-import pkg_resources
-
+import pre_commit.constants as C
 from pre_commit import color
 from pre_commit import five
 from pre_commit import git
@@ -51,9 +50,7 @@ def main(argv=None):
     parser.add_argument(
         '-V', '--version',
         action='version',
-        version='%(prog)s {}'.format(
-            pkg_resources.get_distribution('pre-commit').version
-        )
+        version='%(prog)s {}'.format(C.VERSION),
     )
 
     subparsers = parser.add_subparsers(dest='command')

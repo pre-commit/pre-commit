@@ -10,6 +10,7 @@ from collections import defaultdict
 import pkg_resources
 from cached_property import cached_property
 
+import pre_commit.constants as C
 from pre_commit import five
 from pre_commit import git
 from pre_commit.clientlib.validate_config import is_local_hooks
@@ -23,20 +24,15 @@ from pre_commit.prefixed_command_runner import PrefixedCommandRunner
 
 logger = logging.getLogger('pre_commit')
 
-_pre_commit_version = pkg_resources.parse_version(
-    pkg_resources.get_distribution('pre-commit').version
-)
-
-# Bump when installation changes in a backwards / forwards incompatible way
-INSTALLED_STATE_VERSION = '1'
-
 
 def _state(additional_deps):
     return {'additional_dependencies': sorted(additional_deps)}
 
 
 def _state_filename(cmd_runner, venv):
-    return cmd_runner.path(venv, '.install_state_v' + INSTALLED_STATE_VERSION)
+    return cmd_runner.path(
+        venv, '.install_state_v' + C.INSTALLED_STATE_VERSION,
+    )
 
 
 def _read_installed_state(cmd_runner, venv):
@@ -140,12 +136,12 @@ class Repository(object):
             hook_version = pkg_resources.parse_version(
                 self.manifest.hooks[hook['id']]['minimum_pre_commit_version'],
             )
-            if hook_version > _pre_commit_version:
+            if hook_version > C.VERSION_PARSED:
                 logger.error(
                     'The hook `{}` requires pre-commit version {} but '
                     'version {} is installed.  '
                     'Perhaps run `pip install --upgrade pre-commit`.'.format(
-                        hook['id'], hook_version, _pre_commit_version,
+                        hook['id'], hook_version, C.VERSION_PARSED,
                     )
                 )
                 exit(1)
