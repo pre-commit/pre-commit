@@ -91,6 +91,22 @@ def _install_all(venvs, repo_url):
         _write_installed_state(cmd_runner, venv, state)
 
 
+def _validate_minimum_version(hook):
+    hook_version = pkg_resources.parse_version(
+        hook['minimum_pre_commit_version'],
+    )
+    if hook_version > C.VERSION_PARSED:
+        logger.error(
+            'The hook `{}` requires pre-commit version {} but '
+            'version {} is installed.  '
+            'Perhaps run `pip install --upgrade pre-commit`.'.format(
+                hook['id'], hook_version, C.VERSION_PARSED,
+            )
+        )
+        exit(1)
+    return hook
+
+
 class Repository(object):
     def __init__(self, repo_config, store):
         self.repo_config = repo_config
@@ -133,18 +149,9 @@ class Repository(object):
                     )
                 )
                 exit(1)
-            hook_version = pkg_resources.parse_version(
-                self.manifest.hooks[hook['id']]['minimum_pre_commit_version'],
-            )
-            if hook_version > C.VERSION_PARSED:
-                logger.error(
-                    'The hook `{}` requires pre-commit version {} but '
-                    'version {} is installed.  '
-                    'Perhaps run `pip install --upgrade pre-commit`.'.format(
-                        hook['id'], hook_version, C.VERSION_PARSED,
-                    )
-                )
-                exit(1)
+
+            _validate_minimum_version(self.manifest.hooks[hook['id']])
+
         return tuple(
             (hook['id'], dict(self.manifest.hooks[hook['id']], **hook))
             for hook in self.repo_config['hooks']
@@ -198,7 +205,12 @@ class LocalRepository(Repository):
     @cached_property
     def hooks(self):
         return tuple(
-            (hook['id'], apply_defaults(hook, MANIFEST_JSON_SCHEMA['items']))
+            (
+                hook['id'],
+                _validate_minimum_version(apply_defaults(
+                    hook, MANIFEST_JSON_SCHEMA['items'],
+                )),
+            )
             for hook in self.repo_config['hooks']
         )
 
