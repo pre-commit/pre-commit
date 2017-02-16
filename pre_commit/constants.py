@@ -17,6 +17,8 @@ YAML_DUMP_KWARGS = {
 
 # Bump when installation changes in a backwards / forwards incompatible way
 INSTALLED_STATE_VERSION = '1'
+# Bump when modifying `empty_template`
+LOCAL_REPO_VERSION = '1'
 
 VERSION = pkg_resources.get_distribution('pre-commit').version
 VERSION_PARSED = pkg_resources.parse_version(VERSION)
