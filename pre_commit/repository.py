@@ -31,41 +31,99 @@ _pre_commit_version = pkg_resources.parse_version(
 INSTALLED_STATE_VERSION = '1'
 
 
+def _state(additional_deps):
+    return {'additional_dependencies': sorted(additional_deps)}
+
+
+def _state_filename(cmd_runner, venv):
+    return cmd_runner.path(venv, '.install_state_v' + INSTALLED_STATE_VERSION)
+
+
+def _read_installed_state(cmd_runner, venv):
+    filename = _state_filename(cmd_runner, venv)
+    if not os.path.exists(filename):
+        return None
+    else:
+        return json.loads(io.open(filename).read())
+
+
+def _write_installed_state(cmd_runner, venv, state):
+    state_filename = _state_filename(cmd_runner, venv)
+    staging = state_filename + 'staging'
+    with io.open(staging, 'w') as state_file:
+        state_file.write(five.to_text(json.dumps(state)))
+    # Move the file into place atomically to indicate we've installed
+    os.rename(staging, state_filename)
+
+
+def _installed(cmd_runner, language_name, language_version, additional_deps):
+    language = languages[language_name]
+    venv = environment_dir(language.ENVIRONMENT_DIR, language_version)
+    return (
+        venv is None or
+        _read_installed_state(cmd_runner, venv) == _state(additional_deps)
+    )
+
+
+def _install_all(venvs, repo_url):
+    """Tuple of (cmd_runner, language, version, deps)"""
+    need_installed = tuple(
+        (cmd_runner, language_name, version, deps)
+        for cmd_runner, language_name, version, deps in venvs
+        if not _installed(cmd_runner, language_name, version, deps)
+    )
+
+    if need_installed:
+        logger.info(
+            'Installing environment for {}.'.format(repo_url)
+        )
+        logger.info('Once installed this environment will be reused.')
+        logger.info('This may take a few minutes...')
+
+    for cmd_runner, language_name, version, deps in need_installed:
+        language = languages[language_name]
+        venv = environment_dir(language.ENVIRONMENT_DIR, version)
+
+        # There's potentially incomplete cleanup from previous runs
+        # Clean it up!
+        if cmd_runner.exists(venv):
+            shutil.rmtree(cmd_runner.path(venv))
+
+        language.install_environment(cmd_runner, version, deps)
+        # Write our state to indicate we're installed
+        state = _state(deps)
+        _write_installed_state(cmd_runner, venv, state)
+
+
 class Repository(object):
-    def __init__(self, repo_config, repo_path_getter):
+    def __init__(self, repo_config, store):
         self.repo_config = repo_config
-        self.repo_path_getter = repo_path_getter
+        self.store = store
         self.__installed = False
 
     @classmethod
     def create(cls, config, store):
         if is_local_hooks(config):
-            return LocalRepository(config)
+            return LocalRepository(config, store)
         else:
-            repo_path_getter = store.get_repo_path_getter(
-                config['repo'], config['sha']
-            )
-            return cls(config, repo_path_getter)
+            return cls(config, store)
 
     @cached_property
-    def repo_url(self):
-        return self.repo_config['repo']
+    def _repo_path(self):
+        return self.store.clone(
+            self.repo_config['repo'], self.repo_config['sha'],
+        )
 
     @cached_property
-    def languages(self):
-        return {
-            (hook['language'], hook['language_version'])
-            for _, hook in self.hooks
-        }
+    def _cmd_runner(self):
+        return PrefixedCommandRunner(self._repo_path)
+
+    def _cmd_runner_from_deps(self, language_name, deps):
+        return self._cmd_runner
 
     @cached_property
-    def additional_dependencies(self):
-        dep_dict = defaultdict(lambda: defaultdict(_UniqueList))
-        for _, hook in self.hooks:
-            dep_dict[hook['language']][hook['language_version']].update(
-                hook.get('additional_dependencies', []),
-            )
-        return dep_dict
+    def manifest(self):
+        return Manifest(self._repo_path, self.repo_config['repo'])
 
     @cached_property
     def hooks(self):
@@ -97,108 +155,49 @@ class Repository(object):
         )
 
     @cached_property
-    def manifest(self):
-        return Manifest(self.repo_path_getter, self.repo_url)
-
-    @cached_property
-    def cmd_runner(self):
-        return PrefixedCommandRunner(self.repo_path_getter.repo_path)
+    def _venvs(self):
+        deps_dict = defaultdict(_UniqueList)
+        for _, hook in self.hooks:
+            deps_dict[(hook['language'], hook['language_version'])].update(
+                hook.get('additional_dependencies', []),
+            )
+        ret = []
+        for (language, version), deps in deps_dict.items():
+            ret.append((self._cmd_runner, language, version, deps))
+        return tuple(ret)
 
     def require_installed(self):
-        if self.__installed:
-            return
-
-        self.install()
-        self.__installed = True
-
-    def install(self):
-        """Install the hook repository."""
-        def state(language_name, language_version):
-            return {
-                'additional_dependencies': sorted(
-                    self.additional_dependencies[
-                        language_name
-                    ][language_version],
-                )
-            }
-
-        def state_filename(venv, suffix=''):
-            return self.cmd_runner.path(
-                venv, '.install_state_v' + INSTALLED_STATE_VERSION + suffix,
-            )
-
-        def read_state(venv):
-            if not os.path.exists(state_filename(venv)):
-                return None
-            else:
-                return json.loads(io.open(state_filename(venv)).read())
-
-        def write_state(venv, language_name, language_version):
-            with io.open(
-                    state_filename(venv, suffix='staging'), 'w',
-            ) as state_file:
-                state_file.write(five.to_text(json.dumps(
-                    state(language_name, language_version),
-                )))
-            # Move the file into place atomically to indicate we've installed
-            os.rename(
-                state_filename(venv, suffix='staging'),
-                state_filename(venv),
-            )
-
-        def language_is_installed(language_name, language_version):
-            language = languages[language_name]
-            venv = environment_dir(language.ENVIRONMENT_DIR, language_version)
-            return (
-                venv is None or
-                read_state(venv) == state(language_name, language_version)
-            )
-
-        if not all(
-            language_is_installed(language_name, language_version)
-            for language_name, language_version in self.languages
-        ):
-            logger.info(
-                'Installing environment for {}.'.format(self.repo_url)
-            )
-            logger.info('Once installed this environment will be reused.')
-            logger.info('This may take a few minutes...')
-
-        for language_name, language_version in self.languages:
-            if language_is_installed(language_name, language_version):
-                continue
-
-            language = languages[language_name]
-            venv = environment_dir(language.ENVIRONMENT_DIR, language_version)
-
-            # There's potentially incomplete cleanup from previous runs
-            # Clean it up!
-            if self.cmd_runner.exists(venv):
-                shutil.rmtree(self.cmd_runner.path(venv))
-
-            language.install_environment(
-                self.cmd_runner, language_version,
-                self.additional_dependencies[language_name][language_version],
-            )
-            # Write our state to indicate we're installed
-            write_state(venv, language_name, language_version)
+        if not self.__installed:
+            _install_all(self._venvs, self.repo_config['repo'])
+            self.__installed = True
 
     def run_hook(self, hook, file_args):
         """Run a hook.
 
-        Args:
-            hook - Hook dictionary
-            file_args - List of files to run
+        :param dict hook:
+        :param tuple file_args: all the files to run the hook on
         """
         self.require_installed()
-        return languages[hook['language']].run_hook(
-            self.cmd_runner, hook, file_args,
-        )
+        language_name = hook['language']
+        deps = hook.get('additional_dependencies', [])
+        cmd_runner = self._cmd_runner_from_deps(language_name, deps)
+        return languages[language_name].run_hook(cmd_runner, hook, file_args)
 
 
 class LocalRepository(Repository):
-    def __init__(self, repo_config):
-        super(LocalRepository, self).__init__(repo_config, None)
+    def _cmd_runner_from_deps(self, language_name, deps):
+        """local repositories have a cmd runner per hook"""
+        language = languages[language_name]
+        # pcre / script / system do not have environments so they work out
+        # of the current directory
+        if language.ENVIRONMENT_DIR is None:
+            return PrefixedCommandRunner(git.get_root())
+        else:
+            return PrefixedCommandRunner(self.store.make_local(deps))
+
+    @cached_property
+    def manifest(self):
+        raise NotImplementedError
 
     @cached_property
     def hooks(self):
@@ -208,12 +207,17 @@ class LocalRepository(Repository):
         )
 
     @cached_property
-    def cmd_runner(self):
-        return PrefixedCommandRunner(git.get_root())
-
-    @cached_property
-    def manifest(self):
-        raise NotImplementedError
+    def _venvs(self):
+        ret = []
+        for _, hook in self.hooks:
+            language = hook['language']
+            version = hook['language_version']
+            deps = hook.get('additional_dependencies', [])
+            ret.append((
+                self._cmd_runner_from_deps(language, deps),
+                language, version, deps,
+            ))
+        return tuple(ret)
 
 
 class _UniqueList(list):

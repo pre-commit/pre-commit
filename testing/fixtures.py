@@ -15,8 +15,8 @@ from pre_commit.clientlib.validate_config import validate_config_extra
 from pre_commit.clientlib.validate_manifest import load_manifest
 from pre_commit.jsonschema_extensions import apply_defaults
 from pre_commit.util import cmd_output
+from pre_commit.util import copy_tree_to_path
 from pre_commit.util import cwd
-from testing.util import copy_tree_to_path
 from testing.util import get_head_sha
 from testing.util import get_resource_path
 

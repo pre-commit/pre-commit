@@ -32,7 +32,7 @@ def _update_repo(repo_config, runner, tags_only):
     """
     repo = Repository.create(repo_config, runner.store)
 
-    with cwd(repo.repo_path_getter.repo_path):
+    with cwd(repo._repo_path):
         cmd_output('git', 'fetch')
         tag_cmd = ('git', 'describe', 'origin/master', '--tags')
         if tags_only:

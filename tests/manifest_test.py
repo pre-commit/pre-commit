@@ -12,8 +12,8 @@ from testing.util import get_head_sha
 def manifest(store, tempdir_factory):
     path = make_repo(tempdir_factory, 'script_hooks_repo')
     head_sha = get_head_sha(path)
-    repo_path_getter = store.get_repo_path_getter(path, head_sha)
-    yield Manifest(repo_path_getter, path)
+    repo_path = store.clone(path, head_sha)
+    yield Manifest(repo_path, path)
 
 
 def test_manifest_contents(manifest):
@@ -54,9 +54,8 @@ def test_hooks(manifest):
 def test_legacy_manifest_warn(store, tempdir_factory, log_warning_mock):
     path = make_repo(tempdir_factory, 'legacy_hooks_yaml_repo')
     head_sha = get_head_sha(path)
-    repo_path_getter = store.get_repo_path_getter(path, head_sha)
-
-    Manifest(repo_path_getter, path).manifest_contents
+    repo_path = store.clone(path, head_sha)
+    Manifest(repo_path, path).manifest_contents
 
     # Should have printed a warning
     assert log_warning_mock.call_args_list[0][0][0] == (
