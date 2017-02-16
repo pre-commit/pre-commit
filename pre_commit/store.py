@@ -9,6 +9,7 @@ import tempfile
 
 from cached_property import cached_property
 
+import pre_commit.constants as C
 from pre_commit.prefixed_command_runner import PrefixedCommandRunner
 from pre_commit.util import clean_path_on_failure
 from pre_commit.util import cmd_output
@@ -129,7 +130,7 @@ class Store(object):
         def make_local_strategy(directory):
             copy_tree_to_path(resource_filename('empty_template'), directory)
         return self._new_repo(
-            'local:{}'.format(','.join(sorted(deps))), 'N/A',
+            'local:{}'.format(','.join(sorted(deps))), C.LOCAL_REPO_VERSION,
             make_local_strategy,
         )
 
