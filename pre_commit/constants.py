@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 
+import pkg_resources
 
 CONFIG_FILE = '.pre-commit-config.yaml'
 
@@ -13,3 +14,9 @@ YAML_DUMP_KWARGS = {
     'encoding': None,
     'indent': 4,
 }
+
+# Bump when installation changes in a backwards / forwards incompatible way
+INSTALLED_STATE_VERSION = '1'
+
+VERSION = pkg_resources.get_distribution('pre-commit').version
+VERSION_PARSED = pkg_resources.parse_version(VERSION)
