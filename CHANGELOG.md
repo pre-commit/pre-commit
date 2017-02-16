@@ -1,3 +1,7 @@
+0.13.1
+======
+- Fix dummy gem for ruby local hooks
+
 0.13.0
 ======
 - Autoupdate now works even when the current state is broken.
