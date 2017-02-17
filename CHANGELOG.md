@@ -1,3 +1,8 @@
+0.13.2
+======
+- Version the local hooks repo
+- Allow `minimum_pre_commit_version` for local hooks
+
 0.13.1
 ======
 - Fix dummy gem for ruby local hooks
