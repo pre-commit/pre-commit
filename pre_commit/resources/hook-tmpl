@@ -10,6 +10,7 @@ retv=0
 args=""
 
 ENV_PYTHON='{sys_executable}'
+SKIP_ON_MISSING_CONF={skip_on_missing_conf}
 
 which pre-commit >& /dev/null
 WHICH_RETV=$?
@@ -35,6 +36,20 @@ if [ -x "$HERE"/{hook_type}.legacy ]; then
     if [ $? -ne 0 ]; then
         retv=1
     fi
+fi
+
+CONF_FILE=$(git rev-parse --show-toplevel)"/.pre-commit-config.yaml"
+if [ ! -f $CONF_FILE  ]; then
+    if [ $SKIP_ON_MISSING_CONF = true ] || [ ! -z $PRE_COMMIT_ALLOW_NO_CONFIG ]; then
+            echo '`.pre-commit-config.yaml` config file not found. Skipping `pre-commit`.'
+            exit $retv
+    else
+        echo 'No .pre-commit-config.yaml file was found\n'\
+             '- To temporarily silence this, run `PRE_COMMIT_ALLOW_NO_CONFIG=1 git ...`\n'\
+             '- To permanently silence this, install pre-commit with the `--allow-missing-config` option\n'\
+             '- To uninstall pre-commit run `pre-commit uninstall`'
+        exit 1
+	fi
 fi
 
 {pre_push}
