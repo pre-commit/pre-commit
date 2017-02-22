@@ -12,29 +12,21 @@ from pre_commit.util import resource_filename
 
 
 # This is used to identify the hook file we install
-PREVIOUS_IDENTIFYING_HASHES = (
+PRIOR_HASHES = (
     '4d9958c90bc262f47553e2c073f14cfe',
     'd8ee923c46731b42cd95cc869add4062',
     '49fd668cb42069aa1b6048464be5d395',
     '79f09a650522a87b0da915d0d983b2de',
     'e358c9dae00eac5d06b38dfdb1e33a8c',
 )
+CURRENT_HASH = '138fd403232d2ddd5efb44317e38bf03'
 
 
-IDENTIFYING_HASH = '138fd403232d2ddd5efb44317e38bf03'
-
-
-def is_our_pre_commit(filename):
-    if not os.path.exists(filename):
-        return False
-    return IDENTIFYING_HASH in io.open(filename).read()
-
-
-def is_previous_pre_commit(filename):
+def is_our_script(filename):
     if not os.path.exists(filename):
         return False
     contents = io.open(filename).read()
-    return any(hash in contents for hash in PREVIOUS_IDENTIFYING_HASHES)
+    return any(h in contents for h in (CURRENT_HASH,) + PRIOR_HASHES)
 
 
 def install(runner, overwrite=False, hooks=False, hook_type='pre-commit'):
@@ -45,11 +37,7 @@ def install(runner, overwrite=False, hooks=False, hook_type='pre-commit'):
     mkdirp(os.path.dirname(hook_path))
 
     # If we have an existing hook, move it to pre-commit.legacy
-    if (
-        os.path.lexists(hook_path) and
-        not is_our_pre_commit(hook_path) and
-        not is_previous_pre_commit(hook_path)
-    ):
+    if os.path.lexists(hook_path) and not is_our_script(hook_path):
         os.rename(hook_path, legacy_path)
 
     # If we specify overwrite, we simply delete the legacy file
@@ -97,12 +85,7 @@ def uninstall(runner, hook_type='pre-commit'):
     hook_path = runner.get_hook_path(hook_type)
     legacy_path = hook_path + '.legacy'
     # If our file doesn't exist or it isn't ours, gtfo.
-    if (
-        not os.path.exists(hook_path) or (
-            not is_our_pre_commit(hook_path) and
-            not is_previous_pre_commit(hook_path)
-        )
-    ):
+    if not os.path.exists(hook_path) or not is_our_script(hook_path):
         return 0
 
     os.remove(hook_path)
