@@ -483,6 +483,30 @@ def test_additional_python_dependencies_installed(tempdir_factory, store):
 
 
 @pytest.mark.integration
+def test_additional_python_dependencies_requirements_files(
+        tempdir_factory,
+        store
+):
+    path = make_repo(tempdir_factory, 'python_hooks_repo')
+    config = make_config_from_repo(path)
+
+    # write pip requirements file
+    req_file_path = os.path.join(path, 'requirements.txt')
+    with io.open(req_file_path, 'w') as fp:
+        fp.write('pep8')
+
+    config['hooks'][0]['additional_dependencies'] = \
+        ['mccabe', 'file:{}'.format(req_file_path)]
+
+    repo = Repository.create(config, store)
+    repo.require_installed()
+    with python.in_env(repo._cmd_runner, 'default'):
+        output = cmd_output('pip', 'freeze', '-l')[1]
+        assert 'mccabe' in output
+        assert 'pep8' in output
+
+
+@pytest.mark.integration
 def test_additional_dependencies_roll_forward(tempdir_factory, store):
     path = make_repo(tempdir_factory, 'python_hooks_repo')
     config = make_config_from_repo(path)
