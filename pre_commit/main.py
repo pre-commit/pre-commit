@@ -75,6 +75,13 @@ def main(argv=None):
         '-t', '--hook-type', choices=('pre-commit', 'pre-push'),
         default='pre-commit',
     )
+    install_parser.add_argument(
+        '--allow-missing-config', action='store_true', default=False,
+        help=(
+            'Whether to allow a missing `pre-config` configuration file '
+            'or exit with a failure code.'
+        ),
+    )
 
     install_hooks_parser = subparsers.add_parser(
         'install-hooks',
@@ -182,6 +189,7 @@ def main(argv=None):
             return install(
                 runner, overwrite=args.overwrite, hooks=args.install_hooks,
                 hook_type=args.hook_type,
+                skip_on_missing_conf=args.allow_missing_config
             )
         elif args.command == 'install-hooks':
             return install_hooks(runner)

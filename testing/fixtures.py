@@ -123,6 +123,14 @@ def add_config_to_repo(git_path, config, config_file=C.CONFIG_FILE):
     return git_path
 
 
+def remove_config_from_repo(git_path, config_file=C.CONFIG_FILE):
+    os.unlink(os.path.join(git_path, config_file))
+    with cwd(git_path):
+        cmd_output('git', 'add', config_file)
+        cmd_output('git', 'commit', '-m', 'Remove hooks config')
+    return git_path
+
+
 def make_consuming_repo(tempdir_factory, repo_source):
     path = make_repo(tempdir_factory, repo_source)
     config = make_config_from_repo(path)

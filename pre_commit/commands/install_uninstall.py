@@ -37,7 +37,10 @@ def is_previous_pre_commit(filename):
     return any(hash in contents for hash in PREVIOUS_IDENTIFYING_HASHES)
 
 
-def install(runner, overwrite=False, hooks=False, hook_type='pre-commit'):
+def install(
+        runner, overwrite=False, hooks=False, hook_type='pre-commit',
+        skip_on_missing_conf=False
+):
     """Install the pre-commit hooks."""
     hook_path = runner.get_hook_path(hook_type)
     legacy_path = hook_path + '.legacy'
@@ -70,10 +73,12 @@ def install(runner, overwrite=False, hooks=False, hook_type='pre-commit'):
         else:
             pre_push_contents = ''
 
+        skip_on_missing_conf = 'true' if skip_on_missing_conf else 'false'
         contents = io.open(resource_filename('hook-tmpl')).read().format(
             sys_executable=sys.executable,
             hook_type=hook_type,
             pre_push=pre_push_contents,
+            skip_on_missing_conf=skip_on_missing_conf
         )
         pre_commit_file_obj.write(contents)
     make_executable(hook_path)
