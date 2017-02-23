@@ -4,6 +4,7 @@ coverage
 flake8
 mock
 pytest
+pytest-env
 
 # setuptools breaks pypy3 with extraneous output
 setuptools<18.5

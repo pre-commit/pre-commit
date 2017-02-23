@@ -11,12 +11,11 @@ import sys
 import mock
 
 import pre_commit.constants as C
-from pre_commit.commands.install_uninstall import IDENTIFYING_HASH
+from pre_commit.commands.install_uninstall import CURRENT_HASH
 from pre_commit.commands.install_uninstall import install
 from pre_commit.commands.install_uninstall import install_hooks
-from pre_commit.commands.install_uninstall import is_our_pre_commit
-from pre_commit.commands.install_uninstall import is_previous_pre_commit
-from pre_commit.commands.install_uninstall import PREVIOUS_IDENTIFYING_HASHES
+from pre_commit.commands.install_uninstall import is_our_script
+from pre_commit.commands.install_uninstall import PRIOR_HASHES
 from pre_commit.commands.install_uninstall import uninstall
 from pre_commit.runner import Runner
 from pre_commit.util import cmd_output
@@ -31,27 +30,18 @@ from testing.util import cmd_output_mocked_pre_commit_home
 from testing.util import xfailif_no_symlink
 
 
-def test_is_not_our_pre_commit():
-    assert is_our_pre_commit('setup.py') is False
+def test_is_not_script():
+    assert is_our_script('setup.py') is False
 
 
-def test_is_our_pre_commit():
-    assert is_our_pre_commit(resource_filename('hook-tmpl'))
+def test_is_script():
+    assert is_our_script(resource_filename('hook-tmpl'))
 
 
-def test_is_not_previous_pre_commit():
-    assert is_previous_pre_commit('setup.py') is False
-
-
-def test_is_also_not_previous_pre_commit():
-    assert not is_previous_pre_commit(resource_filename('hook-tmpl'))
-
-
-def test_is_previous_pre_commit(in_tmpdir):
-    with io.open('foo', 'w') as foo_file:
-        foo_file.write(PREVIOUS_IDENTIFYING_HASHES[0])
-
-    assert is_previous_pre_commit('foo')
+def test_is_previous_pre_commit(tmpdir):
+    f = tmpdir.join('foo')
+    f.write(PRIOR_HASHES[0] + '\n')
+    assert is_our_script(f.strpath)
 
 
 def test_install_pre_commit(tempdir_factory):
@@ -411,7 +401,7 @@ def test_replace_old_commit_script(tempdir_factory):
             resource_filename('hook-tmpl'),
         ).read()
         new_contents = pre_commit_contents.replace(
-            IDENTIFYING_HASH, PREVIOUS_IDENTIFYING_HASHES[-1],
+            CURRENT_HASH, PRIOR_HASHES[-1],
         )
 
         mkdirp(os.path.dirname(runner.pre_commit_path))
