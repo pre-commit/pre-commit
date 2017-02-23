@@ -66,7 +66,7 @@ def test_install_pre_commit(tempdir_factory):
         sys_executable=sys.executable,
         hook_type='pre-commit',
         pre_push='',
-        skip_on_missing_conf='false'
+        skip_on_missing_conf='false',
     )
     assert pre_commit_contents == expected_contents
     assert os.access(runner.pre_commit_path, os.X_OK)
@@ -81,7 +81,7 @@ def test_install_pre_commit(tempdir_factory):
         sys_executable=sys.executable,
         hook_type='pre-push',
         pre_push=pre_push_template_contents,
-        skip_on_missing_conf='false'
+        skip_on_missing_conf='false',
     )
     assert pre_push_contents == expected_contents
 
@@ -579,8 +579,11 @@ def test_install_allow_mising_config(tempdir_factory):
 
         ret, output = _get_commit_output(tempdir_factory)
         assert ret == 0
-        assert '`.pre-commit-config.yaml` config file not found. '\
-               'Skipping `pre-commit`.' in output
+        expected = (
+            '`.pre-commit-config.yaml` config file not found. '
+            'Skipping `pre-commit`.'
+        )
+        assert expected in output
 
 
 def test_install_temporarily_allow_mising_config(tempdir_factory):
@@ -591,10 +594,11 @@ def test_install_temporarily_allow_mising_config(tempdir_factory):
         remove_config_from_repo(path)
         assert install(runner, overwrite=True, skip_on_missing_conf=False) == 0
 
-        extra_env = {'PRE_COMMIT_ALLOW_NO_CONFIG': '1'}
-        env = os.environ.copy()
-        env.update(extra_env)
+        env = dict(os.environ, PRE_COMMIT_ALLOW_NO_CONFIG='1')
         ret, output = _get_commit_output(tempdir_factory, env=env)
         assert ret == 0
-        assert '`.pre-commit-config.yaml` config file not found. '\
-               'Skipping `pre-commit`.' in output
+        expected = (
+            '`.pre-commit-config.yaml` config file not found. '
+            'Skipping `pre-commit`.'
+        )
+        assert expected in output

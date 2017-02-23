@@ -41,13 +41,13 @@ fi
 CONF_FILE=$(git rev-parse --show-toplevel)"/.pre-commit-config.yaml"
 if [ ! -f $CONF_FILE  ]; then
     if [ $SKIP_ON_MISSING_CONF = true ] || [ ! -z $PRE_COMMIT_ALLOW_NO_CONFIG ]; then
-            echo '`.pre-commit-config.yaml` config file not found. Skipping `pre-commit`.'
-            exit $retv
+        echo '`.pre-commit-config.yaml` config file not found. Skipping `pre-commit`.'
+        exit $retv
     else
-        echo 'No .pre-commit-config.yaml file was found\n'\
-             '- To temporarily silence this, run `PRE_COMMIT_ALLOW_NO_CONFIG=1 git ...`\n'\
-             '- To permanently silence this, install pre-commit with the `--allow-missing-config` option\n'\
-             '- To uninstall pre-commit run `pre-commit uninstall`'
+        echo 'No .pre-commit-config.yaml file was found'
+        echo '- To temporarily silence this, run `PRE_COMMIT_ALLOW_NO_CONFIG=1 git ...`'
+        echo '- To permanently silence this, install pre-commit with the `--allow-missing-config` option'
+        echo '- To uninstall pre-commit run `pre-commit uninstall`'
         exit 1
 	fi
 fi

@@ -189,7 +189,7 @@ def main(argv=None):
             return install(
                 runner, overwrite=args.overwrite, hooks=args.install_hooks,
                 hook_type=args.hook_type,
-                skip_on_missing_conf=args.allow_missing_config
+                skip_on_missing_conf=args.allow_missing_config,
             )
         elif args.command == 'install-hooks':
             return install_hooks(runner)

@@ -39,7 +39,7 @@ def is_previous_pre_commit(filename):
 
 def install(
         runner, overwrite=False, hooks=False, hook_type='pre-commit',
-        skip_on_missing_conf=False
+        skip_on_missing_conf=False,
 ):
     """Install the pre-commit hooks."""
     hook_path = runner.get_hook_path(hook_type)
@@ -78,7 +78,7 @@ def install(
             sys_executable=sys.executable,
             hook_type=hook_type,
             pre_push=pre_push_contents,
-            skip_on_missing_conf=skip_on_missing_conf
+            skip_on_missing_conf=skip_on_missing_conf,
         )
         pre_commit_file_obj.write(contents)
     make_executable(hook_path)
