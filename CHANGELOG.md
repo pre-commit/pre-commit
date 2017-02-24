@@ -1,3 +1,8 @@
+0.13.3
+======
+- Add `--allow-missing-config` to install: allows `git commit` without a
+  configuration.
+
 0.13.2
 ======
 - Version the local hooks repo
