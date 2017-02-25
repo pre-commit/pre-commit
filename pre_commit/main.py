@@ -149,6 +149,10 @@ def main(argv=None):
         '--hook-stage', choices=('commit', 'push'), default='commit',
         help='The stage during which the hook is fired e.g. commit or push.',
     )
+    run_parser.add_argument(
+        '--show-diff-on-failure', action='store_true',
+        help='When hooks fail, run `git diff` directly afterward.',
+    )
     run_mutex_group = run_parser.add_mutually_exclusive_group(required=False)
     run_mutex_group.add_argument(
         '--all-files', '-a', action='store_true', default=False,

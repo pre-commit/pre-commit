@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 import logging
 import os
+import subprocess
 import sys
 
 from pre_commit import color
@@ -152,6 +153,13 @@ def _run_hooks(repo_hooks, args, environ):
     retval = 0
     for repo, hook in repo_hooks:
         retval |= _run_single_hook(hook, repo, args, skips, cols)
+    if (
+            retval and
+            args.show_diff_on_failure and
+            subprocess.call(('git', 'diff', '--quiet')) != 0
+    ):
+        print('All changes made by hooks:')
+        subprocess.call(('git', 'diff'))
     return retval
 
 

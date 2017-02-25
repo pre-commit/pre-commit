@@ -58,6 +58,7 @@ def _get_opts(
         source='',
         allow_unstaged_config=False,
         hook_stage='commit',
+        show_diff_on_failure=False,
 ):
     # These are mutually exclusive
     assert not (all_files and files)
@@ -67,11 +68,12 @@ def _get_opts(
         color=color,
         verbose=verbose,
         hook=hook,
-        hook_stage=hook_stage,
         no_stash=no_stash,
         origin=origin,
         source=source,
         allow_unstaged_config=allow_unstaged_config,
+        hook_stage=hook_stage,
+        show_diff_on_failure=show_diff_on_failure,
     )
 
 
@@ -149,6 +151,23 @@ def test_hook_that_modifies_but_returns_zero(
             1,
             True,
         )
+
+
+def test_show_diff_on_failure(
+        capfd, cap_out, tempdir_factory, mock_out_store_directory,
+):
+    git_path = make_consuming_repo(
+        tempdir_factory, 'modified_file_returns_zero_repo',
+    )
+    with cwd(git_path):
+        stage_a_file('bar.py')
+        _test_run(
+            cap_out, git_path, {'show_diff_on_failure': True},
+            # we're only testing the output after running
+            (), 1, True,
+        )
+    out, _ = capfd.readouterr()
+    assert 'diff --git' in out
 
 
 @pytest.mark.parametrize(
