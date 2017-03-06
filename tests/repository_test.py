@@ -8,10 +8,9 @@ import re
 import shutil
 
 import mock
-import pkg_resources
 import pytest
 
-from pre_commit import constants as C
+import pre_commit.constants as C
 from pre_commit import five
 from pre_commit import parse_shebang
 from pre_commit.clientlib.validate_manifest import load_manifest
@@ -721,10 +720,7 @@ def test_too_new_version(tempdir_factory, store, fake_log_handler):
     )
 
 
-@pytest.mark.parametrize(
-    'version',
-    ('0.1.0', pkg_resources.get_distribution('pre-commit').version),
-)
+@pytest.mark.parametrize('version', ('0.1.0', C.VERSION))
 def test_versions_ok(tempdir_factory, store, version):
     path = make_repo(tempdir_factory, 'script_hooks_repo')
     with modify_manifest(path) as manifest:

@@ -7,9 +7,9 @@ import re
 
 import jsonschema
 import jsonschema.exceptions
-import pkg_resources
 import yaml
 
+import pre_commit.constants as C
 from pre_commit import output
 from pre_commit.jsonschema_extensions import apply_defaults
 
@@ -72,11 +72,7 @@ def get_run_function(filenames_help, validate_strategy, exception_cls):
         parser = argparse.ArgumentParser()
         parser.add_argument('filenames', nargs='*', help=filenames_help)
         parser.add_argument(
-            '-V', '--version',
-            action='version',
-            version='%(prog)s {}'.format(
-                pkg_resources.get_distribution('pre-commit').version
-            )
+            '-V', '--version', action='version', version=C.VERSION,
         )
 
         args = parser.parse_args(argv)
