@@ -5,7 +5,7 @@ import os.path
 from cached_property import cached_property
 
 from pre_commit import git
-from pre_commit.clientlib.validate_config import load_config
+from pre_commit.clientlib import load_config
 from pre_commit.repository import Repository
 from pre_commit.store import Store
 

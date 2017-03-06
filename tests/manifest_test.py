@@ -20,6 +20,7 @@ def test_manifest_contents(manifest):
     # Should just retrieve the manifest contents
     assert manifest.manifest_contents == [{
         'always_run': False,
+        'additional_dependencies': [],
         'args': [],
         'description': '',
         'entry': 'bin/hook.sh',
@@ -28,7 +29,7 @@ def test_manifest_contents(manifest):
         'id': 'bash_hook',
         'language': 'script',
         'language_version': 'default',
-        'minimum_pre_commit_version': '0.0.0',
+        'minimum_pre_commit_version': '0',
         'name': 'Bash hook',
         'stages': [],
     }]
@@ -37,6 +38,7 @@ def test_manifest_contents(manifest):
 def test_hooks(manifest):
     assert manifest.hooks['bash_hook'] == {
         'always_run': False,
+        'additional_dependencies': [],
         'args': [],
         'description': '',
         'entry': 'bin/hook.sh',
@@ -45,7 +47,7 @@ def test_hooks(manifest):
         'id': 'bash_hook',
         'language': 'script',
         'language_version': 'default',
-        'minimum_pre_commit_version': '0.0.0',
+        'minimum_pre_commit_version': '0',
         'name': 'Bash hook',
         'stages': [],
     }

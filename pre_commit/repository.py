@@ -13,13 +13,14 @@ from cached_property import cached_property
 import pre_commit.constants as C
 from pre_commit import five
 from pre_commit import git
-from pre_commit.clientlib.validate_config import is_local_hooks
-from pre_commit.clientlib.validate_manifest import MANIFEST_JSON_SCHEMA
-from pre_commit.jsonschema_extensions import apply_defaults
+from pre_commit.clientlib import is_local_repo
+from pre_commit.clientlib import MANIFEST_HOOK_DICT
 from pre_commit.languages.all import languages
 from pre_commit.languages.helpers import environment_dir
 from pre_commit.manifest import Manifest
 from pre_commit.prefixed_command_runner import PrefixedCommandRunner
+from pre_commit.schema import apply_defaults
+from pre_commit.schema import validate
 
 
 logger = logging.getLogger('pre_commit')
@@ -115,7 +116,7 @@ class Repository(object):
 
     @classmethod
     def create(cls, config, store):
-        if is_local_hooks(config):
+        if is_local_repo(config):
             return LocalRepository(config, store)
         else:
             return cls(config, store)
@@ -162,7 +163,7 @@ class Repository(object):
         deps_dict = defaultdict(_UniqueList)
         for _, hook in self.hooks:
             deps_dict[(hook['language'], hook['language_version'])].update(
-                hook.get('additional_dependencies', []),
+                hook['additional_dependencies'],
             )
         ret = []
         for (language, version), deps in deps_dict.items():
@@ -182,7 +183,7 @@ class Repository(object):
         """
         self.require_installed()
         language_name = hook['language']
-        deps = hook.get('additional_dependencies', [])
+        deps = hook['additional_dependencies']
         cmd_runner = self._cmd_runner_from_deps(language_name, deps)
         return languages[language_name].run_hook(cmd_runner, hook, file_args)
 
@@ -207,9 +208,12 @@ class LocalRepository(Repository):
         return tuple(
             (
                 hook['id'],
-                _validate_minimum_version(apply_defaults(
-                    hook, MANIFEST_JSON_SCHEMA['items'],
-                )),
+                _validate_minimum_version(
+                    apply_defaults(
+                        validate(hook, MANIFEST_HOOK_DICT),
+                        MANIFEST_HOOK_DICT,
+                    ),
+                ),
             )
             for hook in self.repo_config['hooks']
         )
@@ -220,7 +224,7 @@ class LocalRepository(Repository):
         for _, hook in self.hooks:
             language = hook['language']
             version = hook['language_version']
-            deps = hook.get('additional_dependencies', [])
+            deps = hook['additional_dependencies']
             ret.append((
                 self._cmd_runner_from_deps(language, deps),
                 language, version, deps,

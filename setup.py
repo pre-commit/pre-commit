@@ -41,7 +41,6 @@ setup(
     install_requires=[
         'aspy.yaml',
         'cached-property',
-        'jsonschema',
         'nodeenv>=0.11.1',
         'pyyaml',
         'virtualenv',
@@ -49,8 +48,8 @@ setup(
     entry_points={
         'console_scripts': [
             'pre-commit = pre_commit.main:main',
-            'pre-commit-validate-config = pre_commit.clientlib.validate_config:run',  # noqa
-            'pre-commit-validate-manifest = pre_commit.clientlib.validate_manifest:run',  # noqa
+            'pre-commit-validate-config = pre_commit.clientlib:validate_config_main',  # noqa
+            'pre-commit-validate-manifest = pre_commit.clientlib:validate_manifest_main',  # noqa
         ],
     },
 )

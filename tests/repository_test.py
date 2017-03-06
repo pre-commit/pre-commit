@@ -13,7 +13,7 @@ import pytest
 import pre_commit.constants as C
 from pre_commit import five
 from pre_commit import parse_shebang
-from pre_commit.clientlib.validate_manifest import load_manifest
+from pre_commit.clientlib import load_manifest
 from pre_commit.languages import golang
 from pre_commit.languages import helpers
 from pre_commit.languages import node

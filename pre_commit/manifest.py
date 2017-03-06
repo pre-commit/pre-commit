@@ -6,7 +6,7 @@ import os.path
 from cached_property import cached_property
 
 import pre_commit.constants as C
-from pre_commit.clientlib.validate_manifest import load_manifest
+from pre_commit.clientlib import load_manifest
 
 
 logger = logging.getLogger('pre_commit')
