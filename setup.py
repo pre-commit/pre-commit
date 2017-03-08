@@ -43,6 +43,7 @@ setup(
         'cached-property',
         'nodeenv>=0.11.1',
         'pyyaml',
+        'six',
         'virtualenv',
     ],
     entry_points={

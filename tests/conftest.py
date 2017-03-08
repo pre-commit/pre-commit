@@ -8,9 +8,9 @@ import os.path
 
 import mock
 import pytest
+import six
 
 import pre_commit.constants as C
-from pre_commit import five
 from pre_commit import output
 from pre_commit.logging_handler import add_logging_handler
 from pre_commit.prefixed_command_runner import PrefixedCommandRunner
@@ -29,7 +29,7 @@ def tempdir_factory(tmpdir):
             self.tmpdir_count = 0
 
         def get(self):
-            path = tmpdir.join(five.text(self.tmpdir_count)).strpath
+            path = tmpdir.join(six.text_type(self.tmpdir_count)).strpath
             self.tmpdir_count += 1
             os.mkdir(path)
             return path

@@ -8,7 +8,7 @@ import os.path
 import re
 import sys
 
-from pre_commit import five
+import six
 
 
 class ValidationError(ValueError):
@@ -37,7 +37,7 @@ def validate_context(msg):
         yield
     except ValidationError as e:
         _, _, tb = sys.exc_info()
-        five.reraise(ValidationError, ValidationError(e, ctx=msg), tb)
+        six.reraise(ValidationError, ValidationError(e, ctx=msg), tb)
 
 
 @contextlib.contextmanager
@@ -46,7 +46,7 @@ def reraise_as(tp):
         yield
     except ValidationError as e:
         _, _, tb = sys.exc_info()
-        five.reraise(tp, tp(e), tb)
+        six.reraise(tp, tp(e), tb)
 
 
 def _dct_noop(self, dct):
@@ -218,7 +218,7 @@ def check_type(tp, typename=None):
 
 
 check_bool = check_type(bool)
-check_string = check_type(five.string_types, typename='string')
+check_string = check_type(six.string_types, typename='string')
 
 
 def check_regex(v):

@@ -3,9 +3,10 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import contextlib
-import io
 import os.path
 import traceback
+
+import six
 
 from pre_commit import five
 from pre_commit import output
@@ -22,7 +23,7 @@ def _to_bytes(exc):
     try:
         return bytes(exc)
     except Exception:
-        return five.text(exc).encode('UTF-8')
+        return six.text_type(exc).encode('UTF-8')
 
 
 def _log_and_exit(msg, exc, formatted):
@@ -35,7 +36,7 @@ def _log_and_exit(msg, exc, formatted):
     output.write_line('Check the log at ~/.pre-commit/pre-commit.log')
     store = Store()
     store.require_created()
-    with io.open(os.path.join(store.directory, 'pre-commit.log'), 'wb') as log:
+    with open(os.path.join(store.directory, 'pre-commit.log'), 'wb') as log:
         output.write(error_msg, stream=log)
         output.write_line(formatted, stream=log)
     raise PreCommitSystemExit(1)
