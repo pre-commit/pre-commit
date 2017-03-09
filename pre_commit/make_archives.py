@@ -5,7 +5,6 @@ from __future__ import unicode_literals
 import os.path
 import tarfile
 
-from pre_commit import five
 from pre_commit import output
 from pre_commit.util import cmd_output
 from pre_commit.util import cwd
@@ -54,7 +53,7 @@ def make_archive(name, repo, ref, destdir):
         # runtime
         rmtree(os.path.join(tempdir, '.git'))
 
-        with tarfile.open(five.n(output_path), 'w|gz') as tf:
+        with tarfile.open(output_path, 'w|gz') as tf:
             tf.add(tempdir, name)
 
     return output_path

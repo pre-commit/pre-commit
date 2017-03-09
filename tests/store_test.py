@@ -7,8 +7,8 @@ import sqlite3
 
 import mock
 import pytest
+import six
 
-from pre_commit import five
 from pre_commit.store import _get_default_directory
 from pre_commit.store import Store
 from pre_commit.util import cmd_output
@@ -116,7 +116,7 @@ def test_clone_cleans_up_on_checkout_failure(store):
         # doesn't exist!
         store.clone('/i_dont_exist_lol', 'fake_sha')
     except Exception as e:
-        assert '/i_dont_exist_lol' in five.text(e)
+        assert '/i_dont_exist_lol' in six.text_type(e)
 
     things_starting_with_repo = [
         thing for thing in os.listdir(store.directory)

@@ -6,7 +6,7 @@ from collections import OrderedDict
 import pytest
 
 import pre_commit.constants as C
-from pre_commit.clientlib.validate_config import load_config
+from pre_commit.clientlib import load_config
 from pre_commit.commands.autoupdate import _update_repo
 from pre_commit.commands.autoupdate import autoupdate
 from pre_commit.commands.autoupdate import RepositoryCannotBeUpdatedError

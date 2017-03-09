@@ -10,6 +10,7 @@ import subprocess
 import tempfile
 
 import pkg_resources
+import six
 
 from pre_commit import five
 from pre_commit import parse_shebang
@@ -143,12 +144,12 @@ class CalledProcessError(RuntimeError):
     def to_text(self):
         return self.to_bytes().decode('UTF-8')
 
-    if five.PY3:  # pragma: no cover (py3)
-        __bytes__ = to_bytes
-        __str__ = to_text
-    else:  # pragma: no cover (py2)
+    if six.PY2:  # pragma: no cover (py2)
         __str__ = to_bytes
         __unicode__ = to_text
+    else:  # pragma: no cover (py3)
+        __bytes__ = to_bytes
+        __str__ = to_text
 
 
 def cmd_output(*cmd, **kwargs):

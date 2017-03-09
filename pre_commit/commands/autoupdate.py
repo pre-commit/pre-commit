@@ -8,11 +8,11 @@ from aspy.yaml import ordered_load
 
 import pre_commit.constants as C
 from pre_commit import output
-from pre_commit.clientlib.validate_config import CONFIG_JSON_SCHEMA
-from pre_commit.clientlib.validate_config import is_local_hooks
-from pre_commit.clientlib.validate_config import load_config
-from pre_commit.jsonschema_extensions import remove_defaults
+from pre_commit.clientlib import CONFIG_SCHEMA
+from pre_commit.clientlib import is_local_repo
+from pre_commit.clientlib import load_config
 from pre_commit.repository import Repository
+from pre_commit.schema import remove_defaults
 from pre_commit.util import CalledProcessError
 from pre_commit.util import cmd_output
 from pre_commit.util import cwd
@@ -77,7 +77,7 @@ def autoupdate(runner, tags_only):
     )
 
     for repo_config in input_configs:
-        if is_local_hooks(repo_config):
+        if is_local_repo(repo_config):
             output_configs.append(repo_config)
             continue
         output.write('Updating {}...'.format(repo_config['repo']))
@@ -101,11 +101,9 @@ def autoupdate(runner, tags_only):
 
     if changed:
         with open(runner.config_file_path, 'w') as config_file:
-            config_file.write(
-                ordered_dump(
-                    remove_defaults(output_configs, CONFIG_JSON_SCHEMA),
-                    **C.YAML_DUMP_KWARGS
-                )
-            )
+            config_file.write(ordered_dump(
+                remove_defaults(output_configs, CONFIG_SCHEMA),
+                **C.YAML_DUMP_KWARGS
+            ))
 
     return retv

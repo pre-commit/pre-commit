@@ -2,7 +2,6 @@ from __future__ import unicode_literals
 
 import os.path
 
-import jsonschema
 import pytest
 
 from pre_commit import parse_shebang
@@ -22,14 +21,6 @@ def get_resource_path(path):
 def get_head_sha(dir):
     with cwd(dir):
         return cmd_output('git', 'rev-parse', 'HEAD')[1].strip()
-
-
-def is_valid_according_to_schema(obj, schema):
-    try:
-        jsonschema.validate(obj, schema)
-        return True
-    except jsonschema.exceptions.ValidationError:
-        return False
 
 
 def cmd_output_mocked_pre_commit_home(*args, **kwargs):

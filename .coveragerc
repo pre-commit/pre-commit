@@ -1,7 +1,6 @@
 [run]
 branch = True
-source =
-    .
+source = .
 omit =
     .tox/*
     /usr/*
@@ -11,6 +10,7 @@ omit =
     */__main__.py
 
 [report]
+show_missing = True
 exclude_lines =
     # Have to re-enable the standard pragma
     \#\s*pragma: no cover
