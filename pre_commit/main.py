@@ -86,7 +86,7 @@ def main(argv=None):
     install_hooks_parser = subparsers.add_parser(
         'install-hooks',
         help=(
-            'Install hook environemnts for all environemnts in the config '
+            'Install hook environments for all environments in the config '
             'file.  You may find `pre-commit install --install-hooks` more '
             'useful.'
         ),
