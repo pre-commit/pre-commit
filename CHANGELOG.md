@@ -1,3 +1,8 @@
+0.13.4
+======
+- Add `--show-diff-on-failure` option to `pre-commit run`
+- Replace `jsonschema` with better erorr messages
+
 0.13.3
 ======
 - Add `--allow-missing-config` to install: allows `git commit` without a
