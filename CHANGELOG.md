@@ -1,3 +1,7 @@
+0.13.5
+======
+- 0.13.4 contained incorrect files
+
 0.13.4
 ======
 - Add `--show-diff-on-failure` option to `pre-commit run`
