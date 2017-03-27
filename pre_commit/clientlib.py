@@ -38,7 +38,7 @@ MANIFEST_HOOK_DICT = schema.Map(
 
     schema.Conditional(
         'files', schema.check_and(schema.check_string, schema.check_regex),
-        condition_key='always_run', condition_value=False, ensure_absent=True,
+        condition_key='always_run', condition_value=False,
     ),
 
     schema.Optional(
