@@ -187,6 +187,20 @@ def test_validate_manifest_main(args, expected_output):
             }],
             True,
         ),
+        (
+            # A regression in 0.13.5: always_run and files are permissible
+            # together (but meaningless).  In a future version upgrade this to
+            # an error
+            [{
+                'id': 'a',
+                'name': 'b',
+                'entry': 'c',
+                'language': 'python',
+                'files': '',
+                'always_run': True,
+            }],
+            True,
+        ),
     )
 )
 def test_valid_manifests(manifest_obj, expected):
