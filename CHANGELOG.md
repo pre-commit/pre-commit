@@ -1,3 +1,8 @@
+0.13.6
+======
+- Fix regression in 0.13.5: allow `always_run` and `files` together despite
+  doing nothing.
+
 0.13.5
 ======
 - 0.13.4 contained incorrect files
