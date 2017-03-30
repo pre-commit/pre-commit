@@ -14,6 +14,7 @@ from pre_commit.commands.install_uninstall import install
 from pre_commit.commands.install_uninstall import install_hooks
 from pre_commit.commands.install_uninstall import uninstall
 from pre_commit.commands.run import run
+from pre_commit.commands.sample_config import sample_config
 from pre_commit.error_handler import error_handler
 from pre_commit.logging_handler import add_logging_handler
 from pre_commit.runner import Runner
@@ -163,6 +164,12 @@ def main(argv=None):
         help='Specific filenames to run hooks on.',
     )
 
+    sample_config_parser = subparsers.add_parser(
+        'sample-config', help='Produce a sample {} file'.format(C.CONFIG_FILE),
+    )
+    _add_color_option(sample_config_parser)
+    _add_config_option(sample_config_parser)
+
     help = subparsers.add_parser(
         'help', help='Show help for a specific command.',
     )
@@ -205,6 +212,8 @@ def main(argv=None):
             return autoupdate(runner, args.tags_only)
         elif args.command == 'run':
             return run(runner, args)
+        elif args.command == 'sample-config':
+            return sample_config()
         else:
             raise NotImplementedError(
                 'Command {} not implemented.'.format(args.command)

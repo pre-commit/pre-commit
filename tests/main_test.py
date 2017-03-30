@@ -12,22 +12,20 @@ from pre_commit.util import cwd
 from testing.auto_namedtuple import auto_namedtuple
 
 
+FNS = (
+    'autoupdate', 'clean', 'install', 'install_hooks', 'run', 'sample_config',
+    'uninstall',
+)
+CMDS = tuple(fn.replace('_', '-') for fn in FNS)
+
+
 @pytest.yield_fixture
 def mock_commands():
-    with mock.patch.object(main, 'autoupdate') as autoupdate_mock:
-        with mock.patch.object(main, 'install_hooks') as install_hooks_mock:
-            with mock.patch.object(main, 'install') as install_mock:
-                with mock.patch.object(main, 'uninstall') as uninstall_mock:
-                    with mock.patch.object(main, 'run') as run_mock:
-                        with mock.patch.object(main, 'clean') as clean_mock:
-                            yield auto_namedtuple(
-                                autoupdate_mock=autoupdate_mock,
-                                clean_mock=clean_mock,
-                                install_mock=install_mock,
-                                install_hooks_mock=install_hooks_mock,
-                                uninstall_mock=uninstall_mock,
-                                run_mock=run_mock,
-                            )
+    mcks = {fn: mock.patch.object(main, fn).start() for fn in FNS}
+    ret = auto_namedtuple(**mcks)
+    yield ret
+    for mck in ret:
+        mck.stop()
 
 
 class CalledExit(Exception):
@@ -93,45 +91,10 @@ def test_help_other_command(
     ])
 
 
-def test_install_command(mock_commands):
-    main.main(['install'])
-    assert mock_commands.install_mock.call_count == 1
-    assert_only_one_mock_called(mock_commands)
-
-
-def test_uninstall_command(mock_commands):
-    main.main(['uninstall'])
-    assert mock_commands.uninstall_mock.call_count == 1
-    assert_only_one_mock_called(mock_commands)
-
-
-def test_clean_command(mock_commands):
-    main.main(['clean'])
-    assert mock_commands.clean_mock.call_count == 1
-    assert_only_one_mock_called(mock_commands)
-
-
-def test_autoupdate_command(mock_commands):
-    main.main(['autoupdate'])
-    assert mock_commands.autoupdate_mock.call_count == 1
-    assert_only_one_mock_called(mock_commands)
-
-
-def test_run_command(mock_commands):
-    main.main(['run'])
-    assert mock_commands.run_mock.call_count == 1
-    assert_only_one_mock_called(mock_commands)
-
-
-def test_install_hooks_command(mock_commands):
-    main.main(('install-hooks',))
-    assert mock_commands.install_hooks_mock.call_count == 1
-    assert_only_one_mock_called(mock_commands)
-
-
-def test_no_commands_run_command(mock_commands):
-    main.main([])
-    assert mock_commands.run_mock.call_count == 1
+@pytest.mark.parametrize('command', CMDS)
+def test_install_command(command, mock_commands):
+    main.main((command,))
+    assert getattr(mock_commands, command.replace('-', '_')).call_count == 1
     assert_only_one_mock_called(mock_commands)
 
 
