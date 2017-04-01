@@ -1,6 +1,14 @@
 from __future__ import unicode_literals
 
+import os
 import sys
+
+if os.name == 'nt':  # pragma: no cover (windows)
+    from pre_commit.color_windows import enable_virtual_terminal_processing
+    try:
+        enable_virtual_terminal_processing()
+    except WindowsError:
+        pass
 
 RED = '\033[41m'
 GREEN = '\033[42m'
