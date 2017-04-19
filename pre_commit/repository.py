@@ -1,6 +1,5 @@
 from __future__ import unicode_literals
 
-import io
 import json
 import logging
 import os
@@ -13,6 +12,7 @@ from cached_property import cached_property
 import pre_commit.constants as C
 from pre_commit import five
 from pre_commit import git
+from pre_commit import util
 from pre_commit.clientlib import is_local_repo
 from pre_commit.clientlib import MANIFEST_HOOK_DICT
 from pre_commit.languages.all import languages
@@ -41,13 +41,13 @@ def _read_installed_state(cmd_runner, venv):
     if not os.path.exists(filename):
         return None
     else:
-        return json.loads(io.open(filename).read())
+        return json.loads(util.open(filename).read())
 
 
 def _write_installed_state(cmd_runner, venv, state):
     state_filename = _state_filename(cmd_runner, venv)
     staging = state_filename + 'staging'
-    with io.open(staging, 'w') as state_file:
+    with util.open(staging, 'w') as state_file:
         state_file.write(five.to_text(json.dumps(state)))
     # Move the file into place atomically to indicate we've installed
     os.rename(staging, state_filename)

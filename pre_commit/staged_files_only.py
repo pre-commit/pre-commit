@@ -1,7 +1,6 @@
 from __future__ import unicode_literals
 
 import contextlib
-import io
 import logging
 import time
 
@@ -35,7 +34,7 @@ def staged_files_only(cmd_runner):
             'Stashing unstaged files to {}.'.format(patch_filename),
         )
         # Save the current unstaged changes as a patch
-        with io.open(patch_filename, 'wb') as patch_file:
+        with open(patch_filename, 'wb') as patch_file:
             patch_file.write(diff_stdout_binary)
 
         # Clear the working directory of unstaged changes

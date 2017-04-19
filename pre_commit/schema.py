@@ -3,12 +3,13 @@ from __future__ import unicode_literals
 
 import collections
 import contextlib
-import io
 import os.path
 import re
 import sys
 
 import six
+
+from pre_commit import util
 
 
 class ValidationError(ValueError):
@@ -266,7 +267,7 @@ def load_from_filename(filename, schema, load_strategy, exc_tp):
         if not os.path.exists(filename):
             raise ValidationError('{} does not exist'.format(filename))
 
-        with io.open(filename) as f:
+        with util.open(filename) as f:
             contents = f.read()
 
         with validate_context('File {}'.format(filename)):

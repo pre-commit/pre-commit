@@ -1,11 +1,11 @@
 from __future__ import print_function
 from __future__ import unicode_literals
 
-import io
 import os.path
 import sys
 
 from pre_commit import output
+from pre_commit import util
 from pre_commit.util import make_executable
 from pre_commit.util import mkdirp
 from pre_commit.util import resource_filename
@@ -25,7 +25,7 @@ CURRENT_HASH = '138fd403232d2ddd5efb44317e38bf03'
 def is_our_script(filename):
     if not os.path.exists(filename):
         return False
-    contents = io.open(filename).read()
+    contents = util.open(filename).read()
     return any(h in contents for h in (CURRENT_HASH,) + PRIOR_HASHES)
 
 
@@ -54,15 +54,15 @@ def install(
             )
         )
 
-    with io.open(hook_path, 'w') as pre_commit_file_obj:
+    with util.open(hook_path, 'w') as pre_commit_file_obj:
         if hook_type == 'pre-push':
-            with io.open(resource_filename('pre-push-tmpl')) as fp:
+            with util.open(resource_filename('pre-push-tmpl')) as fp:
                 pre_push_contents = fp.read()
         else:
             pre_push_contents = ''
 
         skip_on_missing_conf = 'true' if skip_on_missing_conf else 'false'
-        contents = io.open(resource_filename('hook-tmpl')).read().format(
+        contents = util.open(resource_filename('hook-tmpl')).read().format(
             sys_executable=sys.executable,
             hook_type=hook_type,
             pre_push=pre_push_contents,

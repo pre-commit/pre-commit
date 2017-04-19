@@ -1,7 +1,6 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-import io
 import os.path
 import shlex
 import string
@@ -41,7 +40,7 @@ def parse_filename(filename):
     if not os.path.exists(filename) or not os.access(filename, os.X_OK):
         return ()
 
-    with io.open(filename, 'rb') as f:
+    with open(filename, 'rb') as f:
         return parse_bytesio(f)
 
 

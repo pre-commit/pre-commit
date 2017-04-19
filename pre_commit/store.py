@@ -1,7 +1,6 @@
 from __future__ import unicode_literals
 
 import contextlib
-import io
 import logging
 import os.path
 import sqlite3
@@ -10,6 +9,7 @@ import tempfile
 from cached_property import cached_property
 
 import pre_commit.constants as C
+from pre_commit import util
 from pre_commit.prefixed_command_runner import PrefixedCommandRunner
 from pre_commit.util import clean_path_on_failure
 from pre_commit.util import cmd_output
@@ -46,7 +46,7 @@ class Store(object):
         self.__created = False
 
     def _write_readme(self):
-        with io.open(os.path.join(self.directory, 'README'), 'w') as readme:
+        with util.open(os.path.join(self.directory, 'README'), 'w') as readme:
             readme.write(
                 'This directory is maintained by the pre-commit project.\n'
                 'Learn more: https://github.com/pre-commit/pre-commit\n'
