@@ -46,5 +46,6 @@ class PrefixedCommandRunner(object):
 
     def star(self, end):
         return tuple(
-            path for path in os.listdir(self.prefix_dir) if path.endswith(end)
+            self.path(path)
+            for path in os.listdir(self.prefix_dir) if path.endswith(end)
         )
