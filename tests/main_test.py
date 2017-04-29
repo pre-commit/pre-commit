@@ -127,3 +127,8 @@ def test_expected_fatal_error_no_git_repo(
         'Is it installed, and are you in a Git repository directory?\n'
         'Check the log at ~/.pre-commit/pre-commit.log\n'
     )
+
+
+def test_warning_on_tags_only(mock_commands, cap_out):
+    main.main(('autoupdate', '--tags-only'))
+    assert '--tags-only is the default' in cap_out.get()

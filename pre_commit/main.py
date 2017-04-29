@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 import argparse
+import logging
 import os
 import sys
 
@@ -19,6 +20,8 @@ from pre_commit.error_handler import error_handler
 from pre_commit.logging_handler import add_logging_handler
 from pre_commit.runner import Runner
 
+
+logger = logging.getLogger('pre_commit')
 
 # https://github.com/pre-commit/pre-commit/issues/217
 # On OSX, making a virtualenv using pyvenv at . causes `virtualenv` and `pip`
@@ -117,7 +120,14 @@ def main(argv=None):
     _add_color_option(autoupdate_parser)
     _add_config_option(autoupdate_parser)
     autoupdate_parser.add_argument(
-        '--tags-only', action='store_true', help='Update to tags only.',
+        '--tags-only', action='store_true', help='LEGACY: for compatibility',
+    )
+    autoupdate_parser.add_argument(
+        '--bleeding-edge', action='store_true',
+        help=(
+            'Update to the bleeding edge of `master` instead of the latest '
+            'tagged version (the default behavior).'
+        ),
     )
 
     run_parser = subparsers.add_parser('run', help='Run hooks.')
@@ -209,7 +219,9 @@ def main(argv=None):
         elif args.command == 'clean':
             return clean(runner)
         elif args.command == 'autoupdate':
-            return autoupdate(runner, args.tags_only)
+            if args.tags_only:
+                logger.warning('--tags-only is the default')
+            return autoupdate(runner, tags_only=not args.bleeding_edge)
         elif args.command == 'run':
             return run(runner, args)
         elif args.command == 'sample-config':
