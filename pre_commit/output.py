@@ -71,8 +71,17 @@ def write(s, stream=stdout_byte_stream):
     stream.flush()
 
 
-def write_line(s=None, stream=stdout_byte_stream):
-    if s is not None:
-        stream.write(five.to_bytes(s))
-    stream.write(b'\n')
-    stream.flush()
+def write_line(s=None, stream=stdout_byte_stream, logfile_name=None):
+    def output_streams():
+        yield stream
+        try:
+            with open(logfile_name, 'ab') as logfile:
+                yield logfile
+        except (TypeError, IOError):
+            pass
+
+    for output_stream in output_streams():
+        if s is not None:
+            output_stream.write(five.to_bytes(s))
+        output_stream.write(b'\n')
+        output_stream.flush()

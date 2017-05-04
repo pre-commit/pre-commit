@@ -211,6 +211,35 @@ def test_run(
     )
 
 
+def test_run_output_logfile(
+        cap_out,
+        tempdir_factory,
+        mock_out_store_directory,
+):
+
+    expected_output = (
+        b'This is STDOUT output\n',
+        b'This is STDERR output\n',
+    )
+
+    git_path = make_consuming_repo(tempdir_factory, 'logfile_repo')
+    with cwd(git_path):
+        _test_run(
+            cap_out,
+            git_path, {},
+            expected_output,
+            expected_ret=1,
+            stage=True
+        )
+    logfile_path = os.path.join(git_path, 'test.log')
+    assert os.path.exists(logfile_path)
+    with open(logfile_path, 'rb') as logfile:
+        logfile_content = logfile.readlines()
+
+    for expected_output_part in expected_output:
+        assert expected_output_part in logfile_content
+
+
 def test_always_run(
         cap_out, repo_with_passing_hook, mock_out_store_directory,
 ):
