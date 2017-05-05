@@ -186,3 +186,12 @@ def cap_out():
     with mock.patch.object(output, 'write', write):
         with mock.patch.object(output, 'write_line', write_line):
             yield Fixture(stream)
+
+
+@pytest.yield_fixture
+def fake_log_handler():
+    handler = mock.Mock(level=logging.INFO)
+    logger = logging.getLogger('pre_commit')
+    logger.addHandler(handler)
+    yield handler
+    logger.removeHandler(handler)

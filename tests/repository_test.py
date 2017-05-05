@@ -2,7 +2,6 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 import io
-import logging
 import os.path
 import re
 import shutil
@@ -678,15 +677,6 @@ def test_local_python_repo(store):
     ret = repo.run_hook(hook, ('filename',))
     assert ret[0] == 0
     assert ret[1].replace(b'\r\n', b'\n') == b"['filename']\nHello World\n"
-
-
-@pytest.yield_fixture
-def fake_log_handler():
-    handler = mock.Mock(level=logging.INFO)
-    logger = logging.getLogger('pre_commit')
-    logger.addHandler(handler)
-    yield handler
-    logger.removeHandler(handler)
 
 
 def test_hook_id_not_present(tempdir_factory, store, fake_log_handler):
