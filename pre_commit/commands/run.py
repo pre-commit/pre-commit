@@ -121,7 +121,10 @@ def _run_single_hook(hook, repo, args, skips, cols):
         for out in (stdout, stderr):
             assert type(out) is bytes, type(out)
             if out.strip():
-                output.write_line(out.strip())
+                output.write_line(
+                    out.strip(),
+                    logfile_name=hook.get('log_file'),
+                )
         output.write_line()
 
     return retcode

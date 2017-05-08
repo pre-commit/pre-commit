@@ -1,0 +1,6 @@
+-   id: logfile test hook
+    name: Logfile test hook
+    entry: bin/hook.sh
+    language: script
+    files: .
+    log_file: test.log
