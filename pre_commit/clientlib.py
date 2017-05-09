@@ -53,7 +53,7 @@ MANIFEST_HOOK_DICT = schema.Map(
         '^$',
     ),
     schema.Optional('language_version', schema.check_string, 'default'),
-    schema.OptionalNoDefault('log_file', schema.check_string),
+    schema.Optional('log_file', schema.check_string, ''),
     schema.Optional('minimum_pre_commit_version', schema.check_string, '0'),
     schema.Optional('stages', schema.check_array(schema.check_string), []),
 )
