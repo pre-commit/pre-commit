@@ -142,8 +142,8 @@ def test_get_conflicted_files_unstaged_files(in_merge_conflict):
     assert ret == {'conflict_file'}
 
 
-MERGE_MSG = "Merge branch 'foo' into bar\n\nConflicts:\n\tconflict_file\n"
-OTHER_MERGE_MSG = MERGE_MSG + '\tother_conflict_file\n'
+MERGE_MSG = b"Merge branch 'foo' into bar\n\nConflicts:\n\tconflict_file\n"
+OTHER_MERGE_MSG = MERGE_MSG + b'\tother_conflict_file\n'
 
 
 @pytest.mark.parametrize(
