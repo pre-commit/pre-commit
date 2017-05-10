@@ -1,3 +1,4 @@
+# -*- coding: UTF-8 -*-
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
@@ -188,6 +189,18 @@ def test_commit_am(tempdir_factory):
 
         ret, output = _get_commit_output(tempdir_factory)
         assert ret == 0
+
+
+def test_unicode_merge_commit_message(tempdir_factory):
+    path = make_consuming_repo(tempdir_factory, 'script_hooks_repo')
+    with cwd(path):
+        assert install(Runner(path, C.CONFIG_FILE)) == 0
+        cmd_output('git', 'checkout', 'master', '-b', 'foo')
+        cmd_output('git', 'commit', '--allow-empty', '-m', 'branch2')
+        cmd_output('git', 'checkout', 'master')
+        cmd_output('git', 'merge', 'foo', '--no-ff', '--no-commit', '-m', '☃')
+        # Used to crash
+        cmd_output('git', 'commit', '--no-edit')
 
 
 def test_install_idempotent(tempdir_factory):
