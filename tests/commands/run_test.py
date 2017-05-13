@@ -756,4 +756,4 @@ def test_pass_filenames(
         cap_out, repo_with_passing_hook, _get_opts(verbose=True),
     )
     assert expected_out + b'\nHello World' in printed
-    assert ('foo.py' in printed) == pass_filenames
+    assert (b'foo.py' in printed) == pass_filenames
