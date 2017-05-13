@@ -46,6 +46,7 @@ MANIFEST_HOOK_DICT = schema.Map(
     ),
     schema.Optional('args', schema.check_array(schema.check_string), []),
     schema.Optional('always_run', schema.check_bool, False),
+    schema.Optional('pass_filenames', schema.check_bool, True),
     schema.Optional('description', schema.check_string, ''),
     schema.Optional(
         'exclude',

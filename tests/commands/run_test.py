@@ -731,3 +731,29 @@ def test_files_running_subdir(
                 tempdir_factory=tempdir_factory,
             )
         assert 'subdir/foo.py'.replace('/', os.sep) in stdout
+
+
+@pytest.mark.parametrize(
+    ('pass_filenames', 'hook_args', 'expected_out'),
+    (
+        (True, [], b'foo.py'),
+        (False, [], b''),
+        (True, ['some', 'args'], b'some args foo.py'),
+        (False, ['some', 'args'], b'some args'),
+    )
+)
+def test_pass_filenames(
+        cap_out, repo_with_passing_hook, mock_out_store_directory,
+        pass_filenames,
+        hook_args,
+        expected_out,
+):
+    with modify_config() as config:
+        config[0]['hooks'][0]['pass_filenames'] = pass_filenames
+        config[0]['hooks'][0]['args'] = hook_args
+    stage_a_file()
+    ret, printed = _do_run(
+        cap_out, repo_with_passing_hook, _get_opts(verbose=True),
+    )
+    assert expected_out + b'\nHello World' in printed
+    assert ('foo.py' in printed) == pass_filenames
