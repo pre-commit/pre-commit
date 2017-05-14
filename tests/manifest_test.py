@@ -32,6 +32,7 @@ def test_manifest_contents(manifest):
         'log_file': '',
         'minimum_pre_commit_version': '0',
         'name': 'Bash hook',
+        'pass_filenames': True,
         'stages': [],
     }]
 
@@ -51,6 +52,7 @@ def test_hooks(manifest):
         'log_file': '',
         'minimum_pre_commit_version': '0',
         'name': 'Bash hook',
+        'pass_filenames': True,
         'stages': [],
     }
 

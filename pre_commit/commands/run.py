@@ -86,7 +86,10 @@ def _run_single_hook(hook, repo, args, skips, cols):
     sys.stdout.flush()
 
     diff_before = cmd_output('git', 'diff', retcode=None, encoding=None)
-    retcode, stdout, stderr = repo.run_hook(hook, tuple(filenames))
+    retcode, stdout, stderr = repo.run_hook(
+        hook,
+        tuple(filenames) if hook['pass_filenames'] else (),
+    )
     diff_after = cmd_output('git', 'diff', retcode=None, encoding=None)
 
     file_modifications = diff_before != diff_after
