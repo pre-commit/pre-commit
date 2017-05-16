@@ -1,3 +1,15 @@
+0.14.0
+======
+- Add a `pre-commit sample-config` command
+- Enable ansi color escapes on modern windows
+- `autoupdate` now defaults to `--tags-only`, use `--bleeding-edge` for the
+  old behavior
+- Add support for `log_file` in hook configuration to tee hook output to a
+  file for CI consumption, etc.
+- Fix crash with unicode commit messages during merges in python 2.
+- Add a `pass_filenames` option to allow disabling automatic filename
+  positional arguments to hooks.
+
 0.13.6
 ======
 - Fix regression in 0.13.5: allow `always_run` and `files` together despite
