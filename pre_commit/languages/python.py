@@ -73,10 +73,28 @@ def install_environment(
         else:
             venv_cmd.extend(['-p', os.path.realpath(sys.executable)])
         repo_cmd_runner.run(venv_cmd, cwd='/')
+
+        # Determine if items in additional_dependencies are pip requirements
+        # files or package names
+        packages = []
+        requirements_files = []
+        for dependency in additional_dependencies:
+            if dependency.startswith('file:'):
+                requirements_files.append(dependency.split('file:', 1)[1])
+            else:
+                packages.append(dependency)
+
         with in_env(repo_cmd_runner, version):
+            if requirements_files:
+                helpers.run_setup_cmd(
+                    repo_cmd_runner,
+                    ('pip', 'install') +
+                    tuple('-r{}'.format(req_file)
+                          for req_file in requirements_files),
+                )
             helpers.run_setup_cmd(
                 repo_cmd_runner,
-                ('pip', 'install', '.') + additional_dependencies,
+                ('pip', 'install', '.') + tuple(packages),
             )
 
 
