@@ -11,6 +11,11 @@ from pre_commit.util import CalledProcessError
 from pre_commit.util import cmd_output
 from pre_commit.util import memoize_by_cwd
 
+# octal constants for git file modes
+GIT_MODE_FILE = 0o100644
+GIT_MODE_EXECUTABLE = 0o100755
+GIT_MODE_SYMLINK = 0o120000
+GIT_MODE_SUBMODULE = 0o160000
 
 logger = logging.getLogger('pre_commit')
 
@@ -84,7 +89,28 @@ def get_staged_files():
 
 @memoize_by_cwd
 def get_all_files():
-    return cmd_output('git', 'ls-files')[1].splitlines()
+    """Return a list of all actual files in the git repository.
+
+    There are some types of content we want to exclude.  In order to exclude
+    submodules, which git tracks similarly to files, we call `git ls-files
+    --stage` and grep out entries with the special submodule file mode.
+
+    http://stackoverflow.com/a/24122304
+    """
+    # The output format of the command is:
+    # [file mode] [object hash] [stage number]\t[file path]
+    split_regex = re.compile('^([0-7]{6}) [0-9a-f]{40} [0-9]+\t(.+)$')
+
+    def split(line):
+        match = split_regex.match(line)
+        return int(match.group(1), 8), match.group(2)
+
+    output = cmd_output('git', 'ls-files', '--stage')[1]
+    return [
+        path for mode, path in [
+            split(line) for line in output.splitlines()
+        ] if mode != GIT_MODE_SUBMODULE
+    ]
 
 
 def get_files_matching(all_file_list_strategy):
