@@ -57,7 +57,7 @@ NO_FILES = '(no files to check)'
 
 
 def _run_single_hook(hook, repo, args, skips, cols):
-    filenames = get_filenames(args, hook.get('files', ''), hook['exclude'])
+    filenames = get_filenames(args, hook.get('files', '^$'), hook['exclude'])
     if hook['id'] in skips:
         output.write(get_hook_message(
             _hook_msg_start(hook, args.verbose),
