@@ -1,3 +1,8 @@
+0.14.1
+======
+- Don't crash when `always_run` is `True` and `files` is not provided.
+- Set `VIRTUALENV_NO_DOWNLOAD` when making python virtualenvs.
+
 0.14.0
 ======
 - Add a `pre-commit sample-config` command
