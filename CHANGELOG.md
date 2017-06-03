@@ -27,7 +27,7 @@
 0.13.4
 ======
 - Add `--show-diff-on-failure` option to `pre-commit run`
-- Replace `jsonschema` with better erorr messages
+- Replace `jsonschema` with better error messages
 
 0.13.3
 ======
