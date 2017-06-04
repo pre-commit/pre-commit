@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 import contextlib
 import errno
 import functools
+import io
 import os.path
 import shutil
 import stat
@@ -14,6 +15,14 @@ import six
 
 from pre_commit import five
 from pre_commit import parse_shebang
+
+
+def open(*args, **kwargs):
+    """Some strange interaction with python2, osx, and vscode makes default
+    encoding detection go wrong.  See #519
+    """
+    kwargs.setdefault('encoding', 'UTF-8')
+    return io.open(*args, **kwargs)
 
 
 @contextlib.contextmanager

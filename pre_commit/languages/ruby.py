@@ -1,11 +1,11 @@
 from __future__ import unicode_literals
 
 import contextlib
-import io
 import os.path
 import shutil
 import tarfile
 
+from pre_commit import util
 from pre_commit.envcontext import envcontext
 from pre_commit.envcontext import Var
 from pre_commit.languages import helpers
@@ -65,7 +65,7 @@ def _install_rbenv(
             tf.extractall(repo_cmd_runner.path(directory, 'plugins'))
 
     activate_path = repo_cmd_runner.path(directory, 'bin', 'activate')
-    with io.open(activate_path, 'w') as activate_file:
+    with util.open(activate_path, 'w') as activate_file:
         # This is similar to how you would install rbenv to your home directory
         # However we do a couple things to make the executables exposed and
         # configure it to work in our directory.
