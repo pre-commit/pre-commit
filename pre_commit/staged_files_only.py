@@ -21,10 +21,10 @@ def staged_files_only(cmd_runner):
     """
     # Determine if there are unstaged files
     retcode, diff_stdout_binary, _ = cmd_runner.run(
-        [
+        (
             'git', 'diff', '--ignore-submodules', '--binary', '--exit-code',
             '--no-color', '--no-ext-diff',
-        ],
+        ),
         retcode=None,
         encoding=None,
     )

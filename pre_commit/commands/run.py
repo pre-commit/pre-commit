@@ -32,7 +32,8 @@ def _hook_msg_start(hook, verbose):
 
 def get_changed_files(new, old):
     return cmd_output(
-        'git', 'diff', '--name-only', '{}...{}'.format(old, new),
+        'git', 'diff', '--no-ext-diff', '--name-only',
+        '{}...{}'.format(old, new),
     )[1].splitlines()
 
 
@@ -85,12 +86,16 @@ def _run_single_hook(hook, repo, args, skips, cols):
     ))
     sys.stdout.flush()
 
-    diff_before = cmd_output('git', 'diff', retcode=None, encoding=None)
+    diff_before = cmd_output(
+        'git', 'diff', '--no-ext-diff', retcode=None, encoding=None,
+    )
     retcode, stdout, stderr = repo.run_hook(
         hook,
         tuple(filenames) if hook['pass_filenames'] else (),
     )
-    diff_after = cmd_output('git', 'diff', retcode=None, encoding=None)
+    diff_after = cmd_output(
+        'git', 'diff', '--no-ext-diff', retcode=None, encoding=None,
+    )
 
     file_modifications = diff_before != diff_after
 
@@ -159,10 +164,10 @@ def _run_hooks(repo_hooks, args, environ):
     if (
             retval and
             args.show_diff_on_failure and
-            subprocess.call(('git', 'diff', '--quiet')) != 0
+            subprocess.call(('git', 'diff', '--quiet', '--no-ext-diff')) != 0
     ):
         print('All changes made by hooks:')
-        subprocess.call(('git', 'diff'))
+        subprocess.call(('git', 'diff', '--no-ext-diff'))
     return retval
 
 
@@ -179,7 +184,10 @@ def _has_unmerged_paths(runner):
 
 def _has_unstaged_config(runner):
     retcode, _, _ = runner.cmd_runner.run(
-        ('git', 'diff', '--exit-code', runner.config_file_path),
+        (
+            'git', 'diff', '--no-ext-diff', '--exit-code',
+            runner.config_file_path,
+        ),
         retcode=None,
     )
     # be explicit, other git errors don't mean it has an unstaged config.
