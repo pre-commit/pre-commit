@@ -1,3 +1,7 @@
+0.14.2
+======
+- Use `--no-ext-diff` when running `git diff`
+
 0.14.1
 ======
 - Don't crash when `always_run` is `True` and `files` is not provided.
