@@ -68,7 +68,8 @@ def get_conflicted_files():
     # this will also include the conflicted files
     tree_hash = cmd_output('git', 'write-tree')[1].strip()
     merge_diff_filenames = cmd_output(
-        'git', 'diff', '-m', tree_hash, 'HEAD', 'MERGE_HEAD', '--name-only',
+        'git', 'diff', '--no-ext-diff',
+        '-m', tree_hash, 'HEAD', 'MERGE_HEAD', '--name-only',
     )[1].splitlines()
     return set(merge_conflict_filenames) | set(merge_diff_filenames)
 
@@ -76,7 +77,7 @@ def get_conflicted_files():
 @memoize_by_cwd
 def get_staged_files():
     return cmd_output(
-        'git', 'diff', '--staged', '--name-only',
+        'git', 'diff', '--staged', '--name-only', '--no-ext-diff',
         # Everything except for D
         '--diff-filter=ACMRTUXB'
     )[1].splitlines()
