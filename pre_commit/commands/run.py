@@ -220,6 +220,11 @@ def run(runner, args, environ=os.environ):
             )
             return 1
 
+    # Expose origin / source as environment variables for hooks to consume
+    if args.origin and args.source:
+        environ['PRE_COMMIT_ORIGIN'] = args.origin
+        environ['PRE_COMMIT_SOURCE'] = args.source
+
     if no_stash:
         ctx = noop_context()
     else:
