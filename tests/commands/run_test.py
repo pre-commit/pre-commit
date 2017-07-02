@@ -153,6 +153,19 @@ def test_hook_that_modifies_but_returns_zero(
         )
 
 
+def test_types_hook_repository(
+        cap_out, tempdir_factory, mock_out_store_directory,
+):
+    git_path = make_consuming_repo(tempdir_factory, 'types_repo')
+    with cwd(git_path):
+        stage_a_file('bar.py')
+        stage_a_file('bar.notpy')
+        ret, printed = _do_run(cap_out, git_path, _get_opts())
+        assert ret == 1
+        assert b'bar.py' in printed
+        assert b'bar.notpy' not in printed
+
+
 def test_show_diff_on_failure(
         capfd, cap_out, tempdir_factory, mock_out_store_directory,
 ):
