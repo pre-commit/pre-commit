@@ -5,6 +5,7 @@ import argparse
 import functools
 
 from aspy.yaml import ordered_load
+from identify.identify import ALL_TAGS
 
 import pre_commit.constants as C
 from pre_commit import schema
@@ -16,6 +17,14 @@ def check_language(v):
     if v not in all_languages:
         raise schema.ValidationError(
             'Expected {} to be in {!r}'.format(v, all_languages),
+        )
+
+
+def check_type_tag(tag):
+    if tag not in ALL_TAGS:
+        raise schema.ValidationError(
+            'Type tag {!r} is not recognized.  '
+            'Try upgrading identify and pre-commit?'.format(tag),
         )
 
 
@@ -36,10 +45,11 @@ MANIFEST_HOOK_DICT = schema.Map(
         'language', schema.check_and(schema.check_string, check_language),
     ),
 
-    schema.Conditional(
+    schema.Optional(
         'files', schema.check_and(schema.check_string, schema.check_regex),
-        condition_key='always_run', condition_value=False,
+        '',
     ),
+    schema.Optional('types', schema.check_array(check_type_tag), ['file']),
 
     schema.Optional(
         'additional_dependencies', schema.check_array(schema.check_string), [],

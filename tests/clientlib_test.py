@@ -4,6 +4,7 @@ import pytest
 
 from pre_commit import schema
 from pre_commit.clientlib import check_language
+from pre_commit.clientlib import check_type_tag
 from pre_commit.clientlib import CONFIG_HOOK_DICT
 from pre_commit.clientlib import CONFIG_SCHEMA
 from pre_commit.clientlib import is_local_repo
@@ -25,6 +26,12 @@ def is_valid_according_to_schema(obj, obj_schema):
 def test_check_language_failures(value):
     with pytest.raises(schema.ValidationError):
         check_language(value)
+
+
+@pytest.mark.parametrize('value', ('definitely-not-a-tag', 'fiel'))
+def test_check_type_tag_failures(value):
+    with pytest.raises(schema.ValidationError):
+        check_type_tag(value)
 
 
 @pytest.mark.parametrize('value', ('python', 'node', 'pcre'))
