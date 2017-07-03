@@ -1,3 +1,13 @@
+0.15.0
+======
+- Add `types` and `exclude_types` for filtering files.  These options take
+  an array of "tags" identified for each file.  The tags are sourced from
+  [identify](https://github.com/chriskuehl/identify).  One can list the tags
+  for a file by running `identify-cli filename`.
+- `files` is now optional (defaulting to `''`)
+- `always_run` + missing `files` also defaults to `files: ''` (previously it
+  defaulted to `'^$'` (this reverses e150921c).
+
 0.14.3
 ======
 - Expose `--origin` and `--source` as `PRE_COMMIT_ORIGIN` and
