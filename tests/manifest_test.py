@@ -34,6 +34,8 @@ def test_manifest_contents(manifest):
         'name': 'Bash hook',
         'pass_filenames': True,
         'stages': [],
+        'types': ['file'],
+        'exclude_types': [],
     }]
 
 
@@ -54,6 +56,8 @@ def test_hooks(manifest):
         'name': 'Bash hook',
         'pass_filenames': True,
         'stages': [],
+        'types': ['file'],
+        'exclude_types': [],
     }
 
 

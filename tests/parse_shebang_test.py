@@ -15,34 +15,8 @@ from pre_commit.envcontext import Var
 from pre_commit.util import make_executable
 
 
-@pytest.mark.parametrize(
-    ('s', 'expected'),
-    (
-        (b'', ()),
-        (b'#!/usr/bin/python', ('/usr/bin/python',)),
-        (b'#!/usr/bin/env python', ('python',)),
-        (b'#! /usr/bin/python', ('/usr/bin/python',)),
-        (b'#!/usr/bin/foo  python', ('/usr/bin/foo', 'python')),
-        (b'\xf9\x93\x01\x42\xcd', ()),
-        (b'#!\xf9\x93\x01\x42\xcd', ()),
-        (b'#!\x00\x00\x00\x00', ()),
-    ),
-)
-def test_parse_bytesio(s, expected):
-    assert parse_shebang.parse_bytesio(io.BytesIO(s)) == expected
-
-
 def test_file_doesnt_exist():
     assert parse_shebang.parse_filename('herp derp derp') == ()
-
-
-@pytest.mark.xfail(
-    sys.platform == 'win32', reason='Windows says everything is X_OK',
-)
-def test_file_not_executable(tmpdir):
-    x = tmpdir.join('f')
-    x.write_text('#!/usr/bin/env python', encoding='UTF-8')
-    assert parse_shebang.parse_filename(x.strpath) == ()
 
 
 def test_simple_case(tmpdir):

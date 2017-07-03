@@ -6,16 +6,22 @@ import os
 import subprocess
 import sys
 
+from identify.identify import tags_from_path
+
 from pre_commit import color
 from pre_commit import git
 from pre_commit import output
 from pre_commit.output import get_hook_message
 from pre_commit.staged_files_only import staged_files_only
 from pre_commit.util import cmd_output
+from pre_commit.util import memoize_by_cwd
 from pre_commit.util import noop_context
 
 
 logger = logging.getLogger('pre_commit')
+
+
+tags_from_path = memoize_by_cwd(tags_from_path)
 
 
 def _get_skips(environ):
@@ -35,6 +41,16 @@ def get_changed_files(new, old):
         'git', 'diff', '--no-ext-diff', '--name-only',
         '{}...{}'.format(old, new),
     )[1].splitlines()
+
+
+def filter_filenames_by_types(filenames, types, exclude_types):
+    types, exclude_types = frozenset(types), frozenset(exclude_types)
+    ret = []
+    for filename in filenames:
+        tags = tags_from_path(filename)
+        if tags >= types and not tags & exclude_types:
+            ret.append(filename)
+    return tuple(ret)
 
 
 def get_filenames(args, include_expr, exclude_expr):
@@ -58,7 +74,10 @@ NO_FILES = '(no files to check)'
 
 
 def _run_single_hook(hook, repo, args, skips, cols):
-    filenames = get_filenames(args, hook.get('files', '^$'), hook['exclude'])
+    filenames = get_filenames(args, hook['files'], hook['exclude'])
+    filenames = filter_filenames_by_types(
+        filenames, hook['types'], hook['exclude_types'],
+    )
     if hook['id'] in skips:
         output.write(get_hook_message(
             _hook_msg_start(hook, args.verbose),

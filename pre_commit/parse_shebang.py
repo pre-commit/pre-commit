@@ -1,13 +1,9 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-import io
 import os.path
-import shlex
-import string
 
-
-printable = frozenset(string.printable)
+from identify.identify import parse_shebang_from_file
 
 
 class ExecutableNotFoundError(OSError):
@@ -15,34 +11,11 @@ class ExecutableNotFoundError(OSError):
         return (1, self.args[0].encode('UTF-8'), b'')
 
 
-def parse_bytesio(bytesio):
-    """Parse the shebang from a file opened for reading binary."""
-    if bytesio.read(2) != b'#!':
-        return ()
-    first_line = bytesio.readline()
-    try:
-        first_line = first_line.decode('US-ASCII')
-    except UnicodeDecodeError:
-        return ()
-
-    # Require only printable ascii
-    for c in first_line:
-        if c not in printable:
-            return ()
-
-    cmd = tuple(shlex.split(first_line))
-    if cmd[0] == '/usr/bin/env':
-        cmd = cmd[1:]
-    return cmd
-
-
 def parse_filename(filename):
-    """Parse the shebang given a filename."""
-    if not os.path.exists(filename) or not os.access(filename, os.X_OK):
+    if not os.path.exists(filename):
         return ()
-
-    with io.open(filename, 'rb') as f:
-        return parse_bytesio(f)
+    else:
+        return parse_shebang_from_file(filename)
 
 
 def find_executable(exe, _environ=None):
