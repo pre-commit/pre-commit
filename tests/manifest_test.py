@@ -35,6 +35,7 @@ def test_manifest_contents(manifest):
         'pass_filenames': True,
         'stages': [],
         'types': ['file'],
+        'exclude_types': [],
     }]
 
 
@@ -56,6 +57,7 @@ def test_hooks(manifest):
         'pass_filenames': True,
         'stages': [],
         'types': ['file'],
+        'exclude_types': [],
     }
 
 

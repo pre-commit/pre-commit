@@ -49,7 +49,13 @@ MANIFEST_HOOK_DICT = schema.Map(
         'files', schema.check_and(schema.check_string, schema.check_regex),
         '',
     ),
+    schema.Optional(
+        'exclude',
+        schema.check_and(schema.check_string, schema.check_regex),
+        '^$',
+    ),
     schema.Optional('types', schema.check_array(check_type_tag), ['file']),
+    schema.Optional('exclude_types', schema.check_array(check_type_tag), []),
 
     schema.Optional(
         'additional_dependencies', schema.check_array(schema.check_string), [],
@@ -58,11 +64,6 @@ MANIFEST_HOOK_DICT = schema.Map(
     schema.Optional('always_run', schema.check_bool, False),
     schema.Optional('pass_filenames', schema.check_bool, True),
     schema.Optional('description', schema.check_string, ''),
-    schema.Optional(
-        'exclude',
-        schema.check_and(schema.check_string, schema.check_regex),
-        '^$',
-    ),
     schema.Optional('language_version', schema.check_string, 'default'),
     schema.Optional('log_file', schema.check_string, ''),
     schema.Optional('minimum_pre_commit_version', schema.check_string, '0'),

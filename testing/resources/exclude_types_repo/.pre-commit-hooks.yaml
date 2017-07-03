@@ -1,0 +1,6 @@
+-   id: python-files
+    name: Python files
+    entry: bin/hook.sh
+    language: script
+    types: [python]
+    exclude_types: [python3]

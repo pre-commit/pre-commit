@@ -20,6 +20,7 @@ from pre_commit.commands.run import run
 from pre_commit.runner import Runner
 from pre_commit.util import cmd_output
 from pre_commit.util import cwd
+from pre_commit.util import make_executable
 from testing.auto_namedtuple import auto_namedtuple
 from testing.fixtures import add_config_to_repo
 from testing.fixtures import make_consuming_repo
@@ -43,7 +44,7 @@ def repo_with_failing_hook(tempdir_factory):
 
 
 def stage_a_file(filename='foo.py'):
-    cmd_output('touch', filename)
+    open(filename, 'a').close()
     cmd_output('git', 'add', filename)
 
 
@@ -164,6 +165,22 @@ def test_types_hook_repository(
         assert ret == 1
         assert b'bar.py' in printed
         assert b'bar.notpy' not in printed
+
+
+def test_exclude_types_hook_repository(
+        cap_out, tempdir_factory, mock_out_store_directory,
+):
+    git_path = make_consuming_repo(tempdir_factory, 'exclude_types_repo')
+    with cwd(git_path):
+        with io.open('exe', 'w') as exe:
+            exe.write('#!/usr/bin/env python3\n')
+        make_executable('exe')
+        cmd_output('git', 'add', 'exe')
+        stage_a_file('bar.py')
+        ret, printed = _do_run(cap_out, git_path, _get_opts())
+        assert ret == 1
+        assert b'bar.py' in printed
+        assert b'exe' not in printed
 
 
 def test_show_diff_on_failure(

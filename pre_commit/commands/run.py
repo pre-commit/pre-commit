@@ -43,12 +43,14 @@ def get_changed_files(new, old):
     )[1].splitlines()
 
 
-def filter_filenames_by_types(filenames, types):
-    types = frozenset(types)
-    return tuple(
-        filename for filename in filenames
-        if tags_from_path(filename) >= types
-    )
+def filter_filenames_by_types(filenames, types, exclude_types):
+    types, exclude_types = frozenset(types), frozenset(exclude_types)
+    ret = []
+    for filename in filenames:
+        tags = tags_from_path(filename)
+        if tags >= types and not tags & exclude_types:
+            ret.append(filename)
+    return tuple(ret)
 
 
 def get_filenames(args, include_expr, exclude_expr):
@@ -73,7 +75,9 @@ NO_FILES = '(no files to check)'
 
 def _run_single_hook(hook, repo, args, skips, cols):
     filenames = get_filenames(args, hook['files'], hook['exclude'])
-    filenames = filter_filenames_by_types(filenames, hook['types'])
+    filenames = filter_filenames_by_types(
+        filenames, hook['types'], hook['exclude_types'],
+    )
     if hook['id'] in skips:
         output.write(get_hook_message(
             _hook_msg_start(hook, args.verbose),
