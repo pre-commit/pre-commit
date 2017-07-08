@@ -20,13 +20,13 @@ def test_make_archive(tempdir_factory):
     git_path = git_dir(tempdir_factory)
     # Add a files to the git directory
     with cwd(git_path):
-        cmd_output('touch', 'foo')
+        open('foo', 'a').close()
         cmd_output('git', 'add', '.')
         cmd_output('git', 'commit', '-m', 'foo')
         # We'll use this sha
         head_sha = get_head_sha('.')
         # And check that this file doesn't exist
-        cmd_output('touch', 'bar')
+        open('bar', 'a').close()
         cmd_output('git', 'add', '.')
         cmd_output('git', 'commit', '-m', 'bar')
 

@@ -118,7 +118,7 @@ def test_uninstall(tempdir_factory):
 
 
 def _get_commit_output(tempdir_factory, touch_file='foo', **kwargs):
-    cmd_output('touch', touch_file)
+    open(touch_file, 'a').close()
     cmd_output('git', 'add', touch_file)
     return cmd_output_mocked_pre_commit_home(
         'git', 'commit', '-am', 'Commit!', '--allow-empty',
