@@ -68,7 +68,7 @@ def _make_conflict():
 def in_merge_conflict(tempdir_factory):
     path = make_consuming_repo(tempdir_factory, 'script_hooks_repo')
     with cwd(path):
-        cmd_output('touch', 'dummy')
+        open('dummy', 'a').close()
         cmd_output('git', 'add', 'dummy')
         cmd_output('git', 'commit', '-m', 'Add config.')
 

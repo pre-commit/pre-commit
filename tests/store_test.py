@@ -46,7 +46,7 @@ def test_store_require_created(store):
     # Should create the store directory
     assert os.path.exists(store.directory)
     # Should create a README file indicating what the directory is about
-    with io.open(os.path.join(store.directory, 'README'), 'r') as readme_file:
+    with io.open(os.path.join(store.directory, 'README')) as readme_file:
         readme_contents = readme_file.read()
         for text_line in (
             'This directory is maintained by the pre-commit project.',
@@ -73,7 +73,7 @@ def test_does_not_recreate_if_directory_already_exists(store):
     # Note: we're intentionally leaving out the README file.  This is so we can
     # know that `Store` didn't call create
     os.mkdir(store.directory)
-    io.open(store.db_path, 'a+').close()
+    open(store.db_path, 'a').close()
     # Call require_created, this should not call create
     store.require_created()
     assert not os.path.exists(os.path.join(store.directory, 'README'))
