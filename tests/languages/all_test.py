@@ -12,9 +12,7 @@ from pre_commit.languages.all import languages
 def test_install_environment_argspec(language):
     expected_argspec = inspect.ArgSpec(
         args=['repo_cmd_runner', 'version', 'additional_dependencies'],
-        varargs=None,
-        keywords=None,
-        defaults=('default', ()),
+        varargs=None, keywords=None, defaults=None,
     )
     argspec = inspect.getargspec(languages[language].install_environment)
     assert argspec == expected_argspec
@@ -32,4 +30,13 @@ def test_run_hook_argpsec(language):
         varargs=None, keywords=None, defaults=None,
     )
     argspec = inspect.getargspec(languages[language].run_hook)
+    assert argspec == expected_argspec
+
+
+@pytest.mark.parametrize('language', all_languages)
+def test_get_default_version_argspec(language):
+    expected_argspec = inspect.ArgSpec(
+        args=[], varargs=None, keywords=None, defaults=None,
+    )
+    argspec = inspect.getargspec(languages[language].get_default_version)
     assert argspec == expected_argspec

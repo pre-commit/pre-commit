@@ -12,6 +12,7 @@ from pre_commit.xargs import xargs
 
 
 ENVIRONMENT_DIR = 'node_env'
+get_default_version = helpers.basic_get_default_version
 
 
 def get_env_patch(venv):  # pragma: windows no cover
@@ -34,9 +35,7 @@ def in_env(repo_cmd_runner, language_version):  # pragma: windows no cover
 
 
 def install_environment(
-        repo_cmd_runner,
-        version='default',
-        additional_dependencies=(),
+        repo_cmd_runner, version, additional_dependencies,
 ):  # pragma: windows no cover
     additional_dependencies = tuple(additional_dependencies)
     assert repo_cmd_runner.exists('package.json')

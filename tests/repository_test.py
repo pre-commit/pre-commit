@@ -442,7 +442,7 @@ def test_venvs(tempdir_factory, store):
     config = make_config_from_repo(path)
     repo = Repository.create(config, store)
     venv, = repo._venvs
-    assert venv == (mock.ANY, 'python', 'default', [])
+    assert venv == (mock.ANY, 'python', python.get_default_version(), [])
 
 
 @pytest.mark.integration
@@ -452,7 +452,7 @@ def test_additional_dependencies(tempdir_factory, store):
     config['hooks'][0]['additional_dependencies'] = ['pep8']
     repo = Repository.create(config, store)
     venv, = repo._venvs
-    assert venv == (mock.ANY, 'python', 'default', ['pep8'])
+    assert venv == (mock.ANY, 'python', python.get_default_version(), ['pep8'])
 
 
 @pytest.mark.integration
@@ -591,7 +591,8 @@ def test_control_c_control_c_on_install(tempdir_factory, store):
                 repo.run_hook(hook, [])
 
     # Should have made an environment, however this environment is broken!
-    assert os.path.exists(repo._cmd_runner.path('py_env-default'))
+    envdir = 'py_env-{}'.format(python.get_default_version())
+    assert repo._cmd_runner.exists(envdir)
 
     # However, it should be perfectly runnable (reinstall after botched
     # install)

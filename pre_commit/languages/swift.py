@@ -10,6 +10,7 @@ from pre_commit.util import clean_path_on_failure
 from pre_commit.xargs import xargs
 
 ENVIRONMENT_DIR = 'swift_env'
+get_default_version = helpers.basic_get_default_version
 BUILD_DIR = '.build'
 BUILD_CONFIG = 'release'
 
@@ -29,9 +30,7 @@ def in_env(repo_cmd_runner):  # pragma: windows no cover
 
 
 def install_environment(
-        repo_cmd_runner,
-        version='default',
-        additional_dependencies=(),
+        repo_cmd_runner, version, additional_dependencies,
 ):  # pragma: windows no cover
     helpers.assert_version_default('swift', version)
     helpers.assert_no_additional_deps('swift', additional_dependencies)

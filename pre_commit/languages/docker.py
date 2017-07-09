@@ -14,6 +14,7 @@ from pre_commit.xargs import xargs
 
 ENVIRONMENT_DIR = 'docker'
 PRE_COMMIT_LABEL = 'PRE_COMMIT'
+get_default_version = helpers.basic_get_default_version
 
 
 def md5(s):  # pragma: windows no cover
@@ -55,9 +56,7 @@ def build_docker_image(repo_cmd_runner, **kwargs):  # pragma: windows no cover
 
 
 def install_environment(
-        repo_cmd_runner,
-        version='default',
-        additional_dependencies=(),
+        repo_cmd_runner, version, additional_dependencies,
 ):  # pragma: windows no cover
     assert repo_cmd_runner.exists('Dockerfile'), (
         'No Dockerfile was found in the hook repository'

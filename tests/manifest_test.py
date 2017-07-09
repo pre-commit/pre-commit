@@ -11,8 +11,7 @@ from testing.util import get_head_sha
 @pytest.yield_fixture
 def manifest(store, tempdir_factory):
     path = make_repo(tempdir_factory, 'script_hooks_repo')
-    head_sha = get_head_sha(path)
-    repo_path = store.clone(path, head_sha)
+    repo_path = store.clone(path, get_head_sha(path))
     yield Manifest(repo_path, path)
 
 
@@ -76,3 +75,13 @@ def test_legacy_manifest_warn(store, tempdir_factory, log_warning_mock):
         'If `pre-commit autoupdate` does not silence this warning consider '
         'making an issue / pull request.'.format(path)
     )
+
+
+def test_default_python_language_version(store, tempdir_factory):
+    path = make_repo(tempdir_factory, 'python_hooks_repo')
+    repo_path = store.clone(path, get_head_sha(path))
+    manifest = Manifest(repo_path, path)
+
+    # This assertion is difficult as it is version dependent, just assert
+    # that it is *something*
+    assert manifest.hooks['foo']['language_version'] != 'default'

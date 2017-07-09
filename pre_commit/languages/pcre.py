@@ -2,18 +2,16 @@ from __future__ import unicode_literals
 
 import sys
 
+from pre_commit.languages import helpers
 from pre_commit.xargs import xargs
 
 
 ENVIRONMENT_DIR = None
 GREP = 'ggrep' if sys.platform == 'darwin' else 'grep'
+get_default_version = helpers.basic_get_default_version
 
 
-def install_environment(
-        repo_cmd_runner,
-        version='default',
-        additional_dependencies=(),
-):
+def install_environment(repo_cmd_runner, version, additional_dependencies):
     """Installation for pcre type is a noop."""
     raise AssertionError('Cannot install pcre repo.')
 
