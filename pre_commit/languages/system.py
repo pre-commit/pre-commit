@@ -5,13 +5,10 @@ from pre_commit.xargs import xargs
 
 
 ENVIRONMENT_DIR = None
+get_default_version = helpers.basic_get_default_version
 
 
-def install_environment(
-        repo_cmd_runner,
-        version='default',
-        additional_dependencies=(),
-):
+def install_environment(repo_cmd_runner, version, additional_dependencies):
     """Installation for system type is a noop."""
     raise AssertionError('Cannot install system repo.')
 

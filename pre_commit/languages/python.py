@@ -1,7 +1,6 @@
 from __future__ import unicode_literals
 
 import contextlib
-import distutils.spawn
 import os
 import sys
 
@@ -9,11 +8,13 @@ from pre_commit.envcontext import envcontext
 from pre_commit.envcontext import UNSET
 from pre_commit.envcontext import Var
 from pre_commit.languages import helpers
+from pre_commit.parse_shebang import find_executable
 from pre_commit.util import clean_path_on_failure
 from pre_commit.xargs import xargs
 
 
 ENVIRONMENT_DIR = 'py_env'
+get_default_version = helpers.basic_get_default_version
 
 
 def bin_dir(venv):
@@ -39,10 +40,53 @@ def in_env(repo_cmd_runner, language_version):
         yield
 
 
+def _get_default_version():  # pragma: no cover (platform dependent)
+    def _norm(path):
+        _, exe = os.path.split(path.lower())
+        exe, _, _ = exe.partition('.exe')
+        if find_executable(exe) and exe not in {'python', 'pythonw'}:
+            return exe
+
+    # First attempt from `sys.executable` (or the realpath)
+    # On linux, I see these common sys.executables:
+    #
+    # system `python`: /usr/bin/python -> python2.7
+    # system `python2`: /usr/bin/python2 -> python2.7
+    # virtualenv v: v/bin/python (will not return from this loop)
+    # virtualenv v -ppython2: v/bin/python -> python2
+    # virtualenv v -ppython2.7: v/bin/python -> python2.7
+    # virtualenv v -ppypy: v/bin/python -> v/bin/pypy
+    for path in {sys.executable, os.path.realpath(sys.executable)}:
+        exe = _norm(path)
+        if exe:
+            return exe
+
+    # Next try the `pythonX.X` executable
+    exe = 'python{}.{}'.format(*sys.version_info)
+    if find_executable(exe):
+        return exe
+
+    # Give a best-effort try for windows
+    if os.path.exists(r'C:\{}\python.exe'.format(exe.replace('.', ''))):
+        return exe
+
+    # We tried!
+    return 'default'
+
+
+def get_default_version():
+    # TODO: when dropping python2, use `functools.lru_cache(maxsize=1)`
+    try:
+        return get_default_version.cached_version
+    except AttributeError:
+        get_default_version.cached_version = _get_default_version()
+        return get_default_version()
+
+
 def norm_version(version):
     if os.name == 'nt':  # pragma: no cover (windows)
         # Try looking up by name
-        if distutils.spawn.find_executable(version):
+        if find_executable(version) and find_executable(version) != version:
             return version
 
         # If it is in the form pythonx.x search in the default
@@ -54,11 +98,7 @@ def norm_version(version):
     return os.path.expanduser(version)
 
 
-def install_environment(
-        repo_cmd_runner,
-        version='default',
-        additional_dependencies=(),
-):
+def install_environment(repo_cmd_runner, version, additional_dependencies):
     additional_dependencies = tuple(additional_dependencies)
     directory = helpers.environment_dir(ENVIRONMENT_DIR, version)
 

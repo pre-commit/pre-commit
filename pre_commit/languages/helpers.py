@@ -33,3 +33,7 @@ def assert_no_additional_deps(lang, additional_deps):
             'For now, pre-commit does not support '
             'additional_dependencies for {}'.format(lang),
         )
+
+
+def basic_get_default_version():
+    return 'default'

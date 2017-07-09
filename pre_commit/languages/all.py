@@ -10,16 +10,18 @@ from pre_commit.languages import script
 from pre_commit.languages import swift
 from pre_commit.languages import system
 
-# A language implements the following constant and two functions in its module:
+# A language implements the following constant and functions in its module:
 #
 # # Use None for no environment
 # ENVIRONMENT_DIR = 'foo_env'
 #
-# def install_environment(
-#         repo_cmd_runner,
-#         version='default',
-#         additional_dependencies=(),
-# ):
+# def get_default_version():
+#     """Return a value to replace the 'default' value for language_version.
+#
+#     return 'default' if there is no better option.
+#    """
+#
+# def install_environment(repo_cmd_runner, version, additional_dependencies):
 #     """Installs a repository in the given repository.  Note that the current
 #     working directory will already be inside the repository.
 #

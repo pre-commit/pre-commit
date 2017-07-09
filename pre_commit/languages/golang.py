@@ -14,6 +14,7 @@ from pre_commit.xargs import xargs
 
 
 ENVIRONMENT_DIR = 'golangenv'
+get_default_version = helpers.basic_get_default_version
 
 
 def get_env_patch(venv):
@@ -44,11 +45,7 @@ def guess_go_dir(remote_url):
         return 'unknown_src_dir'
 
 
-def install_environment(
-        repo_cmd_runner,
-        version='default',
-        additional_dependencies=(),
-):
+def install_environment(repo_cmd_runner, version, additional_dependencies):
     helpers.assert_version_default('golang', version)
     directory = repo_cmd_runner.path(
         helpers.environment_dir(ENVIRONMENT_DIR, 'default'),

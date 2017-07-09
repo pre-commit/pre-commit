@@ -16,6 +16,7 @@ from pre_commit.xargs import xargs
 
 
 ENVIRONMENT_DIR = 'rbenv'
+get_default_version = helpers.basic_get_default_version
 
 
 def get_env_patch(venv, language_version):  # pragma: windows no cover
@@ -97,9 +98,7 @@ def _install_ruby(runner, version):  # pragma: windows no cover
 
 
 def install_environment(
-        repo_cmd_runner,
-        version='default',
-        additional_dependencies=(),
+        repo_cmd_runner, version, additional_dependencies,
 ):  # pragma: windows no cover
     additional_dependencies = tuple(additional_dependencies)
     directory = helpers.environment_dir(ENVIRONMENT_DIR, version)
