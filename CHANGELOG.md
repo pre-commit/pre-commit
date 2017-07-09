@@ -1,3 +1,8 @@
+0.15.2
+======
+- Work around a windows-specific virtualenv bug pypa/virtualenv#1062
+  This failure mode was introduced in 0.15.1
+
 0.15.1
 ======
 - Use a more intelligent default language version for python
