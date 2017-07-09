@@ -86,8 +86,9 @@ def get_default_version():
 def norm_version(version):
     if os.name == 'nt':  # pragma: no cover (windows)
         # Try looking up by name
-        if find_executable(version) and find_executable(version) != version:
-            return version
+        version_exec = find_executable(version)
+        if version_exec and version_exec != version:
+            return version_exec
 
         # If it is in the form pythonx.x search in the default
         # place on windows
