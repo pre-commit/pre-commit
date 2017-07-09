@@ -1,3 +1,7 @@
+0.15.1
+======
+- Use a more intelligent default language version for python
+
 0.15.0
 ======
 - Add `types` and `exclude_types` for filtering files.  These options take
