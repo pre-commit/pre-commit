@@ -59,7 +59,7 @@ def _update_repo(repo_config, runner, tags_only):
     if hooks_missing:
         raise RepositoryCannotBeUpdatedError(
             'Cannot update because the tip of master is missing these hooks:\n'
-            '{}'.format(', '.join(sorted(hooks_missing)))
+            '{}'.format(', '.join(sorted(hooks_missing))),
         )
 
     return new_config

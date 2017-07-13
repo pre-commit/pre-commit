@@ -112,7 +112,7 @@ def _check_conditional(self, dct):
                 cond_key=self.condition_key,
                 op=op,
                 cond_val=cond_val,
-            )
+            ),
         )
 
 

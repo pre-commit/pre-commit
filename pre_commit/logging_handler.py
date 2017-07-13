@@ -30,7 +30,7 @@ class LoggingHandler(logging.Handler):
                     self.use_color,
                 ) + ' ',
                 record.getMessage(),
-            )
+            ),
         )
 
 

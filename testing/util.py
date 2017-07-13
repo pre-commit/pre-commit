@@ -34,7 +34,7 @@ def cmd_output_mocked_pre_commit_home(*args, **kwargs):
 
 skipif_cant_run_docker = pytest.mark.skipif(
     docker_is_running() is False,
-    reason='Docker isn\'t running or can\'t  be accessed'
+    reason='Docker isn\'t running or can\'t  be accessed',
 )
 
 skipif_slowtests_false = pytest.mark.skipif(
@@ -44,7 +44,7 @@ skipif_slowtests_false = pytest.mark.skipif(
 
 skipif_cant_run_swift = pytest.mark.skipif(
     parse_shebang.find_executable('swift') is None,
-    reason='swift isn\'t installed or can\'t be found'
+    reason='swift isn\'t installed or can\'t be found',
 )
 
 xfailif_windows_no_ruby = pytest.mark.xfail(

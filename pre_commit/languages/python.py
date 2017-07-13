@@ -107,7 +107,7 @@ def install_environment(repo_cmd_runner, version, additional_dependencies):
     with clean_path_on_failure(repo_cmd_runner.path(directory)):
         venv_cmd = [
             sys.executable, '-m', 'virtualenv',
-            '{{prefix}}{}'.format(directory)
+            '{{prefix}}{}'.format(directory),
         ]
         if version != 'default':
             venv_cmd.extend(['-p', norm_version(version)])

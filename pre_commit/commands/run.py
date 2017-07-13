@@ -235,7 +235,7 @@ def run(runner, args, environ=os.environ):
             logger.error(
                 'Your .pre-commit-config.yaml is unstaged.\n'
                 '`git add .pre-commit-config.yaml` to fix this.\n'
-                'Run pre-commit with --allow-unstaged-config to silence this.'
+                'Run pre-commit with --allow-unstaged-config to silence this.',
             )
             return 1
 

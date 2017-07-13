@@ -366,7 +366,7 @@ def test_load_from_filename_fails_load_strategy(tmpdir):
     _assert_exception_trace(
         excinfo.value.args[0],
         # ANY is json's error message
-        ('File {}'.format(f.strpath), mock.ANY)
+        ('File {}'.format(f.strpath), mock.ANY),
     )
 
 

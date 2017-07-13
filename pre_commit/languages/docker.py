@@ -23,7 +23,7 @@ def md5(s):  # pragma: windows no cover
 
 def docker_tag(repo_cmd_runner):  # pragma: windows no cover
     return 'pre-commit-{}'.format(
-        md5(os.path.basename(repo_cmd_runner.path()))
+        md5(os.path.basename(repo_cmd_runner.path())),
     ).lower()
 
 
@@ -92,7 +92,7 @@ def run_hook(repo_cmd_runner, hook, file_args):  # pragma: windows no cover
         '-v', '{}:/src:rw'.format(os.getcwd()),
         '--workdir', '/src',
         '--entrypoint', entry_executable,
-        docker_tag(repo_cmd_runner)
+        docker_tag(repo_cmd_runner),
     ) + cmd_rest
 
     return xargs(cmd, file_args)

@@ -145,7 +145,7 @@ NORMAL_PRE_COMMIT_RUN = re.compile(
     r'Bash hook\.+Passed\r?\n'
     r'\[master [a-f0-9]{7}\] Commit!\r?\n' +
     FILES_CHANGED +
-    r' create mode 100644 foo\r?\n$'
+    r' create mode 100644 foo\r?\n$',
 )
 
 
@@ -259,7 +259,7 @@ FAILING_PRE_COMMIT_RUN = re.compile(
     r'\r?\n'
     r'Fail\r?\n'
     r'foo\r?\n'
-    r'\r?\n$'
+    r'\r?\n$',
 )
 
 
@@ -277,7 +277,7 @@ EXISTING_COMMIT_RUN = re.compile(
     r'^legacy hook\r?\n'
     r'\[master [a-f0-9]{7}\] Commit!\r?\n' +
     FILES_CHANGED +
-    r' create mode 100644 baz\r?\n$'
+    r' create mode 100644 baz\r?\n$',
 )
 
 
@@ -332,7 +332,7 @@ def test_install_existing_hook_no_overwrite_idempotent(tempdir_factory):
 FAIL_OLD_HOOK = re.compile(
     r'fail!\r?\n'
     r'\[INFO\] Initializing environment for .+\.\r?\n'
-    r'Bash hook\.+Passed\r?\n'
+    r'Bash hook\.+Passed\r?\n',
 )
 
 
@@ -448,7 +448,7 @@ PRE_INSTALLED = re.compile(
     r'Bash hook\.+Passed\r?\n'
     r'\[master [a-f0-9]{7}\] Commit!\r?\n' +
     FILES_CHANGED +
-    r' create mode 100644 foo\r?\n$'
+    r' create mode 100644 foo\r?\n$',
 )
 
 

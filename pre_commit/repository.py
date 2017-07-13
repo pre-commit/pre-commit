@@ -72,7 +72,7 @@ def _install_all(venvs, repo_url):
 
     if need_installed:
         logger.info(
-            'Installing environment for {}.'.format(repo_url)
+            'Installing environment for {}.'.format(repo_url),
         )
         logger.info('Once installed this environment will be reused.')
         logger.info('This may take a few minutes...')
@@ -102,7 +102,7 @@ def _validate_minimum_version(hook):
             'version {} is installed.  '
             'Perhaps run `pip install --upgrade pre-commit`.'.format(
                 hook['id'], hook_version, C.VERSION_PARSED,
-            )
+            ),
         )
         exit(1)
     return hook
@@ -147,7 +147,7 @@ class Repository(object):
                     'Typo? Perhaps it is introduced in a newer version?  '
                     'Often `pre-commit autoupdate` fixes this.'.format(
                         hook['id'], self.repo_config['repo'],
-                    )
+                    ),
                 )
                 exit(1)
 
