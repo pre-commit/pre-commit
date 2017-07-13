@@ -220,7 +220,7 @@ def test_show_diff_on_failure(
             True,
         ),
         ({}, (b'Bash hook', b'(no files to check)', b'Skipped'), 0, False),
-    )
+    ),
 )
 def test_run(
         cap_out,
@@ -259,7 +259,7 @@ def test_run_output_logfile(
             git_path, {},
             expected_output,
             expected_ret=1,
-            stage=True
+            stage=True,
         )
     logfile_path = os.path.join(git_path, 'test.log')
     assert os.path.exists(logfile_path)
@@ -301,7 +301,7 @@ def test_always_run_alt_config(
         (b'Bash hook', b'Passed'),
         0,
         stage=False,
-        config_file=alt_config_file
+        config_file=alt_config_file,
     )
 
 
@@ -311,7 +311,7 @@ def test_always_run_alt_config(
         ('master', 'master', False),
         ('master', '', True),
         ('', 'master', True),
-    )
+    ),
 )
 def test_origin_source_error_msg(
         repo_with_passing_hook, origin, source, expect_failure,
@@ -588,7 +588,7 @@ def test_lots_of_files(mock_out_store_directory, tempdir_factory):
         ('commit', [], ['commit'], [b'hook 1', b'hook 2']),
         ('commit', ['push'], ['commit'], [b'', b'hook 2']),
         ('commit', ['commit'], ['push'], [b'hook 1', b'']),
-    )
+    ),
 )
 def test_local_hook_for_stages(
         cap_out,
@@ -606,15 +606,15 @@ def test_local_hook_for_stages(
             ('entry', 'python -m flake8.__main__'),
             ('language', 'system'),
             ('files', r'\.py$'),
-            ('stages', stage_for_first_hook)
+            ('stages', stage_for_first_hook),
         )), OrderedDict((
             ('id', 'do_not_commit'),
             ('name', 'hook 2'),
             ('entry', 'DO NOT COMMIT'),
             ('language', 'pcre'),
             ('files', '^(.*)$'),
-            ('stages', stage_for_second_hook)
-        ))))
+            ('stages', stage_for_second_hook),
+        )))),
     ))
     add_config_to_repo(repo_with_passing_hook, config)
 
@@ -628,7 +628,7 @@ def test_local_hook_for_stages(
         {'hook_stage': hook_stage},
         expected_outputs=expected_output,
         expected_ret=0,
-        stage=False
+        stage=False,
     )
 
 
@@ -649,7 +649,7 @@ def test_local_hook_passes(
             ('entry', 'DO NOT COMMIT'),
             ('language', 'pcre'),
             ('files', '^(.*)$'),
-        ))))
+        )))),
     ))
     add_config_to_repo(repo_with_passing_hook, config)
 
@@ -678,7 +678,7 @@ def test_local_hook_fails(
             ('entry', 'sh -c "! grep -iI todo $@" --'),
             ('language', 'system'),
             ('files', ''),
-        ))])
+        ))]),
     ))
     add_config_to_repo(repo_with_passing_hook, config)
 
@@ -770,7 +770,7 @@ def test_files_running_subdir(
         (False, [], b''),
         (True, ['some', 'args'], b'some args foo.py'),
         (False, ['some', 'args'], b'some args'),
-    )
+    ),
 )
 def test_pass_filenames(
         cap_out, repo_with_passing_hook, mock_out_store_directory,

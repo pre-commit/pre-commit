@@ -49,7 +49,7 @@ def staged_files_only(cmd_runner):
             except CalledProcessError:
                 logger.warning(
                     'Stashed changes conflicted with hook auto-fixes... '
-                    'Rolling back fixes...'
+                    'Rolling back fixes...',
                 )
                 # We failed to apply the patch, presumably due to fixes made
                 # by hooks.

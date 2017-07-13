@@ -208,7 +208,7 @@ def test_validate_manifest_main(args, expected_output):
             }],
             True,
         ),
-    )
+    ),
 )
 def test_valid_manifests(manifest_obj, expected):
     ret = is_valid_according_to_schema(manifest_obj, MANIFEST_SCHEMA)

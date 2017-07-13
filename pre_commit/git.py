@@ -21,7 +21,7 @@ def get_root():
     except CalledProcessError:
         raise FatalError(
             'git failed. Is it installed, and are you in a Git repository '
-            'directory?'
+            'directory?',
         )
 
 
@@ -79,7 +79,7 @@ def get_staged_files():
     return cmd_output(
         'git', 'diff', '--staged', '--name-only', '--no-ext-diff',
         # Everything except for D
-        '--diff-filter=ACMRTUXB'
+        '--diff-filter=ACMRTUXB',
     )[1].splitlines()
 
 
@@ -130,5 +130,5 @@ def check_for_cygwin_mismatch():
                 ' - git {}\n'.format(
                     exe_type[is_cygwin_python],
                     exe_type[is_cygwin_git],
-                )
+                ),
             )

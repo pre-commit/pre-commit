@@ -62,7 +62,7 @@ def test_python_hook(tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'python_hooks_repo',
         'foo', [os.devnull],
-        b"['" + five.to_bytes(os.devnull) + b"']\nHello World\n"
+        b"['" + five.to_bytes(os.devnull) + b"']\nHello World\n",
     )
 
 
@@ -78,7 +78,7 @@ def test_python_hook_args_with_spaces(tempdir_factory, store):
             'hooks': [{
                 'id': 'foo',
                 'args': ['i have spaces', 'and"\'quotes', '$and !this'],
-            }]
+            }],
         },
     )
 
@@ -93,7 +93,7 @@ def test_python_hook_weird_setup_cfg(tempdir_factory, store):
         _test_hook_repo(
             tempdir_factory, store, 'python_hooks_repo',
             'foo', [os.devnull],
-            b"['" + five.to_bytes(os.devnull) + b"']\nHello World\n"
+            b"['" + five.to_bytes(os.devnull) + b"']\nHello World\n",
         )
 
 
@@ -160,7 +160,7 @@ def test_run_a_failing_docker_hook(tempdir_factory, store):
         tempdir_factory, store, 'docker_hooks_repo',
         'docker-hook-failing',
         ['Hello World from docker'], b'',
-        expected_return_code=1
+        expected_return_code=1,
     )
 
 
@@ -219,7 +219,7 @@ def test_run_ruby_hook_with_disable_shared_gems(
     tmpdir.join('.bundle').mkdir()
     tmpdir.join('.bundle', 'config').write(
         'BUNDLE_DISABLE_SHARED_GEMS: true\n'
-        'BUNDLE_PATH: vendor/gem\n'
+        'BUNDLE_PATH: vendor/gem\n',
     )
     with cwd(tmpdir.strpath):
         _test_hook_repo(
@@ -322,7 +322,7 @@ def test_run_hook_with_curly_braced_arguments(tempdir_factory, store):
             'hooks': [{
                 'id': 'arg-per-line',
                 'args': ['hi {1}', "I'm {a} problem"],
-            }]
+            }],
         },
     )
 

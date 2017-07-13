@@ -20,7 +20,7 @@ class PrefixedCommandRunner(object):
             self,
             prefix_dir,
             popen=subprocess.Popen,
-            makedirs=os.makedirs
+            makedirs=os.makedirs,
     ):
         self.prefix_dir = prefix_dir.rstrip(os.sep) + os.sep
         self.__popen = popen

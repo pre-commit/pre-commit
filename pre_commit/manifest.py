@@ -31,7 +31,7 @@ class Manifest(object):
                 'If `pre-commit autoupdate` does not silence this warning '
                 'consider making an issue / pull request.'.format(
                     self.repo_url, C.MANIFEST_FILE_LEGACY, C.MANIFEST_FILE,
-                )
+                ),
             )
             return load_manifest(legacy_path)
         else:

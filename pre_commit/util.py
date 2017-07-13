@@ -124,7 +124,7 @@ class CalledProcessError(RuntimeError):
             if maybe_text:
                 output.append(
                     b'\n    ' +
-                    five.to_bytes(maybe_text).replace(b'\n', b'\n    ')
+                    five.to_bytes(maybe_text).replace(b'\n', b'\n    '),
                 )
             else:
                 output.append(b'(none)')
@@ -134,8 +134,8 @@ class CalledProcessError(RuntimeError):
                 'Command: {!r}\n'
                 'Return code: {}\n'
                 'Expected return code: {}\n'.format(
-                    self.cmd, self.returncode, self.expected_returncode
-                )
+                    self.cmd, self.returncode, self.expected_returncode,
+                ),
             ),
             b'Output: ', output[0], b'\n',
             b'Errors: ', output[1], b'\n',

@@ -31,7 +31,7 @@ def test_CalledProcessError_str():
 
 def test_CalledProcessError_str_nooutput():
     error = CalledProcessError(
-        1, [str('git'), str('status')], 0, (str(''), str(''))
+        1, [str('git'), str('status')], 0, (str(''), str('')),
     )
     assert str(error) == (
         "Command: ['git', 'status']\n"

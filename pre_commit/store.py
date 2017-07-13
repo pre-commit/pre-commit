@@ -49,7 +49,7 @@ class Store(object):
         with io.open(os.path.join(self.directory, 'README'), 'w') as readme:
             readme.write(
                 'This directory is maintained by the pre-commit project.\n'
-                'Learn more: https://github.com/pre-commit/pre-commit\n'
+                'Learn more: https://github.com/pre-commit/pre-commit\n',
             )
 
     def _write_sqlite_db(self):
@@ -68,7 +68,7 @@ class Store(object):
                 '    ref CHAR(255) NOT NULL,'
                 '    path CHAR(255) NOT NULL,'
                 '    PRIMARY KEY (repo, ref)'
-                ');'
+                ');',
             )
 
         # Atomic file move

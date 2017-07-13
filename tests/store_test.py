@@ -34,7 +34,7 @@ def test_get_default_directory_defaults_to_home():
 
 def test_uses_environment_variable_when_present():
     with mock.patch.dict(
-        os.environ, {'PRE_COMMIT_HOME': '/tmp/pre_commit_home'}
+        os.environ, {'PRE_COMMIT_HOME': '/tmp/pre_commit_home'},
     ):
         ret = _get_default_directory()
         assert ret == '/tmp/pre_commit_home'
@@ -89,7 +89,7 @@ def test_clone(store, tempdir_factory, log_info_mock):
     ret = store.clone(path, sha)
     # Should have printed some stuff
     assert log_info_mock.call_args_list[0][0][0].startswith(
-        'Initializing environment for '
+        'Initializing environment for ',
     )
 
     # Should return a directory inside of the store
@@ -138,7 +138,7 @@ def test_clone_when_repo_already_exists(store):
     with sqlite3.connect(store.db_path) as db:
         db.execute(
             'INSERT INTO repos (repo, ref, path) '
-            'VALUES ("fake_repo", "fake_ref", "fake_path")'
+            'VALUES ("fake_repo", "fake_ref", "fake_path")',
         )
 
     assert store.clone('fake_repo', 'fake_ref') == 'fake_path'

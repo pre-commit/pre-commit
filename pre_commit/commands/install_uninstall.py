@@ -51,7 +51,7 @@ def install(
             'Running in migration mode with existing hooks at {}\n'
             'Use -f to use only pre-commit.'.format(
                 legacy_path,
-            )
+            ),
         )
 
     with io.open(hook_path, 'w') as pre_commit_file_obj:

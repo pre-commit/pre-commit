@@ -75,7 +75,7 @@ def config_with_local_hooks():
             ('entry', 'DO NOT COMMIT'),
             ('language', 'pcre'),
             ('files', '^(.*)$'),
-        ))])
+        ))]),
     ))
 
 

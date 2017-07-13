@@ -81,7 +81,7 @@ def _install_rbenv(
             # directory
             "export GEM_HOME='{directory}/gems'\n"
             'export PATH="$GEM_HOME/bin:$PATH"\n'
-            '\n'.format(directory=repo_cmd_runner.path(directory))
+            '\n'.format(directory=repo_cmd_runner.path(directory)),
         )
 
         # If we aren't using the system ruby, add a version here

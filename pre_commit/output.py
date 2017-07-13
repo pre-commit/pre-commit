@@ -50,7 +50,7 @@ def get_hook_message(
         raise ValueError('Expected one of (`end_msg`, `end_len`)')
     if end_msg is not None and (end_color is None or use_color is None):
         raise ValueError(
-            '`end_color` and `use_color` are required with `end_msg`'
+            '`end_color` and `use_color` are required with `end_msg`',
         )
 
     if end_len:

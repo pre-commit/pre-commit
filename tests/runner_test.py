@@ -70,7 +70,7 @@ def test_local_hooks(tempdir_factory, mock_out_store_directory):
             ('entry', 'DO NOT COMMIT'),
             ('language', 'pcre'),
             ('files', '^(.*)$'),
-        ))))
+        )))),
     ))
     git_path = git_dir(tempdir_factory)
     add_config_to_repo(git_path, config)
@@ -101,7 +101,7 @@ def test_local_hooks_alt_config(tempdir_factory, mock_out_store_directory):
             ('entry', 'DO NOT COMMIT'),
             ('language', 'pcre'),
             ('files', '^(.*)$'),
-        ))))
+        )))),
     ))
     git_path = git_dir(tempdir_factory)
     alt_config_file = 'alternate_config.yaml'

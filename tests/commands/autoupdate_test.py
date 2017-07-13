@@ -105,7 +105,7 @@ def test_out_of_date_repo(out_of_date_repo, runner_with_mocked_store):
 
 
 def test_autoupdate_out_of_date_repo(
-        out_of_date_repo, in_tmpdir, mock_out_store_directory
+        out_of_date_repo, in_tmpdir, mock_out_store_directory,
 ):
     # Write out the config
     config = make_config_from_repo(
@@ -181,7 +181,7 @@ def hook_disappearing_repo(tempdir_factory):
 
 
 def test_hook_disppearing_repo_raises(
-        hook_disappearing_repo, runner_with_mocked_store
+        hook_disappearing_repo, runner_with_mocked_store,
 ):
     config = make_config_from_repo(
         hook_disappearing_repo.path,
@@ -193,7 +193,7 @@ def test_hook_disppearing_repo_raises(
 
 
 def test_autoupdate_hook_disappearing_repo(
-        hook_disappearing_repo, in_tmpdir, mock_out_store_directory
+        hook_disappearing_repo, in_tmpdir, mock_out_store_directory,
 ):
     config = make_config_from_repo(
         hook_disappearing_repo.path,
@@ -222,7 +222,7 @@ def test_autoupdate_local_hooks(tempdir_factory):
 
 
 def test_autoupdate_local_hooks_with_out_of_date_repo(
-        out_of_date_repo, in_tmpdir, mock_out_store_directory
+        out_of_date_repo, in_tmpdir, mock_out_store_directory,
 ):
     stale_config = make_config_from_repo(
         out_of_date_repo.path, sha=out_of_date_repo.original_sha, check=False,

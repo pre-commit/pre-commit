@@ -41,7 +41,7 @@ def _add_color_option(parser):
 def _add_config_option(parser):
     parser.add_argument(
         '-c', '--config', default='.pre-commit-config.yaml',
-        help='Path to alternate config file'
+        help='Path to alternate config file',
     )
 
 
@@ -228,11 +228,11 @@ def main(argv=None):
             return sample_config()
         else:
             raise NotImplementedError(
-                'Command {} not implemented.'.format(args.command)
+                'Command {} not implemented.'.format(args.command),
             )
 
         raise AssertionError(
-            'Command {} failed to exit with a returncode'.format(args.command)
+            'Command {} failed to exit with a returncode'.format(args.command),
         )
 
 
