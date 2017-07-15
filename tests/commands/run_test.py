@@ -86,8 +86,10 @@ def _do_run(cap_out, repo, args, environ={}, config_file=C.CONFIG_FILE):
     return ret, printed
 
 
-def _test_run(cap_out, repo, opts, expected_outputs, expected_ret, stage,
-              config_file=C.CONFIG_FILE):
+def _test_run(
+    cap_out, repo, opts, expected_outputs, expected_ret, stage,
+    config_file=C.CONFIG_FILE,
+):
     if stage:
         stage_a_file()
     args = _get_opts(**opts)
@@ -571,18 +573,24 @@ def test_lots_of_files(mock_out_store_directory, tempdir_factory):
 
 
 @pytest.mark.parametrize(
-    ('hook_stage', 'stage_for_first_hook', 'stage_for_second_hook',
-     'expected_output'),
+    (
+        'hook_stage', 'stage_for_first_hook', 'stage_for_second_hook',
+        'expected_output',
+    ),
     (
         ('push', ['commit'], ['commit'], [b'', b'']),
-        ('push', ['commit', 'push'], ['commit', 'push'],
-         [b'hook 1', b'hook 2']),
+        (
+            'push', ['commit', 'push'], ['commit', 'push'],
+            [b'hook 1', b'hook 2'],
+        ),
         ('push', [], [], [b'hook 1', b'hook 2']),
         ('push', [], ['commit'], [b'hook 1', b'']),
         ('push', ['push'], ['commit'], [b'hook 1', b'']),
         ('push', ['commit'], ['push'], [b'', b'hook 2']),
-        ('commit', ['commit', 'push'], ['commit', 'push'],
-         [b'hook 1', b'hook 2']),
+        (
+            'commit', ['commit', 'push'], ['commit', 'push'],
+            [b'hook 1', b'hook 2'],
+        ),
         ('commit', ['commit'], ['commit'], [b'hook 1', b'hook 2']),
         ('commit', [], [], [b'hook 1', b'hook 2']),
         ('commit', [], ['commit'], [b'hook 1', b'hook 2']),
@@ -600,21 +608,25 @@ def test_local_hook_for_stages(
 ):
     config = OrderedDict((
         ('repo', 'local'),
-        ('hooks', (OrderedDict((
-            ('id', 'flake8'),
-            ('name', 'hook 1'),
-            ('entry', 'python -m flake8.__main__'),
-            ('language', 'system'),
-            ('files', r'\.py$'),
-            ('stages', stage_for_first_hook),
-        )), OrderedDict((
-            ('id', 'do_not_commit'),
-            ('name', 'hook 2'),
-            ('entry', 'DO NOT COMMIT'),
-            ('language', 'pcre'),
-            ('files', '^(.*)$'),
-            ('stages', stage_for_second_hook),
-        )))),
+        (
+            'hooks', (
+                OrderedDict((
+                    ('id', 'flake8'),
+                    ('name', 'hook 1'),
+                    ('entry', 'python -m flake8.__main__'),
+                    ('language', 'system'),
+                    ('files', r'\.py$'),
+                    ('stages', stage_for_first_hook),
+                )), OrderedDict((
+                    ('id', 'do_not_commit'),
+                    ('name', 'hook 2'),
+                    ('entry', 'DO NOT COMMIT'),
+                    ('language', 'pcre'),
+                    ('files', '^(.*)$'),
+                    ('stages', stage_for_second_hook),
+                )),
+            ),
+        ),
     ))
     add_config_to_repo(repo_with_passing_hook, config)
 
@@ -637,19 +649,23 @@ def test_local_hook_passes(
 ):
     config = OrderedDict((
         ('repo', 'local'),
-        ('hooks', (OrderedDict((
-            ('id', 'flake8'),
-            ('name', 'flake8'),
-            ('entry', 'python -m flake8.__main__'),
-            ('language', 'system'),
-            ('files', r'\.py$'),
-        )), OrderedDict((
-            ('id', 'do_not_commit'),
-            ('name', 'Block if "DO NOT COMMIT" is found'),
-            ('entry', 'DO NOT COMMIT'),
-            ('language', 'pcre'),
-            ('files', '^(.*)$'),
-        )))),
+        (
+            'hooks', (
+                OrderedDict((
+                    ('id', 'flake8'),
+                    ('name', 'flake8'),
+                    ('entry', 'python -m flake8.__main__'),
+                    ('language', 'system'),
+                    ('files', r'\.py$'),
+                )), OrderedDict((
+                    ('id', 'do_not_commit'),
+                    ('name', 'Block if "DO NOT COMMIT" is found'),
+                    ('entry', 'DO NOT COMMIT'),
+                    ('language', 'pcre'),
+                    ('files', '^(.*)$'),
+                )),
+            ),
+        ),
     ))
     add_config_to_repo(repo_with_passing_hook, config)
 
@@ -672,13 +688,15 @@ def test_local_hook_fails(
 ):
     config = OrderedDict((
         ('repo', 'local'),
-        ('hooks', [OrderedDict((
-            ('id', 'no-todo'),
-            ('name', 'No TODO'),
-            ('entry', 'sh -c "! grep -iI todo $@" --'),
-            ('language', 'system'),
-            ('files', ''),
-        ))]),
+        (
+            'hooks', [OrderedDict((
+                ('id', 'no-todo'),
+                ('name', 'No TODO'),
+                ('entry', 'sh -c "! grep -iI todo $@" --'),
+                ('language', 'system'),
+                ('files', ''),
+            ))],
+        ),
     ))
     add_config_to_repo(repo_with_passing_hook, config)
 

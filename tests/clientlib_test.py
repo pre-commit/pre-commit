@@ -56,94 +56,100 @@ def test_validate_config_main(args, expected_output):
     assert validate_config_main(args) == expected_output
 
 
-@pytest.mark.parametrize(('config_obj', 'expected'), (
-    ([], False),
-    (
-        [{
-            'repo': 'git@github.com:pre-commit/pre-commit-hooks',
-            'sha': 'cd74dc150c142c3be70b24eaf0b02cae9d235f37',
-            'hooks': [{'id': 'pyflakes', 'files': '\\.py$'}],
-        }],
-        True,
+@pytest.mark.parametrize(
+    ('config_obj', 'expected'), (
+        ([], False),
+        (
+            [{
+                'repo': 'git@github.com:pre-commit/pre-commit-hooks',
+                'sha': 'cd74dc150c142c3be70b24eaf0b02cae9d235f37',
+                'hooks': [{'id': 'pyflakes', 'files': '\\.py$'}],
+            }],
+            True,
+        ),
+        (
+            [{
+                'repo': 'git@github.com:pre-commit/pre-commit-hooks',
+                'sha': 'cd74dc150c142c3be70b24eaf0b02cae9d235f37',
+                'hooks': [
+                    {
+                        'id': 'pyflakes',
+                        'files': '\\.py$',
+                        'args': ['foo', 'bar', 'baz'],
+                    },
+                ],
+            }],
+            True,
+        ),
+        (
+            [{
+                'repo': 'git@github.com:pre-commit/pre-commit-hooks',
+                'sha': 'cd74dc150c142c3be70b24eaf0b02cae9d235f37',
+                'hooks': [
+                    {
+                        'id': 'pyflakes',
+                        'files': '\\.py$',
+                        # Exclude pattern must be a string
+                        'exclude': 0,
+                        'args': ['foo', 'bar', 'baz'],
+                    },
+                ],
+            }],
+            False,
+        ),
     ),
-    (
-        [{
-            'repo': 'git@github.com:pre-commit/pre-commit-hooks',
-            'sha': 'cd74dc150c142c3be70b24eaf0b02cae9d235f37',
-            'hooks': [
-                {
-                    'id': 'pyflakes',
-                    'files': '\\.py$',
-                    'args': ['foo', 'bar', 'baz'],
-                },
-            ],
-        }],
-        True,
-    ),
-    (
-        [{
-            'repo': 'git@github.com:pre-commit/pre-commit-hooks',
-            'sha': 'cd74dc150c142c3be70b24eaf0b02cae9d235f37',
-            'hooks': [
-                {
-                    'id': 'pyflakes',
-                    'files': '\\.py$',
-                    # Exclude pattern must be a string
-                    'exclude': 0,
-                    'args': ['foo', 'bar', 'baz'],
-                },
-            ],
-        }],
-        False,
-    ),
-))
+)
 def test_config_valid(config_obj, expected):
     ret = is_valid_according_to_schema(config_obj, CONFIG_SCHEMA)
     assert ret is expected
 
 
-@pytest.mark.parametrize('config_obj', (
-    [{
-        'repo': 'local',
-        'sha': 'foo',
-        'hooks': [{
-            'id': 'do_not_commit',
-            'name': 'Block if "DO NOT COMMIT" is found',
-            'entry': 'DO NOT COMMIT',
-            'language': 'pcre',
-            'files': '^(.*)$',
+@pytest.mark.parametrize(
+    'config_obj', (
+        [{
+            'repo': 'local',
+            'sha': 'foo',
+            'hooks': [{
+                'id': 'do_not_commit',
+                'name': 'Block if "DO NOT COMMIT" is found',
+                'entry': 'DO NOT COMMIT',
+                'language': 'pcre',
+                'files': '^(.*)$',
+            }],
         }],
-    }],
-))
+    ),
+)
 def test_config_with_local_hooks_definition_fails(config_obj):
     with pytest.raises(schema.ValidationError):
         schema.validate(config_obj, CONFIG_SCHEMA)
 
 
-@pytest.mark.parametrize('config_obj', (
-    [{
-        'repo': 'local',
-        'hooks': [{
-            'id': 'arg-per-line',
-            'name': 'Args per line hook',
-            'entry': 'bin/hook.sh',
-            'language': 'script',
-            'files': '',
-            'args': ['hello', 'world'],
+@pytest.mark.parametrize(
+    'config_obj', (
+        [{
+            'repo': 'local',
+            'hooks': [{
+                'id': 'arg-per-line',
+                'name': 'Args per line hook',
+                'entry': 'bin/hook.sh',
+                'language': 'script',
+                'files': '',
+                'args': ['hello', 'world'],
+            }],
         }],
-    }],
-    [{
-        'repo': 'local',
-        'hooks': [{
-            'id': 'arg-per-line',
-            'name': 'Args per line hook',
-            'entry': 'bin/hook.sh',
-            'language': 'script',
-            'files': '',
-            'args': ['hello', 'world'],
-        }]
-    }],
-))
+        [{
+            'repo': 'local',
+            'hooks': [{
+                'id': 'arg-per-line',
+                'name': 'Args per line hook',
+                'entry': 'bin/hook.sh',
+                'language': 'script',
+                'files': '',
+                'args': ['hello', 'world'],
+            }]
+        }],
+    ),
+)
 def test_config_with_local_hooks_definition_passes(config_obj):
     schema.validate(config_obj, CONFIG_SCHEMA)
 

@@ -46,29 +46,6 @@ variable `slowtests=false`.
 
 With the environment activated simply run `pre-commit install`.
 
-## Style
-
-This repository follows pep8 (and enforces it with flake8).  There are a few
-nitpicky things I also like that I'll outline below.
-
-### Multi-line method invocation
-
-Multiple line method invocation should look as follows
-
-```python
-function_call(
-    argument,
-    argument,
-    argument,
-)
-```
-
-Some notable features:
-- The initial parenthesis is at the end of the line
-- Parameters are indented one indentation level further than the function name
-- The last parameter contains a trailing comma (This helps make `git blame`
-  more accurate and reduces merge conflicts when adding / removing parameters).
-
 ## Documentation
 
 Documentation is hosted at http://pre-commit.com
