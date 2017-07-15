@@ -11,10 +11,12 @@ from pre_commit.color import InvalidColorSetting
 from pre_commit.color import use_color
 
 
-@pytest.mark.parametrize(('in_text', 'in_color', 'in_use_color', 'expected'), (
-    ('foo', GREEN, True, '{}foo\033[0m'.format(GREEN)),
-    ('foo', GREEN, False, 'foo'),
-))
+@pytest.mark.parametrize(
+    ('in_text', 'in_color', 'in_use_color', 'expected'), (
+        ('foo', GREEN, True, '{}foo\033[0m'.format(GREEN)),
+        ('foo', GREEN, False, 'foo'),
+    ),
+)
 def test_format_color(in_text, in_color, in_use_color, expected):
     ret = format_color(in_text, in_color, in_use_color)
     assert ret == expected

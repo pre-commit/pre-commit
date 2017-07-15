@@ -69,13 +69,15 @@ def modify_config(path='.', commit=True):
 def config_with_local_hooks():
     return OrderedDict((
         ('repo', 'local'),
-        ('hooks', [OrderedDict((
-            ('id', 'do_not_commit'),
-            ('name', 'Block if "DO NOT COMMIT" is found'),
-            ('entry', 'DO NOT COMMIT'),
-            ('language', 'pcre'),
-            ('files', '^(.*)$'),
-        ))]),
+        (
+            'hooks', [OrderedDict((
+                ('id', 'do_not_commit'),
+                ('name', 'Block if "DO NOT COMMIT" is found'),
+                ('entry', 'DO NOT COMMIT'),
+                ('language', 'pcre'),
+                ('files', '^(.*)$'),
+            ))],
+        ),
     ))
 
 

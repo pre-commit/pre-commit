@@ -57,20 +57,24 @@ def test_repositories(tempdir_factory, mock_out_store_directory):
 def test_local_hooks(tempdir_factory, mock_out_store_directory):
     config = OrderedDict((
         ('repo', 'local'),
-        ('hooks', (OrderedDict((
-            ('id', 'arg-per-line'),
-            ('name', 'Args per line hook'),
-            ('entry', 'bin/hook.sh'),
-            ('language', 'script'),
-            ('files', ''),
-            ('args', ['hello', 'world']),
-        )), OrderedDict((
-            ('id', 'do_not_commit'),
-            ('name', 'Block if "DO NOT COMMIT" is found'),
-            ('entry', 'DO NOT COMMIT'),
-            ('language', 'pcre'),
-            ('files', '^(.*)$'),
-        )))),
+        (
+            'hooks', (
+                OrderedDict((
+                    ('id', 'arg-per-line'),
+                    ('name', 'Args per line hook'),
+                    ('entry', 'bin/hook.sh'),
+                    ('language', 'script'),
+                    ('files', ''),
+                    ('args', ['hello', 'world']),
+                )), OrderedDict((
+                    ('id', 'do_not_commit'),
+                    ('name', 'Block if "DO NOT COMMIT" is found'),
+                    ('entry', 'DO NOT COMMIT'),
+                    ('language', 'pcre'),
+                    ('files', '^(.*)$'),
+                )),
+            ),
+        ),
     ))
     git_path = git_dir(tempdir_factory)
     add_config_to_repo(git_path, config)
@@ -82,26 +86,30 @@ def test_local_hooks(tempdir_factory, mock_out_store_directory):
 def test_local_hooks_alt_config(tempdir_factory, mock_out_store_directory):
     config = OrderedDict((
         ('repo', 'local'),
-        ('hooks', (OrderedDict((
-            ('id', 'arg-per-line'),
-            ('name', 'Args per line hook'),
-            ('entry', 'bin/hook.sh'),
-            ('language', 'script'),
-            ('files', ''),
-            ('args', ['hello', 'world']),
-        )), OrderedDict((
-            ('id', 'ugly-format-json'),
-            ('name', 'Ugly format json'),
-            ('entry', 'ugly-format-json'),
-            ('language', 'python'),
-            ('files', ''),
-        )), OrderedDict((
-            ('id', 'do_not_commit'),
-            ('name', 'Block if "DO NOT COMMIT" is found'),
-            ('entry', 'DO NOT COMMIT'),
-            ('language', 'pcre'),
-            ('files', '^(.*)$'),
-        )))),
+        (
+            'hooks', (
+                OrderedDict((
+                    ('id', 'arg-per-line'),
+                    ('name', 'Args per line hook'),
+                    ('entry', 'bin/hook.sh'),
+                    ('language', 'script'),
+                    ('files', ''),
+                    ('args', ['hello', 'world']),
+                )), OrderedDict((
+                    ('id', 'ugly-format-json'),
+                    ('name', 'Ugly format json'),
+                    ('entry', 'ugly-format-json'),
+                    ('language', 'python'),
+                    ('files', ''),
+                )), OrderedDict((
+                    ('id', 'do_not_commit'),
+                    ('name', 'Block if "DO NOT COMMIT" is found'),
+                    ('entry', 'DO NOT COMMIT'),
+                    ('language', 'pcre'),
+                    ('files', '^(.*)$'),
+                )),
+            ),
+        ),
     ))
     git_path = git_dir(tempdir_factory)
     alt_config_file = 'alternate_config.yaml'

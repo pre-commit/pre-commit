@@ -54,13 +54,15 @@ def makedirs_mock():
     return mock.Mock(spec=os.makedirs)
 
 
-@pytest.mark.parametrize(('input', 'expected_prefix'), (
-    norm_slash(('.', './')),
-    norm_slash(('foo', 'foo/')),
-    norm_slash(('bar/', 'bar/')),
-    norm_slash(('foo/bar', 'foo/bar/')),
-    norm_slash(('foo/bar/', 'foo/bar/')),
-))
+@pytest.mark.parametrize(
+    ('input', 'expected_prefix'), (
+        norm_slash(('.', './')),
+        norm_slash(('foo', 'foo/')),
+        norm_slash(('bar/', 'bar/')),
+        norm_slash(('foo/bar', 'foo/bar/')),
+        norm_slash(('foo/bar/', 'foo/bar/')),
+    ),
+)
 def test_init_normalizes_path_endings(input, expected_prefix):
     input = input.replace('/', os.sep)
     expected_prefix = expected_prefix.replace('/', os.sep)
