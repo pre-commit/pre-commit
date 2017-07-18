@@ -146,7 +146,7 @@ def test_config_with_local_hooks_definition_fails(config_obj):
                 'language': 'script',
                 'files': '',
                 'args': ['hello', 'world'],
-            }]
+            }],
         }],
     ),
 )
@@ -185,7 +185,7 @@ def test_validate_manifest_main(args, expected_output):
                 'name': 'b',
                 'entry': 'c',
                 'language': 'python',
-                'files': r'\.py$'
+                'files': r'\.py$',
             }],
             True,
         ),
