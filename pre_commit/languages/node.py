@@ -13,6 +13,7 @@ from pre_commit.xargs import xargs
 
 ENVIRONMENT_DIR = 'node_env'
 get_default_version = helpers.basic_get_default_version
+healthy = helpers.basic_healthy
 
 
 def get_env_patch(venv):  # pragma: windows no cover

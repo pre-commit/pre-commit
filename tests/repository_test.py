@@ -600,6 +600,29 @@ def test_control_c_control_c_on_install(tempdir_factory, store):
     assert retv == 0
 
 
+def test_invalidated_virtualenv(tempdir_factory, store):
+    # A cached virtualenv may become invalidated if the system python upgrades
+    # This should not cause every hook in that virtualenv to fail.
+    path = make_repo(tempdir_factory, 'python_hooks_repo')
+    config = make_config_from_repo(path)
+    repo = Repository.create(config, store)
+
+    # Simulate breaking of the virtualenv
+    repo.require_installed()
+    version = python.get_default_version()
+    libdir = repo._cmd_runner.path('py_env-{}'.format(version), 'lib', version)
+    paths = [
+        os.path.join(libdir, p) for p in ('site.py', 'site.pyc', '__pycache__')
+    ]
+    cmd_output('rm', '-rf', *paths)
+
+    # pre-commit should rebuild the virtualenv and it should be runnable
+    repo = Repository.create(config, store)
+    hook = repo.hooks[0][1]
+    retv, stdout, stderr = repo.run_hook(hook, [])
+    assert retv == 0
+
+
 @pytest.mark.integration
 def test_really_long_file_paths(tempdir_factory, store):
     base_path = tempdir_factory.get()

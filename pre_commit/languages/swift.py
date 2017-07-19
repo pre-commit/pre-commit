@@ -11,6 +11,7 @@ from pre_commit.xargs import xargs
 
 ENVIRONMENT_DIR = 'swift_env'
 get_default_version = helpers.basic_get_default_version
+healthy = helpers.basic_healthy
 BUILD_DIR = '.build'
 BUILD_CONFIG = 'release'
 

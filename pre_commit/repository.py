@@ -36,7 +36,7 @@ def _state_filename(cmd_runner, venv):
     )
 
 
-def _read_installed_state(cmd_runner, venv):
+def _read_state(cmd_runner, venv):
     filename = _state_filename(cmd_runner, venv)
     if not os.path.exists(filename):
         return None
@@ -44,7 +44,7 @@ def _read_installed_state(cmd_runner, venv):
         return json.loads(io.open(filename).read())
 
 
-def _write_installed_state(cmd_runner, venv, state):
+def _write_state(cmd_runner, venv, state):
     state_filename = _state_filename(cmd_runner, venv)
     staging = state_filename + 'staging'
     with io.open(staging, 'w') as state_file:
@@ -57,8 +57,10 @@ def _installed(cmd_runner, language_name, language_version, additional_deps):
     language = languages[language_name]
     venv = environment_dir(language.ENVIRONMENT_DIR, language_version)
     return (
-        venv is None or
-        _read_installed_state(cmd_runner, venv) == _state(additional_deps)
+        venv is None or (
+            _read_state(cmd_runner, venv) == _state(additional_deps) and
+            language.healthy(cmd_runner, language_version)
+        )
     )
 
 
@@ -89,7 +91,7 @@ def _install_all(venvs, repo_url):
         language.install_environment(cmd_runner, version, deps)
         # Write our state to indicate we're installed
         state = _state(deps)
-        _write_installed_state(cmd_runner, venv, state)
+        _write_state(cmd_runner, venv, state)
 
 
 def _validate_minimum_version(hook):

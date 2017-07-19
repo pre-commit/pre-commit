@@ -10,11 +10,11 @@ from pre_commit.envcontext import Var
 from pre_commit.languages import helpers
 from pre_commit.parse_shebang import find_executable
 from pre_commit.util import clean_path_on_failure
+from pre_commit.util import cmd_output
 from pre_commit.xargs import xargs
 
 
 ENVIRONMENT_DIR = 'py_env'
-get_default_version = helpers.basic_get_default_version
 
 
 def bin_dir(venv):
@@ -81,6 +81,14 @@ def get_default_version():
     except AttributeError:
         get_default_version.cached_version = _get_default_version()
         return get_default_version()
+
+
+def healthy(repo_cmd_runner, language_version):
+    with in_env(repo_cmd_runner, language_version):
+        retcode, _, _ = cmd_output(
+            'python', '-c', 'import datetime, io, os, weakref', retcode=None,
+        )
+    return retcode == 0
 
 
 def norm_version(version):
