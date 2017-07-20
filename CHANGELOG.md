@@ -1,3 +1,8 @@
+0.15.3
+======
+- Recover from invalid python virtualenvs
+
+
 0.15.2
 ======
 - Work around a windows-specific virtualenv bug pypa/virtualenv#1062
