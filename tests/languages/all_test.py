@@ -40,3 +40,13 @@ def test_get_default_version_argspec(language):
     )
     argspec = inspect.getargspec(languages[language].get_default_version)
     assert argspec == expected_argspec
+
+
+@pytest.mark.parametrize('language', all_languages)
+def test_healthy_argspec(language):
+    expected_argspec = inspect.ArgSpec(
+        args=['repo_cmd_runner', 'language_version'],
+        varargs=None, keywords=None, defaults=None,
+    )
+    argspec = inspect.getargspec(languages[language].healthy)
+    assert argspec == expected_argspec

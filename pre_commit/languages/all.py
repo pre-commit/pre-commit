@@ -21,6 +21,9 @@ from pre_commit.languages import system
 #     return 'default' if there is no better option.
 #    """
 #
+# def healthy(repo_cmd_runner, language_version):
+#     """Return whether or not the environment is considered functional."""
+#
 # def install_environment(repo_cmd_runner, version, additional_dependencies):
 #     """Installs a repository in the given repository.  Note that the current
 #     working directory will already be inside the repository.

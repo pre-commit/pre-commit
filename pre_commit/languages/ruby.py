@@ -17,6 +17,7 @@ from pre_commit.xargs import xargs
 
 ENVIRONMENT_DIR = 'rbenv'
 get_default_version = helpers.basic_get_default_version
+healthy = helpers.basic_healthy
 
 
 def get_env_patch(venv, language_version):  # pragma: windows no cover

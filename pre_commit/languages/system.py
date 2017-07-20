@@ -6,6 +6,7 @@ from pre_commit.xargs import xargs
 
 ENVIRONMENT_DIR = None
 get_default_version = helpers.basic_get_default_version
+healthy = helpers.basic_healthy
 
 
 def install_environment(repo_cmd_runner, version, additional_dependencies):

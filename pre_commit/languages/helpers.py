@@ -37,3 +37,7 @@ def assert_no_additional_deps(lang, additional_deps):
 
 def basic_get_default_version():
     return 'default'
+
+
+def basic_healthy(repo_cmd_runner, language_version):
+    return True
