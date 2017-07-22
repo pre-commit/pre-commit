@@ -170,7 +170,7 @@ class Fixture(object):
     def get_bytes(self):
         """Get the output as-if no encoding occurred"""
         data = self._stream.data.getvalue()
-        self._stream = io.BytesIO()
+        self._stream.data.truncate(0)
         return data
 
     def get(self):
