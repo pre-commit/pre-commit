@@ -56,7 +56,7 @@ def test_install_pre_commit(tempdir_factory):
     expected_contents = io.open(pre_commit_script).read().format(
         sys_executable=sys.executable,
         hook_type='pre-commit',
-        pre_push='',
+        hook_specific='',
         skip_on_missing_conf='false',
     )
     assert pre_commit_contents == expected_contents
@@ -71,7 +71,7 @@ def test_install_pre_commit(tempdir_factory):
     expected_contents = io.open(pre_commit_script).read().format(
         sys_executable=sys.executable,
         hook_type='pre-push',
-        pre_push=pre_push_template_contents,
+        hook_specific=pre_push_template_contents,
         skip_on_missing_conf='false',
     )
     assert pre_push_contents == expected_contents
@@ -118,10 +118,11 @@ def test_uninstall(tempdir_factory):
 
 
 def _get_commit_output(tempdir_factory, touch_file='foo', **kwargs):
+    commit_msg = kwargs.pop('commit_msg', 'Commit!')
     open(touch_file, 'a').close()
     cmd_output('git', 'add', touch_file)
     return cmd_output_mocked_pre_commit_home(
-        'git', 'commit', '-am', 'Commit!', '--allow-empty',
+        'git', 'commit', '-am', commit_msg, '--allow-empty',
         # git commit puts pre-commit to stderr
         stderr=subprocess.STDOUT,
         retcode=None,
@@ -558,6 +559,24 @@ def test_pre_push_integration_empty_push(tempdir_factory):
         retc, output = _get_push_output(tempdir_factory)
         assert output == 'Everything up-to-date\n'
         assert retc == 0
+
+
+def test_commit_msg_integration_failing(commit_msg_repo, tempdir_factory):
+    install(Runner(commit_msg_repo, C.CONFIG_FILE), hook_type='commit-msg')
+    retc, out = _get_commit_output(tempdir_factory)
+    assert retc == 1
+    assert out.startswith('Must have "Signed off by:"...')
+    assert out.strip().endswith('...Failed')
+
+
+def test_commit_msg_integration_passing(commit_msg_repo, tempdir_factory):
+    install(Runner(commit_msg_repo, C.CONFIG_FILE), hook_type='commit-msg')
+    msg = 'Hi\nSigned off by: me, lol'
+    retc, out = _get_commit_output(tempdir_factory, commit_msg=msg)
+    assert retc == 0
+    first_line = out.splitlines()[0]
+    assert first_line.startswith('Must have "Signed off by:"...')
+    assert first_line.endswith('...Passed')
 
 
 def test_install_disallow_mising_config(tempdir_factory):

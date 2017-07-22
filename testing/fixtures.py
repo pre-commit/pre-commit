@@ -23,8 +23,7 @@ from testing.util import get_resource_path
 
 def git_dir(tempdir_factory):
     path = tempdir_factory.get()
-    with cwd(path):
-        cmd_output('git', 'init')
+    cmd_output('git', 'init', path)
     return path
 
 

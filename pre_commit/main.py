@@ -76,7 +76,7 @@ def main(argv=None):
         ),
     )
     install_parser.add_argument(
-        '-t', '--hook-type', choices=('pre-commit', 'pre-push'),
+        '-t', '--hook-type', choices=('pre-commit', 'pre-push', 'commit-msg'),
         default='pre-commit',
     )
     install_parser.add_argument(
@@ -150,6 +150,10 @@ def main(argv=None):
         help="The remote branch's commit_id when using `git push`.",
     )
     run_parser.add_argument(
+        '--commit-msg-filename',
+        help='Filename to check when running during `commit-msg`',
+    )
+    run_parser.add_argument(
         '--allow-unstaged-config', default=False, action='store_true',
         help=(
             'Allow an unstaged config to be present.  Note that this will '
@@ -157,7 +161,8 @@ def main(argv=None):
         ),
     )
     run_parser.add_argument(
-        '--hook-stage', choices=('commit', 'push'), default='commit',
+        '--hook-stage', choices=('commit', 'push', 'commit-msg'),
+        default='commit',
         help='The stage during which the hook is fired e.g. commit or push.',
     )
     run_parser.add_argument(

@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
+import collections
 import functools
 import io
 import logging
@@ -20,6 +21,7 @@ from pre_commit.util import cmd_output
 from pre_commit.util import cwd
 from testing.fixtures import git_dir
 from testing.fixtures import make_consuming_repo
+from testing.fixtures import write_config
 
 
 @pytest.yield_fixture
@@ -90,6 +92,29 @@ def in_conflicting_submodule(tempdir_factory):
     with cwd(os.path.join(git_dir_1, 'sub')):
         _make_conflict()
         yield
+
+
+@pytest.fixture
+def commit_msg_repo(tempdir_factory):
+    path = git_dir(tempdir_factory)
+    config = collections.OrderedDict((
+        ('repo', 'local'),
+        (
+            'hooks',
+            [collections.OrderedDict((
+                ('id', 'must-have-signoff'),
+                ('name', 'Must have "Signed off by:"'),
+                ('entry', 'grep -q "Signed off by:"'),
+                ('language', 'system'),
+                ('stages', ['commit-msg']),
+            ))],
+        ),
+    ))
+    write_config(path, config)
+    with cwd(path):
+        cmd_output('git', 'add', '.')
+        cmd_output('git', 'commit', '-m', 'add hooks')
+        yield path
 
 
 @pytest.yield_fixture(autouse=True, scope='session')
