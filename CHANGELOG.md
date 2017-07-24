@@ -1,3 +1,7 @@
+0.15.4
+======
+- Add support for the `commit-msg` git hook
+
 0.15.3
 ======
 - Recover from invalid python virtualenvs
