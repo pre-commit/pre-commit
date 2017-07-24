@@ -52,7 +52,7 @@ if [ ! -f $CONF_FILE  ]; then
 	fi
 fi
 
-{pre_push}
+{hook_specific}
 
 # Run pre-commit
 if ((WHICH_RETV == 0)); then

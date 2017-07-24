@@ -56,16 +56,21 @@ def install(
 
     with io.open(hook_path, 'w') as pre_commit_file_obj:
         if hook_type == 'pre-push':
-            with io.open(resource_filename('pre-push-tmpl')) as fp:
-                pre_push_contents = fp.read()
+            with io.open(resource_filename('pre-push-tmpl')) as f:
+                hook_specific_contents = f.read()
+        elif hook_type == 'commit-msg':
+            with io.open(resource_filename('commit-msg-tmpl')) as f:
+                hook_specific_contents = f.read()
+        elif hook_type == 'pre-commit':
+            hook_specific_contents = ''
         else:
-            pre_push_contents = ''
+            raise AssertionError('Unknown hook type: {}'.format(hook_type))
 
         skip_on_missing_conf = 'true' if skip_on_missing_conf else 'false'
         contents = io.open(resource_filename('hook-tmpl')).read().format(
             sys_executable=sys.executable,
             hook_type=hook_type,
-            pre_push=pre_push_contents,
+            hook_specific=hook_specific_contents,
             skip_on_missing_conf=skip_on_missing_conf,
         )
         pre_commit_file_obj.write(contents)

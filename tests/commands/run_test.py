@@ -60,6 +60,7 @@ def _get_opts(
         allow_unstaged_config=False,
         hook_stage='commit',
         show_diff_on_failure=False,
+        commit_msg_filename='',
 ):
     # These are mutually exclusive
     assert not (all_files and files)
@@ -75,6 +76,7 @@ def _get_opts(
         allow_unstaged_config=allow_unstaged_config,
         hook_stage=hook_stage,
         show_diff_on_failure=show_diff_on_failure,
+        commit_msg_filename=commit_msg_filename,
     )
 
 
@@ -572,40 +574,7 @@ def test_lots_of_files(mock_out_store_directory, tempdir_factory):
         )
 
 
-@pytest.mark.parametrize(
-    (
-        'hook_stage', 'stage_for_first_hook', 'stage_for_second_hook',
-        'expected_output',
-    ),
-    (
-        ('push', ['commit'], ['commit'], [b'', b'']),
-        (
-            'push', ['commit', 'push'], ['commit', 'push'],
-            [b'hook 1', b'hook 2'],
-        ),
-        ('push', [], [], [b'hook 1', b'hook 2']),
-        ('push', [], ['commit'], [b'hook 1', b'']),
-        ('push', ['push'], ['commit'], [b'hook 1', b'']),
-        ('push', ['commit'], ['push'], [b'', b'hook 2']),
-        (
-            'commit', ['commit', 'push'], ['commit', 'push'],
-            [b'hook 1', b'hook 2'],
-        ),
-        ('commit', ['commit'], ['commit'], [b'hook 1', b'hook 2']),
-        ('commit', [], [], [b'hook 1', b'hook 2']),
-        ('commit', [], ['commit'], [b'hook 1', b'hook 2']),
-        ('commit', ['push'], ['commit'], [b'', b'hook 2']),
-        ('commit', ['commit'], ['push'], [b'hook 1', b'']),
-    ),
-)
-def test_local_hook_for_stages(
-        cap_out,
-        repo_with_passing_hook, mock_out_store_directory,
-        stage_for_first_hook,
-        stage_for_second_hook,
-        hook_stage,
-        expected_output,
-):
+def test_push_hook(cap_out, repo_with_passing_hook, mock_out_store_directory):
     config = OrderedDict((
         ('repo', 'local'),
         (
@@ -613,33 +582,57 @@ def test_local_hook_for_stages(
                 OrderedDict((
                     ('id', 'flake8'),
                     ('name', 'hook 1'),
-                    ('entry', 'python -m flake8.__main__'),
+                    ('entry', "'{}' -m flake8".format(sys.executable)),
                     ('language', 'system'),
-                    ('files', r'\.py$'),
-                    ('stages', stage_for_first_hook),
-                )), OrderedDict((
+                    ('types', ['python']),
+                    ('stages', ['commit']),
+                )),
+                OrderedDict((
                     ('id', 'do_not_commit'),
                     ('name', 'hook 2'),
                     ('entry', 'DO NOT COMMIT'),
                     ('language', 'pcre'),
-                    ('files', '^(.*)$'),
-                    ('stages', stage_for_second_hook),
+                    ('types', ['text']),
+                    ('stages', ['push']),
                 )),
             ),
         ),
     ))
     add_config_to_repo(repo_with_passing_hook, config)
 
-    with io.open('dummy.py', 'w') as staged_file:
-        staged_file.write('"""TODO: something"""\n')
+    open('dummy.py', 'a').close()
     cmd_output('git', 'add', 'dummy.py')
 
     _test_run(
         cap_out,
         repo_with_passing_hook,
-        {'hook_stage': hook_stage},
-        expected_outputs=expected_output,
+        {'hook_stage': 'commit'},
+        expected_outputs=[b'hook 1'],
         expected_ret=0,
+        stage=False,
+    )
+
+    _test_run(
+        cap_out,
+        repo_with_passing_hook,
+        {'hook_stage': 'push'},
+        expected_outputs=[b'hook 2'],
+        expected_ret=0,
+        stage=False,
+    )
+
+
+def test_commit_msg_hook(cap_out, commit_msg_repo, mock_out_store_directory):
+    filename = '.git/COMMIT_EDITMSG'
+    with io.open(filename, 'w') as f:
+        f.write('This is the commit message')
+
+    _test_run(
+        cap_out,
+        commit_msg_repo,
+        {'hook_stage': 'commit-msg', 'commit_msg_filename': filename},
+        expected_outputs=[b'Must have "Signed off by:"', b'Failed'],
+        expected_ret=1,
         stage=False,
     )
 
@@ -654,7 +647,7 @@ def test_local_hook_passes(
                 OrderedDict((
                     ('id', 'flake8'),
                     ('name', 'flake8'),
-                    ('entry', 'python -m flake8.__main__'),
+                    ('entry', "'{}' -m flake8".format(sys.executable)),
                     ('language', 'system'),
                     ('files', r'\.py$'),
                 )), OrderedDict((

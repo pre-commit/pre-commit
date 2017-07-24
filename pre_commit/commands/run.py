@@ -58,6 +58,9 @@ def get_filenames(args, include_expr, exclude_expr):
         getter = git.get_files_matching(
             lambda: get_changed_files(args.origin, args.source),
         )
+    elif args.hook_stage == 'commit-msg':
+        def getter(*_):
+            return (args.commit_msg_filename,)
     elif args.files:
         getter = git.get_files_matching(lambda: args.files)
     elif args.all_files:
