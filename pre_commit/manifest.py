@@ -20,22 +20,7 @@ class Manifest(object):
 
     @cached_property
     def manifest_contents(self):
-        default_path = os.path.join(self.repo_path, C.MANIFEST_FILE)
-        legacy_path = os.path.join(self.repo_path, C.MANIFEST_FILE_LEGACY)
-        if os.path.exists(legacy_path) and not os.path.exists(default_path):
-            logger.warning(
-                '{} uses legacy {} to provide hooks.\n'
-                'In newer versions, this file is called {}\n'
-                'This will work in this version of pre-commit but will be '
-                'removed at a later time.\n'
-                'If `pre-commit autoupdate` does not silence this warning '
-                'consider making an issue / pull request.'.format(
-                    self.repo_url, C.MANIFEST_FILE_LEGACY, C.MANIFEST_FILE,
-                ),
-            )
-            return load_manifest(legacy_path)
-        else:
-            return load_manifest(default_path)
+        return load_manifest(os.path.join(self.repo_path, C.MANIFEST_FILE))
 
     @cached_property
     def hooks(self):

@@ -238,15 +238,6 @@ def test_system_hook_with_spaces(tempdir_factory, store):
     )
 
 
-@pytest.mark.integration
-def test_repo_with_legacy_hooks_yaml(tempdir_factory, store):
-    _test_hook_repo(
-        tempdir_factory, store, 'legacy_hooks_yaml_repo',
-        'system-hook-with-spaces', ['/dev/null'], b'Hello World\n',
-        config_kwargs={'legacy': True},
-    )
-
-
 @skipif_cant_run_swift
 @pytest.mark.integration
 def test_swift_hook(tempdir_factory, store):
