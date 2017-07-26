@@ -1,4 +1,4 @@
-language: python
+language: __sugilite__
 dist: trusty
 sudo: required
 services:
