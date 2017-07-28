@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 
 import contextlib
 import os.path
+import sys
 
 from pre_commit import git
 from pre_commit.envcontext import envcontext
@@ -61,7 +62,12 @@ def install_environment(repo_cmd_runner, version, additional_dependencies):
             repo_cmd_runner, ('git', 'clone', '.', repo_src_dir),
         )
 
-        env = dict(os.environ, GOPATH=directory)
+        if sys.platform == 'cygwin': # pragma: no cover
+            _, gopath, _ = cmd_output('cygpath', '-w', directory)
+            gopath = gopath.strip()
+        else:
+            gopath = directory
+        env = dict(os.environ, GOPATH=gopath)
         cmd_output('go', 'get', './...', cwd=repo_src_dir, env=env)
         for dependency in additional_dependencies:
             cmd_output('go', 'get', dependency, cwd=repo_src_dir, env=env)
