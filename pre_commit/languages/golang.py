@@ -62,7 +62,7 @@ def install_environment(repo_cmd_runner, version, additional_dependencies):
             repo_cmd_runner, ('git', 'clone', '.', repo_src_dir),
         )
 
-        if sys.platform == 'cygwin': # pragma: no cover
+        if sys.platform == 'cygwin':  # pragma: no cover
             _, gopath, _ = cmd_output('cygpath', '-w', directory)
             gopath = gopath.strip()
         else:
