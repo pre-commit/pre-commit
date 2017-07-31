@@ -312,3 +312,59 @@ def test_non_utf8_conflicting_diff(foo_staged, cmd_runner):
         with io.open('foo', 'w') as foo_file:
             foo_file.write('')
     _test_foo_state(foo_staged, contents, 'AM', encoding='latin-1')
+
+
+@pytest.fixture
+def in_git_dir(tmpdir):
+    with tmpdir.as_cwd():
+        cmd_output('git', 'init', '.')
+        yield tmpdir
+
+
+BEFORE = b'1\n2\n'
+AFTER = b'3\n4\n'
+
+
+def _crlf(b):
+    return b.replace(b'\n', b'\r\n')
+
+
+def _write(b):
+    with open('foo', 'wb') as f:
+        f.write(b)
+
+
+def git_add():
+    cmd_output('git', 'add', 'foo')
+
+
+def assert_no_diff():
+    tree = cmd_output('git', 'write-tree')[1].strip()
+    cmd_output('git', 'diff-index', tree, '--exit-code')
+
+
+BEFORE_AFTER = pytest.mark.parametrize(
+    ('before', 'after'),
+    (
+        (BEFORE, AFTER),
+        (_crlf(BEFORE), _crlf(AFTER)),
+        (_crlf(BEFORE), AFTER),
+        (BEFORE, _crlf(AFTER)),
+    ),
+)
+
+
+@BEFORE_AFTER
+def test_default(in_git_dir, cmd_runner, before, after):
+    _write(before)
+    git_add()
+    _write(after)
+    with staged_files_only(cmd_runner):
+        assert_no_diff()
+
+
+@BEFORE_AFTER
+@pytest.mark.parametrize('autocrlf', ('true', 'false', 'input'))
+def test_autocrlf_true(in_git_dir, cmd_runner, before, after, autocrlf):
+    cmd_output('git', 'config', '--local', 'core.autocrlf', autocrlf)
+    test_default(in_git_dir, cmd_runner, before, after)
