@@ -3,6 +3,7 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 import io
+import itertools
 import logging
 import os.path
 import shutil
@@ -321,21 +322,9 @@ def in_git_dir(tmpdir):
         yield tmpdir
 
 
-BEFORE = b'1\n2\n'
-AFTER = b'3\n4\n'
-
-
-def _crlf(b):
-    return b.replace(b'\n', b'\r\n')
-
-
 def _write(b):
     with open('foo', 'wb') as f:
         f.write(b)
-
-
-def git_add():
-    cmd_output('git', 'add', 'foo')
 
 
 def assert_no_diff():
@@ -343,28 +332,20 @@ def assert_no_diff():
     cmd_output('git', 'diff-index', tree, '--exit-code')
 
 
-BEFORE_AFTER = pytest.mark.parametrize(
-    ('before', 'after'),
-    (
-        (BEFORE, AFTER),
-        (_crlf(BEFORE), _crlf(AFTER)),
-        (_crlf(BEFORE), AFTER),
-        (BEFORE, _crlf(AFTER)),
-    ),
-)
+bool_product = tuple(itertools.product((True, False), repeat=2))
 
 
-@BEFORE_AFTER
-def test_default(in_git_dir, cmd_runner, before, after):
+@pytest.mark.parametrize(('crlf_before', 'crlf_after'), bool_product)
+@pytest.mark.parametrize('autocrlf', ('true', 'false', 'input'))
+def test_crlf(in_git_dir, cmd_runner, crlf_before, crlf_after, autocrlf):
+    cmd_output('git', 'config', '--local', 'core.autocrlf', autocrlf)
+
+    before, after = b'1\n2\n', b'3\n4\n'
+    before = before.replace(b'\n', b'\r\n') if crlf_before else before
+    after = after.replace(b'\n', b'\r\n') if crlf_after else after
+
     _write(before)
-    git_add()
+    cmd_output('git', 'add', 'foo')
     _write(after)
     with staged_files_only(cmd_runner):
         assert_no_diff()
-
-
-@BEFORE_AFTER
-@pytest.mark.parametrize('autocrlf', ('true', 'false', 'input'))
-def test_autocrlf_true(in_git_dir, cmd_runner, before, after, autocrlf):
-    cmd_output('git', 'config', '--local', 'core.autocrlf', autocrlf)
-    test_default(in_git_dir, cmd_runner, before, after)
