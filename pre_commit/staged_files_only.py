@@ -20,10 +20,11 @@ def staged_files_only(cmd_runner):
         cmd_runner - PrefixedCommandRunner
     """
     # Determine if there are unstaged files
+    tree = cmd_runner.run(('git', 'write-tree'))[1].strip()
     retcode, diff_stdout_binary, _ = cmd_runner.run(
         (
-            'git', 'diff', '--ignore-submodules', '--binary', '--exit-code',
-            '--no-color', '--no-ext-diff',
+            'git', 'diff-index', '--ignore-submodules', '--binary',
+            '--exit-code', '--no-color', '--no-ext-diff', tree, '--',
         ),
         retcode=None,
         encoding=None,
@@ -39,7 +40,7 @@ def staged_files_only(cmd_runner):
             patch_file.write(diff_stdout_binary)
 
         # Clear the working directory of unstaged changes
-        cmd_runner.run(['git', 'checkout', '--', '.'])
+        cmd_runner.run(('git', 'checkout', '--', '.'))
         try:
             yield
         finally:
@@ -57,7 +58,7 @@ def staged_files_only(cmd_runner):
                 # We failed to apply the patch, presumably due to fixes made
                 # by hooks.
                 # Roll back the changes made by hooks.
-                cmd_runner.run(['git', 'checkout', '--', '.'])
+                cmd_runner.run(('git', 'checkout', '--', '.'))
                 cmd_runner.run(
                     ('git', 'apply', patch_filename, '--whitespace=nowarn'),
                     encoding=None,
