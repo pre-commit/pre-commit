@@ -1,3 +1,14 @@
+0.16.0
+======
+- Remove backward compatibility with repositories providing metadata via
+  `hooks.yaml`.  New repositories should provide `.pre-commit-hooks.yaml`.
+  Run `pre-commit autoupdate` to upgrade to the latest repositories.
+- Improve golang support when running under cygwin.
+- Fix crash with unstaged trailing whitespace additions while git was
+  configured with `apply.whitespace = error`.
+- Fix crash with unstaged end-of-file crlf additions and the file's lines
+  ended with crlf while git was configured with `core-autocrlf = true`.
+
 0.15.4
 ======
 - Add support for the `commit-msg` git hook
