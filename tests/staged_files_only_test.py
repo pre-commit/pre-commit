@@ -340,7 +340,7 @@ bool_product = tuple(itertools.product((True, False), repeat=2))
 def test_crlf(in_git_dir, cmd_runner, crlf_before, crlf_after, autocrlf):
     cmd_output('git', 'config', '--local', 'core.autocrlf', autocrlf)
 
-    before, after = b'1\n2\n', b'3\n4\n'
+    before, after = b'1\n2\n', b'3\n4\n\n'
     before = before.replace(b'\n', b'\r\n') if crlf_before else before
     after = after.replace(b'\n', b'\r\n') if crlf_after else after
 
@@ -349,3 +349,8 @@ def test_crlf(in_git_dir, cmd_runner, crlf_before, crlf_after, autocrlf):
     _write(after)
     with staged_files_only(cmd_runner):
         assert_no_diff()
+
+
+def test_whitespace_errors(in_git_dir, cmd_runner):
+    cmd_output('git', 'config', '--local', 'apply.whitespace', 'error')
+    test_crlf(in_git_dir, cmd_runner, True, True, 'true')
