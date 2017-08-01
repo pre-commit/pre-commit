@@ -354,3 +354,17 @@ def test_crlf(in_git_dir, cmd_runner, crlf_before, crlf_after, autocrlf):
 def test_whitespace_errors(in_git_dir, cmd_runner):
     cmd_output('git', 'config', '--local', 'apply.whitespace', 'error')
     test_crlf(in_git_dir, cmd_runner, True, True, 'true')
+
+
+def test_autocrlf_commited_crlf(in_git_dir, cmd_runner):
+    """Regression test for #570"""
+    cmd_output('git', 'config', '--local', 'core.autocrlf', 'false')
+    _write(b'1\r\n2\r\n')
+    cmd_output('git', 'add', 'foo')
+    cmd_output('git', 'commit', '-m', 'Check in crlf')
+
+    cmd_output('git', 'config', '--local', 'core.autocrlf', 'true')
+    _write(b'1\r\n2\r\n\r\n\r\n\r\n')
+
+    with staged_files_only(cmd_runner):
+        assert_no_diff()

@@ -11,6 +11,16 @@ from pre_commit.util import CalledProcessError
 logger = logging.getLogger('pre_commit')
 
 
+def _git_apply(cmd_runner, patch):
+    args = ('apply', '--whitespace=nowarn', patch)
+    try:
+        cmd_runner.run(('git',) + args, encoding=None)
+    except CalledProcessError:
+        # Retry with autocrlf=false -- see #570
+        cmd = ('git', '-c', 'core.autocrlf=false') + args
+        cmd_runner.run(cmd, encoding=None)
+
+
 @contextlib.contextmanager
 def staged_files_only(cmd_runner):
     """Clear any unstaged changes from the git working directory inside this
@@ -46,10 +56,7 @@ def staged_files_only(cmd_runner):
         finally:
             # Try to apply the patch we saved
             try:
-                cmd_runner.run(
-                    ('git', 'apply', '--whitespace=nowarn', patch_filename),
-                    encoding=None,
-                )
+                _git_apply(cmd_runner, patch_filename)
             except CalledProcessError:
                 logger.warning(
                     'Stashed changes conflicted with hook auto-fixes... '
@@ -59,10 +66,7 @@ def staged_files_only(cmd_runner):
                 # by hooks.
                 # Roll back the changes made by hooks.
                 cmd_runner.run(('git', 'checkout', '--', '.'))
-                cmd_runner.run(
-                    ('git', 'apply', patch_filename, '--whitespace=nowarn'),
-                    encoding=None,
-                )
+                _git_apply(cmd_runner, patch_filename)
             logger.info('Restored changes from {}.'.format(patch_filename))
     else:
         # There weren't any staged files so we don't need to do anything
