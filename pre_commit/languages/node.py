@@ -17,10 +17,11 @@ healthy = helpers.basic_healthy
 
 
 def get_env_patch(venv):  # pragma: windows no cover
+    config = os.path.join(venv, 'bin') if sys.platform == 'cygwin' else venv
     return (
         ('NODE_VIRTUAL_ENV', venv),
-        ('NPM_CONFIG_PREFIX', venv),
-        ('npm_config_prefix', venv),
+        ('NPM_CONFIG_PREFIX', config),
+        ('npm_config_prefix', config),
         ('NODE_PATH', os.path.join(venv, 'lib', 'node_modules')),
         ('PATH', (os.path.join(venv, 'bin'), os.pathsep, Var('PATH'))),
     )
