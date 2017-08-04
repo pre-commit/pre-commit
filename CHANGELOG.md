@@ -1,3 +1,7 @@
+0.16.1
+======
+- Improve node support when running under cygwin.
+
 0.16.0
 ======
 - Remove backward compatibility with repositories providing metadata via
