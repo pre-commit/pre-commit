@@ -1,3 +1,7 @@
+0.16.2
+======
+- Initialize submodules in hook repositories.
+
 0.16.1
 ======
 - Improve node support when running under cygwin.
