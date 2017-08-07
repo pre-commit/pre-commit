@@ -123,6 +123,10 @@ class Store(object):
             )
             with cwd(directory):
                 cmd_output('git', 'reset', ref, '--hard', env=no_git_env())
+                cmd_output(
+                    'git', 'submodule', 'update', '--init', '--recursive',
+                    env=no_git_env(),
+                )
 
         return self._new_repo(repo, ref, clone_strategy)
 
