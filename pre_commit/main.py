@@ -82,7 +82,7 @@ def main(argv=None):
     install_parser.add_argument(
         '--allow-missing-config', action='store_true', default=False,
         help=(
-            'Whether to allow a missing `pre-config` configuration file '
+            'Whether to allow a missing `pre-commit` configuration file '
             'or exit with a failure code.'
         ),
     )
