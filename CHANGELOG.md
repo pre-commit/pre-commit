@@ -1,3 +1,7 @@
+0.16.3
+======
+- autoupdate attempts to maintain config formatting.
+
 0.16.2
 ======
 - Initialize submodules in hook repositories.
