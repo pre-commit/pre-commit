@@ -45,6 +45,13 @@ def _add_config_option(parser):
     )
 
 
+def _add_hook_type_option(parser):
+    parser.add_argument(
+        '-t', '--hook-type', choices=('pre-commit', 'pre-push', 'commit-msg'),
+        default='pre-commit',
+    )
+
+
 def main(argv=None):
     argv = argv if argv is not None else sys.argv[1:]
     argv = [five.to_text(arg) for arg in argv]
@@ -75,10 +82,7 @@ def main(argv=None):
             'in the config file.'
         ),
     )
-    install_parser.add_argument(
-        '-t', '--hook-type', choices=('pre-commit', 'pre-push', 'commit-msg'),
-        default='pre-commit',
-    )
+    _add_hook_type_option(install_parser)
     install_parser.add_argument(
         '--allow-missing-config', action='store_true', default=False,
         help=(
@@ -103,10 +107,7 @@ def main(argv=None):
     )
     _add_color_option(uninstall_parser)
     _add_config_option(uninstall_parser)
-    uninstall_parser.add_argument(
-        '-t', '--hook-type', choices=('pre-commit', 'pre-push'),
-        default='pre-commit',
-    )
+    _add_hook_type_option(uninstall_parser)
 
     clean_parser = subparsers.add_parser(
         'clean', help='Clean out pre-commit files.',
