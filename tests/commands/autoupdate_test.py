@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 
+import pipes
 import shutil
 from collections import OrderedDict
 
@@ -121,6 +122,61 @@ def test_autoupdate_out_of_date_repo(
     # Make sure we don't add defaults
     assert 'exclude' not in after
     assert out_of_date_repo.head_sha in after
+
+
+def test_does_not_reformat(
+        out_of_date_repo, mock_out_store_directory, in_tmpdir,
+):
+    fmt = (
+        '-   repo: {}\n'
+        '    sha: {}  # definitely the version I want!\n'
+        '    hooks:\n'
+        '    -   id: foo\n'
+        '        # These args are because reasons!\n'
+        '        args: [foo, bar, baz]\n'
+    )
+    config = fmt.format(out_of_date_repo.path, out_of_date_repo.original_sha)
+    with open(C.CONFIG_FILE, 'w') as f:
+        f.write(config)
+
+    autoupdate(Runner('.', C.CONFIG_FILE), tags_only=False)
+    after = open(C.CONFIG_FILE).read()
+    expected = fmt.format(out_of_date_repo.path, out_of_date_repo.head_sha)
+    assert after == expected
+
+
+def test_loses_formatting_when_not_detectable(
+        out_of_date_repo, mock_out_store_directory, in_tmpdir,
+):
+    """A best-effort attempt is made at updating sha without rewriting
+    formatting.  When the original formatting cannot be detected, this
+    is abandoned.
+    """
+    config = (
+        '[\n'
+        '    {{\n'
+        '        repo: {}, sha: {},\n'
+        '        hooks: [\n'
+        '            # A comment!\n'
+        '            {{id: foo}},\n'
+        '        ],\n'
+        '    }}\n'
+        ']\n'.format(
+            pipes.quote(out_of_date_repo.path), out_of_date_repo.original_sha,
+        )
+    )
+    with open(C.CONFIG_FILE, 'w') as f:
+        f.write(config)
+
+    autoupdate(Runner('.', C.CONFIG_FILE), tags_only=False)
+    after = open(C.CONFIG_FILE).read()
+    expected = (
+        '-   repo: {}\n'
+        '    sha: {}\n'
+        '    hooks:\n'
+        '    -   id: foo\n'
+    ).format(out_of_date_repo.path, out_of_date_repo.head_sha)
+    assert after == expected
 
 
 @pytest.yield_fixture

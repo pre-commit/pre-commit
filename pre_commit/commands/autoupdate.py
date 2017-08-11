@@ -1,6 +1,7 @@
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import re
 from collections import OrderedDict
 
 from aspy.yaml import ordered_dump
@@ -65,6 +66,44 @@ def _update_repo(repo_config, runner, tags_only):
     return new_config
 
 
+SHA_LINE_RE = re.compile(r'^(\s+)sha:(\s*)([^\s#]+)(.*)$', re.DOTALL)
+SHA_LINE_FMT = '{}sha:{}{}{}'
+
+
+def _write_new_config_file(path, output):
+    original_contents = open(path).read()
+    output = remove_defaults(output, CONFIG_SCHEMA)
+    new_contents = ordered_dump(output, **C.YAML_DUMP_KWARGS)
+
+    lines = original_contents.splitlines(True)
+    sha_line_indices_rev = list(reversed([
+        i for i, line in enumerate(lines) if SHA_LINE_RE.match(line)
+    ]))
+
+    for line in new_contents.splitlines(True):
+        if SHA_LINE_RE.match(line):
+            # It's possible we didn't identify the sha lines in the original
+            if not sha_line_indices_rev:
+                break
+            line_index = sha_line_indices_rev.pop()
+            original_line = lines[line_index]
+            orig_match = SHA_LINE_RE.match(original_line)
+            new_match = SHA_LINE_RE.match(line)
+            lines[line_index] = SHA_LINE_FMT.format(
+                orig_match.group(1), orig_match.group(2),
+                new_match.group(3), orig_match.group(4),
+            )
+
+    # If we failed to intelligently rewrite the sha lines, fall back to the
+    # pretty-formatted yaml output
+    to_write = ''.join(lines)
+    if ordered_load(to_write) != output:
+        to_write = new_contents
+
+    with open(path, 'w') as f:
+        f.write(to_write)
+
+
 def autoupdate(runner, tags_only):
     """Auto-update the pre-commit config to the latest versions of repos."""
     retv = 0
@@ -100,10 +139,6 @@ def autoupdate(runner, tags_only):
             output_configs.append(repo_config)
 
     if changed:
-        with open(runner.config_file_path, 'w') as config_file:
-            config_file.write(ordered_dump(
-                remove_defaults(output_configs, CONFIG_SCHEMA),
-                **C.YAML_DUMP_KWARGS
-            ))
+        _write_new_config_file(runner.config_file_path, output_configs)
 
     return retv
