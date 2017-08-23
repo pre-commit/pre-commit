@@ -54,10 +54,8 @@ def _get_opts(
         color=False,
         verbose=False,
         hook=None,
-        no_stash=False,
         origin='',
         source='',
-        allow_unstaged_config=False,
         hook_stage='commit',
         show_diff_on_failure=False,
         commit_msg_filename='',
@@ -70,10 +68,8 @@ def _get_opts(
         color=color,
         verbose=verbose,
         hook=hook,
-        no_stash=no_stash,
         origin=origin,
         source=source,
-        allow_unstaged_config=allow_unstaged_config,
         hook_stage=hook_stage,
         show_diff_on_failure=show_diff_on_failure,
         commit_msg_filename=commit_msg_filename,
@@ -329,38 +325,6 @@ def test_origin_source_error_msg(
         assert warning_msg in printed
     else:
         assert ret == 0
-        assert warning_msg not in printed
-
-
-@pytest.mark.parametrize(
-    ('no_stash', 'all_files', 'expect_stash'),
-    (
-        (True, True, False),
-        (True, False, False),
-        (False, True, False),
-        (False, False, True),
-    ),
-)
-def test_no_stash(
-        cap_out,
-        repo_with_passing_hook,
-        no_stash,
-        all_files,
-        expect_stash,
-        mock_out_store_directory,
-):
-    stage_a_file()
-    # Make unstaged changes
-    with open('foo.py', 'w') as foo_file:
-        foo_file.write('import os\n')
-
-    args = _get_opts(no_stash=no_stash, all_files=all_files)
-    ret, printed = _do_run(cap_out, repo_with_passing_hook, args)
-    assert ret == 0
-    warning_msg = b'[WARNING] Unstaged files detected.'
-    if expect_stash:
-        assert warning_msg in printed
-    else:
         assert warning_msg not in printed
 
 
@@ -715,37 +679,19 @@ def modified_config_repo(repo_with_passing_hook):
     yield repo_with_passing_hook
 
 
-def test_allow_unstaged_config_option(
+def test_error_with_unstaged_config(
         cap_out, modified_config_repo, mock_out_store_directory,
 ):
-    args = _get_opts(allow_unstaged_config=True)
-    ret, printed = _do_run(cap_out, modified_config_repo, args)
-    expected = (
-        b'You have an unstaged config file and have specified the '
-        b'--allow-unstaged-config option.'
-    )
-    assert expected in printed
-    assert ret == 0
-
-
-def test_no_allow_unstaged_config_option(
-        cap_out, modified_config_repo, mock_out_store_directory,
-):
-    args = _get_opts(allow_unstaged_config=False)
+    args = _get_opts()
     ret, printed = _do_run(cap_out, modified_config_repo, args)
     assert b'Your .pre-commit-config.yaml is unstaged.' in printed
     assert ret == 1
 
 
 @pytest.mark.parametrize(
-    'opts',
-    (
-        {'allow_unstaged_config': False, 'no_stash': True},
-        {'all_files': True},
-        {'files': [C.CONFIG_FILE]},
-    ),
+    'opts', ({'all_files': True}, {'files': [C.CONFIG_FILE]}),
 )
-def test_unstaged_message_suppressed(
+def test_no_unstaged_error_with_all_files_or_files(
         cap_out, modified_config_repo, mock_out_store_directory, opts,
 ):
     args = _get_opts(**opts)
