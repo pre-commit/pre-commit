@@ -229,7 +229,7 @@ def run(runner, args, environ=os.environ):
     if _has_unstaged_config(runner) and not no_stash:
         logger.error(
             'Your .pre-commit-config.yaml is unstaged.\n'
-            '`git add .pre-commit-config.yaml` to fix this.\n',
+            '`git add .pre-commit-config.yaml` to fix this.',
         )
         return 1
 
