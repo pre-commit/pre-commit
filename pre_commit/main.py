@@ -136,10 +136,6 @@ def main(argv=None):
     _add_config_option(run_parser)
     run_parser.add_argument('hook', nargs='?', help='A single hook-id to run')
     run_parser.add_argument(
-        '--no-stash', default=False, action='store_true',
-        help='Use this option to prevent auto stashing of unstaged files.',
-    )
-    run_parser.add_argument(
         '--verbose', '-v', action='store_true', default=False,
     )
     run_parser.add_argument(
@@ -155,13 +151,6 @@ def main(argv=None):
         help='Filename to check when running during `commit-msg`',
     )
     run_parser.add_argument(
-        '--allow-unstaged-config', default=False, action='store_true',
-        help=(
-            'Allow an unstaged config to be present.  Note that this will '
-            'be stashed before parsing unless --no-stash is specified.'
-        ),
-    )
-    run_parser.add_argument(
         '--hook-stage', choices=('commit', 'push', 'commit-msg'),
         default='commit',
         help='The stage during which the hook is fired e.g. commit or push.',
@@ -173,7 +162,7 @@ def main(argv=None):
     run_mutex_group = run_parser.add_mutually_exclusive_group(required=False)
     run_mutex_group.add_argument(
         '--all-files', '-a', action='store_true', default=False,
-        help='Run on all the files in the repo.  Implies --no-stash.',
+        help='Run on all the files in the repo.',
     )
     run_mutex_group.add_argument(
         '--files', nargs='*', default=[],

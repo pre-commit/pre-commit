@@ -217,7 +217,7 @@ def _has_unstaged_config(runner):
 
 
 def run(runner, args, environ=os.environ):
-    no_stash = args.no_stash or args.all_files or bool(args.files)
+    no_stash = args.all_files or bool(args.files)
 
     # Check if we have unresolved merge conflict files and fail fast.
     if _has_unmerged_paths(runner):
@@ -227,20 +227,11 @@ def run(runner, args, environ=os.environ):
         logger.error('Specify both --origin and --source.')
         return 1
     if _has_unstaged_config(runner) and not no_stash:
-        if args.allow_unstaged_config:
-            logger.warn(
-                'You have an unstaged config file and have specified the '
-                '--allow-unstaged-config option.\n'
-                'Note that your config will be stashed before the config is '
-                'parsed unless --no-stash is specified.',
-            )
-        else:
-            logger.error(
-                'Your .pre-commit-config.yaml is unstaged.\n'
-                '`git add .pre-commit-config.yaml` to fix this.\n'
-                'Run pre-commit with --allow-unstaged-config to silence this.',
-            )
-            return 1
+        logger.error(
+            'Your .pre-commit-config.yaml is unstaged.\n'
+            '`git add .pre-commit-config.yaml` to fix this.\n',
+        )
+        return 1
 
     # Expose origin / source as environment variables for hooks to consume
     if args.origin and args.source:

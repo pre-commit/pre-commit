@@ -137,8 +137,7 @@ def test_get_conflicted_files_in_submodule(in_conflicting_submodule):
 
 
 def test_get_conflicted_files_unstaged_files(in_merge_conflict):
-    # If they for whatever reason did pre-commit run --no-stash during a
-    # conflict
+    """This case no longer occurs, but it is a useful test nonetheless"""
     resolve_conflict()
 
     # Make unstaged file.
