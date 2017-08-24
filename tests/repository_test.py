@@ -547,8 +547,8 @@ def test_reinstall(tempdir_factory, store, log_info_mock):
     config = make_config_from_repo(path)
     repo = Repository.create(config, store)
     repo.require_installed()
-    # We print some logging during clone (1) + install (3)
-    assert log_info_mock.call_count == 4
+    # We print some logging during clone (2) + install (4)
+    assert log_info_mock.call_count == 6
     log_info_mock.reset_mock()
     # Reinstall with same repo should not trigger another install
     repo.require_installed()

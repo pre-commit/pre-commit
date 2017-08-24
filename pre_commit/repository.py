@@ -64,34 +64,42 @@ def _installed(cmd_runner, language_name, language_version, additional_deps):
     )
 
 
-def _install_all(venvs, repo_url):
+def _install_all(venvs, repo_url, store):
     """Tuple of (cmd_runner, language, version, deps)"""
-    need_installed = tuple(
-        (cmd_runner, language_name, version, deps)
-        for cmd_runner, language_name, version, deps in venvs
-        if not _installed(cmd_runner, language_name, version, deps)
-    )
+    def _need_installed():
+        return tuple(
+            (cmd_runner, language_name, version, deps)
+            for cmd_runner, language_name, version, deps in venvs
+            if not _installed(cmd_runner, language_name, version, deps)
+        )
 
-    if need_installed:
+    if not _need_installed():
+        return
+    with store.exclusive_lock():
+        # Another process may have already completed this work
+        need_installed = _need_installed()
+        if not need_installed:  # pragma: no cover (race)
+            return
+
         logger.info(
             'Installing environment for {}.'.format(repo_url),
         )
         logger.info('Once installed this environment will be reused.')
         logger.info('This may take a few minutes...')
 
-    for cmd_runner, language_name, version, deps in need_installed:
-        language = languages[language_name]
-        venv = environment_dir(language.ENVIRONMENT_DIR, version)
+        for cmd_runner, language_name, version, deps in need_installed:
+            language = languages[language_name]
+            venv = environment_dir(language.ENVIRONMENT_DIR, version)
 
-        # There's potentially incomplete cleanup from previous runs
-        # Clean it up!
-        if cmd_runner.exists(venv):
-            shutil.rmtree(cmd_runner.path(venv))
+            # There's potentially incomplete cleanup from previous runs
+            # Clean it up!
+            if cmd_runner.exists(venv):
+                shutil.rmtree(cmd_runner.path(venv))
 
-        language.install_environment(cmd_runner, version, deps)
-        # Write our state to indicate we're installed
-        state = _state(deps)
-        _write_state(cmd_runner, venv, state)
+            language.install_environment(cmd_runner, version, deps)
+            # Write our state to indicate we're installed
+            state = _state(deps)
+            _write_state(cmd_runner, venv, state)
 
 
 def _validate_minimum_version(hook):
@@ -174,7 +182,7 @@ class Repository(object):
 
     def require_installed(self):
         if not self.__installed:
-            _install_all(self._venvs, self.repo_config['repo'])
+            _install_all(self._venvs, self.repo_config['repo'], self.store)
             self.__installed = True
 
     def run_hook(self, hook, file_args):
