@@ -10,6 +10,7 @@ import tempfile
 from cached_property import cached_property
 
 import pre_commit.constants as C
+from pre_commit import file_lock
 from pre_commit.prefixed_command_runner import PrefixedCommandRunner
 from pre_commit.util import clean_path_on_failure
 from pre_commit.util import cmd_output
@@ -37,13 +38,20 @@ def _get_default_directory():
 
 class Store(object):
     get_default_directory = staticmethod(_get_default_directory)
+    __created = False
 
     def __init__(self, directory=None):
         if directory is None:
             directory = self.get_default_directory()
 
         self.directory = directory
-        self.__created = False
+
+    @contextlib.contextmanager
+    def exclusive_lock(self, quiet=False):
+        if not quiet:
+            logger.info('Locking pre-commit directory')
+        with file_lock.lock(os.path.join(self.directory, '.lock')):
+            yield
 
     def _write_readme(self):
         with io.open(os.path.join(self.directory, 'README'), 'w') as readme:
@@ -75,12 +83,17 @@ class Store(object):
         os.rename(tmpfile, self.db_path)
 
     def _create(self):
-        if os.path.exists(self.db_path):
-            return
         if not os.path.exists(self.directory):
             os.makedirs(self.directory)
             self._write_readme()
-        self._write_sqlite_db()
+
+        if os.path.exists(self.db_path):
+            return
+        with self.exclusive_lock(quiet=True):
+            # Another process may have already completed this work
+            if os.path.exists(self.db_path):  # pragma: no cover (race)
+                return
+            self._write_sqlite_db()
 
     def require_created(self):
         """Require the pre-commit file store to be created."""
@@ -91,27 +104,37 @@ class Store(object):
     def _new_repo(self, repo, ref, make_strategy):
         self.require_created()
 
-        # Check if we already exist
-        with sqlite3.connect(self.db_path) as db:
-            result = db.execute(
-                'SELECT path FROM repos WHERE repo = ? AND ref = ?',
-                [repo, ref],
-            ).fetchone()
-            if result:
-                return result[0]
+        def _get_result():
+            # Check if we already exist
+            with sqlite3.connect(self.db_path) as db:
+                result = db.execute(
+                    'SELECT path FROM repos WHERE repo = ? AND ref = ?',
+                    [repo, ref],
+                ).fetchone()
+                if result:
+                    return result[0]
 
-        logger.info('Initializing environment for {}.'.format(repo))
+        result = _get_result()
+        if result:
+            return result
+        with self.exclusive_lock():
+            # Another process may have already completed this work
+            result = _get_result()
+            if result:  # pragma: no cover (race)
+                return result
 
-        directory = tempfile.mkdtemp(prefix='repo', dir=self.directory)
-        with clean_path_on_failure(directory):
-            make_strategy(directory)
+            logger.info('Initializing environment for {}.'.format(repo))
 
-        # Update our db with the created repo
-        with sqlite3.connect(self.db_path) as db:
-            db.execute(
-                'INSERT INTO repos (repo, ref, path) VALUES (?, ?, ?)',
-                [repo, ref, directory],
-            )
+            directory = tempfile.mkdtemp(prefix='repo', dir=self.directory)
+            with clean_path_on_failure(directory):
+                make_strategy(directory)
+
+            # Update our db with the created repo
+            with sqlite3.connect(self.db_path) as db:
+                db.execute(
+                    'INSERT INTO repos (repo, ref, path) VALUES (?, ?, ?)',
+                    [repo, ref, directory],
+                )
         return directory
 
     def clone(self, repo, ref):
