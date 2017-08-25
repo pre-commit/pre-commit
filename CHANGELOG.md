@@ -1,3 +1,13 @@
+0.17.0
+======
+- Fix typos in help
+- Allow `commit-msg` hook to be uninstalled
+- Upgrade the `sample-config`
+- Remove undocumented `--no-stash` and `--allow-unstaged-config`
+- Remove `validate_config` hook pre-commit hook.
+- Fix installation race condition when multiple `pre-commit` processes would
+  attempt to install the same repository.
+
 0.16.3
 ======
 - autoupdate attempts to maintain config formatting.
