@@ -77,6 +77,16 @@ def install_environment(
         os.mkdir(directory)
 
 
+def docker_cmd():
+    return (
+        'docker', 'run',
+        '--rm',
+        '-u', '{}:{}'.format(os.getuid(), os.getgid()),
+        '-v', '{}:/src:rw'.format(os.getcwd()),
+        '--workdir', '/src',
+    )
+
+
 def run_hook(repo_cmd_runner, hook, file_args):  # pragma: windows no cover
     assert_docker_available()
     # Rebuild the docker image in case it has gone missing, as many people do
@@ -84,16 +94,8 @@ def run_hook(repo_cmd_runner, hook, file_args):  # pragma: windows no cover
     build_docker_image(repo_cmd_runner, pull=False)
 
     hook_cmd = helpers.to_cmd(hook)
-    entry_executable, cmd_rest = hook_cmd[0], hook_cmd[1:]
+    entry_exe, cmd_rest = hook_cmd[0], hook_cmd[1:]
 
-    cmd = (
-        'docker', 'run',
-        '--rm',
-        '-u', '{}:{}'.format(os.getuid(), os.getgid()),
-        '-v', '{}:/src:rw'.format(os.getcwd()),
-        '--workdir', '/src',
-        '--entrypoint', entry_executable,
-        docker_tag(repo_cmd_runner),
-    ) + cmd_rest
-
+    entry_tag = ('--entrypoint', entry_exe, docker_tag(repo_cmd_runner))
+    cmd = docker_cmd() + entry_tag + cmd_rest
     return xargs(cmd, file_args)

@@ -165,6 +165,18 @@ def test_run_a_failing_docker_hook(tempdir_factory, store):
 
 
 @skipif_slowtests_false
+@skipif_cant_run_docker
+@pytest.mark.integration
+@pytest.mark.parametrize('hook_id', ('echo-entrypoint', 'echo-cmd'))
+def test_run_a_docker_image_hook(tempdir_factory, store, hook_id):
+    _test_hook_repo(
+        tempdir_factory, store, 'docker_image_hooks_repo',
+        hook_id,
+        ['Hello World from docker'], b'Hello World from docker\n',
+    )
+
+
+@skipif_slowtests_false
 @xfailif_windows_no_node
 @pytest.mark.integration
 def test_run_a_node_hook(tempdir_factory, store):

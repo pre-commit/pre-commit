@@ -1,6 +1,9 @@
+from __future__ import absolute_import
 from __future__ import unicode_literals
 
 from pre_commit.languages import helpers
+from pre_commit.languages.docker import assert_docker_available
+from pre_commit.languages.docker import docker_cmd
 from pre_commit.xargs import xargs
 
 
@@ -10,7 +13,7 @@ healthy = helpers.basic_healthy
 install_environment = helpers.no_install
 
 
-def run_hook(repo_cmd_runner, hook, file_args):
-    cmd = helpers.to_cmd(hook)
-    cmd = (repo_cmd_runner.prefix_dir + cmd[0],) + cmd[1:]
+def run_hook(repo_cmd_runner, hook, file_args):  # pragma: windows no cover
+    assert_docker_available()
+    cmd = docker_cmd() + helpers.to_cmd(hook)
     return xargs(cmd, file_args)

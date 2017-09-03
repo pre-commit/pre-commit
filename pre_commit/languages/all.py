@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 from pre_commit.languages import docker
+from pre_commit.languages import docker_image
 from pre_commit.languages import golang
 from pre_commit.languages import node
 from pre_commit.languages import pcre
@@ -49,6 +50,7 @@ from pre_commit.languages import system
 
 languages = {
     'docker': docker,
+    'docker_image': docker_image,
     'golang': golang,
     'node': node,
     'pcre': pcre,
