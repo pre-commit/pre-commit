@@ -41,3 +41,7 @@ def basic_get_default_version():
 
 def basic_healthy(repo_cmd_runner, language_version):
     return True
+
+
+def no_install(repo_cmd_runner, version, additional_dependencies):
+    raise AssertionError('This type is not installable')

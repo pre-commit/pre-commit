@@ -202,8 +202,8 @@ class LocalRepository(Repository):
     def _cmd_runner_from_deps(self, language_name, deps):
         """local repositories have a cmd runner per hook"""
         language = languages[language_name]
-        # pcre / script / system do not have environments so they work out
-        # of the current directory
+        # pcre / script / system / docker_image do not have environments so
+        # they work out of the current directory
         if language.ENVIRONMENT_DIR is None:
             return PrefixedCommandRunner(git.get_root())
         else:
