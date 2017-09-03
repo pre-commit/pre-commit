@@ -1,3 +1,10 @@
+0.18.0
+======
+- Add a new `docker_image` language type.  `docker_image` is intended to be a
+  lightweight hook type similar to `system` / `script` which allows one to use
+  an existing docker image that provides a hook.  `docker_image` hooks can
+  also be used as repository `local` hooks.
+
 0.17.0
 ======
 - Fix typos in help
