@@ -47,10 +47,11 @@ class Store(object):
         self.directory = directory
 
     @contextlib.contextmanager
-    def exclusive_lock(self, quiet=False):
-        if not quiet:
+    def exclusive_lock(self):
+        def blocked_cb():  # pragma: no cover (tests are single-process)
             logger.info('Locking pre-commit directory')
-        with file_lock.lock(os.path.join(self.directory, '.lock')):
+
+        with file_lock.lock(os.path.join(self.directory, '.lock'), blocked_cb):
             yield
 
     def _write_readme(self):
@@ -89,7 +90,7 @@ class Store(object):
 
         if os.path.exists(self.db_path):
             return
-        with self.exclusive_lock(quiet=True):
+        with self.exclusive_lock():
             # Another process may have already completed this work
             if os.path.exists(self.db_path):  # pragma: no cover (race)
                 return

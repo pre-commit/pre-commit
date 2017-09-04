@@ -88,7 +88,7 @@ def test_clone(store, tempdir_factory, log_info_mock):
 
     ret = store.clone(path, sha)
     # Should have printed some stuff
-    assert log_info_mock.call_args_list[1][0][0].startswith(
+    assert log_info_mock.call_args_list[0][0][0].startswith(
         'Initializing environment for ',
     )
 

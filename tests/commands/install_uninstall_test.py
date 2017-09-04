@@ -142,8 +142,7 @@ FILES_CHANGED = (
 
 
 NORMAL_PRE_COMMIT_RUN = re.compile(
-    r'^\[INFO\] Locking pre-commit directory\r?\n'
-    r'\[INFO\] Initializing environment for .+\.\r?\n'
+    r'^\[INFO\] Initializing environment for .+\.\r?\n'
     r'Bash hook\.+Passed\r?\n'
     r'\[master [a-f0-9]{7}\] Commit!\r?\n' +
     FILES_CHANGED +
@@ -255,8 +254,7 @@ def test_environment_not_sourced(tempdir_factory):
 
 
 FAILING_PRE_COMMIT_RUN = re.compile(
-    r'^\[INFO\] Locking pre-commit directory\r?\n'
-    r'\[INFO\] Initializing environment for .+\.\r?\n'
+    r'^\[INFO\] Initializing environment for .+\.\r?\n'
     r'Failing hook\.+Failed\r?\n'
     r'hookid: failing_hook\r?\n'
     r'\r?\n'
@@ -334,7 +332,6 @@ def test_install_existing_hook_no_overwrite_idempotent(tempdir_factory):
 
 FAIL_OLD_HOOK = re.compile(
     r'fail!\r?\n'
-    r'\[INFO\] Locking pre-commit directory\r?\n'
     r'\[INFO\] Initializing environment for .+\.\r?\n'
     r'Bash hook\.+Passed\r?\n',
 )
