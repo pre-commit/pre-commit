@@ -2,6 +2,7 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 import argparse
+import os.path
 
 import mock
 import pytest
@@ -121,10 +122,11 @@ def test_expected_fatal_error_no_git_repo(
     with cwd(tempdir_factory.get()):
         with pytest.raises(SystemExit):
             main.main([])
+    log_file = os.path.join(mock_out_store_directory, 'pre-commit.log')
     assert cap_out.get() == (
         'An error has occurred: FatalError: git failed. '
         'Is it installed, and are you in a Git repository directory?\n'
-        'Check the log at ~/.pre-commit/pre-commit.log\n'
+        'Check the log at {}\n'.format(log_file)
     )
 
 

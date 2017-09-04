@@ -8,7 +8,9 @@ from pre_commit.util import rmtree
 
 
 def clean(runner):
-    if os.path.exists(runner.store.directory):
-        rmtree(runner.store.directory)
-        output.write_line('Cleaned {}.'.format(runner.store.directory))
+    legacy_path = os.path.expanduser('~/.pre-commit')
+    for directory in (runner.store.directory, legacy_path):
+        if os.path.exists(directory):
+            rmtree(directory)
+            output.write_line('Cleaned {}.'.format(directory))
     return 0

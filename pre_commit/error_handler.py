@@ -28,10 +28,11 @@ def _log_and_exit(msg, exc, formatted):
         _to_bytes(exc), b'\n',
     ))
     output.write(error_msg)
-    output.write_line('Check the log at ~/.pre-commit/pre-commit.log')
     store = Store()
     store.require_created()
-    with open(os.path.join(store.directory, 'pre-commit.log'), 'wb') as log:
+    log_path = os.path.join(store.directory, 'pre-commit.log')
+    output.write_line('Check the log at {}'.format(log_path))
+    with open(log_path, 'wb') as log:
         output.write(error_msg, stream=log)
         output.write_line(formatted, stream=log)
     raise SystemExit(1)
