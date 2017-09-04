@@ -14,11 +14,6 @@ from pre_commit.errors import FatalError
 from pre_commit.store import Store
 
 
-# For testing purposes
-class PreCommitSystemExit(SystemExit):
-    pass
-
-
 def _to_bytes(exc):
     try:
         return bytes(exc)
@@ -39,7 +34,7 @@ def _log_and_exit(msg, exc, formatted):
     with open(os.path.join(store.directory, 'pre-commit.log'), 'wb') as log:
         output.write(error_msg, stream=log)
         output.write_line(formatted, stream=log)
-    raise PreCommitSystemExit(1)
+    raise SystemExit(1)
 
 
 @contextlib.contextmanager

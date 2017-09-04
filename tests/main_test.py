@@ -7,7 +7,6 @@ import mock
 import pytest
 
 from pre_commit import main
-from pre_commit.error_handler import PreCommitSystemExit
 from pre_commit.util import cwd
 from testing.auto_namedtuple import auto_namedtuple
 
@@ -120,7 +119,7 @@ def test_expected_fatal_error_no_git_repo(
         tempdir_factory, cap_out, mock_out_store_directory,
 ):
     with cwd(tempdir_factory.get()):
-        with pytest.raises(PreCommitSystemExit):
+        with pytest.raises(SystemExit):
             main.main([])
     assert cap_out.get() == (
         'An error has occurred: FatalError: git failed. '

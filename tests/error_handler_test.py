@@ -75,7 +75,7 @@ def test_error_handler_uncaught_error(mocked_log_and_exit):
 
 
 def test_log_and_exit(cap_out, mock_out_store_directory):
-    with pytest.raises(error_handler.PreCommitSystemExit):
+    with pytest.raises(SystemExit):
         error_handler._log_and_exit(
             'msg', FatalError('hai'), "I'm a stacktrace",
         )
@@ -96,7 +96,7 @@ def test_log_and_exit(cap_out, mock_out_store_directory):
 
 
 def test_error_handler_non_ascii_exception(mock_out_store_directory):
-    with pytest.raises(error_handler.PreCommitSystemExit):
+    with pytest.raises(SystemExit):
         with error_handler.error_handler():
             raise ValueError('☃')
 
