@@ -1,3 +1,8 @@
+0.18.1
+======
+- Only mention locking when waiting for a lock.
+- Fix `IOError` during locking in timeout situtation on windows under python 2.
+
 0.18.0
 ======
 - Add a new `docker_image` language type.  `docker_image` is intended to be a
