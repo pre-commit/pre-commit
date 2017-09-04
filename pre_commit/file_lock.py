@@ -12,18 +12,22 @@ try:  # pragma: no cover (windows)
     _region = 0xffff
 
     @contextlib.contextmanager
-    def _locked(fileno):
-        while True:
-            try:
-                msvcrt.locking(fileno, msvcrt.LK_LOCK, _region)
-            except OSError as e:
-                # Locking violation. Returned when the _LK_LOCK or _LK_RLCK
-                # flag is specified and the file cannot be locked after 10
-                # attempts.
-                if e.errno != errno.EDEADLOCK:
-                    raise
-            else:
-                break
+    def _locked(fileno, blocked_cb):
+        try:
+            msvcrt.locking(fileno, msvcrt.LK_NBLCK, _region)
+        except IOError:
+            blocked_cb()
+            while True:
+                try:
+                    msvcrt.locking(fileno, msvcrt.LK_LOCK, _region)
+                except IOError as e:
+                    # Locking violation. Returned when the _LK_LOCK or _LK_RLCK
+                    # flag is specified and the file cannot be locked after 10
+                    # attempts.
+                    if e.errno != errno.EDEADLOCK:
+                        raise
+                else:
+                    break
 
         try:
             yield
@@ -38,8 +42,12 @@ except ImportError:  # pragma: no cover (posix)
     import fcntl
 
     @contextlib.contextmanager
-    def _locked(fileno):
-        fcntl.flock(fileno, fcntl.LOCK_EX)
+    def _locked(fileno, blocked_cb):
+        try:
+            fcntl.flock(fileno, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except IOError:
+            blocked_cb()
+            fcntl.flock(fileno, fcntl.LOCK_EX)
         try:
             yield
         finally:
@@ -47,7 +55,7 @@ except ImportError:  # pragma: no cover (posix)
 
 
 @contextlib.contextmanager
-def lock(path):
+def lock(path, blocked_cb):
     with open(path, 'a+') as f:
-        with _locked(f.fileno()):
+        with _locked(f.fileno(), blocked_cb):
             yield
