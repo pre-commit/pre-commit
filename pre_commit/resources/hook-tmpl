@@ -59,10 +59,10 @@ if ((WHICH_RETV == 0)); then
     pre-commit run $args --config {config_file}
     PRE_COMMIT_RETV=$?
 elif ((ENV_PYTHON_RETV == 0)); then
-    "$ENV_PYTHON" -m pre_commit.main $args
+    "$ENV_PYTHON" -m pre_commit.main run $args
     PRE_COMMIT_RETV=$?
 else
-    python -m pre_commit.main $args
+    python -m pre_commit.main run $args
     PRE_COMMIT_RETV=$?
 fi
 
