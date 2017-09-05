@@ -57,6 +57,7 @@ def test_install_pre_commit(tempdir_factory):
         sys_executable=sys.executable,
         hook_type='pre-commit',
         hook_specific='',
+        config_file=runner.config_file,
         skip_on_missing_conf='false',
     )
     assert pre_commit_contents == expected_contents
@@ -72,6 +73,7 @@ def test_install_pre_commit(tempdir_factory):
         sys_executable=sys.executable,
         hook_type='pre-push',
         hook_specific=pre_push_template_contents,
+        config_file=runner.config_file,
         skip_on_missing_conf='false',
     )
     assert pre_push_contents == expected_contents

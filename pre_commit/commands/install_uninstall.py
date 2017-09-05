@@ -71,6 +71,7 @@ def install(
             sys_executable=sys.executable,
             hook_type=hook_type,
             hook_specific=hook_specific_contents,
+            config_file=runner.config_file,
             skip_on_missing_conf=skip_on_missing_conf,
         )
         pre_commit_file_obj.write(contents)
