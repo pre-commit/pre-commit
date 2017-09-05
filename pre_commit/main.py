@@ -14,6 +14,7 @@ from pre_commit.commands.clean import clean
 from pre_commit.commands.install_uninstall import install
 from pre_commit.commands.install_uninstall import install_hooks
 from pre_commit.commands.install_uninstall import uninstall
+from pre_commit.commands.migrate_config import migrate_config
 from pre_commit.commands.run import run
 from pre_commit.commands.sample_config import sample_config
 from pre_commit.error_handler import error_handler
@@ -131,6 +132,13 @@ def main(argv=None):
         ),
     )
 
+    migrate_config_parser = subparsers.add_parser(
+        'migrate-config',
+        help='Migrate list configuration to new map configuration.',
+    )
+    _add_color_option(migrate_config_parser)
+    _add_config_option(migrate_config_parser)
+
     run_parser = subparsers.add_parser('run', help='Run hooks.')
     _add_color_option(run_parser)
     _add_config_option(run_parser)
@@ -217,6 +225,8 @@ def main(argv=None):
             if args.tags_only:
                 logger.warning('--tags-only is the default')
             return autoupdate(runner, tags_only=not args.bleeding_edge)
+        elif args.command == 'migrate-config':
+            return migrate_config(runner)
         elif args.command == 'run':
             return run(runner, args)
         elif args.command == 'sample-config':

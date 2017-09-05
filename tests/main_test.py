@@ -12,8 +12,8 @@ from testing.auto_namedtuple import auto_namedtuple
 
 
 FNS = (
-    'autoupdate', 'clean', 'install', 'install_hooks', 'run', 'sample_config',
-    'uninstall',
+    'autoupdate', 'clean', 'install', 'install_hooks', 'migrate_config', 'run',
+    'sample_config', 'uninstall',
 )
 CMDS = tuple(fn.replace('_', '-') for fn in FNS)
 
