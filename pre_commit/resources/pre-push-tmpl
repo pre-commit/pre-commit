@@ -9,14 +9,14 @@ do
                 # Check that the ancestor has at least one parent
                 git rev-list --max-parents=0 "$local_sha" | grep "$first_ancestor" > /dev/null
                 if [ $? -ne 0 ]; then
-                    args="run --all-files"
+                    args="--all-files"
                 else
                     source=$(git rev-parse "$first_ancestor"^)
-                    args="run --origin $local_sha --source $source"
+                    args="--origin $local_sha --source $source"
                 fi
             fi
         else
-            args="run --origin $local_sha --source $remote_sha"
+            args="--origin $local_sha --source $remote_sha"
         fi
     fi
 done

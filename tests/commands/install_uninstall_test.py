@@ -57,6 +57,7 @@ def test_install_pre_commit(tempdir_factory):
         sys_executable=sys.executable,
         hook_type='pre-commit',
         hook_specific='',
+        config_file=runner.config_file,
         skip_on_missing_conf='false',
     )
     assert pre_commit_contents == expected_contents
@@ -72,6 +73,7 @@ def test_install_pre_commit(tempdir_factory):
         sys_executable=sys.executable,
         hook_type='pre-push',
         hook_specific=pre_push_template_contents,
+        config_file=runner.config_file,
         skip_on_missing_conf='false',
     )
     assert pre_push_contents == expected_contents
@@ -154,6 +156,18 @@ def test_install_pre_commit_and_run(tempdir_factory):
     path = make_consuming_repo(tempdir_factory, 'script_hooks_repo')
     with cwd(path):
         assert install(Runner(path, C.CONFIG_FILE)) == 0
+
+        ret, output = _get_commit_output(tempdir_factory)
+        assert ret == 0
+        assert NORMAL_PRE_COMMIT_RUN.match(output)
+
+
+def test_install_pre_commit_and_run_custom_path(tempdir_factory):
+    path = make_consuming_repo(tempdir_factory, 'script_hooks_repo')
+    with cwd(path):
+        cmd_output('git', 'mv', C.CONFIG_FILE, 'custom-config.yaml')
+        cmd_output('git', 'commit', '-m', 'move pre-commit config')
+        assert install(Runner(path, 'custom-config.yaml')) == 0
 
         ret, output = _get_commit_output(tempdir_factory)
         assert ret == 0
