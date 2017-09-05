@@ -133,9 +133,3 @@ def test_pre_push_path(in_tmpdir):
     runner = Runner(path, C.CONFIG_FILE)
     expected_path = os.path.join(path, '.git', 'hooks', 'pre-push')
     assert runner.pre_push_path == expected_path
-
-
-def test_cmd_runner(mock_out_store_directory):
-    runner = Runner(os.path.join('foo', 'bar'), C.CONFIG_FILE)
-    ret = runner.cmd_runner
-    assert ret.prefix_dir == os.path.join(mock_out_store_directory) + os.sep

@@ -4,11 +4,9 @@ from __future__ import unicode_literals
 
 import io
 import itertools
-import logging
 import os.path
 import shutil
 
-import mock
 import pytest
 
 from pre_commit.staged_files_only import staged_files_only
@@ -20,6 +18,11 @@ from testing.util import get_resource_path
 
 
 FOO_CONTENTS = '\n'.join(('1', '2', '3', '4', '5', '6', '7', '8', ''))
+
+
+@pytest.fixture
+def patch_dir(tempdir_factory):
+    return tempdir_factory.get()
 
 
 def get_short_git_status():
@@ -54,43 +57,43 @@ def test_foo_staged(foo_staged):
     _test_foo_state(foo_staged)
 
 
-def test_foo_nothing_unstaged(foo_staged, cmd_runner):
-    with staged_files_only(cmd_runner):
+def test_foo_nothing_unstaged(foo_staged, patch_dir):
+    with staged_files_only(patch_dir):
         _test_foo_state(foo_staged)
     _test_foo_state(foo_staged)
 
 
-def test_foo_something_unstaged(foo_staged, cmd_runner):
+def test_foo_something_unstaged(foo_staged, patch_dir):
     with io.open(foo_staged.foo_filename, 'w') as foo_file:
         foo_file.write('herp\nderp\n')
 
     _test_foo_state(foo_staged, 'herp\nderp\n', 'AM')
 
-    with staged_files_only(cmd_runner):
+    with staged_files_only(patch_dir):
         _test_foo_state(foo_staged)
 
     _test_foo_state(foo_staged, 'herp\nderp\n', 'AM')
 
 
-def test_something_unstaged_ext_diff_tool(foo_staged, cmd_runner, tmpdir):
+def test_something_unstaged_ext_diff_tool(foo_staged, patch_dir, tmpdir):
     diff_tool = tmpdir.join('diff-tool.sh')
     diff_tool.write('#!/usr/bin/env bash\necho "$@"\n')
     cmd_output('git', 'config', 'diff.external', diff_tool.strpath)
-    test_foo_something_unstaged(foo_staged, cmd_runner)
+    test_foo_something_unstaged(foo_staged, patch_dir)
 
 
-def test_foo_something_unstaged_diff_color_always(foo_staged, cmd_runner):
+def test_foo_something_unstaged_diff_color_always(foo_staged, patch_dir):
     cmd_output('git', 'config', '--local', 'color.diff', 'always')
-    test_foo_something_unstaged(foo_staged, cmd_runner)
+    test_foo_something_unstaged(foo_staged, patch_dir)
 
 
-def test_foo_both_modify_non_conflicting(foo_staged, cmd_runner):
+def test_foo_both_modify_non_conflicting(foo_staged, patch_dir):
     with io.open(foo_staged.foo_filename, 'w') as foo_file:
         foo_file.write(FOO_CONTENTS + '9\n')
 
     _test_foo_state(foo_staged, FOO_CONTENTS + '9\n', 'AM')
 
-    with staged_files_only(cmd_runner):
+    with staged_files_only(patch_dir):
         _test_foo_state(foo_staged)
 
         # Modify the file as part of the "pre-commit"
@@ -102,13 +105,13 @@ def test_foo_both_modify_non_conflicting(foo_staged, cmd_runner):
     _test_foo_state(foo_staged, FOO_CONTENTS.replace('1', 'a') + '9\n', 'AM')
 
 
-def test_foo_both_modify_conflicting(foo_staged, cmd_runner):
+def test_foo_both_modify_conflicting(foo_staged, patch_dir):
     with io.open(foo_staged.foo_filename, 'w') as foo_file:
         foo_file.write(FOO_CONTENTS.replace('1', 'a'))
 
     _test_foo_state(foo_staged, FOO_CONTENTS.replace('1', 'a'), 'AM')
 
-    with staged_files_only(cmd_runner):
+    with staged_files_only(patch_dir):
         _test_foo_state(foo_staged)
 
         # Modify in the same place as the stashed diff
@@ -144,30 +147,30 @@ def test_img_staged(img_staged):
     _test_img_state(img_staged)
 
 
-def test_img_nothing_unstaged(img_staged, cmd_runner):
-    with staged_files_only(cmd_runner):
+def test_img_nothing_unstaged(img_staged, patch_dir):
+    with staged_files_only(patch_dir):
         _test_img_state(img_staged)
     _test_img_state(img_staged)
 
 
-def test_img_something_unstaged(img_staged, cmd_runner):
+def test_img_something_unstaged(img_staged, patch_dir):
     shutil.copy(get_resource_path('img2.jpg'), img_staged.img_filename)
 
     _test_img_state(img_staged, 'img2.jpg', 'AM')
 
-    with staged_files_only(cmd_runner):
+    with staged_files_only(patch_dir):
         _test_img_state(img_staged)
 
     _test_img_state(img_staged, 'img2.jpg', 'AM')
 
 
-def test_img_conflict(img_staged, cmd_runner):
+def test_img_conflict(img_staged, patch_dir):
     """Admittedly, this shouldn't happen, but just in case."""
     shutil.copy(get_resource_path('img2.jpg'), img_staged.img_filename)
 
     _test_img_state(img_staged, 'img2.jpg', 'AM')
 
-    with staged_files_only(cmd_runner):
+    with staged_files_only(patch_dir):
         _test_img_state(img_staged)
         shutil.copy(get_resource_path('img3.jpg'), img_staged.img_filename)
         _test_img_state(img_staged, 'img3.jpg', 'AM')
@@ -220,77 +223,48 @@ def test_sub_staged(sub_staged):
     _test_sub_state(sub_staged)
 
 
-def test_sub_nothing_unstaged(sub_staged, cmd_runner):
-    with staged_files_only(cmd_runner):
+def test_sub_nothing_unstaged(sub_staged, patch_dir):
+    with staged_files_only(patch_dir):
         _test_sub_state(sub_staged)
     _test_sub_state(sub_staged)
 
 
-def test_sub_something_unstaged(sub_staged, cmd_runner):
+def test_sub_something_unstaged(sub_staged, patch_dir):
     checkout_submodule(sub_staged.submodule.sha2)
 
     _test_sub_state(sub_staged, 'sha2', 'AM')
 
-    with staged_files_only(cmd_runner):
+    with staged_files_only(patch_dir):
         # This is different from others, we don't want to touch subs
         _test_sub_state(sub_staged, 'sha2', 'AM')
 
     _test_sub_state(sub_staged, 'sha2', 'AM')
 
 
-@pytest.yield_fixture
-def fake_logging_handler():
-    class FakeHandler(logging.Handler):
-        def __init__(self):
-            logging.Handler.__init__(self)
-            self.logs = []
-
-        def emit(self, record):
-            self.logs.append(record)  # pragma: no cover (only hit in failure)
-
-    pre_commit_logger = logging.getLogger('pre_commit')
-    original_level = pre_commit_logger.getEffectiveLevel()
-    handler = FakeHandler()
-    pre_commit_logger.addHandler(handler)
-    pre_commit_logger.setLevel(logging.WARNING)
-    yield handler
-    pre_commit_logger.setLevel(original_level)
-    pre_commit_logger.removeHandler(handler)
-
-
-def test_diff_returns_1_no_diff_though(fake_logging_handler, foo_staged):
-    cmd_runner = mock.Mock()
-    cmd_runner.run.return_value = (1, '', '')
-    cmd_runner.path.return_value = '.pre-commit-files_patch'
-    with staged_files_only(cmd_runner):
-        pass
-    assert not fake_logging_handler.logs
-
-
-def test_stage_utf8_changes(foo_staged, cmd_runner):
+def test_stage_utf8_changes(foo_staged, patch_dir):
     contents = '\u2603'
     with io.open('foo', 'w', encoding='UTF-8') as foo_file:
         foo_file.write(contents)
 
     _test_foo_state(foo_staged, contents, 'AM')
-    with staged_files_only(cmd_runner):
+    with staged_files_only(patch_dir):
         _test_foo_state(foo_staged)
     _test_foo_state(foo_staged, contents, 'AM')
 
 
-def test_stage_non_utf8_changes(foo_staged, cmd_runner):
+def test_stage_non_utf8_changes(foo_staged, patch_dir):
     contents = 'ú'
     # Produce a latin-1 diff
     with io.open('foo', 'w', encoding='latin-1') as foo_file:
         foo_file.write(contents)
 
     _test_foo_state(foo_staged, contents, 'AM', encoding='latin-1')
-    with staged_files_only(cmd_runner):
+    with staged_files_only(patch_dir):
         _test_foo_state(foo_staged)
     _test_foo_state(foo_staged, contents, 'AM', encoding='latin-1')
 
 
-def test_non_utf8_conflicting_diff(foo_staged, cmd_runner):
+def test_non_utf8_conflicting_diff(foo_staged, patch_dir):
     """Regression test for #397"""
     # The trailing whitespace is important here, this triggers git to produce
     # an error message which looks like:
@@ -307,7 +281,7 @@ def test_non_utf8_conflicting_diff(foo_staged, cmd_runner):
         foo_file.write(contents)
 
     _test_foo_state(foo_staged, contents, 'AM', encoding='latin-1')
-    with staged_files_only(cmd_runner):
+    with staged_files_only(patch_dir):
         _test_foo_state(foo_staged)
         # Create a conflicting diff that will need to be rolled back
         with io.open('foo', 'w') as foo_file:
@@ -337,7 +311,7 @@ bool_product = tuple(itertools.product((True, False), repeat=2))
 
 @pytest.mark.parametrize(('crlf_before', 'crlf_after'), bool_product)
 @pytest.mark.parametrize('autocrlf', ('true', 'false', 'input'))
-def test_crlf(in_git_dir, cmd_runner, crlf_before, crlf_after, autocrlf):
+def test_crlf(in_git_dir, patch_dir, crlf_before, crlf_after, autocrlf):
     cmd_output('git', 'config', '--local', 'core.autocrlf', autocrlf)
 
     before, after = b'1\n2\n', b'3\n4\n\n'
@@ -347,16 +321,16 @@ def test_crlf(in_git_dir, cmd_runner, crlf_before, crlf_after, autocrlf):
     _write(before)
     cmd_output('git', 'add', 'foo')
     _write(after)
-    with staged_files_only(cmd_runner):
+    with staged_files_only(patch_dir):
         assert_no_diff()
 
 
-def test_whitespace_errors(in_git_dir, cmd_runner):
+def test_whitespace_errors(in_git_dir, patch_dir):
     cmd_output('git', 'config', '--local', 'apply.whitespace', 'error')
-    test_crlf(in_git_dir, cmd_runner, True, True, 'true')
+    test_crlf(in_git_dir, patch_dir, True, True, 'true')
 
 
-def test_autocrlf_commited_crlf(in_git_dir, cmd_runner):
+def test_autocrlf_commited_crlf(in_git_dir, patch_dir):
     """Regression test for #570"""
     cmd_output('git', 'config', '--local', 'core.autocrlf', 'false')
     _write(b'1\r\n2\r\n')
@@ -366,5 +340,5 @@ def test_autocrlf_commited_crlf(in_git_dir, cmd_runner):
     cmd_output('git', 'config', '--local', 'core.autocrlf', 'true')
     _write(b'1\r\n2\r\n\r\n\r\n\r\n')
 
-    with staged_files_only(cmd_runner):
+    with staged_files_only(patch_dir):
         assert_no_diff()

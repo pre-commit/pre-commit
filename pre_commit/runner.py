@@ -58,10 +58,5 @@ class Runner(object):
         return self.get_hook_path('pre-push')
 
     @cached_property
-    def cmd_runner(self):
-        # TODO: remove this and inline runner.store.cmd_runner
-        return self.store.cmd_runner
-
-    @cached_property
     def store(self):
         return Store()
