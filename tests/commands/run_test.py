@@ -15,7 +15,6 @@ from pre_commit.commands.install_uninstall import install
 from pre_commit.commands.run import _compute_cols
 from pre_commit.commands.run import _get_skips
 from pre_commit.commands.run import _has_unmerged_paths
-from pre_commit.commands.run import get_changed_files
 from pre_commit.commands.run import run
 from pre_commit.runner import Runner
 from pre_commit.util import cmd_output
@@ -499,18 +498,6 @@ def test_hook_install_failure(mock_out_store_directory, tempdir_factory):
             stdout
         )
         assert '☃'.encode('UTF-8') + '²'.encode('latin1') in stdout
-
-
-def test_get_changed_files():
-    files = get_changed_files(
-        '78c682a1d13ba20e7cb735313b9314a74365cd3a',
-        '3387edbb1288a580b37fe25225aa0b856b18ad1a',
-    )
-    assert files == ['CHANGELOG.md', 'setup.py']
-
-    # files changed in source but not in origin should not be returned
-    files = get_changed_files('HEAD~10', 'HEAD')
-    assert files == []
 
 
 def test_lots_of_files(mock_out_store_directory, tempdir_factory):

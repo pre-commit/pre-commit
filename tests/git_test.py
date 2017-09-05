@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
@@ -162,3 +163,63 @@ OTHER_MERGE_MSG = MERGE_MSG + b'\tother_conflict_file\n'
 def test_parse_merge_msg_for_conflicts(input, expected_output):
     ret = git.parse_merge_msg_for_conflicts(input)
     assert ret == expected_output
+
+
+def test_get_changed_files():
+    files = git.get_changed_files(
+        '78c682a1d13ba20e7cb735313b9314a74365cd3a',
+        '3387edbb1288a580b37fe25225aa0b856b18ad1a',
+    )
+    assert files == ['CHANGELOG.md', 'setup.py']
+
+    # files changed in source but not in origin should not be returned
+    files = git.get_changed_files('HEAD~10', 'HEAD')
+    assert files == []
+
+
+@pytest.mark.parametrize(
+    ('s', 'expected'),
+    (
+        ('foo\0bar\0', ['foo', 'bar']),
+        ('foo\0', ['foo']),
+        ('', []),
+        ('foo', ['foo']),
+    ),
+)
+def test_zsplit(s, expected):
+    assert git.zsplit(s) == expected
+
+
+@pytest.fixture
+def non_ascii_repo(tmpdir):
+    repo = tmpdir.join('repo').ensure_dir()
+    with repo.as_cwd():
+        cmd_output('git', 'init', '.')
+        cmd_output('git', 'commit', '--allow-empty', '-m', 'initial commit')
+        repo.join('интервью').ensure()
+        cmd_output('git', 'add', '.')
+        cmd_output('git', 'commit', '--allow-empty', '-m', 'initial commit')
+        yield repo
+
+
+def test_all_files_non_ascii(non_ascii_repo):
+    ret = git.get_all_files()
+    assert ret == ['интервью']
+
+
+def test_staged_files_non_ascii(non_ascii_repo):
+    non_ascii_repo.join('интервью').write('hi')
+    cmd_output('git', 'add', '.')
+    assert git.get_staged_files() == ['интервью']
+
+
+def test_changed_files_non_ascii(non_ascii_repo):
+    ret = git.get_changed_files('HEAD', 'HEAD^')
+    assert ret == ['интервью']
+
+
+def test_get_conflicted_files_non_ascii(in_merge_conflict):
+    open('интервью', 'a').close()
+    cmd_output('git', 'add', '.')
+    ret = git.get_conflicted_files()
+    assert ret == {'conflict_file', 'интервью'}

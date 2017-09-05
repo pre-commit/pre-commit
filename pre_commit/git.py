@@ -15,6 +15,14 @@ from pre_commit.util import memoize_by_cwd
 logger = logging.getLogger('pre_commit')
 
 
+def zsplit(s):
+    s = s.strip('\0')
+    if s:
+        return s.split('\0')
+    else:
+        return []
+
+
 def get_root():
     try:
         return cmd_output('git', 'rev-parse', '--show-toplevel')[1].strip()
@@ -67,25 +75,32 @@ def get_conflicted_files():
     # If they resolved the merge conflict by choosing a mesh of both sides
     # this will also include the conflicted files
     tree_hash = cmd_output('git', 'write-tree')[1].strip()
-    merge_diff_filenames = cmd_output(
-        'git', 'diff', '--no-ext-diff',
-        '-m', tree_hash, 'HEAD', 'MERGE_HEAD', '--name-only',
-    )[1].splitlines()
+    merge_diff_filenames = zsplit(cmd_output(
+        'git', 'diff', '--name-only', '--no-ext-diff', '-z',
+        '-m', tree_hash, 'HEAD', 'MERGE_HEAD',
+    )[1])
     return set(merge_conflict_filenames) | set(merge_diff_filenames)
 
 
 @memoize_by_cwd
 def get_staged_files():
-    return cmd_output(
-        'git', 'diff', '--staged', '--name-only', '--no-ext-diff',
+    return zsplit(cmd_output(
+        'git', 'diff', '--staged', '--name-only', '--no-ext-diff', '-z',
         # Everything except for D
         '--diff-filter=ACMRTUXB',
-    )[1].splitlines()
+    )[1])
 
 
 @memoize_by_cwd
 def get_all_files():
-    return cmd_output('git', 'ls-files')[1].splitlines()
+    return zsplit(cmd_output('git', 'ls-files', '-z')[1])
+
+
+def get_changed_files(new, old):
+    return zsplit(cmd_output(
+        'git', 'diff', '--name-only', '--no-ext-diff', '-z',
+        '{}...{}'.format(old, new),
+    )[1])
 
 
 def get_files_matching(all_file_list_strategy):
