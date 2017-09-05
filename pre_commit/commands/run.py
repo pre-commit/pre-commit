@@ -36,13 +36,6 @@ def _hook_msg_start(hook, verbose):
     )
 
 
-def get_changed_files(new, old):
-    return cmd_output(
-        'git', 'diff', '--no-ext-diff', '--name-only',
-        '{}...{}'.format(old, new),
-    )[1].splitlines()
-
-
 def filter_filenames_by_types(filenames, types, exclude_types):
     types, exclude_types = frozenset(types), frozenset(exclude_types)
     ret = []
@@ -56,7 +49,7 @@ def filter_filenames_by_types(filenames, types, exclude_types):
 def get_filenames(args, include_expr, exclude_expr):
     if args.origin and args.source:
         getter = git.get_files_matching(
-            lambda: get_changed_files(args.origin, args.source),
+            lambda: git.get_changed_files(args.origin, args.source),
         )
     elif args.hook_stage == 'commit-msg':
         def getter(*_):
