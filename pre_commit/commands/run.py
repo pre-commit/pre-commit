@@ -192,17 +192,14 @@ def get_repo_hooks(runner):
             yield (repo, hook)
 
 
-def _has_unmerged_paths(runner):
-    _, stdout, _ = runner.cmd_runner.run(['git', 'ls-files', '--unmerged'])
+def _has_unmerged_paths():
+    _, stdout, _ = cmd_output('git', 'ls-files', '--unmerged')
     return bool(stdout.strip())
 
 
 def _has_unstaged_config(runner):
-    retcode, _, _ = runner.cmd_runner.run(
-        (
-            'git', 'diff', '--no-ext-diff', '--exit-code',
-            runner.config_file_path,
-        ),
+    retcode, _, _ = cmd_output(
+        'git', 'diff', '--no-ext-diff', '--exit-code', runner.config_file_path,
         retcode=None,
     )
     # be explicit, other git errors don't mean it has an unstaged config.
@@ -213,7 +210,7 @@ def run(runner, args, environ=os.environ):
     no_stash = args.all_files or bool(args.files)
 
     # Check if we have unresolved merge conflict files and fail fast.
-    if _has_unmerged_paths(runner):
+    if _has_unmerged_paths():
         logger.error('Unmerged files.  Resolve before committing.')
         return 1
     if bool(args.source) != bool(args.origin):
@@ -234,7 +231,7 @@ def run(runner, args, environ=os.environ):
     if no_stash:
         ctx = noop_context()
     else:
-        ctx = staged_files_only(runner.cmd_runner)
+        ctx = staged_files_only(runner.store.directory)
 
     with ctx:
         repo_hooks = list(get_repo_hooks(runner))

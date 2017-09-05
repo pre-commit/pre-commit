@@ -7,7 +7,6 @@ import subprocess
 import sys
 from collections import OrderedDict
 
-import mock
 import pytest
 
 import pre_commit.constants as C
@@ -327,11 +326,10 @@ def test_origin_source_error_msg(
         assert warning_msg not in printed
 
 
-@pytest.mark.parametrize(('output', 'expected'), (('some', True), ('', False)))
-def test_has_unmerged_paths(output, expected):
-    mock_runner = mock.Mock()
-    mock_runner.cmd_runner.run.return_value = (1, output, '')
-    assert _has_unmerged_paths(mock_runner) is expected
+def test_has_unmerged_paths(in_merge_conflict):
+    assert _has_unmerged_paths() is True
+    cmd_output('git', 'add', '.')
+    assert _has_unmerged_paths() is False
 
 
 def test_merge_conflict(cap_out, in_merge_conflict, mock_out_store_directory):

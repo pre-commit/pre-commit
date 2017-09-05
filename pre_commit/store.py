@@ -11,7 +11,6 @@ from cached_property import cached_property
 
 import pre_commit.constants as C
 from pre_commit import file_lock
-from pre_commit.prefixed_command_runner import PrefixedCommandRunner
 from pre_commit.util import clean_path_on_failure
 from pre_commit.util import cmd_output
 from pre_commit.util import copy_tree_to_path
@@ -161,10 +160,6 @@ class Store(object):
             'local:{}'.format(','.join(sorted(deps))), C.LOCAL_REPO_VERSION,
             make_local_strategy,
         )
-
-    @cached_property
-    def cmd_runner(self):
-        return PrefixedCommandRunner(self.directory)
 
     @cached_property
     def db_path(self):

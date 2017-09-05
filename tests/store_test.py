@@ -125,11 +125,6 @@ def test_clone_cleans_up_on_checkout_failure(store):
     assert things_starting_with_repo == []
 
 
-def test_has_cmd_runner_at_directory(store):
-    ret = store.cmd_runner
-    assert ret.prefix_dir == store.directory + os.sep
-
-
 def test_clone_when_repo_already_exists(store):
     # Create an entry in the sqlite db that makes it look like the repo has
     # been cloned.
