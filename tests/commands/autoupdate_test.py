@@ -274,7 +274,7 @@ def test_autoupdate_local_hooks(tempdir_factory):
     assert autoupdate(runner, tags_only=False) == 0
     new_config_writen = load_config(runner.config_file_path)
     assert len(new_config_writen) == 1
-    assert new_config_writen[0] == config
+    assert new_config_writen['repos'][0] == config
 
 
 def test_autoupdate_local_hooks_with_out_of_date_repo(
@@ -289,5 +289,5 @@ def test_autoupdate_local_hooks_with_out_of_date_repo(
     runner = Runner('.', C.CONFIG_FILE)
     assert autoupdate(runner, tags_only=False) == 0
     new_config_writen = load_config(runner.config_file_path)
-    assert len(new_config_writen) == 2
-    assert new_config_writen[0] == local_config
+    assert len(new_config_writen['repos']) == 2
+    assert new_config_writen['repos'][0] == local_config

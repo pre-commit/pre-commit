@@ -142,9 +142,13 @@ class Map(collections.namedtuple('Map', ('object_name', 'id_key', 'items'))):
             raise ValidationError('Expected a {} map but got a {}'.format(
                 self.object_name, type(v).__name__,
             ))
-        with validate_context('At {}({}={!r})'.format(
+        if self.id_key is None:
+            context = 'At {}()'.format(self.object_name)
+        else:
+            context = 'At {}({}={!r})'.format(
                 self.object_name, self.id_key, v.get(self.id_key, MISSING),
-        )):
+            )
+        with validate_context(context):
             for item in self.items:
                 item.check(v)
 

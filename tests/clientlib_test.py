@@ -60,15 +60,15 @@ def test_validate_config_main(args, expected_output):
     ('config_obj', 'expected'), (
         ([], False),
         (
-            [{
+            {'repos': [{
                 'repo': 'git@github.com:pre-commit/pre-commit-hooks',
                 'sha': 'cd74dc150c142c3be70b24eaf0b02cae9d235f37',
                 'hooks': [{'id': 'pyflakes', 'files': '\\.py$'}],
-            }],
+            }]},
             True,
         ),
         (
-            [{
+            {'repos': [{
                 'repo': 'git@github.com:pre-commit/pre-commit-hooks',
                 'sha': 'cd74dc150c142c3be70b24eaf0b02cae9d235f37',
                 'hooks': [
@@ -78,11 +78,11 @@ def test_validate_config_main(args, expected_output):
                         'args': ['foo', 'bar', 'baz'],
                     },
                 ],
-            }],
+            }]},
             True,
         ),
         (
-            [{
+            {'repos': [{
                 'repo': 'git@github.com:pre-commit/pre-commit-hooks',
                 'sha': 'cd74dc150c142c3be70b24eaf0b02cae9d235f37',
                 'hooks': [
@@ -94,7 +94,7 @@ def test_validate_config_main(args, expected_output):
                         'args': ['foo', 'bar', 'baz'],
                     },
                 ],
-            }],
+            }]},
             False,
         ),
     ),
@@ -104,29 +104,25 @@ def test_config_valid(config_obj, expected):
     assert ret is expected
 
 
-@pytest.mark.parametrize(
-    'config_obj', (
-        [{
-            'repo': 'local',
-            'sha': 'foo',
-            'hooks': [{
-                'id': 'do_not_commit',
-                'name': 'Block if "DO NOT COMMIT" is found',
-                'entry': 'DO NOT COMMIT',
-                'language': 'pcre',
-                'files': '^(.*)$',
-            }],
+def test_config_with_local_hooks_definition_fails():
+    config_obj = {'repos': [{
+        'repo': 'local',
+        'sha': 'foo',
+        'hooks': [{
+            'id': 'do_not_commit',
+            'name': 'Block if "DO NOT COMMIT" is found',
+            'entry': 'DO NOT COMMIT',
+            'language': 'pcre',
+            'files': '^(.*)$',
         }],
-    ),
-)
-def test_config_with_local_hooks_definition_fails(config_obj):
+    }]}
     with pytest.raises(schema.ValidationError):
         schema.validate(config_obj, CONFIG_SCHEMA)
 
 
 @pytest.mark.parametrize(
     'config_obj', (
-        [{
+        {'repos': [{
             'repo': 'local',
             'hooks': [{
                 'id': 'arg-per-line',
@@ -136,8 +132,8 @@ def test_config_with_local_hooks_definition_fails(config_obj):
                 'files': '',
                 'args': ['hello', 'world'],
             }],
-        }],
-        [{
+        }]},
+        {'repos': [{
             'repo': 'local',
             'hooks': [{
                 'id': 'arg-per-line',
@@ -147,7 +143,7 @@ def test_config_with_local_hooks_definition_fails(config_obj):
                 'files': '',
                 'args': ['hello', 'world'],
             }],
-        }],
+        }]},
     ),
 )
 def test_config_with_local_hooks_definition_passes(config_obj):

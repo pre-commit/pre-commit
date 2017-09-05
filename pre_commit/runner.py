@@ -40,11 +40,11 @@ class Runner(object):
     @cached_property
     def repositories(self):
         """Returns a tuple of the configured repositories."""
-        config = load_config(self.config_file_path)
-        repositories = tuple(Repository.create(x, self.store) for x in config)
-        for repository in repositories:
-            repository.require_installed()
-        return repositories
+        repos = load_config(self.config_file_path)['repos']
+        repos = tuple(Repository.create(x, self.store) for x in repos)
+        for repo in repos:
+            repo.require_installed()
+        return repos
 
     def get_hook_path(self, hook_type):
         return os.path.join(self.git_dir, 'hooks', hook_type)

@@ -2,6 +2,7 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 import argparse
+import collections
 import functools
 
 from aspy.yaml import ordered_load
@@ -125,7 +126,11 @@ CONFIG_REPO_DICT = schema.Map(
         ensure_absent=True,
     ),
 )
-CONFIG_SCHEMA = schema.Array(CONFIG_REPO_DICT)
+CONFIG_SCHEMA = schema.Map(
+    'Config', None,
+
+    schema.RequiredRecurse('repos', schema.Array(CONFIG_REPO_DICT)),
+)
 
 
 def is_local_repo(repo_entry):
@@ -136,10 +141,19 @@ class InvalidConfigError(FatalError):
     pass
 
 
+def ordered_load_normalize_legacy_config(contents):
+    data = ordered_load(contents)
+    if isinstance(data, list):
+        # TODO: Once happy, issue a deprecation warning and instructions
+        return collections.OrderedDict([('repos', data)])
+    else:
+        return data
+
+
 load_config = functools.partial(
     schema.load_from_filename,
     schema=CONFIG_SCHEMA,
-    load_strategy=ordered_load,
+    load_strategy=ordered_load_normalize_legacy_config,
     exc_tp=InvalidConfigError,
 )
 

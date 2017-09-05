@@ -109,7 +109,7 @@ def autoupdate(runner, tags_only):
 
     input_configs = load_config(runner.config_file_path)
 
-    for repo_config in input_configs:
+    for repo_config in input_configs['repos']:
         if is_local_repo(repo_config):
             output_configs.append(repo_config)
             continue
