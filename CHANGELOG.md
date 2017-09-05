@@ -1,3 +1,9 @@
+0.18.2
+======
+- Fix `--all-files`, detection of staged files, detection of manually edited
+  files during merge conflict, and detection of files to push for non-ascii
+  filenames.
+
 0.18.1
 ======
 - Only mention locking when waiting for a lock.
