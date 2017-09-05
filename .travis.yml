@@ -16,8 +16,6 @@ matrix:
 install: pip install coveralls tox
 script: tox
 before_install:
-    # Our tests inspect some of *our* git history
-    - git fetch --unshallow
     - git --version
     - |
         if [ "$LATEST_GIT" = "1" ]; then
