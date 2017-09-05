@@ -38,7 +38,7 @@ if [ -x "$HERE"/{hook_type}.legacy ]; then
     fi
 fi
 
-CONF_FILE=$(git rev-parse --show-toplevel)"/{config_file}"
+CONF_FILE="$(git rev-parse --show-toplevel)/{config_file}"
 if [ ! -f $CONF_FILE  ]; then
     if [ $SKIP_ON_MISSING_CONF = true ] || [ ! -z $PRE_COMMIT_ALLOW_NO_CONFIG ]; then
         echo '`{config_file}` config file not found. Skipping `pre-commit`.'
@@ -56,7 +56,7 @@ fi
 
 # Run pre-commit
 if ((WHICH_RETV == 0)); then
-    pre-commit run $args -c {config_file}
+    pre-commit run $args --config {config_file}
     PRE_COMMIT_RETV=$?
 elif ((ENV_PYTHON_RETV == 0)); then
     "$ENV_PYTHON" -m pre_commit.main $args

@@ -162,6 +162,18 @@ def test_install_pre_commit_and_run(tempdir_factory):
         assert NORMAL_PRE_COMMIT_RUN.match(output)
 
 
+def test_install_pre_commit_and_run_custom_path(tempdir_factory):
+    path = make_consuming_repo(tempdir_factory, 'script_hooks_repo')
+    with cwd(path):
+        cmd_output('git', 'mv', C.CONFIG_FILE, 'custom-config.yaml')
+        cmd_output('git', 'commit', '-m', 'move pre-commit config')
+        assert install(Runner(path, 'custom-config.yaml')) == 0
+
+        ret, output = _get_commit_output(tempdir_factory)
+        assert ret == 0
+        assert NORMAL_PRE_COMMIT_RUN.match(output)
+
+
 def test_install_in_submodule_and_run(tempdir_factory):
     src_path = make_consuming_repo(tempdir_factory, 'script_hooks_repo')
     parent_path = git_dir(tempdir_factory)
