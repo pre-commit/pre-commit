@@ -1,3 +1,9 @@
+0.18.3
+======
+- Allow --config to affect `pre-commit install`
+- Tweak not found error message during `pre-push` / `commit-msg`
+- Improve node support when running under cygwin.
+
 0.18.2
 ======
 - Fix `--all-files`, detection of staged files, detection of manually edited
