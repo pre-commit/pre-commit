@@ -8,6 +8,7 @@ from pre_commit.envcontext import envcontext
 from pre_commit.envcontext import Var
 from pre_commit.languages import helpers
 from pre_commit.util import clean_path_on_failure
+from pre_commit.util import cmd_output
 from pre_commit.xargs import xargs
 
 
@@ -17,11 +18,15 @@ healthy = helpers.basic_healthy
 
 
 def get_env_patch(venv):  # pragma: windows no cover
-    config = os.path.join(venv, 'bin') if sys.platform == 'cygwin' else venv
+    if sys.platform == 'cygwin':  # pragma: no cover
+        _, win_venv, _ = cmd_output('cygpath', '-w', venv)
+        install_prefix = r'{}\bin'.format(win_venv.strip())
+    else:
+        install_prefix = venv
     return (
         ('NODE_VIRTUAL_ENV', venv),
-        ('NPM_CONFIG_PREFIX', config),
-        ('npm_config_prefix', config),
+        ('NPM_CONFIG_PREFIX', install_prefix),
+        ('npm_config_prefix', install_prefix),
         ('NODE_PATH', os.path.join(venv, 'lib', 'node_modules')),
         ('PATH', (os.path.join(venv, 'bin'), os.pathsep, Var('PATH'))),
     )
