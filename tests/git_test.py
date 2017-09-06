@@ -165,15 +165,18 @@ def test_parse_merge_msg_for_conflicts(input, expected_output):
     assert ret == expected_output
 
 
-def test_get_changed_files():
-    files = git.get_changed_files(
-        '78c682a1d13ba20e7cb735313b9314a74365cd3a',
-        '3387edbb1288a580b37fe25225aa0b856b18ad1a',
-    )
-    assert files == ['CHANGELOG.md', 'setup.py']
+def test_get_changed_files(in_tmpdir):
+    cmd_output('git', 'init', '.')
+    cmd_output('git', 'commit', '--allow-empty', '-m', 'initial commit')
+    open('a.txt', 'a').close()
+    open('b.txt', 'a').close()
+    cmd_output('git', 'add', '.')
+    cmd_output('git', 'commit', '-m', 'add some files')
+    files = git.get_changed_files('HEAD', 'HEAD^')
+    assert files == ['a.txt', 'b.txt']
 
     # files changed in source but not in origin should not be returned
-    files = git.get_changed_files('HEAD~10', 'HEAD')
+    files = git.get_changed_files('HEAD^', 'HEAD')
     assert files == []
 
 
