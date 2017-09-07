@@ -29,9 +29,9 @@ def _get_default_directory():
     `Store.get_default_directory` can be mocked in tests and
     `_get_default_directory` can be tested.
     """
-    return os.environ.get(
-        'PRE_COMMIT_HOME',
-        os.path.join(os.path.expanduser('~'), '.pre-commit'),
+    return os.environ.get('PRE_COMMIT_HOME') or os.path.join(
+        os.environ.get('XDG_CACHE_HOME') or os.path.expanduser('~/.cache'),
+        'pre-commit',
     )
 
 

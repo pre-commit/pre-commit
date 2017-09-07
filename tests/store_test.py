@@ -29,7 +29,15 @@ def test_our_session_fixture_works():
 def test_get_default_directory_defaults_to_home():
     # Not we use the module level one which is not mocked
     ret = _get_default_directory()
-    assert ret == os.path.join(os.path.expanduser('~'), '.pre-commit')
+    assert ret == os.path.join(os.path.expanduser('~/.cache'), 'pre-commit')
+
+
+def test_adheres_to_xdg_specification():
+    with mock.patch.dict(
+        os.environ, {'XDG_CACHE_HOME': '/tmp/fakehome'},
+    ):
+        ret = _get_default_directory()
+        assert ret == os.path.join('/tmp/fakehome', 'pre-commit')
 
 
 def test_uses_environment_variable_when_present():

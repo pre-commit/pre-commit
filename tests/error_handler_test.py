@@ -81,12 +81,12 @@ def test_log_and_exit(cap_out, mock_out_store_directory):
         )
 
     printed = cap_out.get()
+    log_file = os.path.join(mock_out_store_directory, 'pre-commit.log')
     assert printed == (
         'msg: FatalError: hai\n'
-        'Check the log at ~/.pre-commit/pre-commit.log\n'
+        'Check the log at {}\n'.format(log_file)
     )
 
-    log_file = os.path.join(mock_out_store_directory, 'pre-commit.log')
     assert os.path.exists(log_file)
     contents = io.open(log_file).read()
     assert contents == (
@@ -102,6 +102,7 @@ def test_error_handler_non_ascii_exception(mock_out_store_directory):
 
 
 def test_error_handler_no_tty(tempdir_factory):
+    pre_commit_home = tempdir_factory.get()
     output = cmd_output_mocked_pre_commit_home(
         sys.executable, '-c',
         'from __future__ import unicode_literals\n'
@@ -110,8 +111,10 @@ def test_error_handler_no_tty(tempdir_factory):
         '    raise ValueError("\\u2603")\n',
         retcode=1,
         tempdir_factory=tempdir_factory,
+        pre_commit_home=pre_commit_home,
     )
+    log_file = os.path.join(pre_commit_home, 'pre-commit.log')
     assert output[1].replace('\r', '') == (
         'An unexpected error has occurred: ValueError: ☃\n'
-        'Check the log at ~/.pre-commit/pre-commit.log\n'
+        'Check the log at {}\n'.format(log_file)
     )
