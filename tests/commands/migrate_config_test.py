@@ -33,7 +33,7 @@ def test_migrate_config_normal_format(tmpdir, capsys):
         '        entry: ./bin/foo.sh\n'
         '        language: script\n',
     )
-    assert migrate_config(Runner(tmpdir.strpath, C.CONFIG_FILE)) == 1
+    assert not migrate_config(Runner(tmpdir.strpath, C.CONFIG_FILE))
     out, _ = capsys.readouterr()
     assert out == 'Configuration has been migrated.\n'
     contents = cfg.read()
@@ -61,7 +61,7 @@ def test_migrate_config_document_marker(tmpdir):
         '        entry: ./bin/foo.sh\n'
         '        language: script\n',
     )
-    assert migrate_config(Runner(tmpdir.strpath, C.CONFIG_FILE)) == 1
+    assert not migrate_config(Runner(tmpdir.strpath, C.CONFIG_FILE))
     contents = cfg.read()
     assert contents == (
         '# comment\n'
@@ -88,7 +88,7 @@ def test_migrate_config_list_literal(tmpdir):
         '    }]\n'
         '}]',
     )
-    assert migrate_config(Runner(tmpdir.strpath, C.CONFIG_FILE)) == 1
+    assert not migrate_config(Runner(tmpdir.strpath, C.CONFIG_FILE))
     contents = cfg.read()
     assert contents == (
         'repos:\n'

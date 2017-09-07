@@ -306,7 +306,7 @@ def test_updates_old_format_to_new_format(tmpdir, capsys):
         '        language: script\n',
     )
     ret = autoupdate(Runner(tmpdir.strpath, C.CONFIG_FILE), tags_only=True)
-    assert ret == 1
+    assert ret == 0
     contents = cfg.read()
     assert contents == (
         'repos:\n'

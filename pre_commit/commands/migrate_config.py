@@ -17,8 +17,6 @@ def _is_header_line(line):
 
 
 def migrate_config(runner, quiet=False):
-    retv = 0
-
     with io.open(runner.config_file_path) as f:
         contents = f.read()
 
@@ -45,8 +43,5 @@ def migrate_config(runner, quiet=False):
             f.write(contents)
 
         print('Configuration has been migrated.')
-        retv = 1
     elif not quiet:
         print('Configuration is already migrated.')
-
-    return retv
