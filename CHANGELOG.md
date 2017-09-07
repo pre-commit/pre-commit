@@ -16,7 +16,7 @@ that have helped us get this far!
 - A new configuration format for `.pre-commit-config.yaml` is introduced which
   will enable future development.
     - The new format has a top-level map instead of a top-level list.  The
-      new format puts the hook repositories in a `hooks` key.
+      new format puts the hook repositories in a `repos` key.
     - Old list-based configurations will continue to be supported.
     - A command `pre-commit migrate-config` has been introduced to "upgrade"
       the configuration format to the new map-based configuration.
