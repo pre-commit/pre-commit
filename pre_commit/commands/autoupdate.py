@@ -104,8 +104,8 @@ def _write_new_config_file(path, output):
 
 def autoupdate(runner, tags_only):
     """Auto-update the pre-commit config to the latest versions of repos."""
+    migrate_config(runner, quiet=True)
     retv = 0
-    retv |= migrate_config(runner, quiet=True)
     output_repos = []
     changed = False
 
