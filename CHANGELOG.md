@@ -1,3 +1,45 @@
+1.0.0
+=====
+pre-commit will now be following [semver](http://semver.org/).  Thanks to all
+of the [contributors](https://github.com/pre-commit/pre-commit/graphs/contributors)
+that have helped us get this far!
+
+### Features
+
+- pre-commit's cache directory has moved from `~/.pre-commit` to
+  `$XDG_CACHE_HOME/pre-commit` (usually `~/.cache/pre-commit`).
+    - `pre-commit clean` now cleans up both the old and new directory.
+    - If you were caching this directory in CI, you'll want to adjust the
+      location.
+    - #562 issue by @nagromc.
+    - #602 PR by @asottile.
+- A new configuration format for `.pre-commit-config.yaml` is introduced which
+  will enable future development.
+    - The new format has a top-level map instead of a top-level list.  The
+      new format puts the hook repositories in a `hooks` key.
+    - Old list-based configurations will continue to be supported.
+    - A command `pre-commit migrate-config` has been introduced to "upgrade"
+      the configuration format to the new map-based configuration.
+    - `pre-commit autoupdate` now automatically calls `migrate-config`.
+    - In a later release, list-based configurations will issue a deprecation
+      warning.
+    - An example diff for upgrading a configuration:
+
+    ```diff
+    +repos:
+     -   repo: https://github.com/pre-commit/pre-commit-hooks
+         sha: v0.9.2
+         hooks:
+    ```
+    - #414 issue by @asottile.
+    - #610 PR by @asottile.
+
+### Updating
+
+- Run `pre-commit migrate-config` to convert `.pre-commit-config.yaml` to the
+  new map format.
+- Update any references from `~/.pre-commit` to `~/.cache/pre-commit`.
+
 0.18.3
 ======
 - Allow --config to affect `pre-commit install`
