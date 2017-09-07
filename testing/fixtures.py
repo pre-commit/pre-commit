@@ -92,8 +92,9 @@ def make_config_from_repo(repo_path, sha=None, hooks=None, check=True):
     ))
 
     if check:
-        wrapped = validate([config], CONFIG_SCHEMA)
-        config, = apply_defaults(wrapped, CONFIG_SCHEMA)
+        wrapped = validate({'repos': [config]}, CONFIG_SCHEMA)
+        wrapped = apply_defaults(wrapped, CONFIG_SCHEMA)
+        config, = wrapped['repos']
         return config
     else:
         return config
@@ -106,9 +107,9 @@ def read_config(directory, config_file=C.CONFIG_FILE):
 
 
 def write_config(directory, config, config_file=C.CONFIG_FILE):
-    if type(config) is not list:
+    if type(config) is not list and 'repos' not in config:
         assert type(config) is OrderedDict
-        config = [config]
+        config = {'repos': [config]}
     with io.open(os.path.join(directory, config_file), 'w') as outfile:
         outfile.write(ordered_dump(config, **C.YAML_DUMP_KWARGS))
 

@@ -128,6 +128,7 @@ def test_does_not_reformat(
         out_of_date_repo, mock_out_store_directory, in_tmpdir,
 ):
     fmt = (
+        'repos:\n'
         '-   repo: {}\n'
         '    sha: {}  # definitely the version I want!\n'
         '    hooks:\n'
@@ -153,7 +154,7 @@ def test_loses_formatting_when_not_detectable(
     is abandoned.
     """
     config = (
-        '[\n'
+        'repos: [\n'
         '    {{\n'
         '        repo: {}, sha: {},\n'
         '        hooks: [\n'
@@ -171,6 +172,7 @@ def test_loses_formatting_when_not_detectable(
     autoupdate(Runner('.', C.CONFIG_FILE), tags_only=False)
     after = open(C.CONFIG_FILE).read()
     expected = (
+        'repos:\n'
         '-   repo: {}\n'
         '    sha: {}\n'
         '    hooks:\n'
@@ -274,7 +276,7 @@ def test_autoupdate_local_hooks(tempdir_factory):
     assert autoupdate(runner, tags_only=False) == 0
     new_config_writen = load_config(runner.config_file_path)
     assert len(new_config_writen) == 1
-    assert new_config_writen[0] == config
+    assert new_config_writen['repos'][0] == config
 
 
 def test_autoupdate_local_hooks_with_out_of_date_repo(
@@ -284,10 +286,36 @@ def test_autoupdate_local_hooks_with_out_of_date_repo(
         out_of_date_repo.path, sha=out_of_date_repo.original_sha, check=False,
     )
     local_config = config_with_local_hooks()
-    config = [local_config, stale_config]
+    config = {'repos': [local_config, stale_config]}
     write_config('.', config)
     runner = Runner('.', C.CONFIG_FILE)
     assert autoupdate(runner, tags_only=False) == 0
     new_config_writen = load_config(runner.config_file_path)
-    assert len(new_config_writen) == 2
-    assert new_config_writen[0] == local_config
+    assert len(new_config_writen['repos']) == 2
+    assert new_config_writen['repos'][0] == local_config
+
+
+def test_updates_old_format_to_new_format(tmpdir, capsys):
+    cfg = tmpdir.join(C.CONFIG_FILE)
+    cfg.write(
+        '-   repo: local\n'
+        '    hooks:\n'
+        '    -   id: foo\n'
+        '        name: foo\n'
+        '        entry: ./bin/foo.sh\n'
+        '        language: script\n',
+    )
+    ret = autoupdate(Runner(tmpdir.strpath, C.CONFIG_FILE), tags_only=True)
+    assert ret == 1
+    contents = cfg.read()
+    assert contents == (
+        'repos:\n'
+        '-   repo: local\n'
+        '    hooks:\n'
+        '    -   id: foo\n'
+        '        name: foo\n'
+        '        entry: ./bin/foo.sh\n'
+        '        language: script\n'
+    )
+    out, _ = capsys.readouterr()
+    assert out == 'Configuration has been migrated.\n'

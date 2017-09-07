@@ -11,6 +11,7 @@ import pre_commit.constants as C
 from pre_commit import output
 from pre_commit.clientlib import is_local_repo
 from pre_commit.clientlib import load_config
+from pre_commit.commands.migrate_config import migrate_config
 from pre_commit.repository import Repository
 from pre_commit.util import CalledProcessError
 from pre_commit.util import cmd_output
@@ -104,21 +105,22 @@ def _write_new_config_file(path, output):
 def autoupdate(runner, tags_only):
     """Auto-update the pre-commit config to the latest versions of repos."""
     retv = 0
-    output_configs = []
+    retv |= migrate_config(runner, quiet=True)
+    output_repos = []
     changed = False
 
-    input_configs = load_config(runner.config_file_path)
+    input_config = load_config(runner.config_file_path)
 
-    for repo_config in input_configs:
+    for repo_config in input_config['repos']:
         if is_local_repo(repo_config):
-            output_configs.append(repo_config)
+            output_repos.append(repo_config)
             continue
         output.write('Updating {}...'.format(repo_config['repo']))
         try:
             new_repo_config = _update_repo(repo_config, runner, tags_only)
         except RepositoryCannotBeUpdatedError as error:
             output.write_line(error.args[0])
-            output_configs.append(repo_config)
+            output_repos.append(repo_config)
             retv = 1
             continue
 
@@ -127,12 +129,14 @@ def autoupdate(runner, tags_only):
             output.write_line('updating {} -> {}.'.format(
                 repo_config['sha'], new_repo_config['sha'],
             ))
-            output_configs.append(new_repo_config)
+            output_repos.append(new_repo_config)
         else:
             output.write_line('already up to date.')
-            output_configs.append(repo_config)
+            output_repos.append(repo_config)
 
     if changed:
-        _write_new_config_file(runner.config_file_path, output_configs)
+        output_config = input_config.copy()
+        output_config['repos'] = output_repos
+        _write_new_config_file(runner.config_file_path, output_config)
 
     return retv

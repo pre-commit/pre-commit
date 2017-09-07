@@ -272,7 +272,7 @@ def test_always_run(
         cap_out, repo_with_passing_hook, mock_out_store_directory,
 ):
     with modify_config() as config:
-        config[0]['hooks'][0]['always_run'] = True
+        config['repos'][0]['hooks'][0]['always_run'] = True
     _test_run(
         cap_out,
         repo_with_passing_hook,
@@ -288,7 +288,7 @@ def test_always_run_alt_config(
 ):
     repo_root = '.'
     config = read_config(repo_root)
-    config[0]['hooks'][0]['always_run'] = True
+    config['repos'][0]['hooks'][0]['always_run'] = True
     alt_config_file = 'alternate_config.yaml'
     add_config_to_repo(repo_root, config, config_file=alt_config_file)
 
@@ -428,7 +428,7 @@ def test_multiple_hooks_same_id(
     with cwd(repo_with_passing_hook):
         # Add bash hook on there again
         with modify_config() as config:
-            config[0]['hooks'].append({'id': 'bash_hook'})
+            config['repos'][0]['hooks'].append({'id': 'bash_hook'})
         stage_a_file()
 
     ret, output = _do_run(cap_out, repo_with_passing_hook, _get_opts())
@@ -455,7 +455,7 @@ def test_stdout_write_bug_py26(
 ):
     with cwd(repo_with_failing_hook):
         with modify_config() as config:
-            config[0]['hooks'][0]['args'] = ['☃']
+            config['repos'][0]['hooks'][0]['args'] = ['☃']
         stage_a_file()
 
         install(Runner(repo_with_failing_hook, C.CONFIG_FILE))
@@ -505,7 +505,7 @@ def test_lots_of_files(mock_out_store_directory, tempdir_factory):
     with cwd(git_path):
         # Override files so we run against them
         with modify_config() as config:
-            config[0]['hooks'][0]['files'] = ''
+            config['repos'][0]['hooks'][0]['files'] = ''
 
         # Write a crap ton of files
         for i in range(400):
@@ -660,7 +660,7 @@ def test_local_hook_fails(
 def modified_config_repo(repo_with_passing_hook):
     with modify_config(repo_with_passing_hook, commit=False) as config:
         # Some minor modification
-        config[0]['hooks'][0]['files'] = ''
+        config['repos'][0]['hooks'][0]['files'] = ''
     yield repo_with_passing_hook
 
 
@@ -721,8 +721,8 @@ def test_pass_filenames(
         expected_out,
 ):
     with modify_config() as config:
-        config[0]['hooks'][0]['pass_filenames'] = pass_filenames
-        config[0]['hooks'][0]['args'] = hook_args
+        config['repos'][0]['hooks'][0]['pass_filenames'] = pass_filenames
+        config['repos'][0]['hooks'][0]['args'] = hook_args
     stage_a_file()
     ret, printed = _do_run(
         cap_out, repo_with_passing_hook, _get_opts(verbose=True),
