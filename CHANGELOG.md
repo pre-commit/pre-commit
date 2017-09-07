@@ -1,3 +1,12 @@
+1.0.1
+=====
+
+## Fixes
+- Fix a regression in the return code of `pre-commit autoupdate`
+    - `pre-commit migrate-config` and `pre-commit autoupdate` return 0 when
+      successful.
+    - #614 PR by @asottile.
+
 1.0.0
 =====
 pre-commit will now be following [semver](http://semver.org/).  Thanks to all
