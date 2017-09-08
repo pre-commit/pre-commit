@@ -21,6 +21,7 @@ from pre_commit.schema import MISSING
 from pre_commit.schema import Not
 from pre_commit.schema import Optional
 from pre_commit.schema import OptionalNoDefault
+from pre_commit.schema import remove_defaults
 from pre_commit.schema import Required
 from pre_commit.schema import RequiredRecurse
 from pre_commit.schema import validate
@@ -280,6 +281,37 @@ def test_apply_defaults_map_in_list():
     assert ret == [{'key': False}]
 
 
+def test_remove_defaults_copies_object():
+    val = {'key': False}
+    ret = remove_defaults(val, map_optional)
+    assert ret is not val
+
+
+def test_remove_defaults_removes_defaults():
+    ret = remove_defaults({'key': False}, map_optional)
+    assert ret == {}
+
+
+def test_remove_defaults_nothing_to_remove():
+    ret = remove_defaults({}, map_optional)
+    assert ret == {}
+
+
+def test_remove_defaults_does_not_change_non_default():
+    ret = remove_defaults({'key': True}, map_optional)
+    assert ret == {'key': True}
+
+
+def test_remove_defaults_map_in_list():
+    ret = remove_defaults([{'key': False}], Array(map_optional))
+    assert ret == [{}]
+
+
+def test_remove_defaults_does_nothing_on_non_optional():
+    ret = remove_defaults({'key': True}, map_required)
+    assert ret == {'key': True}
+
+
 nested_schema_required = Map(
     'Repository', 'repo',
     Required('repo', check_any),
@@ -308,6 +340,12 @@ def test_apply_defaults_nested():
     val = {'repo': 'repo1', 'hooks': [{}]}
     ret = apply_defaults(val, nested_schema_optional)
     assert ret == {'repo': 'repo1', 'hooks': [{'key': False}]}
+
+
+def test_remove_defaults_nested():
+    val = {'repo': 'repo1', 'hooks': [{'key': False}]}
+    ret = remove_defaults(val, nested_schema_optional)
+    assert ret == {'repo': 'repo1', 'hooks': [{}]}
 
 
 class Error(Exception):

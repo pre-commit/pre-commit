@@ -9,10 +9,12 @@ from aspy.yaml import ordered_load
 
 import pre_commit.constants as C
 from pre_commit import output
+from pre_commit.clientlib import CONFIG_SCHEMA
 from pre_commit.clientlib import is_local_repo
 from pre_commit.clientlib import load_config
 from pre_commit.commands.migrate_config import migrate_config
 from pre_commit.repository import Repository
+from pre_commit.schema import remove_defaults
 from pre_commit.util import CalledProcessError
 from pre_commit.util import cmd_output
 from pre_commit.util import cwd
@@ -71,6 +73,7 @@ SHA_LINE_FMT = '{}sha:{}{}{}'
 
 def _write_new_config_file(path, output):
     original_contents = open(path).read()
+    output = remove_defaults(output, CONFIG_SCHEMA)
     new_contents = ordered_dump(output, **C.YAML_DUMP_KWARGS)
 
     lines = original_contents.splitlines(True)
