@@ -38,9 +38,13 @@ class Runner(object):
         return os.path.join(self.git_root, self.config_file)
 
     @cached_property
+    def config(self):
+        return load_config(self.config_file_path)
+
+    @cached_property
     def repositories(self):
         """Returns a tuple of the configured repositories."""
-        repos = load_config(self.config_file_path)['repos']
+        repos = self.config['repos']
         repos = tuple(Repository.create(x, self.store) for x in repos)
         for repo in repos:
             repo.require_installed()
