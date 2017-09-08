@@ -98,7 +98,7 @@ def _write_new_config_file(path, output):
     # If we failed to intelligently rewrite the sha lines, fall back to the
     # pretty-formatted yaml output
     to_write = ''.join(lines)
-    if ordered_load(to_write) != output:
+    if remove_defaults(ordered_load(to_write), CONFIG_SCHEMA) != output:
         to_write = new_contents
 
     with open(path, 'w') as f:

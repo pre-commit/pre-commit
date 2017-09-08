@@ -275,7 +275,7 @@ def test_autoupdate_local_hooks(tempdir_factory):
     runner = Runner(path, C.CONFIG_FILE)
     assert autoupdate(runner, tags_only=False) == 0
     new_config_writen = load_config(runner.config_file_path)
-    assert len(new_config_writen) == 1
+    assert len(new_config_writen['repos']) == 1
     assert new_config_writen['repos'][0] == config
 
 
