@@ -729,3 +729,18 @@ def test_pass_filenames(
     )
     assert expected_out + b'\nHello World' in printed
     assert (b'foo.py' in printed) == pass_filenames
+
+
+def test_fail_fast(
+        cap_out, repo_with_failing_hook, mock_out_store_directory,
+):
+    with cwd(repo_with_failing_hook):
+        with modify_config() as config:
+            # More than one hook
+            config['fail_fast'] = True
+            config['repos'][0]['hooks'] *= 2
+        stage_a_file()
+
+        ret, printed = _do_run(cap_out, repo_with_failing_hook, _get_opts())
+        # it should have only run one hook
+        assert printed.count(b'Failing hook') == 1

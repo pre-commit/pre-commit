@@ -169,13 +169,15 @@ def _compute_cols(hooks, verbose):
     return max(cols, 80)
 
 
-def _run_hooks(repo_hooks, args, environ):
+def _run_hooks(config, repo_hooks, args, environ):
     """Actually run the hooks."""
     skips = _get_skips(environ)
     cols = _compute_cols([hook for _, hook in repo_hooks], args.verbose)
     retval = 0
     for repo, hook in repo_hooks:
         retval |= _run_single_hook(hook, repo, args, skips, cols)
+        if retval and config['fail_fast']:
+            break
     if (
             retval and
             args.show_diff_on_failure and
@@ -251,4 +253,4 @@ def run(runner, args, environ=os.environ):
             if not hook['stages'] or args.hook_stage in hook['stages']
         ]
 
-        return _run_hooks(repo_hooks, args, environ)
+        return _run_hooks(runner.config, repo_hooks, args, environ)

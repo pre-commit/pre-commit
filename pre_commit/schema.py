@@ -64,6 +64,11 @@ def _apply_default_optional(self, dct):
     dct.setdefault(self.key, self.default)
 
 
+def _remove_default_optional(self, dct):
+    if dct.get(self.key, MISSING) == self.default:
+        del dct[self.key]
+
+
 def _require_key(self, dct):
     if self.key not in dct:
         raise ValidationError('Missing required key: {}'.format(self.key))
@@ -83,6 +88,10 @@ def _check_fn_required_recurse(self):
 
 def _apply_default_required_recurse(self, dct):
     dct[self.key] = apply_defaults(dct[self.key], self.schema)
+
+
+def _remove_default_required_recurse(self, dct):
+    dct[self.key] = remove_defaults(dct[self.key], self.schema)
 
 
 def _check_conditional(self, dct):
@@ -110,18 +119,22 @@ def _check_conditional(self, dct):
 Required = collections.namedtuple('Required', ('key', 'check_fn'))
 Required.check = _check_required
 Required.apply_default = _dct_noop
+Required.remove_default = _dct_noop
 RequiredRecurse = collections.namedtuple('RequiredRecurse', ('key', 'schema'))
 RequiredRecurse.check = _check_required
 RequiredRecurse.check_fn = _check_fn_required_recurse
 RequiredRecurse.apply_default = _apply_default_required_recurse
+RequiredRecurse.remove_default = _remove_default_required_recurse
 Optional = collections.namedtuple('Optional', ('key', 'check_fn', 'default'))
 Optional.check = _check_optional
 Optional.apply_default = _apply_default_optional
+Optional.remove_default = _remove_default_optional
 OptionalNoDefault = collections.namedtuple(
     'OptionalNoDefault', ('key', 'check_fn'),
 )
 OptionalNoDefault.check = _check_optional
 OptionalNoDefault.apply_default = _dct_noop
+OptionalNoDefault.remove_default = _dct_noop
 Conditional = collections.namedtuple(
     'Conditional',
     ('key', 'check_fn', 'condition_key', 'condition_value', 'ensure_absent'),
@@ -129,6 +142,7 @@ Conditional = collections.namedtuple(
 Conditional.__new__.__defaults__ = (False,)
 Conditional.check = _check_conditional
 Conditional.apply_default = _dct_noop
+Conditional.remove_default = _dct_noop
 
 
 class Map(collections.namedtuple('Map', ('object_name', 'id_key', 'items'))):
@@ -158,6 +172,12 @@ class Map(collections.namedtuple('Map', ('object_name', 'id_key', 'items'))):
             item.apply_default(ret)
         return ret
 
+    def remove_defaults(self, v):
+        ret = v.copy()
+        for item in self.items:
+            item.remove_default(ret)
+        return ret
+
 
 class Array(collections.namedtuple('Array', ('of',))):
     __slots__ = ()
@@ -173,6 +193,9 @@ class Array(collections.namedtuple('Array', ('of',))):
 
     def apply_defaults(self, v):
         return [apply_defaults(val, self.of) for val in v]
+
+    def remove_defaults(self, v):
+        return [remove_defaults(val, self.of) for val in v]
 
 
 class Not(object):
@@ -236,6 +259,10 @@ def validate(v, schema):
 
 def apply_defaults(v, schema):
     return schema.apply_defaults(v)
+
+
+def remove_defaults(v, schema):
+    return schema.remove_defaults(v)
 
 
 def load_from_filename(filename, schema, load_strategy, exc_tp):

@@ -130,6 +130,7 @@ CONFIG_SCHEMA = schema.Map(
     'Config', None,
 
     schema.RequiredRecurse('repos', schema.Array(CONFIG_REPO_DICT)),
+    schema.Optional('fail_fast', schema.check_bool, False),
 )
 
 
