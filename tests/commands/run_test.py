@@ -12,6 +12,7 @@ import pytest
 import pre_commit.constants as C
 from pre_commit.commands.install_uninstall import install
 from pre_commit.commands.run import _compute_cols
+from pre_commit.commands.run import _filter_by_include_exclude
 from pre_commit.commands.run import _get_skips
 from pre_commit.commands.run import _has_unmerged_paths
 from pre_commit.commands.run import run
@@ -25,6 +26,7 @@ from testing.fixtures import make_consuming_repo
 from testing.fixtures import modify_config
 from testing.fixtures import read_config
 from testing.util import cmd_output_mocked_pre_commit_home
+from testing.util import xfailif_no_symlink
 
 
 @pytest.yield_fixture
@@ -744,3 +746,45 @@ def test_fail_fast(
         ret, printed = _do_run(cap_out, repo_with_failing_hook, _get_opts())
         # it should have only run one hook
         assert printed.count(b'Failing hook') == 1
+
+
+@pytest.fixture
+def some_filenames():
+    return (
+        '.pre-commit-hooks.yaml',
+        'pre_commit/main.py',
+        'pre_commit/git.py',
+        'im_a_file_that_doesnt_exist.py',
+    )
+
+
+def test_include_exclude_base_case(some_filenames):
+    ret = _filter_by_include_exclude(some_filenames, '', '^$')
+    assert ret == {
+        '.pre-commit-hooks.yaml',
+        'pre_commit/main.py',
+        'pre_commit/git.py',
+    }
+
+
+@xfailif_no_symlink
+def test_matches_broken_symlink(tmpdir):  # pramga: no cover (non-windows)
+    with tmpdir.as_cwd():
+        os.symlink('does-not-exist', 'link')
+        ret = _filter_by_include_exclude({'link'}, '', '^$')
+        assert ret == {'link'}
+
+
+def test_include_exclude_total_match(some_filenames):
+    ret = _filter_by_include_exclude(some_filenames, r'^.*\.py$', '^$')
+    assert ret == {'pre_commit/main.py', 'pre_commit/git.py'}
+
+
+def test_include_exclude_does_search_instead_of_match(some_filenames):
+    ret = _filter_by_include_exclude(some_filenames, r'\.yaml$', '^$')
+    assert ret == {'.pre-commit-hooks.yaml'}
+
+
+def test_include_exclude_exclude_removes_files(some_filenames):
+    ret = _filter_by_include_exclude(some_filenames, '', r'\.py$')
+    assert ret == {'.pre-commit-hooks.yaml'}

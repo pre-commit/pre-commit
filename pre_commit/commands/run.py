@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 import logging
 import os
+import re
 import subprocess
 import sys
 
@@ -36,7 +37,19 @@ def _hook_msg_start(hook, verbose):
     )
 
 
-def filter_filenames_by_types(filenames, types, exclude_types):
+def _filter_by_include_exclude(filenames, include, exclude):
+    include_re, exclude_re = re.compile(include), re.compile(exclude)
+    return {
+        filename for filename in filenames
+        if (
+            include_re.search(filename) and
+            not exclude_re.search(filename) and
+            os.path.lexists(filename)
+        )
+    }
+
+
+def _filter_by_types(filenames, types, exclude_types):
     types, exclude_types = frozenset(types), frozenset(exclude_types)
     ret = []
     for filename in filenames:
@@ -46,34 +59,15 @@ def filter_filenames_by_types(filenames, types, exclude_types):
     return tuple(ret)
 
 
-def get_filenames(args, include_expr, exclude_expr):
-    if args.origin and args.source:
-        getter = git.get_files_matching(
-            lambda: git.get_changed_files(args.origin, args.source),
-        )
-    elif args.hook_stage == 'commit-msg':
-        def getter(*_):
-            return (args.commit_msg_filename,)
-    elif args.files:
-        getter = git.get_files_matching(lambda: args.files)
-    elif args.all_files:
-        getter = git.get_all_files_matching
-    elif git.is_in_merge_conflict():
-        getter = git.get_conflicted_files_matching
-    else:
-        getter = git.get_staged_files_matching
-    return getter(include_expr, exclude_expr)
-
-
 SKIPPED = 'Skipped'
 NO_FILES = '(no files to check)'
 
 
-def _run_single_hook(hook, repo, args, skips, cols):
-    filenames = get_filenames(args, hook['files'], hook['exclude'])
-    filenames = filter_filenames_by_types(
-        filenames, hook['types'], hook['exclude_types'],
-    )
+def _run_single_hook(filenames, hook, repo, args, skips, cols):
+    include, exclude = hook['files'], hook['exclude']
+    filenames = _filter_by_include_exclude(filenames, include, exclude)
+    types, exclude_types = hook['types'], hook['exclude_types']
+    filenames = _filter_by_types(filenames, types, exclude_types)
     if hook['id'] in skips:
         output.write(get_hook_message(
             _hook_msg_start(hook, args.verbose),
@@ -169,13 +163,29 @@ def _compute_cols(hooks, verbose):
     return max(cols, 80)
 
 
+def _all_filenames(args):
+    if args.origin and args.source:
+        return git.get_changed_files(args.origin, args.source)
+    elif args.hook_stage == 'commit-msg':
+        return (args.commit_msg_filename,)
+    elif args.files:
+        return args.files
+    elif args.all_files:
+        return git.get_all_files()
+    elif git.is_in_merge_conflict():
+        return git.get_conflicted_files()
+    else:
+        return git.get_staged_files()
+
+
 def _run_hooks(config, repo_hooks, args, environ):
     """Actually run the hooks."""
     skips = _get_skips(environ)
     cols = _compute_cols([hook for _, hook in repo_hooks], args.verbose)
+    filenames = _all_filenames(args)
     retval = 0
     for repo, hook in repo_hooks:
-        retval |= _run_single_hook(hook, repo, args, skips, cols)
+        retval |= _run_single_hook(filenames, hook, repo, args, skips, cols)
         if retval and config['fail_fast']:
             break
     if (
