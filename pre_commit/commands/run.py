@@ -183,6 +183,7 @@ def _run_hooks(config, repo_hooks, args, environ):
     skips = _get_skips(environ)
     cols = _compute_cols([hook for _, hook in repo_hooks], args.verbose)
     filenames = _all_filenames(args)
+    filenames = _filter_by_include_exclude(filenames, '', config['exclude'])
     retval = 0
     for repo, hook in repo_hooks:
         retval |= _run_single_hook(filenames, hook, repo, args, skips, cols)
