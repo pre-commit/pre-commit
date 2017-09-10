@@ -11,7 +11,6 @@ from pre_commit.errors import FatalError
 from pre_commit.util import cmd_output
 from pre_commit.util import cwd
 from testing.fixtures import git_dir
-from testing.util import xfailif_no_symlink
 
 
 def test_get_root_at_root(tempdir_factory):
@@ -64,56 +63,6 @@ def test_cherry_pick_conflict(in_merge_conflict):
     foo_ref = cmd_output('git', 'rev-parse', 'foo')[1].strip()
     cmd_output('git', 'cherry-pick', foo_ref, retcode=None)
     assert git.is_in_merge_conflict() is False
-
-
-@pytest.fixture
-def get_files_matching_func():
-    def get_filenames():
-        return (
-            '.pre-commit-hooks.yaml',
-            'pre_commit/main.py',
-            'pre_commit/git.py',
-            'im_a_file_that_doesnt_exist.py',
-        )
-
-    return git.get_files_matching(get_filenames)
-
-
-def test_get_files_matching_base(get_files_matching_func):
-    ret = get_files_matching_func('', '^$')
-    assert ret == {
-        '.pre-commit-hooks.yaml',
-        'pre_commit/main.py',
-        'pre_commit/git.py',
-    }
-
-
-@xfailif_no_symlink
-def test_matches_broken_symlink(tmpdir):  # pragma: no cover (non-windwos)
-    with tmpdir.as_cwd():
-        os.symlink('does-not-exist', 'link')
-        func = git.get_files_matching(lambda: ('link',))
-        assert func('', '^$') == {'link'}
-
-
-def test_get_files_matching_total_match(get_files_matching_func):
-    ret = get_files_matching_func('^.*\\.py$', '^$')
-    assert ret == {'pre_commit/main.py', 'pre_commit/git.py'}
-
-
-def test_does_search_instead_of_match(get_files_matching_func):
-    ret = get_files_matching_func('\\.yaml$', '^$')
-    assert ret == {'.pre-commit-hooks.yaml'}
-
-
-def test_does_not_include_deleted_fileS(get_files_matching_func):
-    ret = get_files_matching_func('exist.py', '^$')
-    assert ret == set()
-
-
-def test_exclude_removes_files(get_files_matching_func):
-    ret = get_files_matching_func('', '\\.py$')
-    assert ret == {'.pre-commit-hooks.yaml'}
 
 
 def resolve_conflict():

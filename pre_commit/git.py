@@ -1,15 +1,12 @@
 from __future__ import unicode_literals
 
-import functools
 import logging
 import os.path
-import re
 import sys
 
 from pre_commit.errors import FatalError
 from pre_commit.util import CalledProcessError
 from pre_commit.util import cmd_output
-from pre_commit.util import memoize_by_cwd
 
 
 logger = logging.getLogger('pre_commit')
@@ -63,7 +60,6 @@ def parse_merge_msg_for_conflicts(merge_msg):
     ]
 
 
-@memoize_by_cwd
 def get_conflicted_files():
     logger.info('Checking merge-conflict files only.')
     # Need to get the conflicted files from the MERGE_MSG because they could
@@ -82,7 +78,6 @@ def get_conflicted_files():
     return set(merge_conflict_filenames) | set(merge_diff_filenames)
 
 
-@memoize_by_cwd
 def get_staged_files():
     return zsplit(cmd_output(
         'git', 'diff', '--staged', '--name-only', '--no-ext-diff', '-z',
@@ -91,7 +86,6 @@ def get_staged_files():
     )[1])
 
 
-@memoize_by_cwd
 def get_all_files():
     return zsplit(cmd_output('git', 'ls-files', '-z')[1])
 
@@ -101,29 +95,6 @@ def get_changed_files(new, old):
         'git', 'diff', '--name-only', '--no-ext-diff', '-z',
         '{}...{}'.format(old, new),
     )[1])
-
-
-def get_files_matching(all_file_list_strategy):
-    @functools.wraps(all_file_list_strategy)
-    @memoize_by_cwd
-    def wrapper(include_expr, exclude_expr):
-        include_regex = re.compile(include_expr)
-        exclude_regex = re.compile(exclude_expr)
-        return {
-            filename
-            for filename in all_file_list_strategy()
-            if (
-                include_regex.search(filename) and
-                not exclude_regex.search(filename) and
-                os.path.lexists(filename)
-            )
-        }
-    return wrapper
-
-
-get_staged_files_matching = get_files_matching(get_staged_files)
-get_all_files_matching = get_files_matching(get_all_files)
-get_conflicted_files_matching = get_files_matching(get_conflicted_files)
 
 
 def check_for_cygwin_mismatch():
