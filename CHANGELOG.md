@@ -1,7 +1,23 @@
+1.1.0
+=====
+
+### Features
+- pre-commit configuration gains a `fail_fast` option.
+    - You must be using the v2 configuration format introduced in 1.0.0.
+    - `fail_fast` defaults to `false`.
+    - #240 issue by @Lucas-C.
+    - #616 PR by @asottile.
+- pre-commit configuration gains a global `exclude` option.
+    - This option takes a python regular expression and can be used to exclude
+      files from _all_ hooks.
+    - You must be using the v2 configuration format introduced in 1.0.0.
+    - #281 issue by @asieira.
+    - #617 PR by @asottile.
+
 1.0.1
 =====
 
-## Fixes
+### Fixes
 - Fix a regression in the return code of `pre-commit autoupdate`
     - `pre-commit migrate-config` and `pre-commit autoupdate` return 0 when
       successful.
