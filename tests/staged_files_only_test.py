@@ -75,6 +75,15 @@ def test_foo_something_unstaged(foo_staged, patch_dir):
     _test_foo_state(foo_staged, 'herp\nderp\n', 'AM')
 
 
+def test_does_not_crash_patch_dir_does_not_exist(foo_staged, patch_dir):
+    with io.open(foo_staged.foo_filename, 'w') as foo_file:
+        foo_file.write('hello\nworld\n')
+
+    shutil.rmtree(patch_dir)
+    with staged_files_only(patch_dir):
+        pass
+
+
 def test_something_unstaged_ext_diff_tool(foo_staged, patch_dir, tmpdir):
     diff_tool = tmpdir.join('diff-tool.sh')
     diff_tool.write('#!/usr/bin/env bash\necho "$@"\n')
