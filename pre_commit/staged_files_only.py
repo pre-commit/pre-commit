@@ -8,6 +8,7 @@ import time
 
 from pre_commit.util import CalledProcessError
 from pre_commit.util import cmd_output
+from pre_commit.util import mkdirp
 
 
 logger = logging.getLogger('pre_commit')
@@ -43,6 +44,7 @@ def staged_files_only(patch_dir):
             'Stashing unstaged files to {}.'.format(patch_filename),
         )
         # Save the current unstaged changes as a patch
+        mkdirp(patch_dir)
         with io.open(patch_filename, 'wb') as patch_file:
             patch_file.write(diff_stdout_binary)
 
