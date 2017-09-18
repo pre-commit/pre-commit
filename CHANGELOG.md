@@ -1,3 +1,15 @@
+1.1.1
+=====
+
+### Features
+- pre-commit also checks the `ssl` module for virtualenv health
+    - Suggestion by @merwok.
+    - #619 PR by @asottile.
+### Fixes
+- pre-commit no longer crashes with unstaged files when run for the first time
+    - #620 #621 issue by @Lucas-C.
+    - #622 PR by @asottile.
+
 1.1.0
 =====
 
