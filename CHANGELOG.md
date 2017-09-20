@@ -1,3 +1,12 @@
+1.1.2
+=====
+
+### Fixes
+- pre-commit can successfully install commit-msg hooks
+    - Due to an oversight, the commit-msg-tmpl was missing from the packaging
+    - #623 issue by @sobolevn.
+    - #624 PR by @asottile.
+
 1.1.1
 =====
 

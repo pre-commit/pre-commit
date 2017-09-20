@@ -9,7 +9,7 @@ setup(
         'hooks.'
     ),
     url='https://github.com/pre-commit/pre-commit',
-    version='1.1.1',
+    version='1.1.2',
 
     author='Anthony Sottile',
     author_email='asottile@umich.edu',
@@ -29,7 +29,8 @@ setup(
     packages=find_packages(exclude=('tests*', 'testing*')),
     package_data={
         'pre_commit': [
-            'resources/*',
+            'resources/*-tmpl',
+            'resources/*.tar.gz',
             'resources/empty_template/*',
             'resources/empty_template/.npmignore',
         ],
