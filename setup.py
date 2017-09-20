@@ -29,11 +29,7 @@ setup(
     packages=find_packages(exclude=('tests*', 'testing*')),
     package_data={
         'pre_commit': [
-            'resources/hook-tmpl',
-            'resources/pre-push-tmpl',
-            'resources/rbenv.tar.gz',
-            'resources/ruby-build.tar.gz',
-            'resources/ruby-download.tar.gz',
+            'resources/*',
             'resources/empty_template/*',
             'resources/empty_template/.npmignore',
         ],
