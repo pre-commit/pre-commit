@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 import io
 import os.path
+import pipes
 import sys
 
 from pre_commit import output
@@ -68,7 +69,7 @@ def install(
 
         skip_on_missing_conf = 'true' if skip_on_missing_conf else 'false'
         contents = io.open(resource_filename('hook-tmpl')).read().format(
-            sys_executable=sys.executable,
+            sys_executable=pipes.quote(sys.executable),
             hook_type=hook_type,
             hook_specific=hook_specific_contents,
             config_file=runner.config_file,

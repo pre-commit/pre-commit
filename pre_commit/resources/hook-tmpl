@@ -9,7 +9,7 @@ popd > /dev/null
 retv=0
 args=""
 
-ENV_PYTHON='{sys_executable}'
+ENV_PYTHON={sys_executable}
 SKIP_ON_MISSING_CONF={skip_on_missing_conf}
 
 which pre-commit >& /dev/null

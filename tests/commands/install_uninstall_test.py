@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 
 import io
 import os.path
+import pipes
 import re
 import shutil
 import subprocess
@@ -54,7 +55,7 @@ def test_install_pre_commit(tempdir_factory):
     pre_commit_contents = io.open(runner.pre_commit_path).read()
     pre_commit_script = resource_filename('hook-tmpl')
     expected_contents = io.open(pre_commit_script).read().format(
-        sys_executable=sys.executable,
+        sys_executable=pipes.quote(sys.executable),
         hook_type='pre-commit',
         hook_specific='',
         config_file=runner.config_file,
@@ -70,7 +71,7 @@ def test_install_pre_commit(tempdir_factory):
     pre_push_tmpl = resource_filename('pre-push-tmpl')
     pre_push_template_contents = io.open(pre_push_tmpl).read()
     expected_contents = io.open(pre_commit_script).read().format(
-        sys_executable=sys.executable,
+        sys_executable=pipes.quote(sys.executable),
         hook_type='pre-push',
         hook_specific=pre_push_template_contents,
         config_file=runner.config_file,
