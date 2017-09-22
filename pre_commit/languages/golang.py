@@ -37,8 +37,11 @@ def in_env(repo_cmd_runner):
 def guess_go_dir(remote_url):
     if remote_url.endswith('.git'):
         remote_url = remote_url[:-1 * len('.git')]
+    looks_like_url = (
+        not remote_url.startswith('file://') and
+        ('//' in remote_url or '@' in remote_url)
+    )
     remote_url = remote_url.replace(':', '/')
-    looks_like_url = '//' in remote_url or '@' in remote_url
     if looks_like_url:
         _, _, remote_url = remote_url.rpartition('//')
         _, _, remote_url = remote_url.rpartition('@')

@@ -83,7 +83,7 @@ def config_with_local_hooks():
 def make_config_from_repo(repo_path, sha=None, hooks=None, check=True):
     manifest = load_manifest(os.path.join(repo_path, C.MANIFEST_FILE))
     config = OrderedDict((
-        ('repo', repo_path),
+        ('repo', 'file://{}'.format(repo_path)),
         ('sha', sha or get_head_sha(repo_path)),
         (
             'hooks',

@@ -714,7 +714,7 @@ def test_hook_id_not_present(tempdir_factory, store, fake_log_handler):
     with pytest.raises(SystemExit):
         repo.require_installed()
     assert fake_log_handler.handle.call_args[0][0].msg == (
-        '`i-dont-exist` is not present in repository {}.  '
+        '`i-dont-exist` is not present in repository file://{}.  '
         'Typo? Perhaps it is introduced in a newer version?  '
         'Often `pre-commit autoupdate` fixes this.'.format(path)
     )

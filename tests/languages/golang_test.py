@@ -10,6 +10,7 @@ from pre_commit.languages.golang import guess_go_dir
     ('url', 'expected'),
     (
         ('/im/a/path/on/disk', 'unknown_src_dir'),
+        ('file:///im/a/path/on/disk', 'unknown_src_dir'),
         ('git@github.com:golang/lint', 'github.com/golang/lint'),
         ('git://github.com/golang/lint', 'github.com/golang/lint'),
         ('http://github.com/golang/lint', 'github.com/golang/lint'),
