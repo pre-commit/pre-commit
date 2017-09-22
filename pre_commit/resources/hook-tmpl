@@ -2,9 +2,9 @@
 # This is a randomish md5 to identify this script
 # 138fd403232d2ddd5efb44317e38bf03
 
-pushd `dirname $0` > /dev/null
-HERE=`pwd`
-popd > /dev/null
+pushd "$(dirname "$0")" >& /dev/null
+HERE="$(pwd)"
+popd >& /dev/null
 
 retv=0
 args=""
@@ -12,35 +12,28 @@ args=""
 ENV_PYTHON={sys_executable}
 SKIP_ON_MISSING_CONF={skip_on_missing_conf}
 
-which pre-commit >& /dev/null
-WHICH_RETV=$?
-"$ENV_PYTHON" -c 'import pre_commit.main' >& /dev/null
-ENV_PYTHON_RETV=$?
-python -c 'import pre_commit.main' >& /dev/null
-PYTHON_RETV=$?
-
-
-if ((
-        (WHICH_RETV != 0) &&
-        (ENV_PYTHON_RETV != 0) &&
-        (PYTHON_RETV != 0)
-)); then
+if which pre-commit >& /dev/null; then
+    exe="pre-commit"
+    run_args=""
+elif "$ENV_PYTHON" -c 'import pre_commit.main' >& /dev/null; then
+    exe="$ENV_PYTHON"
+    run_args="-m pre_commit.main"
+elif python -c 'import pre_commit.main' >& /dev/null; then
+    exe="python"
+    run_args="-m pre_commit.main"
+else
     echo '`pre-commit` not found.  Did you forget to activate your virtualenv?'
     exit 1
 fi
 
-
 # Run the legacy pre-commit if it exists
-if [ -x "$HERE"/{hook_type}.legacy ]; then
-    "$HERE"/{hook_type}.legacy
-    if [ $? -ne 0 ]; then
-        retv=1
-    fi
+if [ -x "$HERE"/{hook_type}.legacy ] && ! "$HERE"/{hook_type}.legacy; then
+    retv=1
 fi
 
 CONF_FILE="$(git rev-parse --show-toplevel)/{config_file}"
-if [ ! -f $CONF_FILE  ]; then
-    if [ $SKIP_ON_MISSING_CONF = true ] || [ ! -z $PRE_COMMIT_ALLOW_NO_CONFIG ]; then
+if [ ! -f "$CONF_FILE" ]; then
+    if [ "$SKIP_ON_MISSING_CONF" = true -o ! -z "$PRE_COMMIT_ALLOW_NO_CONFIG" ]; then
         echo '`{config_file}` config file not found. Skipping `pre-commit`.'
         exit $retv
     else
@@ -55,18 +48,7 @@ fi
 {hook_specific}
 
 # Run pre-commit
-if ((WHICH_RETV == 0)); then
-    pre-commit run $args --config {config_file}
-    PRE_COMMIT_RETV=$?
-elif ((ENV_PYTHON_RETV == 0)); then
-    "$ENV_PYTHON" -m pre_commit.main run $args
-    PRE_COMMIT_RETV=$?
-else
-    python -m pre_commit.main run $args
-    PRE_COMMIT_RETV=$?
-fi
-
-if ((PRE_COMMIT_RETV != 0)); then
+if ! "$exe" $run_args run $args --config {config_file}; then
     retv=1
 fi
 
