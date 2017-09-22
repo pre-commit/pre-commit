@@ -141,7 +141,7 @@ class Store(object):
         """Clone the given url and checkout the specific ref."""
         def clone_strategy(directory):
             cmd_output(
-                'git', 'clone', '--no-checkout', repo, directory,
+                'git', 'clone', '--no-checkout', '--depth', '1', repo, directory,
                 env=no_git_env(),
             )
             with cwd(directory):
