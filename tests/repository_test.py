@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
+import collections
 import io
 import os.path
 import re
@@ -36,6 +37,10 @@ from testing.util import xfailif_windows_no_node
 from testing.util import xfailif_windows_no_ruby
 
 
+def _norm_out(b):
+    return b.replace(b'\r\n', b'\n')
+
+
 def _test_hook_repo(
         tempdir_factory,
         store,
@@ -54,7 +59,7 @@ def _test_hook_repo(
     ]
     ret = repo.run_hook(hook_dict, args)
     assert ret[0] == expected_return_code
-    assert ret[1].replace(b'\r\n', b'\n') == expected
+    assert _norm_out(ret[1]) == expected
 
 
 @pytest.mark.integration
@@ -114,7 +119,7 @@ def test_switch_language_versions_doesnt_clobber(tempdir_factory, store):
         ]
         ret = repo.run_hook(hook_dict, [])
         assert ret[0] == 0
-        assert ret[1].replace(b'\r\n', b'\n') == expected_output
+        assert _norm_out(ret[1]) == expected_output
 
     run_on_version('python3.4', b'3.4\n[]\nHello World\n')
     run_on_version('python3.5', b'3.5\n[]\nHello World\n')
@@ -278,25 +283,6 @@ def test_missing_executable(tempdir_factory, store):
 
 
 @pytest.mark.integration
-def test_missing_pcre_support(tempdir_factory, store):
-    orig_find_executable = parse_shebang.find_executable
-
-    def no_grep(exe, **kwargs):
-        if exe == pcre.GREP:
-            return None
-        else:
-            return orig_find_executable(exe, **kwargs)
-
-    with mock.patch.object(parse_shebang, 'find_executable', no_grep):
-        _test_hook_repo(
-            tempdir_factory, store, 'pcre_hooks_repo',
-            'regex-with-quotes', ['/dev/null'],
-            'Executable `{}` not found'.format(pcre.GREP).encode('UTF-8'),
-            expected_return_code=1,
-        )
-
-
-@pytest.mark.integration
 def test_run_a_script_hook(tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'script_hooks_repo',
@@ -330,85 +316,88 @@ def test_run_hook_with_curly_braced_arguments(tempdir_factory, store):
     )
 
 
-@xfailif_no_pcre_support
-@pytest.mark.integration
-def test_pcre_hook_no_match(tempdir_factory, store):
-    path = git_dir(tempdir_factory)
-    with cwd(path):
-        with io.open('herp', 'w') as herp:
-            herp.write('foo')
-
-        with io.open('derp', 'w') as derp:
-            derp.write('bar')
-
-        _test_hook_repo(
-            tempdir_factory, store, 'pcre_hooks_repo',
-            'regex-with-quotes', ['herp', 'derp'], b'',
-        )
-
-        _test_hook_repo(
-            tempdir_factory, store, 'pcre_hooks_repo',
-            'other-regex', ['herp', 'derp'], b'',
-        )
-
-
-@xfailif_no_pcre_support
-@pytest.mark.integration
-def test_pcre_hook_matching(tempdir_factory, store):
-    path = git_dir(tempdir_factory)
-    with cwd(path):
-        with io.open('herp', 'w') as herp:
-            herp.write("\nherpfoo'bard\n")
-
-        with io.open('derp', 'w') as derp:
-            derp.write('[INFO] information yo\n')
-
-        _test_hook_repo(
-            tempdir_factory, store, 'pcre_hooks_repo',
-            'regex-with-quotes', ['herp', 'derp'], b"herp:2:herpfoo'bard\n",
-            expected_return_code=1,
-        )
-
-        _test_hook_repo(
-            tempdir_factory, store, 'pcre_hooks_repo',
-            'other-regex', ['herp', 'derp'], b'derp:1:[INFO] information yo\n',
-            expected_return_code=1,
-        )
+def _make_grep_repo(language, entry, store, args=()):
+    config = collections.OrderedDict((
+        ('repo', 'local'),
+        (
+            'hooks', [
+                collections.OrderedDict((
+                    ('id', 'grep-hook'),
+                    ('name', 'grep-hook'),
+                    ('language', language),
+                    ('entry', entry),
+                    ('args', args),
+                    ('types', ['text']),
+                )),
+            ],
+        ),
+    ))
+    repo = Repository.create(config, store)
+    (_, hook), = repo.hooks
+    return repo, hook
 
 
-@xfailif_no_pcre_support
-@pytest.mark.integration
-def test_pcre_hook_case_insensitive_option(tempdir_factory, store):
-    path = git_dir(tempdir_factory)
-    with cwd(path):
-        with io.open('herp', 'w') as herp:
-            herp.write('FoOoOoObar\n')
+@pytest.fixture
+def greppable_files(tmpdir):
+    with tmpdir.as_cwd():
+        cmd_output('git', 'init', '.')
+        tmpdir.join('f1').write_binary(b"hello'hi\nworld\n")
+        tmpdir.join('f2').write_binary(b'foo\nbar\nbaz\n')
+        tmpdir.join('f3').write_binary(b'[WARN] hi\n')
+        yield tmpdir
 
-        _test_hook_repo(
-            tempdir_factory, store, 'pcre_hooks_repo',
-            'regex-with-grep-args', ['herp'], b'herp:1:FoOoOoObar\n',
-            expected_return_code=1,
-        )
+
+class TestPygrep(object):
+    language = 'pygrep'
+
+    def test_grep_hook_matching(self, greppable_files, store):
+        repo, hook = _make_grep_repo(self.language, 'ello', store)
+        ret, out, _ = repo.run_hook(hook, ('f1', 'f2', 'f3'))
+        assert ret == 1
+        assert _norm_out(out) == b"f1:1:hello'hi\n"
+
+    def test_grep_hook_case_insensitive(self, greppable_files, store):
+        repo, hook = _make_grep_repo(self.language, 'ELLO', store, args=['-i'])
+        ret, out, _ = repo.run_hook(hook, ('f1', 'f2', 'f3'))
+        assert ret == 1
+        assert _norm_out(out) == b"f1:1:hello'hi\n"
+
+    @pytest.mark.parametrize('regex', ('nope', "foo'bar", r'^\[INFO\]'))
+    def test_grep_hook_not_matching(self, regex, greppable_files, store):
+        repo, hook = _make_grep_repo(self.language, regex, store)
+        ret, out, _ = repo.run_hook(hook, ('f1', 'f2', 'f3'))
+        assert (ret, out) == (0, b'')
 
 
 @xfailif_no_pcre_support
-@pytest.mark.integration
-def test_pcre_many_files(tempdir_factory, store):
-    # This is intended to simulate lots of passing files and one failing file
-    # to make sure it still fails.  This is not the case when naively using
-    # a system hook with `grep -H -n '...'` and expected_return_code=1.
-    path = git_dir(tempdir_factory)
-    with cwd(path):
-        with io.open('herp', 'w') as herp:
-            herp.write('[INFO] info\n')
+class TestPCRE(TestPygrep):
+    """organized as a class for xfailing pcre"""
+    language = 'pcre'
 
-        _test_hook_repo(
-            tempdir_factory, store, 'pcre_hooks_repo',
-            'other-regex',
-            ['/dev/null'] * 15000 + ['herp'],
-            b'herp:1:[INFO] info\n',
-            expected_return_code=1,
-        )
+    def test_pcre_hook_many_files(self, greppable_files, store):
+        # This is intended to simulate lots of passing files and one failing
+        # file to make sure it still fails.  This is not the case when naively
+        # using a system hook with `grep -H -n '...'`
+        repo, hook = _make_grep_repo('pcre', 'ello', store)
+        ret, out, _ = repo.run_hook(hook, (os.devnull,) * 15000 + ('f1',))
+        assert ret == 1
+        assert _norm_out(out) == b"f1:1:hello'hi\n"
+
+    def test_missing_pcre_support(self, greppable_files, store):
+        orig_find_executable = parse_shebang.find_executable
+
+        def no_grep(exe, **kwargs):
+            if exe == pcre.GREP:
+                return None
+            else:
+                return orig_find_executable(exe, **kwargs)
+
+        with mock.patch.object(parse_shebang, 'find_executable', no_grep):
+            repo, hook = _make_grep_repo('pcre', 'ello', store)
+            ret, out, _ = repo.run_hook(hook, ('f1', 'f2', 'f3'))
+            assert ret == 1
+            expected = 'Executable `{}` not found'.format(pcre.GREP).encode()
+            assert out == expected
 
 
 def _norm_pwd(path):
@@ -703,7 +692,7 @@ def test_local_python_repo(store):
     (_, hook), = repo.hooks
     ret = repo.run_hook(hook, ('filename',))
     assert ret[0] == 0
-    assert ret[1].replace(b'\r\n', b'\n') == b"['filename']\nHello World\n"
+    assert _norm_out(ret[1]) == b"['filename']\nHello World\n"
 
 
 def test_hook_id_not_present(tempdir_factory, store, fake_log_handler):
