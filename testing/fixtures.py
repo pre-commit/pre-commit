@@ -73,7 +73,7 @@ def config_with_local_hooks():
                 ('id', 'do_not_commit'),
                 ('name', 'Block if "DO NOT COMMIT" is found'),
                 ('entry', 'DO NOT COMMIT'),
-                ('language', 'pcre'),
+                ('language', 'pygrep'),
                 ('files', '^(.*)$'),
             ))],
         ),

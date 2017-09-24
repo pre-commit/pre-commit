@@ -5,6 +5,7 @@ from pre_commit.languages import docker_image
 from pre_commit.languages import golang
 from pre_commit.languages import node
 from pre_commit.languages import pcre
+from pre_commit.languages import pygrep
 from pre_commit.languages import python
 from pre_commit.languages import ruby
 from pre_commit.languages import script
@@ -54,6 +55,7 @@ languages = {
     'golang': golang,
     'node': node,
     'pcre': pcre,
+    'pygrep': pygrep,
     'python': python,
     'ruby': ruby,
     'script': script,
