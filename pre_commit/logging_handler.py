@@ -23,12 +23,12 @@ class LoggingHandler(logging.Handler):
 
     def emit(self, record):
         output.write_line(
-            '{}{}'.format(
+            '{} {}'.format(
                 color.format_color(
                     '[{}]'.format(record.levelname),
                     LOG_LEVEL_COLORS[record.levelname],
                     self.use_color,
-                ) + ' ',
+                ),
                 record.getMessage(),
             ),
         )

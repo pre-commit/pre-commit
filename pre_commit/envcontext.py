@@ -10,14 +10,12 @@ UNSET = collections.namedtuple('UNSET', ())()
 
 
 Var = collections.namedtuple('Var', ('name', 'default'))
-setattr(Var.__new__, '__defaults__', ('',))
+Var.__new__.__defaults__ = ('',)
 
 
 def format_env(parts, env):
     return ''.join(
-        env.get(part.name, part.default)
-        if isinstance(part, Var)
-        else part
+        env.get(part.name, part.default) if isinstance(part, Var) else part
         for part in parts
     )
 

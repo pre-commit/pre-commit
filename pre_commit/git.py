@@ -4,7 +4,7 @@ import logging
 import os.path
 import sys
 
-from pre_commit.errors import FatalError
+from pre_commit.error_handler import FatalError
 from pre_commit.util import CalledProcessError
 from pre_commit.util import cmd_output
 
@@ -114,7 +114,6 @@ def check_for_cygwin_mismatch():
                 'These can be installed through the cygwin installer.\n'
                 ' - python {}\n'
                 ' - git {}\n'.format(
-                    exe_type[is_cygwin_python],
-                    exe_type[is_cygwin_git],
+                    exe_type[is_cygwin_python], exe_type[is_cygwin_git],
                 ),
             )

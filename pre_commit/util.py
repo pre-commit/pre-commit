@@ -93,18 +93,16 @@ def tmpdir():
         rmtree(tempdir)
 
 
-def resource_filename(filename):
+def resource_filename(*segments):
     return pkg_resources.resource_filename(
-        'pre_commit',
-        os.path.join('resources', filename),
+        'pre_commit', os.path.join('resources', *segments),
     )
 
 
 def make_executable(filename):
     original_mode = os.stat(filename).st_mode
     os.chmod(
-        filename,
-        original_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH,
+        filename, original_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH,
     )
 
 

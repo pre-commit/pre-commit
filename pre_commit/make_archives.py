@@ -2,12 +2,14 @@ from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import argparse
 import os.path
 import tarfile
 
 from pre_commit import output
 from pre_commit.util import cmd_output
 from pre_commit.util import cwd
+from pre_commit.util import resource_filename
 from pre_commit.util import rmtree
 from pre_commit.util import tmpdir
 
@@ -24,11 +26,6 @@ REPOS = (
         'git://github.com/garnieretienne/rvm-download',
         '09bd7c6',
     ),
-)
-
-
-RESOURCES_DIR = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), 'resources'),
 )
 
 
@@ -59,12 +56,15 @@ def make_archive(name, repo, ref, destdir):
     return output_path
 
 
-def main():
+def main(argv=None):
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--dest', default=resource_filename())
+    args = parser.parse_args(argv)
     for archive_name, repo, ref in REPOS:
         output.write_line('Making {}.tar.gz for {}@{}'.format(
             archive_name, repo, ref,
         ))
-        make_archive(archive_name, repo, ref, RESOURCES_DIR)
+        make_archive(archive_name, repo, ref, args.dest)
 
 
 if __name__ == '__main__':

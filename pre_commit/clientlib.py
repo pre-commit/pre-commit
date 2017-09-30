@@ -10,7 +10,7 @@ from identify.identify import ALL_TAGS
 
 import pre_commit.constants as C
 from pre_commit import schema
-from pre_commit.errors import FatalError
+from pre_commit.error_handler import FatalError
 from pre_commit.languages.all import all_languages
 
 
@@ -51,8 +51,7 @@ MANIFEST_HOOK_DICT = schema.Map(
         '',
     ),
     schema.Optional(
-        'exclude',
-        schema.check_and(schema.check_string, schema.check_regex),
+        'exclude', schema.check_and(schema.check_string, schema.check_regex),
         '^$',
     ),
     schema.Optional('types', schema.check_array(check_type_tag), ['file']),

@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from __future__ import unicode_literals
 
 from ctypes import POINTER
@@ -19,8 +20,7 @@ def bool_errcheck(result, func, args):
 
 
 GetStdHandle = WINFUNCTYPE(HANDLE, DWORD)(
-    ("GetStdHandle", windll.kernel32),
-    ((1, "nStdHandle"), ),
+    ("GetStdHandle", windll.kernel32), ((1, "nStdHandle"),),
 )
 
 GetConsoleMode = WINFUNCTYPE(BOOL, HANDLE, POINTER(DWORD))(
@@ -42,7 +42,6 @@ def enable_virtual_terminal_processing():
 
     More info on the escape sequences supported:
     https://msdn.microsoft.com/en-us/library/windows/desktop/mt638032(v=vs.85).aspx
-
     """
     stdout = GetStdHandle(STD_OUTPUT_HANDLE)
     flags = GetConsoleMode(stdout)
