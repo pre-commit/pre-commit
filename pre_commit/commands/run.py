@@ -32,8 +32,7 @@ def _get_skips(environ):
 
 def _hook_msg_start(hook, verbose):
     return '{}{}'.format(
-        '[{}] '.format(hook['id']) if verbose else '',
-        hook['name'],
+        '[{}] '.format(hook['id']) if verbose else '', hook['name'],
     )
 
 
@@ -99,8 +98,7 @@ def _run_single_hook(filenames, hook, repo, args, skips, cols):
         'git', 'diff', '--no-ext-diff', retcode=None, encoding=None,
     )
     retcode, stdout, stderr = repo.run_hook(
-        hook,
-        tuple(filenames) if hook['pass_filenames'] else (),
+        hook, tuple(filenames) if hook['pass_filenames'] else (),
     )
     diff_after = cmd_output(
         'git', 'diff', '--no-ext-diff', retcode=None, encoding=None,

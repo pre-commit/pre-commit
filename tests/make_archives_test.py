@@ -4,7 +4,6 @@ from __future__ import unicode_literals
 import os.path
 import tarfile
 
-import mock
 import pytest
 
 from pre_commit import make_archives
@@ -53,12 +52,8 @@ def test_make_archive(tempdir_factory):
 
 @skipif_slowtests_false
 @pytest.mark.integration
-def test_main(tempdir_factory):
-    path = tempdir_factory.get()
-
-    # Don't actually want to make these in the current repo
-    with mock.patch.object(make_archives, 'RESOURCES_DIR', path):
-        make_archives.main()
+def test_main(tmpdir):
+    make_archives.main(('--dest', tmpdir.strpath))
 
     for archive, _, _ in make_archives.REPOS:
-        assert os.path.exists(os.path.join(path, archive + '.tar.gz'))
+        assert tmpdir.join('{}.tar.gz'.format(archive)).exists()

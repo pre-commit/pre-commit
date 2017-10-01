@@ -11,7 +11,6 @@ import mock
 import pytest
 
 from pre_commit import error_handler
-from pre_commit.errors import FatalError
 from testing.util import cmd_output_mocked_pre_commit_home
 
 
@@ -28,7 +27,7 @@ def test_error_handler_no_exception(mocked_log_and_exit):
 
 
 def test_error_handler_fatal_error(mocked_log_and_exit):
-    exc = FatalError('just a test')
+    exc = error_handler.FatalError('just a test')
     with error_handler.error_handler():
         raise exc
 
@@ -46,7 +45,7 @@ def test_error_handler_fatal_error(mocked_log_and_exit):
         r'  File ".+tests.error_handler_test.py", line \d+, '
         r'in test_error_handler_fatal_error\n'
         r'    raise exc\n'
-        r'(pre_commit\.errors\.)?FatalError: just a test\n',
+        r'(pre_commit\.error_handler\.)?FatalError: just a test\n',
         mocked_log_and_exit.call_args[0][2],
     )
 
@@ -77,7 +76,7 @@ def test_error_handler_uncaught_error(mocked_log_and_exit):
 def test_log_and_exit(cap_out, mock_out_store_directory):
     with pytest.raises(SystemExit):
         error_handler._log_and_exit(
-            'msg', FatalError('hai'), "I'm a stacktrace",
+            'msg', error_handler.FatalError('hai'), "I'm a stacktrace",
         )
 
     printed = cap_out.get()

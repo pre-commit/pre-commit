@@ -7,7 +7,7 @@ import os.path
 import pytest
 
 from pre_commit import git
-from pre_commit.errors import FatalError
+from pre_commit.error_handler import FatalError
 from pre_commit.util import cmd_output
 from pre_commit.util import cwd
 from testing.fixtures import git_dir

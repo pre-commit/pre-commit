@@ -47,7 +47,4 @@ def use_color(setting):
     if setting not in COLOR_CHOICES:
         raise InvalidColorSetting(setting)
 
-    return (
-        setting == 'always' or
-        (setting == 'auto' and sys.stdout.isatty())
-    )
+    return setting == 'always' or (setting == 'auto' and sys.stdout.isatty())

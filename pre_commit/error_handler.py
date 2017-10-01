@@ -10,8 +10,11 @@ import six
 
 from pre_commit import five
 from pre_commit import output
-from pre_commit.errors import FatalError
 from pre_commit.store import Store
+
+
+class FatalError(RuntimeError):
+    pass
 
 
 def _to_bytes(exc):
@@ -46,7 +49,5 @@ def error_handler():
         _log_and_exit('An error has occurred', e, traceback.format_exc())
     except Exception as e:
         _log_and_exit(
-            'An unexpected error has occurred',
-            e,
-            traceback.format_exc(),
+            'An unexpected error has occurred', e, traceback.format_exc(),
         )
