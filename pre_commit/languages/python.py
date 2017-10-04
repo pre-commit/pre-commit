@@ -86,7 +86,7 @@ def get_default_version():
 def healthy(repo_cmd_runner, language_version):
     with in_env(repo_cmd_runner, language_version):
         retcode, _, _ = cmd_output(
-            'python', '-c', 'import datetime, io, os, ssl, weakref',
+            'python', '-c', 'import ctypes, datetime, io, os, ssl, weakref',
             retcode=None,
         )
     return retcode == 0
