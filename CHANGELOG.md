@@ -1,3 +1,25 @@
+1.2.0
+=====
+
+### Features
+- Add `pygrep` language
+    - `pygrep` aims to be a more cross-platform alternative to `pcre` hooks.
+    - #630 PR by @asottile.
+
+### Fixes
+- Use `pipes.quote` for executable path in hook template
+    - Fixes bash syntax error when git dir contains spaces
+    - #626 PR by @asottile.
+- Clean up hook template
+    - Simplify code
+    - Fix `--config` not being respected in some situations
+    - #627 PR by @asottile.
+- Use `file://` protocol for cloning under test
+    - Fix `file://` clone paths being treated as urls for golang
+- Add `ctypes` as an import for virtualenv healthchecks
+    - Fixes python3.6.2 <=> python3.6.3 virtualenv invalidation
+    - e70825ab by @asottile.
+
 1.1.2
 =====
 
