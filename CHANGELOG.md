@@ -16,6 +16,7 @@
     - #627 PR by @asottile.
 - Use `file://` protocol for cloning under test
     - Fix `file://` clone paths being treated as urls for golang
+    - #629 PR by @asottile.
 - Add `ctypes` as an import for virtualenv healthchecks
     - Fixes python3.6.2 <=> python3.6.3 virtualenv invalidation
     - e70825ab by @asottile.
