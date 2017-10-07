@@ -17,6 +17,7 @@ from pre_commit.commands.install_uninstall import uninstall
 from pre_commit.commands.migrate_config import migrate_config
 from pre_commit.commands.run import run
 from pre_commit.commands.sample_config import sample_config
+from pre_commit.commands.try_repo import try_repo
 from pre_commit.error_handler import error_handler
 from pre_commit.logging_handler import add_logging_handler
 from pre_commit.runner import Runner
@@ -50,6 +51,41 @@ def _add_hook_type_option(parser):
     parser.add_argument(
         '-t', '--hook-type', choices=('pre-commit', 'pre-push', 'commit-msg'),
         default='pre-commit',
+    )
+
+
+def _add_run_options(parser):
+    parser.add_argument('hook', nargs='?', help='A single hook-id to run')
+    parser.add_argument('--verbose', '-v', action='store_true', default=False)
+    parser.add_argument(
+        '--origin', '-o',
+        help="The origin branch's commit_id when using `git push`.",
+    )
+    parser.add_argument(
+        '--source', '-s',
+        help="The remote branch's commit_id when using `git push`.",
+    )
+    parser.add_argument(
+        '--commit-msg-filename',
+        help='Filename to check when running during `commit-msg`',
+    )
+    parser.add_argument(
+        '--hook-stage', choices=('commit', 'push', 'commit-msg'),
+        default='commit',
+        help='The stage during which the hook is fired e.g. commit or push.',
+    )
+    parser.add_argument(
+        '--show-diff-on-failure', action='store_true',
+        help='When hooks fail, run `git diff` directly afterward.',
+    )
+    mutex_group = parser.add_mutually_exclusive_group(required=False)
+    mutex_group.add_argument(
+        '--all-files', '-a', action='store_true', default=False,
+        help='Run on all the files in the repo.',
+    )
+    mutex_group.add_argument(
+        '--files', nargs='*', default=[],
+        help='Specific filenames to run hooks on.',
     )
 
 
@@ -142,46 +178,31 @@ def main(argv=None):
     run_parser = subparsers.add_parser('run', help='Run hooks.')
     _add_color_option(run_parser)
     _add_config_option(run_parser)
-    run_parser.add_argument('hook', nargs='?', help='A single hook-id to run')
-    run_parser.add_argument(
-        '--verbose', '-v', action='store_true', default=False,
-    )
-    run_parser.add_argument(
-        '--origin', '-o',
-        help="The origin branch's commit_id when using `git push`.",
-    )
-    run_parser.add_argument(
-        '--source', '-s',
-        help="The remote branch's commit_id when using `git push`.",
-    )
-    run_parser.add_argument(
-        '--commit-msg-filename',
-        help='Filename to check when running during `commit-msg`',
-    )
-    run_parser.add_argument(
-        '--hook-stage', choices=('commit', 'push', 'commit-msg'),
-        default='commit',
-        help='The stage during which the hook is fired e.g. commit or push.',
-    )
-    run_parser.add_argument(
-        '--show-diff-on-failure', action='store_true',
-        help='When hooks fail, run `git diff` directly afterward.',
-    )
-    run_mutex_group = run_parser.add_mutually_exclusive_group(required=False)
-    run_mutex_group.add_argument(
-        '--all-files', '-a', action='store_true', default=False,
-        help='Run on all the files in the repo.',
-    )
-    run_mutex_group.add_argument(
-        '--files', nargs='*', default=[],
-        help='Specific filenames to run hooks on.',
-    )
+    _add_run_options(run_parser)
 
     sample_config_parser = subparsers.add_parser(
         'sample-config', help='Produce a sample {} file'.format(C.CONFIG_FILE),
     )
     _add_color_option(sample_config_parser)
     _add_config_option(sample_config_parser)
+
+    try_repo_parser = subparsers.add_parser(
+        'try-repo',
+        help='Try the hooks in a repository, useful for developing new hooks.',
+    )
+    _add_color_option(try_repo_parser)
+    _add_config_option(try_repo_parser)
+    try_repo_parser.add_argument(
+        'repo', help='Repository to source hooks from.',
+    )
+    try_repo_parser.add_argument(
+        '--ref',
+        help=(
+            'Manually select a ref to run against, otherwise the `HEAD` '
+            'revision will be used.'
+        ),
+    )
+    _add_run_options(try_repo_parser)
 
     help = subparsers.add_parser(
         'help', help='Show help for a specific command.',
@@ -231,6 +252,8 @@ def main(argv=None):
             return run(runner, args)
         elif args.command == 'sample-config':
             return sample_config()
+        elif args.command == 'try-repo':
+            return try_repo(args)
         else:
             raise NotImplementedError(
                 'Command {} not implemented.'.format(args.command),

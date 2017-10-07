@@ -14,9 +14,8 @@ logger = logging.getLogger('pre_commit')
 
 
 class Manifest(object):
-    def __init__(self, repo_path, repo_url):
+    def __init__(self, repo_path):
         self.repo_path = repo_path
-        self.repo_url = repo_url
 
     @cached_property
     def manifest_contents(self):

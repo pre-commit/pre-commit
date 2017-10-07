@@ -9,13 +9,13 @@ import mock
 import pytest
 import six
 
+from pre_commit import git
 from pre_commit.store import _get_default_directory
 from pre_commit.store import Store
 from pre_commit.util import cmd_output
 from pre_commit.util import cwd
 from pre_commit.util import rmtree
 from testing.fixtures import git_dir
-from testing.util import get_head_sha
 
 
 def test_our_session_fixture_works():
@@ -91,7 +91,7 @@ def test_clone(store, tempdir_factory, log_info_mock):
     path = git_dir(tempdir_factory)
     with cwd(path):
         cmd_output('git', 'commit', '--allow-empty', '-m', 'foo')
-        sha = get_head_sha(path)
+        sha = git.head_sha(path)
         cmd_output('git', 'commit', '--allow-empty', '-m', 'bar')
 
     ret = store.clone(path, sha)
@@ -107,7 +107,7 @@ def test_clone(store, tempdir_factory, log_info_mock):
     _, dirname = os.path.split(ret)
     assert dirname.startswith('repo')
     # Should be checked out to the sha we specified
-    assert get_head_sha(ret) == sha
+    assert git.head_sha(ret) == sha
 
     # Assert there's an entry in the sqlite db for this
     with sqlite3.connect(store.db_path) as db:

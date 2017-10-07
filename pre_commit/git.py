@@ -97,6 +97,11 @@ def get_changed_files(new, old):
     )[1])
 
 
+def head_sha(remote):
+    _, out, _ = cmd_output('git', 'ls-remote', '--exit-code', remote, 'HEAD')
+    return out.split()[0]
+
+
 def check_for_cygwin_mismatch():
     """See https://github.com/pre-commit/pre-commit/issues/354"""
     if sys.platform in ('cygwin', 'win32'):  # pragma: no cover (windows)

@@ -20,12 +20,12 @@ from pre_commit.runner import Runner
 from pre_commit.util import cmd_output
 from pre_commit.util import cwd
 from pre_commit.util import make_executable
-from testing.auto_namedtuple import auto_namedtuple
 from testing.fixtures import add_config_to_repo
 from testing.fixtures import make_consuming_repo
 from testing.fixtures import modify_config
 from testing.fixtures import read_config
 from testing.util import cmd_output_mocked_pre_commit_home
+from testing.util import run_opts
 from testing.util import xfailif_no_symlink
 
 
@@ -48,34 +48,6 @@ def stage_a_file(filename='foo.py'):
     cmd_output('git', 'add', filename)
 
 
-def _get_opts(
-        all_files=False,
-        files=(),
-        color=False,
-        verbose=False,
-        hook=None,
-        origin='',
-        source='',
-        hook_stage='commit',
-        show_diff_on_failure=False,
-        commit_msg_filename='',
-):
-    # These are mutually exclusive
-    assert not (all_files and files)
-    return auto_namedtuple(
-        all_files=all_files,
-        files=files,
-        color=color,
-        verbose=verbose,
-        hook=hook,
-        origin=origin,
-        source=source,
-        hook_stage=hook_stage,
-        show_diff_on_failure=show_diff_on_failure,
-        commit_msg_filename=commit_msg_filename,
-    )
-
-
 def _do_run(cap_out, repo, args, environ={}, config_file=C.CONFIG_FILE):
     runner = Runner(repo, config_file)
     with cwd(runner.git_root):  # replicates Runner.create behaviour
@@ -90,7 +62,7 @@ def _test_run(
 ):
     if stage:
         stage_a_file()
-    args = _get_opts(**opts)
+    args = run_opts(**opts)
     ret, printed = _do_run(cap_out, repo, args, config_file=config_file)
 
     assert ret == expected_ret, (ret, expected_ret, printed)
@@ -161,7 +133,7 @@ def test_types_hook_repository(
     with cwd(git_path):
         stage_a_file('bar.py')
         stage_a_file('bar.notpy')
-        ret, printed = _do_run(cap_out, git_path, _get_opts())
+        ret, printed = _do_run(cap_out, git_path, run_opts())
         assert ret == 1
         assert b'bar.py' in printed
         assert b'bar.notpy' not in printed
@@ -177,7 +149,7 @@ def test_exclude_types_hook_repository(
         make_executable('exe')
         cmd_output('git', 'add', 'exe')
         stage_a_file('bar.py')
-        ret, printed = _do_run(cap_out, git_path, _get_opts())
+        ret, printed = _do_run(cap_out, git_path, run_opts())
         assert ret == 1
         assert b'bar.py' in printed
         assert b'exe' not in printed
@@ -191,7 +163,7 @@ def test_global_exclude(cap_out, tempdir_factory, mock_out_store_directory):
         open('foo.py', 'a').close()
         open('bar.py', 'a').close()
         cmd_output('git', 'add', '.')
-        ret, printed = _do_run(cap_out, git_path, _get_opts(verbose=True))
+        ret, printed = _do_run(cap_out, git_path, run_opts(verbose=True))
         assert ret == 0
         # Does not contain foo.py since it was excluded
         expected = b'hookid: bash_hook\n\nbar.py\nHello World\n\n'
@@ -332,7 +304,7 @@ def test_origin_source_error_msg(
         repo_with_passing_hook, origin, source, expect_failure,
         mock_out_store_directory, cap_out,
 ):
-    args = _get_opts(origin=origin, source=source)
+    args = run_opts(origin=origin, source=source)
     ret, printed = _do_run(cap_out, repo_with_passing_hook, args)
     warning_msg = b'Specify both --origin and --source.'
     if expect_failure:
@@ -350,7 +322,7 @@ def test_has_unmerged_paths(in_merge_conflict):
 
 
 def test_merge_conflict(cap_out, in_merge_conflict, mock_out_store_directory):
-    ret, printed = _do_run(cap_out, in_merge_conflict, _get_opts())
+    ret, printed = _do_run(cap_out, in_merge_conflict, run_opts())
     assert ret == 1
     assert b'Unmerged files.  Resolve before committing.' in printed
 
@@ -363,7 +335,7 @@ def test_merge_conflict_modified(
     with open('dummy', 'w') as dummy_file:
         dummy_file.write('bar\nbaz\n')
 
-    ret, printed = _do_run(cap_out, in_merge_conflict, _get_opts())
+    ret, printed = _do_run(cap_out, in_merge_conflict, run_opts())
     assert ret == 1
     assert b'Unmerged files.  Resolve before committing.' in printed
 
@@ -372,7 +344,7 @@ def test_merge_conflict_resolved(
         cap_out, in_merge_conflict, mock_out_store_directory,
 ):
     cmd_output('git', 'add', '.')
-    ret, printed = _do_run(cap_out, in_merge_conflict, _get_opts())
+    ret, printed = _do_run(cap_out, in_merge_conflict, run_opts())
     for msg in (
             b'Checking merge-conflict files only.', b'Bash hook', b'Passed',
     ):
@@ -415,7 +387,7 @@ def test_get_skips(environ, expected_output):
 
 def test_skip_hook(cap_out, repo_with_passing_hook, mock_out_store_directory):
     ret, printed = _do_run(
-        cap_out, repo_with_passing_hook, _get_opts(), {'SKIP': 'bash_hook'},
+        cap_out, repo_with_passing_hook, run_opts(), {'SKIP': 'bash_hook'},
     )
     for msg in (b'Bash hook', b'Skipped'):
         assert msg in printed
@@ -425,7 +397,7 @@ def test_hook_id_not_in_non_verbose_output(
         cap_out, repo_with_passing_hook, mock_out_store_directory,
 ):
     ret, printed = _do_run(
-        cap_out, repo_with_passing_hook, _get_opts(verbose=False),
+        cap_out, repo_with_passing_hook, run_opts(verbose=False),
     )
     assert b'[bash_hook]' not in printed
 
@@ -434,7 +406,7 @@ def test_hook_id_in_verbose_output(
         cap_out, repo_with_passing_hook, mock_out_store_directory,
 ):
     ret, printed = _do_run(
-        cap_out, repo_with_passing_hook, _get_opts(verbose=True),
+        cap_out, repo_with_passing_hook, run_opts(verbose=True),
     )
     assert b'[bash_hook] Bash hook' in printed
 
@@ -448,7 +420,7 @@ def test_multiple_hooks_same_id(
             config['repos'][0]['hooks'].append({'id': 'bash_hook'})
         stage_a_file()
 
-    ret, output = _do_run(cap_out, repo_with_passing_hook, _get_opts())
+    ret, output = _do_run(cap_out, repo_with_passing_hook, run_opts())
     assert ret == 0
     assert output.count(b'Bash hook') == 2
 
@@ -684,7 +656,7 @@ def modified_config_repo(repo_with_passing_hook):
 def test_error_with_unstaged_config(
         cap_out, modified_config_repo, mock_out_store_directory,
 ):
-    args = _get_opts()
+    args = run_opts()
     ret, printed = _do_run(cap_out, modified_config_repo, args)
     assert b'Your .pre-commit-config.yaml is unstaged.' in printed
     assert ret == 1
@@ -696,7 +668,7 @@ def test_error_with_unstaged_config(
 def test_no_unstaged_error_with_all_files_or_files(
         cap_out, modified_config_repo, mock_out_store_directory, opts,
 ):
-    args = _get_opts(**opts)
+    args = run_opts(**opts)
     ret, printed = _do_run(cap_out, modified_config_repo, args)
     assert b'Your .pre-commit-config.yaml is unstaged.' not in printed
 
@@ -742,7 +714,7 @@ def test_pass_filenames(
         config['repos'][0]['hooks'][0]['args'] = hook_args
     stage_a_file()
     ret, printed = _do_run(
-        cap_out, repo_with_passing_hook, _get_opts(verbose=True),
+        cap_out, repo_with_passing_hook, run_opts(verbose=True),
     )
     assert expected_out + b'\nHello World' in printed
     assert (b'foo.py' in printed) == pass_filenames
@@ -758,7 +730,7 @@ def test_fail_fast(
             config['repos'][0]['hooks'] *= 2
         stage_a_file()
 
-        ret, printed = _do_run(cap_out, repo_with_failing_hook, _get_opts())
+        ret, printed = _do_run(cap_out, repo_with_failing_hook, run_opts())
         # it should have only run one hook
         assert printed.count(b'Failing hook') == 1
 
