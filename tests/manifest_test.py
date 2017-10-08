@@ -3,16 +3,16 @@ from __future__ import unicode_literals
 
 import pytest
 
+from pre_commit import git
 from pre_commit.manifest import Manifest
 from testing.fixtures import make_repo
-from testing.util import get_head_sha
 
 
 @pytest.yield_fixture
 def manifest(store, tempdir_factory):
     path = make_repo(tempdir_factory, 'script_hooks_repo')
-    repo_path = store.clone(path, get_head_sha(path))
-    yield Manifest(repo_path, path)
+    repo_path = store.clone(path, git.head_sha(path))
+    yield Manifest(repo_path)
 
 
 def test_manifest_contents(manifest):
@@ -62,8 +62,8 @@ def test_hooks(manifest):
 
 def test_default_python_language_version(store, tempdir_factory):
     path = make_repo(tempdir_factory, 'python_hooks_repo')
-    repo_path = store.clone(path, get_head_sha(path))
-    manifest = Manifest(repo_path, path)
+    repo_path = store.clone(path, git.head_sha(path))
+    manifest = Manifest(repo_path)
 
     # This assertion is difficult as it is version dependent, just assert
     # that it is *something*

@@ -6,11 +6,11 @@ import tarfile
 
 import pytest
 
+from pre_commit import git
 from pre_commit import make_archives
 from pre_commit.util import cmd_output
 from pre_commit.util import cwd
 from testing.fixtures import git_dir
-from testing.util import get_head_sha
 from testing.util import skipif_slowtests_false
 
 
@@ -23,7 +23,7 @@ def test_make_archive(tempdir_factory):
         cmd_output('git', 'add', '.')
         cmd_output('git', 'commit', '-m', 'foo')
         # We'll use this sha
-        head_sha = get_head_sha('.')
+        head_sha = git.head_sha('.')
         # And check that this file doesn't exist
         open('bar', 'a').close()
         cmd_output('git', 'add', '.')

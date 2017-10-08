@@ -146,7 +146,7 @@ class Repository(object):
 
     @cached_property
     def manifest(self):
-        return Manifest(self._repo_path, self.repo_config['repo'])
+        return Manifest(self._repo_path)
 
     @cached_property
     def hooks(self):

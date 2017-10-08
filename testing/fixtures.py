@@ -10,6 +10,7 @@ from aspy.yaml import ordered_dump
 from aspy.yaml import ordered_load
 
 import pre_commit.constants as C
+from pre_commit import git
 from pre_commit.clientlib import CONFIG_SCHEMA
 from pre_commit.clientlib import load_manifest
 from pre_commit.schema import apply_defaults
@@ -17,7 +18,6 @@ from pre_commit.schema import validate
 from pre_commit.util import cmd_output
 from pre_commit.util import copy_tree_to_path
 from pre_commit.util import cwd
-from testing.util import get_head_sha
 from testing.util import get_resource_path
 
 
@@ -84,7 +84,7 @@ def make_config_from_repo(repo_path, sha=None, hooks=None, check=True):
     manifest = load_manifest(os.path.join(repo_path, C.MANIFEST_FILE))
     config = OrderedDict((
         ('repo', 'file://{}'.format(repo_path)),
-        ('sha', sha or get_head_sha(repo_path)),
+        ('sha', sha or git.head_sha(repo_path)),
         (
             'hooks',
             hooks or [OrderedDict((('id', hook['id']),)) for hook in manifest],

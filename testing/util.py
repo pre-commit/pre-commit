@@ -8,7 +8,7 @@ from pre_commit import parse_shebang
 from pre_commit.languages.docker import docker_is_running
 from pre_commit.languages.pcre import GREP
 from pre_commit.util import cmd_output
-from pre_commit.util import cwd
+from testing.auto_namedtuple import auto_namedtuple
 
 
 TESTING_DIR = os.path.abspath(os.path.dirname(__file__))
@@ -16,11 +16,6 @@ TESTING_DIR = os.path.abspath(os.path.dirname(__file__))
 
 def get_resource_path(path):
     return os.path.join(TESTING_DIR, 'resources', path)
-
-
-def get_head_sha(dir):
-    with cwd(dir):
-        return cmd_output('git', 'rev-parse', 'HEAD')[1].strip()
 
 
 def cmd_output_mocked_pre_commit_home(*args, **kwargs):
@@ -72,3 +67,31 @@ xfailif_no_symlink = pytest.mark.xfail(
     not hasattr(os, 'symlink'),
     reason='Symlink is not supported on this platform',
 )
+
+
+def run_opts(
+        all_files=False,
+        files=(),
+        color=False,
+        verbose=False,
+        hook=None,
+        origin='',
+        source='',
+        hook_stage='commit',
+        show_diff_on_failure=False,
+        commit_msg_filename='',
+):
+    # These are mutually exclusive
+    assert not (all_files and files)
+    return auto_namedtuple(
+        all_files=all_files,
+        files=files,
+        color=color,
+        verbose=verbose,
+        hook=hook,
+        origin=origin,
+        source=source,
+        hook_stage=hook_stage,
+        show_diff_on_failure=show_diff_on_failure,
+        commit_msg_filename=commit_msg_filename,
+    )

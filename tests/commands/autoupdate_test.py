@@ -7,6 +7,7 @@ from collections import OrderedDict
 import pytest
 
 import pre_commit.constants as C
+from pre_commit import git
 from pre_commit.clientlib import load_config
 from pre_commit.commands.autoupdate import _update_repo
 from pre_commit.commands.autoupdate import autoupdate
@@ -21,7 +22,6 @@ from testing.fixtures import git_dir
 from testing.fixtures import make_config_from_repo
 from testing.fixtures import make_repo
 from testing.fixtures import write_config
-from testing.util import get_head_sha
 from testing.util import get_resource_path
 
 
@@ -66,10 +66,10 @@ def test_autoupdate_old_revision_broken(
         cmd_output('git', 'mv', C.MANIFEST_FILE, 'nope.yaml')
         cmd_output('git', 'commit', '-m', 'simulate old repo')
         # Assume this is the revision the user's old repository was at
-        rev = get_head_sha(path)
+        rev = git.head_sha(path)
         cmd_output('git', 'mv', 'nope.yaml', C.MANIFEST_FILE)
         cmd_output('git', 'commit', '-m', 'move hooks file')
-        update_rev = get_head_sha(path)
+        update_rev = git.head_sha(path)
 
     config['sha'] = rev
     write_config('.', config)
@@ -84,12 +84,12 @@ def test_autoupdate_old_revision_broken(
 @pytest.yield_fixture
 def out_of_date_repo(tempdir_factory):
     path = make_repo(tempdir_factory, 'python_hooks_repo')
-    original_sha = get_head_sha(path)
+    original_sha = git.head_sha(path)
 
     # Make a commit
     with cwd(path):
         cmd_output('git', 'commit', '--allow-empty', '-m', 'foo')
-    head_sha = get_head_sha(path)
+    head_sha = git.head_sha(path)
 
     yield auto_namedtuple(
         path=path, original_sha=original_sha, head_sha=head_sha,
@@ -225,7 +225,7 @@ def test_autoupdate_tags_only(
 @pytest.yield_fixture
 def hook_disappearing_repo(tempdir_factory):
     path = make_repo(tempdir_factory, 'python_hooks_repo')
-    original_sha = get_head_sha(path)
+    original_sha = git.head_sha(path)
 
     with cwd(path):
         shutil.copy(

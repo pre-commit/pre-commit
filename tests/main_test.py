@@ -92,10 +92,16 @@ def test_help_other_command(
 
 
 @pytest.mark.parametrize('command', CMDS)
-def test_install_command(command, mock_commands):
+def test_all_cmds(command, mock_commands):
     main.main((command,))
     assert getattr(mock_commands, command.replace('-', '_')).call_count == 1
     assert_only_one_mock_called(mock_commands)
+
+
+def test_try_repo():
+    with mock.patch.object(main, 'try_repo') as patch:
+        main.main(('try-repo', '.'))
+    assert patch.call_count == 1
 
 
 def test_help_cmd_in_empty_directory(
