@@ -9,12 +9,11 @@ setup(
         'hooks.'
     ),
     url='https://github.com/pre-commit/pre-commit',
-    version='1.2.0',
+    version='1.3.0',
 
     author='Anthony Sottile',
     author_email='asottile@umich.edu',
 
-    platforms='linux',
     classifiers=[
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python :: 2',

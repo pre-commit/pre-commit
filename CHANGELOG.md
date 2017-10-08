@@ -1,3 +1,19 @@
+1.3.0
+=====
+
+### Features
+- Add `pre-commit try-repo` commands
+    - The new `try-repo` takes a repo and will run the hooks configured in
+      that hook repository.
+    - An example invocation:
+      `pre-commit try-repo https://github.com/pre-commit/pre-commit-hooks`
+    - `pre-commit try-repo` can also take all the same arguments as
+      `pre-commit run`.
+    - It can be used to try out a repository without needing to configure it.
+    - It can also be used to test a hook repository while developing it.
+    - #589 issue by @sverhagen.
+    - #633 PR by @asottile.
+
 1.2.0
 =====
 
