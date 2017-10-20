@@ -1,6 +1,5 @@
 from __future__ import unicode_literals
 
-import logging
 import os.path
 
 from cached_property import cached_property
@@ -8,9 +7,6 @@ from cached_property import cached_property
 import pre_commit.constants as C
 from pre_commit.clientlib import load_manifest
 from pre_commit.languages.all import languages
-
-
-logger = logging.getLogger('pre_commit')
 
 
 class Manifest(object):
