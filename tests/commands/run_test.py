@@ -170,6 +170,34 @@ def test_global_exclude(cap_out, tempdir_factory, mock_out_store_directory):
         assert printed.endswith(expected)
 
 
+def test_global_exclude_no_match(
+        cap_out, tempdir_factory, mock_out_store_directory,
+):
+    git_path = make_consuming_repo(tempdir_factory, 'script_hooks_repo')
+    with cwd(git_path):
+        with modify_config() as config:
+            config['exclude'] = '^test$'
+        ret, printed = _do_run(cap_out, git_path, run_opts(all_files=True))
+        assert ret == 0
+        expected = b'The global exclude pattern did not match any files\n'
+        assert expected in printed
+
+
+def test_hook_exclude_no_match(
+        cap_out, tempdir_factory, mock_out_store_directory,
+):
+    git_path = make_consuming_repo(tempdir_factory, 'script_hooks_repo')
+    with cwd(git_path):
+        with modify_config() as config:
+            config['repos'][0]['hooks'][0]['exclude'] = '^test$'
+            print(config['repos'][0]['hooks'])
+        ret, printed = _do_run(cap_out, git_path, run_opts(all_files=True))
+        assert ret == 0
+        expected = b'The exclude pattern for Bash hook ' \
+                   b'did not match any files\n'
+        assert expected in printed
+
+
 def test_show_diff_on_failure(
         capfd, cap_out, tempdir_factory, mock_out_store_directory,
 ):
@@ -746,7 +774,7 @@ def some_filenames():
 
 
 def test_include_exclude_base_case(some_filenames):
-    ret = _filter_by_include_exclude(some_filenames, '', '^$')
+    ret, _ = _filter_by_include_exclude(some_filenames, '', '^$')
     assert ret == {
         '.pre-commit-hooks.yaml',
         'pre_commit/main.py',
@@ -758,20 +786,36 @@ def test_include_exclude_base_case(some_filenames):
 def test_matches_broken_symlink(tmpdir):  # pramga: no cover (non-windows)
     with tmpdir.as_cwd():
         os.symlink('does-not-exist', 'link')
-        ret = _filter_by_include_exclude({'link'}, '', '^$')
+        ret, _ = _filter_by_include_exclude({'link'}, '', '^$')
         assert ret == {'link'}
 
 
 def test_include_exclude_total_match(some_filenames):
-    ret = _filter_by_include_exclude(some_filenames, r'^.*\.py$', '^$')
+    ret, _ = _filter_by_include_exclude(some_filenames, r'^.*\.py$', '^$')
     assert ret == {'pre_commit/main.py', 'pre_commit/git.py'}
 
 
 def test_include_exclude_does_search_instead_of_match(some_filenames):
-    ret = _filter_by_include_exclude(some_filenames, r'\.yaml$', '^$')
+    ret, _ = _filter_by_include_exclude(some_filenames, r'\.yaml$', '^$')
     assert ret == {'.pre-commit-hooks.yaml'}
 
 
 def test_include_exclude_exclude_removes_files(some_filenames):
-    ret = _filter_by_include_exclude(some_filenames, '', r'\.py$')
+    ret, _ = _filter_by_include_exclude(some_filenames, '', r'\.py$')
     assert ret == {'.pre-commit-hooks.yaml'}
+
+
+def test_include_exclude_exclude_matches(some_filenames):
+    ret, matched = _filter_by_include_exclude(some_filenames, '', r'\.py$')
+    assert ret == {'.pre-commit-hooks.yaml'}
+    assert matched is True
+
+
+def test_include_exclude_exclude_no_matches(some_filenames):
+    ret, matched = _filter_by_include_exclude(some_filenames, '', r'^$')
+    assert ret == {
+        '.pre-commit-hooks.yaml',
+        'pre_commit/main.py',
+        'pre_commit/git.py',
+    }
+    assert matched is False

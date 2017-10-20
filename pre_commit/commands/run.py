@@ -38,14 +38,15 @@ def _hook_msg_start(hook, verbose):
 
 def _filter_by_include_exclude(filenames, include, exclude):
     include_re, exclude_re = re.compile(include), re.compile(exclude)
-    return {
-        filename for filename in filenames
-        if (
-            include_re.search(filename) and
-            not exclude_re.search(filename) and
-            os.path.lexists(filename)
-        )
-    }
+    filtered = set()
+    exclude_matched = False
+    for filename in filenames:
+        if include_re.search(filename):
+            if exclude_re.search(filename):
+                exclude_matched = True
+            elif os.path.lexists(filename):
+                filtered.add(filename)
+    return filtered, exclude_matched
 
 
 def _filter_by_types(filenames, types, exclude_types):
@@ -64,7 +65,13 @@ NO_FILES = '(no files to check)'
 
 def _run_single_hook(filenames, hook, repo, args, skips, cols):
     include, exclude = hook['files'], hook['exclude']
-    filenames = _filter_by_include_exclude(filenames, include, exclude)
+    filenames, excluded = _filter_by_include_exclude(
+        filenames, include, exclude,
+    )
+    if args.all_files and exclude != '^$' and not excluded:
+        logger.warning('The exclude pattern for {} did not match any files'
+                       .format(_hook_msg_start(hook, args.verbose)))
+
     types, exclude_types = hook['types'], hook['exclude_types']
     filenames = _filter_by_types(filenames, types, exclude_types)
     if hook['id'] in skips:
@@ -181,7 +188,12 @@ def _run_hooks(config, repo_hooks, args, environ):
     skips = _get_skips(environ)
     cols = _compute_cols([hook for _, hook in repo_hooks], args.verbose)
     filenames = _all_filenames(args)
-    filenames = _filter_by_include_exclude(filenames, '', config['exclude'])
+    filenames, excluded = _filter_by_include_exclude(
+        filenames, '', config['exclude'],
+    )
+    if args.all_files and config['exclude'] != '^$' and not excluded:
+        logger.warning('The global exclude pattern did not match any files')
+
     retval = 0
     for repo, hook in repo_hooks:
         retval |= _run_single_hook(filenames, hook, repo, args, skips, cols)
