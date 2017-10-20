@@ -46,10 +46,7 @@ class Runner(object):
     def repositories(self):
         """Returns a tuple of the configured repositories."""
         repos = self.config['repos']
-        repos = tuple(Repository.create(x, self.store) for x in repos)
-        for repo in repos:
-            repo.require_installed()
-        return repos
+        return tuple(Repository.create(x, self.store) for x in repos)
 
     def get_hook_path(self, hook_type):
         return os.path.join(self.git_dir, 'hooks', hook_type)

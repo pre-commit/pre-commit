@@ -197,12 +197,6 @@ def _run_hooks(config, repo_hooks, args, environ):
     return retval
 
 
-def get_repo_hooks(runner):
-    for repo in runner.repositories:
-        for _, hook in repo.hooks:
-            yield (repo, hook)
-
-
 def _has_unmerged_paths():
     _, stdout, _ = cmd_output('git', 'ls-files', '--unmerged')
     return bool(stdout.strip())
@@ -245,21 +239,20 @@ def run(runner, args, environ=os.environ):
         ctx = staged_files_only(runner.store.directory)
 
     with ctx:
-        repo_hooks = list(get_repo_hooks(runner))
+        repo_hooks = []
+        for repo in runner.repositories:
+            for _, hook in repo.hooks:
+                if (
+                    (not args.hook or hook['id'] == args.hook) and
+                    not hook['stages'] or args.hook_stage in hook['stages']
+                ):
+                    repo_hooks.append((repo, hook))
 
-        if args.hook:
-            repo_hooks = [
-                (repo, hook) for repo, hook in repo_hooks
-                if hook['id'] == args.hook
-            ]
-            if not repo_hooks:
-                output.write_line('No hook with id `{}`'.format(args.hook))
-                return 1
+        if args.hook and not repo_hooks:
+            output.write_line('No hook with id `{}`'.format(args.hook))
+            return 1
 
-        # Filter hooks for stages
-        repo_hooks = [
-            (repo, hook) for repo, hook in repo_hooks
-            if not hook['stages'] or args.hook_stage in hook['stages']
-        ]
+        for repo in {repo for repo, _ in repo_hooks}:
+            repo.require_installed()
 
         return _run_hooks(runner.config, repo_hooks, args, environ)
