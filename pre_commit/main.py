@@ -57,6 +57,8 @@ def _add_hook_type_option(parser):
 def _add_run_options(parser):
     parser.add_argument('hook', nargs='?', help='A single hook-id to run')
     parser.add_argument('--verbose', '-v', action='store_true', default=False)
+    parser.add_argument('--only', '-i', action='store_true', default=False,
+                        help='Save some bandwidth')
     parser.add_argument(
         '--origin', '-o',
         help="The origin branch's commit_id when using `git push`.",
@@ -227,7 +229,11 @@ def main(argv=None):
 
     with error_handler():
         add_logging_handler(args.color)
-        runner = Runner.create(args.config)
+        runner = Runner.create(
+            args.config,
+            filter_repos=args.only,
+            filter_hook=args.hook,
+        )
         git.check_for_cygwin_mismatch()
 
         if args.command == 'install':
