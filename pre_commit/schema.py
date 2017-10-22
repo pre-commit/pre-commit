@@ -101,6 +101,9 @@ def _check_conditional(self, dct):
         if isinstance(self.condition_value, Not):
             op = 'is'
             cond_val = self.condition_value.val
+        elif isinstance(self.condition_value, NotIn):
+            op = 'is any of'
+            cond_val = self.condition_value.values
         else:
             op = 'is not'
             cond_val = self.condition_value
@@ -204,6 +207,14 @@ class Not(object):
 
     def __eq__(self, other):
         return other is not MISSING and other != self.val
+
+
+class NotIn(object):
+    def __init__(self, values):
+        self.values = values
+
+    def __eq__(self, other):
+        return other is not MISSING and other not in self.values
 
 
 def check_any(_):

@@ -19,6 +19,7 @@ from pre_commit.schema import load_from_filename
 from pre_commit.schema import Map
 from pre_commit.schema import MISSING
 from pre_commit.schema import Not
+from pre_commit.schema import NotIn
 from pre_commit.schema import Optional
 from pre_commit.schema import OptionalNoDefault
 from pre_commit.schema import remove_defaults
@@ -105,6 +106,16 @@ def test_not(val, expected):
     compared = Not('foo')
     assert (val == compared) is expected
     assert (compared == val) is expected
+
+
+@pytest.mark.parametrize(
+    ('values', 'expected'),
+    (('bar', True), ('foo', False), (MISSING, False)),
+)
+def test_not_in(values, expected):
+    compared = NotIn(('baz', 'foo'))
+    assert (values == compared) is expected
+    assert (compared == values) is expected
 
 
 trivial_array_schema = Array(Map('foo', 'id'))
@@ -196,6 +207,13 @@ map_conditional_absent_not = Map(
         condition_key='key', condition_value=Not(True), ensure_absent=True,
     ),
 )
+map_conditional_absent_not_in = Map(
+    'foo', 'key',
+    Conditional(
+        'key2', check_bool,
+        condition_key='key', condition_value=NotIn((1, 2)), ensure_absent=True,
+    ),
+)
 
 
 @pytest.mark.parametrize('schema', (map_conditional, map_conditional_not))
@@ -243,6 +261,19 @@ def test_ensure_absent_conditional_not():
         (
             'At foo(key=True)',
             'Expected key2 to be absent when key is True, '
+            'found key2: True',
+        ),
+    )
+
+
+def test_ensure_absent_conditional_not_in():
+    with pytest.raises(ValidationError) as excinfo:
+        validate({'key': 1, 'key2': True}, map_conditional_absent_not_in)
+    _assert_exception_trace(
+        excinfo.value,
+        (
+            'At foo(key=1)',
+            'Expected key2 to be absent when key is any of (1, 2), '
             'found key2: True',
         ),
     )

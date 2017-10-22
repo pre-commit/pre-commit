@@ -5,6 +5,7 @@ import json
 import logging
 import os
 import shutil
+import sys
 from collections import defaultdict
 
 import pkg_resources
@@ -14,6 +15,7 @@ import pre_commit.constants as C
 from pre_commit import five
 from pre_commit import git
 from pre_commit.clientlib import is_local_repo
+from pre_commit.clientlib import is_meta_repo
 from pre_commit.clientlib import MANIFEST_HOOK_DICT
 from pre_commit.languages.all import languages
 from pre_commit.languages.helpers import environment_dir
@@ -128,6 +130,8 @@ class Repository(object):
     def create(cls, config, store):
         if is_local_repo(config):
             return LocalRepository(config, store)
+        elif is_meta_repo(config):
+            return MetaRepository(config, store)
         else:
             return cls(config, store)
 
@@ -240,6 +244,45 @@ class LocalRepository(Repository):
                 language, version, deps,
             ))
         return tuple(ret)
+
+
+class MetaRepository(LocalRepository):
+    meta_hooks = {
+        'test-hook': {
+            'name': 'Test Hook',
+            'files': '',
+            'language': 'system',
+            'entry': 'echo "Hello World!"',
+            'always_run': True,
+        },
+    }
+
+    @cached_property
+    def hooks(self):
+        for hook in self.repo_config['hooks']:
+            if hook['id'] not in self.meta_hooks:
+                logger.error(
+                    '`{}` is not a valid meta hook.  '
+                    'Typo? Perhaps it is introduced in a newer version?  '
+                    'Often `pre-commit autoupdate` fixes this.'.format(
+                        hook['id'],
+                    ),
+                )
+                exit(1)
+
+        return tuple(
+            (
+                hook['id'],
+                apply_defaults(
+                    validate(
+                        dict(self.meta_hooks[hook['id']], **hook),
+                        MANIFEST_HOOK_DICT,
+                    ),
+                    MANIFEST_HOOK_DICT,
+                ),
+            )
+            for hook in self.repo_config['hooks']
+        )
 
 
 class _UniqueList(list):

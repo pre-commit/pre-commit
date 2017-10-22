@@ -98,6 +98,8 @@ def validate_manifest_main(argv=None):
 
 
 _LOCAL_SENTINEL = 'local'
+_META_SENTINEL = 'meta'
+
 CONFIG_HOOK_DICT = schema.Map(
     'Hook', 'id',
 
@@ -121,7 +123,8 @@ CONFIG_REPO_DICT = schema.Map(
 
     schema.Conditional(
         'sha', schema.check_string,
-        condition_key='repo', condition_value=schema.Not(_LOCAL_SENTINEL),
+        condition_key='repo',
+        condition_value=schema.NotIn((_LOCAL_SENTINEL, _META_SENTINEL)),
         ensure_absent=True,
     ),
 )
@@ -136,6 +139,10 @@ CONFIG_SCHEMA = schema.Map(
 
 def is_local_repo(repo_entry):
     return repo_entry['repo'] == _LOCAL_SENTINEL
+
+
+def is_meta_repo(repo_entry):
+    return repo_entry['repo'] == _META_SENTINEL
 
 
 class InvalidConfigError(FatalError):
