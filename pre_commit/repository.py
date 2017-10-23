@@ -4,6 +4,7 @@ import io
 import json
 import logging
 import os
+import pipes
 import shutil
 import sys
 from collections import defaultdict
@@ -247,13 +248,16 @@ class LocalRepository(Repository):
 
 
 class MetaRepository(LocalRepository):
+    # Note: the hook `entry` is passed through `shlex.split()` by the command
+    # runner, so to prevent issues with spaces and backslashes (on Windows) it
+    # must be quoted here.
     meta_hooks = {
-        'test-hook': {
-            'name': 'Test Hook',
-            'files': '',
+        'check-useless-excludes': {
+            'name': 'Check for useless excludes',
+            'files': '.pre-commit-config.yaml',
             'language': 'system',
-            'entry': 'echo "Hello World!"',
-            'always_run': True,
+            'entry': pipes.quote(sys.executable),
+            'args': ['-m', 'pre_commit.meta_hooks.check_useless_excludes'],
         },
     }
 

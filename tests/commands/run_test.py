@@ -653,7 +653,7 @@ def test_meta_hook_passes(
         (
             'hooks', (
                 OrderedDict((
-                    ('id', 'test-hook'),
+                    ('id', 'check-useless-excludes'),
                 )),
             ),
         ),
@@ -663,9 +663,74 @@ def test_meta_hook_passes(
     _test_run(
         cap_out,
         repo_with_passing_hook,
-        opts={'verbose': True},
-        expected_outputs=[b'Hello World!'],
+        opts={},
+        expected_outputs=[b'Check for useless excludes'],
         expected_ret=0,
+        stage=False,
+    )
+
+
+def test_useless_exclude_global(
+        cap_out, repo_with_passing_hook, mock_out_store_directory,
+):
+    config = OrderedDict((
+        ('exclude', 'foo'),
+        (
+            'repos', [
+                OrderedDict((
+                    ('repo', 'meta'),
+                    (
+                        'hooks', (
+                            OrderedDict((
+                                ('id', 'check-useless-excludes'),
+                            )),
+                        ),
+                    ),
+                )),
+            ],
+        ),
+    ))
+    add_config_to_repo(repo_with_passing_hook, config)
+
+    _test_run(
+        cap_out,
+        repo_with_passing_hook,
+        opts={'all_files': True},
+        expected_outputs=[
+            b'Check for useless excludes',
+            b'The global exclude pattern does not match any files',
+        ],
+        expected_ret=1,
+        stage=False,
+    )
+
+
+def test_useless_exclude_for_hook(
+        cap_out, repo_with_passing_hook, mock_out_store_directory,
+):
+    config = OrderedDict((
+        ('repo', 'meta'),
+        (
+            'hooks', (
+                OrderedDict((
+                    ('id', 'check-useless-excludes'),
+                    ('exclude', 'foo'),
+                )),
+            ),
+        ),
+    ))
+    add_config_to_repo(repo_with_passing_hook, config)
+
+    _test_run(
+        cap_out,
+        repo_with_passing_hook,
+        opts={'all_files': True},
+        expected_outputs=[
+            b'Check for useless excludes',
+            b'The exclude pattern for check-useless-excludes '
+            b'does not match any files',
+        ],
+        expected_ret=1,
         stage=False,
     )
 
