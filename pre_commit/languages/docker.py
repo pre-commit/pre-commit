@@ -82,7 +82,7 @@ def docker_cmd():
         'docker', 'run',
         '--rm',
         '-u', '{}:{}'.format(os.getuid(), os.getgid()),
-        '-v', '{}:/src:rw'.format(os.getcwd()),
+        '-v', '{}:/src:rw,Z'.format(os.getcwd()),
         '--workdir', '/src',
     )
 
