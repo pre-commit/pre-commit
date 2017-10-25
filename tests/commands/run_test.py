@@ -735,6 +735,39 @@ def test_useless_exclude_for_hook(
     )
 
 
+def test_files_match_any(
+        cap_out, repo_with_passing_hook, mock_out_store_directory,
+):
+    config = OrderedDict((
+        ('repo', 'meta'),
+        (
+            'hooks', (
+                OrderedDict((
+                    ('id', 'check-files-matches-any'),
+                )),
+                OrderedDict((
+                    ('id', 'check-useless-excludes'),
+                    ('files', 'foo'),
+                )),
+            ),
+        ),
+    ))
+    add_config_to_repo(repo_with_passing_hook, config)
+
+    _test_run(
+        cap_out,
+        repo_with_passing_hook,
+        opts={'all_files': True},
+        expected_outputs=[
+            b'Check hooks match any files',
+            b'The files pattern for check-useless-excludes '
+            b'does not match any files',
+        ],
+        expected_ret=1,
+        stage=False,
+    )
+
+
 @pytest.yield_fixture
 def modified_config_repo(repo_with_passing_hook):
     with modify_config(repo_with_passing_hook, commit=False) as config:

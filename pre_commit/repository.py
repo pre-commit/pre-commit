@@ -259,6 +259,13 @@ class MetaRepository(LocalRepository):
             'entry': pipes.quote(sys.executable),
             'args': ['-m', 'pre_commit.meta_hooks.check_useless_excludes'],
         },
+        'check-files-matches-any': {
+            'name': 'Check hooks match any files',
+            'files': '.pre-commit-config.yaml',
+            'language': 'system',
+            'entry': pipes.quote(sys.executable),
+            'args': ['-m', 'pre_commit.meta_hooks.check_files_matches_any'],
+        },
     }
 
     @cached_property
