@@ -102,20 +102,27 @@ def _install_all(venvs, repo_url, store):
             _write_state(cmd_runner, venv, state)
 
 
-def _validate_minimum_version(hook):
-    hook_version = pkg_resources.parse_version(
-        hook['minimum_pre_commit_version'],
-    )
-    if hook_version > C.VERSION_PARSED:
+def _hook(*hook_dicts):
+    ret, rest = dict(hook_dicts[0]), hook_dicts[1:]
+    for dct in rest:
+        ret.update(dct)
+
+    version = pkg_resources.parse_version(ret['minimum_pre_commit_version'])
+    if version > C.VERSION_PARSED:
         logger.error(
-            'The hook `{}` requires pre-commit version {} but '
-            'version {} is installed.  '
+            'The hook `{}` requires pre-commit version {} but version {} '
+            'is installed.  '
             'Perhaps run `pip install --upgrade pre-commit`.'.format(
-                hook['id'], hook_version, C.VERSION_PARSED,
+                ret['id'], version, C.VERSION_PARSED,
             ),
         )
         exit(1)
-    return hook
+
+    if ret['language_version'] == 'default':
+        language = languages[ret['language']]
+        ret['language_version'] = language.get_default_version()
+
+    return ret
 
 
 class Repository(object):
@@ -161,10 +168,8 @@ class Repository(object):
                 )
                 exit(1)
 
-            _validate_minimum_version(self.manifest.hooks[hook['id']])
-
         return tuple(
-            (hook['id'], dict(self.manifest.hooks[hook['id']], **hook))
+            (hook['id'], _hook(self.manifest.hooks[hook['id']], hook))
             for hook in self.repo_config['hooks']
         )
 
@@ -215,16 +220,14 @@ class LocalRepository(Repository):
 
     @cached_property
     def hooks(self):
+        def _from_manifest_dct(dct):
+            dct = validate(dct, MANIFEST_HOOK_DICT)
+            dct = apply_defaults(dct, MANIFEST_HOOK_DICT)
+            dct = _hook(dct)
+            return dct
+
         return tuple(
-            (
-                hook['id'],
-                _validate_minimum_version(
-                    apply_defaults(
-                        validate(hook, MANIFEST_HOOK_DICT),
-                        MANIFEST_HOOK_DICT,
-                    ),
-                ),
-            )
+            (hook['id'], _from_manifest_dct(hook))
             for hook in self.repo_config['hooks']
         )
 

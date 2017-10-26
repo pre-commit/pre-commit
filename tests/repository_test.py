@@ -72,6 +72,16 @@ def test_python_hook(tempdir_factory, store):
 
 
 @pytest.mark.integration
+def test_python_hook_default_version(tempdir_factory, store):
+    # make sure that this continues to work for platforms where default
+    # language detection does not work
+    with mock.patch.object(
+            python, 'get_default_version', return_value='default',
+    ):
+        test_python_hook(tempdir_factory, store)
+
+
+@pytest.mark.integration
 def test_python_hook_args_with_spaces(tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'python_hooks_repo',
@@ -690,6 +700,8 @@ def test_local_python_repo(store):
     config = {'repo': 'local', 'hooks': hooks}
     repo = Repository.create(config, store)
     (_, hook), = repo.hooks
+    # language_version should have been adjusted to the interpreter version
+    assert hook['language_version'] != 'default'
     ret = repo.run_hook(hook, ('filename',))
     assert ret[0] == 0
     assert _norm_out(ret[1]) == b"['filename']\nHello World\n"

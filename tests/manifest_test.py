@@ -58,13 +58,3 @@ def test_hooks(manifest):
         'types': ['file'],
         'exclude_types': [],
     }
-
-
-def test_default_python_language_version(store, tempdir_factory):
-    path = make_repo(tempdir_factory, 'python_hooks_repo')
-    repo_path = store.clone(path, git.head_sha(path))
-    manifest = Manifest(repo_path)
-
-    # This assertion is difficult as it is version dependent, just assert
-    # that it is *something*
-    assert manifest.hooks['foo']['language_version'] != 'default'

@@ -6,7 +6,6 @@ from cached_property import cached_property
 
 import pre_commit.constants as C
 from pre_commit.clientlib import load_manifest
-from pre_commit.languages.all import languages
 
 
 class Manifest(object):
@@ -19,10 +18,4 @@ class Manifest(object):
 
     @cached_property
     def hooks(self):
-        ret = {}
-        for hook in self.manifest_contents:
-            if hook['language_version'] == 'default':
-                language = languages[hook['language']]
-                hook['language_version'] = language.get_default_version()
-            ret[hook['id']] = hook
-        return ret
+        return {hook['id']: hook for hook in self.manifest_contents}
