@@ -746,3 +746,29 @@ def test_versions_ok(tempdir_factory, store, version):
     config = make_config_from_repo(path)
     # Should succeed
     Repository.create(config, store).require_installed()
+
+
+def test_manifest_hooks(tempdir_factory, store):
+    path = make_repo(tempdir_factory, 'script_hooks_repo')
+    config = make_config_from_repo(path)
+    repo = Repository.create(config, store)
+
+    assert repo.manifest_hooks['bash_hook'] == {
+        'always_run': False,
+        'additional_dependencies': [],
+        'args': [],
+        'description': '',
+        'entry': 'bin/hook.sh',
+        'exclude': '^$',
+        'files': '',
+        'id': 'bash_hook',
+        'language': 'script',
+        'language_version': 'default',
+        'log_file': '',
+        'minimum_pre_commit_version': '0',
+        'name': 'Bash hook',
+        'pass_filenames': True,
+        'stages': [],
+        'types': ['file'],
+        'exclude_types': [],
+    }
