@@ -17,10 +17,10 @@ from pre_commit import five
 from pre_commit import git
 from pre_commit.clientlib import is_local_repo
 from pre_commit.clientlib import is_meta_repo
+from pre_commit.clientlib import load_manifest
 from pre_commit.clientlib import MANIFEST_HOOK_DICT
 from pre_commit.languages.all import languages
 from pre_commit.languages.helpers import environment_dir
-from pre_commit.manifest import Manifest
 from pre_commit.prefixed_command_runner import PrefixedCommandRunner
 from pre_commit.schema import apply_defaults
 from pre_commit.schema import validate
@@ -105,20 +105,27 @@ def _install_all(venvs, repo_url, store):
             _write_state(cmd_runner, venv, state)
 
 
-def _validate_minimum_version(hook):
-    hook_version = pkg_resources.parse_version(
-        hook['minimum_pre_commit_version'],
-    )
-    if hook_version > C.VERSION_PARSED:
+def _hook(*hook_dicts):
+    ret, rest = dict(hook_dicts[0]), hook_dicts[1:]
+    for dct in rest:
+        ret.update(dct)
+
+    version = pkg_resources.parse_version(ret['minimum_pre_commit_version'])
+    if version > C.VERSION_PARSED:
         logger.error(
-            'The hook `{}` requires pre-commit version {} but '
-            'version {} is installed.  '
+            'The hook `{}` requires pre-commit version {} but version {} '
+            'is installed.  '
             'Perhaps run `pip install --upgrade pre-commit`.'.format(
-                hook['id'], hook_version, C.VERSION_PARSED,
+                ret['id'], version, C.VERSION_PARSED,
             ),
         )
         exit(1)
-    return hook
+
+    if ret['language_version'] == 'default':
+        language = languages[ret['language']]
+        ret['language_version'] = language.get_default_version()
+
+    return ret
 
 
 class Repository(object):
@@ -150,13 +157,14 @@ class Repository(object):
         return self._cmd_runner
 
     @cached_property
-    def manifest(self):
-        return Manifest(self._repo_path)
+    def manifest_hooks(self):
+        manifest_path = os.path.join(self._repo_path, C.MANIFEST_FILE)
+        return {hook['id']: hook for hook in load_manifest(manifest_path)}
 
     @cached_property
     def hooks(self):
         for hook in self.repo_config['hooks']:
-            if hook['id'] not in self.manifest.hooks:
+            if hook['id'] not in self.manifest_hooks:
                 logger.error(
                     '`{}` is not present in repository {}.  '
                     'Typo? Perhaps it is introduced in a newer version?  '
@@ -166,10 +174,8 @@ class Repository(object):
                 )
                 exit(1)
 
-            _validate_minimum_version(self.manifest.hooks[hook['id']])
-
         return tuple(
-            (hook['id'], dict(self.manifest.hooks[hook['id']], **hook))
+            (hook['id'], _hook(self.manifest_hooks[hook['id']], hook))
             for hook in self.repo_config['hooks']
         )
 
@@ -220,16 +226,14 @@ class LocalRepository(Repository):
 
     @cached_property
     def hooks(self):
+        def _from_manifest_dct(dct):
+            dct = validate(dct, MANIFEST_HOOK_DICT)
+            dct = apply_defaults(dct, MANIFEST_HOOK_DICT)
+            dct = _hook(dct)
+            return dct
+
         return tuple(
-            (
-                hook['id'],
-                _validate_minimum_version(
-                    apply_defaults(
-                        validate(hook, MANIFEST_HOOK_DICT),
-                        MANIFEST_HOOK_DICT,
-                    ),
-                ),
-            )
+            (hook['id'], _from_manifest_dct(hook))
             for hook in self.repo_config['hooks']
         )
 
