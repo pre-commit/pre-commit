@@ -113,7 +113,7 @@ def test_not(val, expected):
     (('bar', True), ('foo', False), (MISSING, False)),
 )
 def test_not_in(values, expected):
-    compared = NotIn(('baz', 'foo'))
+    compared = NotIn('baz', 'foo')
     assert (values == compared) is expected
     assert (compared == values) is expected
 
@@ -211,7 +211,7 @@ map_conditional_absent_not_in = Map(
     'foo', 'key',
     Conditional(
         'key2', check_bool,
-        condition_key='key', condition_value=NotIn((1, 2)), ensure_absent=True,
+        condition_key='key', condition_value=NotIn(1, 2), ensure_absent=True,
     ),
 )
 

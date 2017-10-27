@@ -201,17 +201,14 @@ class Array(collections.namedtuple('Array', ('of',))):
         return [remove_defaults(val, self.of) for val in v]
 
 
-class Not(object):
-    def __init__(self, val):
-        self.val = val
-
+class Not(collections.namedtuple('Not', ('val',))):
     def __eq__(self, other):
         return other is not MISSING and other != self.val
 
 
-class NotIn(object):
-    def __init__(self, values):
-        self.values = values
+class NotIn(collections.namedtuple('NotIn', ('values',))):
+    def __new__(cls, *values):
+        return super(NotIn, cls).__new__(cls, values=values)
 
     def __eq__(self, other):
         return other is not MISSING and other not in self.values

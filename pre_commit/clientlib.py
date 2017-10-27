@@ -124,7 +124,7 @@ CONFIG_REPO_DICT = schema.Map(
     schema.Conditional(
         'sha', schema.check_string,
         condition_key='repo',
-        condition_value=schema.NotIn((_LOCAL_SENTINEL, _META_SENTINEL)),
+        condition_value=schema.NotIn(_LOCAL_SENTINEL, _META_SENTINEL),
         ensure_absent=True,
     ),
 )
