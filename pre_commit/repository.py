@@ -14,10 +14,10 @@ import pre_commit.constants as C
 from pre_commit import five
 from pre_commit import git
 from pre_commit.clientlib import is_local_repo
+from pre_commit.clientlib import load_manifest
 from pre_commit.clientlib import MANIFEST_HOOK_DICT
 from pre_commit.languages.all import languages
 from pre_commit.languages.helpers import environment_dir
-from pre_commit.manifest import Manifest
 from pre_commit.prefixed_command_runner import PrefixedCommandRunner
 from pre_commit.schema import apply_defaults
 from pre_commit.schema import validate
@@ -152,13 +152,14 @@ class Repository(object):
         return self._cmd_runner
 
     @cached_property
-    def manifest(self):
-        return Manifest(self._repo_path)
+    def manifest_hooks(self):
+        manifest_path = os.path.join(self._repo_path, C.MANIFEST_FILE)
+        return {hook['id']: hook for hook in load_manifest(manifest_path)}
 
     @cached_property
     def hooks(self):
         for hook in self.repo_config['hooks']:
-            if hook['id'] not in self.manifest.hooks:
+            if hook['id'] not in self.manifest_hooks:
                 logger.error(
                     '`{}` is not present in repository {}.  '
                     'Typo? Perhaps it is introduced in a newer version?  '
@@ -169,7 +170,7 @@ class Repository(object):
                 exit(1)
 
         return tuple(
-            (hook['id'], _hook(self.manifest.hooks[hook['id']], hook))
+            (hook['id'], _hook(self.manifest_hooks[hook['id']], hook))
             for hook in self.repo_config['hooks']
         )
 

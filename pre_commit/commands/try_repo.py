@@ -9,8 +9,8 @@ from aspy.yaml import ordered_dump
 import pre_commit.constants as C
 from pre_commit import git
 from pre_commit import output
+from pre_commit.clientlib import load_manifest
 from pre_commit.commands.run import run
-from pre_commit.manifest import Manifest
 from pre_commit.runner import Runner
 from pre_commit.store import Store
 from pre_commit.util import tmpdir
@@ -23,8 +23,10 @@ def try_repo(args):
         if args.hook:
             hooks = [{'id': args.hook}]
         else:
-            manifest = Manifest(Store(tempdir).clone(args.repo, ref))
-            hooks = [{'id': hook_id} for hook_id in sorted(manifest.hooks)]
+            repo_path = Store(tempdir).clone(args.repo, ref)
+            manifest = load_manifest(os.path.join(repo_path, C.MANIFEST_FILE))
+            manifest = sorted(manifest, key=lambda hook: hook['id'])
+            hooks = [{'id': hook['id']} for hook in manifest]
 
         items = (('repo', args.repo), ('sha', ref), ('hooks', hooks))
         config = {'repos': [collections.OrderedDict(items)]}

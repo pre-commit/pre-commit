@@ -57,7 +57,7 @@ def _update_repo(repo_config, runner, tags_only):
 
     # See if any of our hooks were deleted with the new commits
     hooks = {hook['id'] for hook in repo.repo_config['hooks']}
-    hooks_missing = hooks - (hooks & set(new_repo.manifest.hooks))
+    hooks_missing = hooks - (hooks & set(new_repo.manifest_hooks))
     if hooks_missing:
         raise RepositoryCannotBeUpdatedError(
             'Cannot update because the tip of master is missing these hooks:\n'
