@@ -29,7 +29,9 @@ from testing.fixtures import make_config_from_repo
 from testing.fixtures import make_repo
 from testing.fixtures import modify_manifest
 from testing.util import get_resource_path
+from testing.util import skipif_cant_run_bash
 from testing.util import skipif_cant_run_docker
+from testing.util import skipif_cant_run_go
 from testing.util import skipif_cant_run_swift
 from testing.util import skipif_slowtests_false
 from testing.util import xfailif_no_pcre_support
@@ -41,50 +43,49 @@ def _norm_out(b):
     return b.replace(b'\r\n', b'\n')
 
 
-def _test_hook_repo(
-        tempdir_factory,
-        store,
-        repo_path,
-        hook_id,
-        args,
-        expected,
-        expected_return_code=0,
-        config_kwargs=None,
-):
-    path = make_repo(tempdir_factory, repo_path)
-    config = make_config_from_repo(path, **(config_kwargs or {}))
-    repo = Repository.create(config, store)
-    hook_dict, = [
-        hook for repo_hook_id, hook in repo.hooks if repo_hook_id == hook_id
-    ]
-    ret = repo.run_hook(hook_dict, args)
-    assert ret[0] == expected_return_code
-    assert _norm_out(ret[1]) == expected
+@pytest.fixture(name='test_hook_repo')
+def test_hook_repo_fixture(tempdir_factory, store, setup_git):
+    def do(repo_path,
+           hook_id,
+           args,
+           expected,
+           expected_return_code=0,
+           config_kwargs=None):
+        path = make_repo(tempdir_factory, repo_path)
+        config = make_config_from_repo(path, **(config_kwargs or {}))
+        repo = Repository.create(config, store)
+
+        hook_dict, = [hook for repo_hook_id, hook in repo.hooks if repo_hook_id == hook_id]
+        ret = repo.run_hook(hook_dict, args)
+        assert ret[0] == expected_return_code
+        assert _norm_out(ret[1]) == expected
+
+    return do
 
 
 @pytest.mark.integration
-def test_python_hook(tempdir_factory, store):
-    _test_hook_repo(
-        tempdir_factory, store, 'python_hooks_repo',
+def test_python_hook(test_hook_repo):
+    test_hook_repo(
+        'python_hooks_repo',
         'foo', [os.devnull],
         b"['" + five.to_bytes(os.devnull) + b"']\nHello World\n",
     )
 
 
 @pytest.mark.integration
-def test_python_hook_default_version(tempdir_factory, store):
+def test_python_hook_default_version(test_hook_repo):
     # make sure that this continues to work for platforms where default
     # language detection does not work
     with mock.patch.object(
             python, 'get_default_version', return_value='default',
     ):
-        test_python_hook(tempdir_factory, store)
+        test_python_hook(test_hook_repo)
 
 
 @pytest.mark.integration
-def test_python_hook_args_with_spaces(tempdir_factory, store):
-    _test_hook_repo(
-        tempdir_factory, store, 'python_hooks_repo',
+def test_python_hook_args_with_spaces(test_hook_repo):
+    test_hook_repo(
+        'python_hooks_repo',
         'foo',
         [],
         b"['i have spaces', 'and\"\\'quotes', '$and !this']\n"
@@ -99,21 +100,21 @@ def test_python_hook_args_with_spaces(tempdir_factory, store):
 
 
 @pytest.mark.integration
-def test_python_hook_weird_setup_cfg(tempdir_factory, store):
+def test_python_hook_weird_setup_cfg(tempdir_factory, store, test_hook_repo):
     path = git_dir(tempdir_factory)
     with cwd(path):
         with io.open('setup.cfg', 'w') as setup_cfg:
             setup_cfg.write('[install]\ninstall_scripts=/usr/sbin\n')
 
-        _test_hook_repo(
-            tempdir_factory, store, 'python_hooks_repo',
+        test_hook_repo(
+            'python_hooks_repo',
             'foo', [os.devnull],
             b"['" + five.to_bytes(os.devnull) + b"']\nHello World\n",
         )
 
 
 @pytest.mark.integration
-def test_switch_language_versions_doesnt_clobber(tempdir_factory, store):
+def test_switch_language_versions_doesnt_clobber(tempdir_factory, store, setup_git):
     # We're using the python3 repo because it prints the python version
     path = make_repo(tempdir_factory, 'python3_hooks_repo')
 
@@ -136,9 +137,9 @@ def test_switch_language_versions_doesnt_clobber(tempdir_factory, store):
 
 
 @pytest.mark.integration
-def test_versioned_python_hook(tempdir_factory, store):
-    _test_hook_repo(
-        tempdir_factory, store, 'python3_hooks_repo',
+def test_versioned_python_hook(test_hook_repo):
+    test_hook_repo(
+        'python3_hooks_repo',
         'python3-hook',
         [os.devnull],
         b"3.5\n['" + five.to_bytes(os.devnull) + b"']\nHello World\n",
@@ -148,9 +149,9 @@ def test_versioned_python_hook(tempdir_factory, store):
 @skipif_slowtests_false
 @skipif_cant_run_docker
 @pytest.mark.integration
-def test_run_a_docker_hook(tempdir_factory, store):
-    _test_hook_repo(
-        tempdir_factory, store, 'docker_hooks_repo',
+def test_run_a_docker_hook(test_hook_repo):
+    test_hook_repo(
+        'docker_hooks_repo',
         'docker-hook',
         ['Hello World from docker'], b'Hello World from docker\n',
     )
@@ -159,9 +160,9 @@ def test_run_a_docker_hook(tempdir_factory, store):
 @skipif_slowtests_false
 @skipif_cant_run_docker
 @pytest.mark.integration
-def test_run_a_docker_hook_with_entry_args(tempdir_factory, store):
-    _test_hook_repo(
-        tempdir_factory, store, 'docker_hooks_repo',
+def test_run_a_docker_hook_with_entry_args(test_hook_repo):
+    test_hook_repo(
+        'docker_hooks_repo',
         'docker-hook-arg',
         ['Hello World from docker'], b'Hello World from docker',
     )
@@ -170,9 +171,9 @@ def test_run_a_docker_hook_with_entry_args(tempdir_factory, store):
 @skipif_slowtests_false
 @skipif_cant_run_docker
 @pytest.mark.integration
-def test_run_a_failing_docker_hook(tempdir_factory, store):
-    _test_hook_repo(
-        tempdir_factory, store, 'docker_hooks_repo',
+def test_run_a_failing_docker_hook(test_hook_repo):
+    test_hook_repo(
+        'docker_hooks_repo',
         'docker-hook-failing',
         ['Hello World from docker'], b'',
         expected_return_code=1,
@@ -183,9 +184,9 @@ def test_run_a_failing_docker_hook(tempdir_factory, store):
 @skipif_cant_run_docker
 @pytest.mark.integration
 @pytest.mark.parametrize('hook_id', ('echo-entrypoint', 'echo-cmd'))
-def test_run_a_docker_image_hook(tempdir_factory, store, hook_id):
-    _test_hook_repo(
-        tempdir_factory, store, 'docker_image_hooks_repo',
+def test_run_a_docker_image_hook(test_hook_repo, hook_id):
+    test_hook_repo(
+        'docker_image_hooks_repo',
         hook_id,
         ['Hello World from docker'], b'Hello World from docker\n',
     )
@@ -194,9 +195,9 @@ def test_run_a_docker_image_hook(tempdir_factory, store, hook_id):
 @skipif_slowtests_false
 @xfailif_windows_no_node
 @pytest.mark.integration
-def test_run_a_node_hook(tempdir_factory, store):
-    _test_hook_repo(
-        tempdir_factory, store, 'node_hooks_repo',
+def test_run_a_node_hook(test_hook_repo):
+    test_hook_repo(
+        'node_hooks_repo',
         'foo', ['/dev/null'], b'Hello World\n',
     )
 
@@ -204,9 +205,9 @@ def test_run_a_node_hook(tempdir_factory, store):
 @skipif_slowtests_false
 @xfailif_windows_no_node
 @pytest.mark.integration
-def test_run_versioned_node_hook(tempdir_factory, store):
-    _test_hook_repo(
-        tempdir_factory, store, 'node_0_11_8_hooks_repo',
+def test_run_versioned_node_hook(test_hook_repo):
+    test_hook_repo(
+        'node_0_11_8_hooks_repo',
         'node-11-8-hook', ['/dev/null'], b'v0.11.8\nHello World\n',
     )
 
@@ -214,9 +215,9 @@ def test_run_versioned_node_hook(tempdir_factory, store):
 @skipif_slowtests_false
 @xfailif_windows_no_ruby
 @pytest.mark.integration
-def test_run_a_ruby_hook(tempdir_factory, store):
-    _test_hook_repo(
-        tempdir_factory, store, 'ruby_hooks_repo',
+def test_run_a_ruby_hook(test_hook_repo):
+    test_hook_repo(
+        'ruby_hooks_repo',
         'ruby_hook', ['/dev/null'], b'Hello world from a ruby hook\n',
     )
 
@@ -224,9 +225,9 @@ def test_run_a_ruby_hook(tempdir_factory, store):
 @skipif_slowtests_false
 @xfailif_windows_no_ruby
 @pytest.mark.integration
-def test_run_versioned_ruby_hook(tempdir_factory, store):
-    _test_hook_repo(
-        tempdir_factory, store, 'ruby_versioned_hooks_repo',
+def test_run_versioned_ruby_hook(test_hook_repo):
+    test_hook_repo(
+        'ruby_versioned_hooks_repo',
         'ruby_hook',
         ['/dev/null'],
         b'2.1.5\nHello world from a ruby hook\n',
@@ -237,9 +238,8 @@ def test_run_versioned_ruby_hook(tempdir_factory, store):
 @xfailif_windows_no_ruby
 @pytest.mark.integration
 def test_run_ruby_hook_with_disable_shared_gems(
-        tempdir_factory,
-        store,
-        tmpdir,
+    test_hook_repo,
+    tmpdir
 ):
     """Make sure a Gemfile in the project doesn't interfere."""
     tmpdir.join('Gemfile').write('gem "lol_hai"')
@@ -249,8 +249,8 @@ def test_run_ruby_hook_with_disable_shared_gems(
         'BUNDLE_PATH: vendor/gem\n',
     )
     with cwd(tmpdir.strpath):
-        _test_hook_repo(
-            tempdir_factory, store, 'ruby_versioned_hooks_repo',
+        test_hook_repo(
+            'ruby_versioned_hooks_repo',
             'ruby_hook',
             ['/dev/null'],
             b'2.1.5\nHello world from a ruby hook\n',
@@ -258,34 +258,34 @@ def test_run_ruby_hook_with_disable_shared_gems(
 
 
 @pytest.mark.integration
-def test_system_hook_with_spaces(tempdir_factory, store):
-    _test_hook_repo(
-        tempdir_factory, store, 'system_hook_with_spaces_repo',
+def test_system_hook_with_spaces(test_hook_repo):
+    test_hook_repo(
+        'system_hook_with_spaces_repo',
         'system-hook-with-spaces', ['/dev/null'], b'Hello World\n',
     )
 
 
 @skipif_cant_run_swift
 @pytest.mark.integration
-def test_swift_hook(tempdir_factory, store):
-    _test_hook_repo(
-        tempdir_factory, store, 'swift_hooks_repo',
+def test_swift_hook(test_hook_repo):
+    test_hook_repo(
+        'swift_hooks_repo',
         'swift-hooks-repo', [], b'Hello, world!\n',
     )
 
-
+@skipif_cant_run_go
 @pytest.mark.integration
-def test_golang_hook(tempdir_factory, store):
-    _test_hook_repo(
-        tempdir_factory, store, 'golang_hooks_repo',
+def test_golang_hook(test_hook_repo):
+    test_hook_repo(
+        'golang_hooks_repo',
         'golang-hook', [], b'hello world\n',
     )
 
 
 @pytest.mark.integration
-def test_missing_executable(tempdir_factory, store):
-    _test_hook_repo(
-        tempdir_factory, store, 'not_found_exe',
+def test_missing_executable(test_hook_repo):
+    test_hook_repo(
+        'not_found_exe',
         'not-found-exe', ['/dev/null'],
         b'Executable `i-dont-exist-lol` not found',
         expected_return_code=1,
@@ -293,17 +293,17 @@ def test_missing_executable(tempdir_factory, store):
 
 
 @pytest.mark.integration
-def test_run_a_script_hook(tempdir_factory, store):
-    _test_hook_repo(
-        tempdir_factory, store, 'script_hooks_repo',
+def test_run_a_script_hook(test_hook_repo):
+    test_hook_repo(
+        'script_hooks_repo',
         'bash_hook', ['bar'], b'bar\nHello World\n',
     )
 
 
 @pytest.mark.integration
-def test_run_hook_with_spaced_args(tempdir_factory, store):
-    _test_hook_repo(
-        tempdir_factory, store, 'arg_per_line_hooks_repo',
+def test_run_hook_with_spaced_args(test_hook_repo):
+    test_hook_repo(
+        'arg_per_line_hooks_repo',
         'arg-per-line',
         ['foo bar', 'baz'],
         b'arg: hello\narg: world\narg: foo bar\narg: baz\n',
@@ -311,9 +311,9 @@ def test_run_hook_with_spaced_args(tempdir_factory, store):
 
 
 @pytest.mark.integration
-def test_run_hook_with_curly_braced_arguments(tempdir_factory, store):
-    _test_hook_repo(
-        tempdir_factory, store, 'arg_per_line_hooks_repo',
+def test_run_hook_with_curly_braced_arguments(test_hook_repo):
+    test_hook_repo(
+        'arg_per_line_hooks_repo',
         'arg-per-line',
         [],
         b"arg: hi {1}\narg: I'm {a} problem\n",
@@ -420,26 +420,26 @@ def _norm_pwd(path):
 
 
 @pytest.mark.integration
-def test_cwd_of_hook(tempdir_factory, store):
+def test_cwd_of_hook(tempdir_factory, test_hook_repo):
     # Note: this doubles as a test for `system` hooks
     path = git_dir(tempdir_factory)
     with cwd(path):
-        _test_hook_repo(
-            tempdir_factory, store, 'prints_cwd_repo',
+        test_hook_repo(
+            'prints_cwd_repo',
             'prints_cwd', ['-L'], _norm_pwd(path) + b'\n',
         )
 
-
+@skipif_cant_run_bash
 @pytest.mark.integration
-def test_lots_of_files(tempdir_factory, store):
-    _test_hook_repo(
-        tempdir_factory, store, 'script_hooks_repo',
+def test_lots_of_files(test_hook_repo):
+    test_hook_repo(
+        'script_hooks_repo',
         'bash_hook', ['/dev/null'] * 15000, mock.ANY,
     )
 
 
 @pytest.mark.integration
-def test_venvs(tempdir_factory, store):
+def test_venvs(tempdir_factory, store, setup_git):
     path = make_repo(tempdir_factory, 'python_hooks_repo')
     config = make_config_from_repo(path)
     repo = Repository.create(config, store)
@@ -448,7 +448,7 @@ def test_venvs(tempdir_factory, store):
 
 
 @pytest.mark.integration
-def test_additional_dependencies(tempdir_factory, store):
+def test_additional_dependencies(tempdir_factory, store, setup_git):
     path = make_repo(tempdir_factory, 'python_hooks_repo')
     config = make_config_from_repo(path)
     config['hooks'][0]['additional_dependencies'] = ['pep8']
@@ -459,7 +459,7 @@ def test_additional_dependencies(tempdir_factory, store):
 
 @pytest.mark.integration
 def test_additional_dependencies_duplicated(
-        tempdir_factory, store, log_warning_mock,
+        tempdir_factory, store, log_warning_mock, setup_git
 ):
     path = make_repo(tempdir_factory, 'ruby_hooks_repo')
     config = make_config_from_repo(path)
@@ -471,7 +471,7 @@ def test_additional_dependencies_duplicated(
 
 
 @pytest.mark.integration
-def test_additional_python_dependencies_installed(tempdir_factory, store):
+def test_additional_python_dependencies_installed(tempdir_factory, store, setup_git):
     path = make_repo(tempdir_factory, 'python_hooks_repo')
     config = make_config_from_repo(path)
     config['hooks'][0]['additional_dependencies'] = ['mccabe']
@@ -483,7 +483,7 @@ def test_additional_python_dependencies_installed(tempdir_factory, store):
 
 
 @pytest.mark.integration
-def test_additional_dependencies_roll_forward(tempdir_factory, store):
+def test_additional_dependencies_roll_forward(tempdir_factory, store, setup_git):
     path = make_repo(tempdir_factory, 'python_hooks_repo')
     config = make_config_from_repo(path)
     # Run the repo once without additional_dependencies
@@ -533,10 +533,10 @@ def test_additional_node_dependencies_installed(
         output = cmd_output('npm', 'ls')[1]
         assert 'lodash' in output
 
-
+@skipif_cant_run_go
 @pytest.mark.integration
 def test_additional_golang_dependencies_installed(
-        tempdir_factory, store,
+        tempdir_factory, store, setup_git
 ):
     path = make_repo(tempdir_factory, 'golang_hooks_repo')
     config = make_config_from_repo(path)
@@ -553,7 +553,7 @@ def test_additional_golang_dependencies_installed(
     assert 'hello' in binaries
 
 
-def test_reinstall(tempdir_factory, store, log_info_mock):
+def test_reinstall(tempdir_factory, store, log_info_mock, setup_git):
     path = make_repo(tempdir_factory, 'python_hooks_repo')
     config = make_config_from_repo(path)
     repo = Repository.create(config, store)
@@ -570,7 +570,7 @@ def test_reinstall(tempdir_factory, store, log_info_mock):
     assert log_info_mock.call_count == 0
 
 
-def test_control_c_control_c_on_install(tempdir_factory, store):
+def test_control_c_control_c_on_install(tempdir_factory, store, setup_git):
     """Regression test for #186."""
     path = make_repo(tempdir_factory, 'python_hooks_repo')
     config = make_config_from_repo(path)
@@ -585,10 +585,10 @@ def test_control_c_control_c_on_install(tempdir_factory, store):
     # raise as well.
     with pytest.raises(MyKeyboardInterrupt):
         with mock.patch.object(
-            helpers, 'run_setup_cmd', side_effect=MyKeyboardInterrupt,
+                helpers, 'run_setup_cmd', side_effect=MyKeyboardInterrupt,
         ):
             with mock.patch.object(
-                shutil, 'rmtree', side_effect=MyKeyboardInterrupt,
+                    shutil, 'rmtree', side_effect=MyKeyboardInterrupt,
             ):
                 repo.run_hook(hook, [])
 
@@ -602,7 +602,7 @@ def test_control_c_control_c_on_install(tempdir_factory, store):
     assert retv == 0
 
 
-def test_invalidated_virtualenv(tempdir_factory, store):
+def test_invalidated_virtualenv(tempdir_factory, store, setup_git):
     # A cached virtualenv may become invalidated if the system python upgrades
     # This should not cause every hook in that virtualenv to fail.
     path = make_repo(tempdir_factory, 'python_hooks_repo')
@@ -616,7 +616,10 @@ def test_invalidated_virtualenv(tempdir_factory, store):
     paths = [
         os.path.join(libdir, p) for p in ('site.py', 'site.pyc', '__pycache__')
     ]
-    cmd_output('rm', '-rf', *paths)
+
+    for path in paths:
+        if os.path.exists(path):
+            os.rmdir(path)
 
     # pre-commit should rebuild the virtualenv and it should be runnable
     repo = Repository.create(config, store)
@@ -626,7 +629,7 @@ def test_invalidated_virtualenv(tempdir_factory, store):
 
 
 @pytest.mark.integration
-def test_really_long_file_paths(tempdir_factory, store):
+def test_really_long_file_paths(tempdir_factory, store, setup_git):
     base_path = tempdir_factory.get()
     really_long_path = os.path.join(base_path, 'really_long' * 10)
     cmd_output('git', 'init', really_long_path)
@@ -640,7 +643,7 @@ def test_really_long_file_paths(tempdir_factory, store):
 
 
 @pytest.mark.integration
-def test_config_overrides_repo_specifics(tempdir_factory, store):
+def test_config_overrides_repo_specifics(tempdir_factory, store, setup_git):
     path = make_repo(tempdir_factory, 'script_hooks_repo')
     config = make_config_from_repo(path)
 
@@ -660,7 +663,7 @@ def _create_repo_with_tags(tempdir_factory, src, tag):
 
 
 @pytest.mark.integration
-def test_tags_on_repositories(in_tmpdir, tempdir_factory, store):
+def test_tags_on_repositories(in_tmpdir, tempdir_factory, store, setup_git):
     tag = 'v1.1'
     git_dir_1 = _create_repo_with_tags(tempdir_factory, 'prints_cwd_repo', tag)
     git_dir_2 = _create_repo_with_tags(
@@ -707,7 +710,7 @@ def test_local_python_repo(store):
     assert _norm_out(ret[1]) == b"['filename']\nHello World\n"
 
 
-def test_hook_id_not_present(tempdir_factory, store, fake_log_handler):
+def test_hook_id_not_present(tempdir_factory, store, fake_log_handler, setup_git):
     path = make_repo(tempdir_factory, 'script_hooks_repo')
     config = make_config_from_repo(path)
     config['hooks'][0]['id'] = 'i-dont-exist'
@@ -721,7 +724,7 @@ def test_hook_id_not_present(tempdir_factory, store, fake_log_handler):
     )
 
 
-def test_too_new_version(tempdir_factory, store, fake_log_handler):
+def test_too_new_version(tempdir_factory, store, fake_log_handler, setup_git):
     path = make_repo(tempdir_factory, 'script_hooks_repo')
     with modify_manifest(path) as manifest:
         manifest[0]['minimum_pre_commit_version'] = '999.0.0'
@@ -739,7 +742,7 @@ def test_too_new_version(tempdir_factory, store, fake_log_handler):
 
 
 @pytest.mark.parametrize('version', ('0.1.0', C.VERSION))
-def test_versions_ok(tempdir_factory, store, version):
+def test_versions_ok(tempdir_factory, store, version, setup_git):
     path = make_repo(tempdir_factory, 'script_hooks_repo')
     with modify_manifest(path) as manifest:
         manifest[0]['minimum_pre_commit_version'] = version
@@ -748,7 +751,7 @@ def test_versions_ok(tempdir_factory, store, version):
     Repository.create(config, store).require_installed()
 
 
-def test_manifest_hooks(tempdir_factory, store):
+def test_manifest_hooks(tempdir_factory, store, setup_git):
     path = make_repo(tempdir_factory, 'script_hooks_repo')
     config = make_config_from_repo(path)
     repo = Repository.create(config, store)
