@@ -39,6 +39,11 @@ def tempdir_factory(tmpdir):
     yield TmpdirFactory()
 
 
+@pytest.fixture()
+def setup_git(monkeypatch, tmpdir):
+    # we should not use user configuration
+    monkeypatch.setenv('HOME', tmpdir)
+
 @pytest.yield_fixture
 def in_tmpdir(tempdir_factory):
     path = tempdir_factory.get()
@@ -67,7 +72,7 @@ def _make_conflict():
 
 
 @pytest.yield_fixture
-def in_merge_conflict(tempdir_factory):
+def in_merge_conflict(tempdir_factory, setup_git):
     path = make_consuming_repo(tempdir_factory, 'script_hooks_repo')
     with cwd(path):
         open('dummy', 'a').close()
@@ -82,7 +87,7 @@ def in_merge_conflict(tempdir_factory):
 
 
 @pytest.yield_fixture
-def in_conflicting_submodule(tempdir_factory):
+def in_conflicting_submodule(tempdir_factory, setup_git):
     git_dir_1 = git_dir(tempdir_factory)
     git_dir_2 = git_dir(tempdir_factory)
     with cwd(git_dir_2):

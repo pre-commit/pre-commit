@@ -34,7 +34,7 @@ def test_get_root_not_git_dir(tempdir_factory):
             git.get_root()
 
 
-def test_get_staged_files_deleted(tempdir_factory):
+def test_get_staged_files_deleted(tempdir_factory, setup_git):
     path = git_dir(tempdir_factory)
     with cwd(path):
         open('test', 'a').close()
@@ -114,7 +114,7 @@ def test_parse_merge_msg_for_conflicts(input, expected_output):
     assert ret == expected_output
 
 
-def test_get_changed_files(in_tmpdir):
+def test_get_changed_files(in_tmpdir, setup_git):
     cmd_output('git', 'init', '.')
     cmd_output('git', 'commit', '--allow-empty', '-m', 'initial commit')
     open('a.txt', 'a').close()
@@ -143,7 +143,7 @@ def test_zsplit(s, expected):
 
 
 @pytest.fixture
-def non_ascii_repo(tmpdir):
+def non_ascii_repo(tmpdir, setup_git):
     repo = tmpdir.join('repo').ensure_dir()
     with repo.as_cwd():
         cmd_output('git', 'init', '.')
