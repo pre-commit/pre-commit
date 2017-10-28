@@ -252,50 +252,56 @@ class LocalRepository(Repository):
 
 
 class MetaRepository(LocalRepository):
-    # Note: the hook `entry` is passed through `shlex.split()` by the command
-    # runner, so to prevent issues with spaces and backslashes (on Windows) it
-    # must be quoted here.
-    meta_hooks = {
-        'check-useless-excludes': {
-            'name': 'Check for useless excludes',
-            'files': '.pre-commit-config.yaml',
-            'language': 'system',
-            'entry': pipes.quote(sys.executable),
-            'args': ['-m', 'pre_commit.meta_hooks.check_useless_excludes'],
-        },
-        'check-files-matches-any': {
-            'name': 'Check hooks match any files',
-            'files': '.pre-commit-config.yaml',
-            'language': 'system',
-            'entry': pipes.quote(sys.executable),
-            'args': ['-m', 'pre_commit.meta_hooks.check_files_matches_any'],
-        },
-    }
+    @cached_property
+    def manifest_hooks(self):
+        # The hooks are imported here to prevent circular imports.
+        from pre_commit.meta_hooks import check_files_matches_any
+        from pre_commit.meta_hooks import check_useless_excludes
+
+        # Note: the hook `entry` is passed through `shlex.split()` by the
+        # command runner, so to prevent issues with spaces and backslashes
+        # (on Windows) it must be quoted here.
+        meta_hooks = [
+            {
+                'id': 'check-useless-excludes',
+                'name': 'Check for useless excludes',
+                'files': '.pre-commit-config.yaml',
+                'language': 'system',
+                'entry': pipes.quote(sys.executable),
+                'args': ['-m', check_useless_excludes.__name__],
+            },
+            {
+                'id': 'check-files-matches-any',
+                'name': 'Check hooks match any files',
+                'files': '.pre-commit-config.yaml',
+                'language': 'system',
+                'entry': pipes.quote(sys.executable),
+                'args': ['-m', check_files_matches_any.__name__],
+            },
+        ]
+
+        return {
+            hook['id']: apply_defaults(
+                validate(hook, MANIFEST_HOOK_DICT),
+                MANIFEST_HOOK_DICT,
+            )
+            for hook in meta_hooks
+        }
 
     @cached_property
     def hooks(self):
         for hook in self.repo_config['hooks']:
-            if hook['id'] not in self.meta_hooks:
+            if hook['id'] not in self.manifest_hooks:
                 logger.error(
                     '`{}` is not a valid meta hook.  '
                     'Typo? Perhaps it is introduced in a newer version?  '
-                    'Often `pre-commit autoupdate` fixes this.'.format(
-                        hook['id'],
-                    ),
+                    'Often `pip install --upgrade pre-commit` fixes this.'
+                    .format(hook['id']),
                 )
                 exit(1)
 
         return tuple(
-            (
-                hook['id'],
-                apply_defaults(
-                    validate(
-                        dict(self.meta_hooks[hook['id']], **hook),
-                        MANIFEST_HOOK_DICT,
-                    ),
-                    MANIFEST_HOOK_DICT,
-                ),
-            )
+            (hook['id'], _hook(self.manifest_hooks[hook['id']], hook))
             for hook in self.repo_config['hooks']
         )
 

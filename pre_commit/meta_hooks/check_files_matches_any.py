@@ -1,36 +1,40 @@
-import re
-import sys
+import argparse
 
 import pre_commit.constants as C
-from pre_commit.clientlib import load_config
+from pre_commit.commands.run import _filter_by_include_exclude
+from pre_commit.commands.run import _filter_by_types
 from pre_commit.git import get_all_files
+from pre_commit.runner import Runner
 
 
-def files_matches_any(filenames, include):
-    include_re = re.compile(include)
-    for filename in filenames:
-        if include_re.search(filename):
-            return True
-    return False
-
-
-def check_files_matches_any(config_file=None):
-    config = load_config(config_file or C.CONFIG_FILE)
+def check_all_hooks_match_files(config_file):
+    runner = Runner.create(config_file)
     files = get_all_files()
-    files_not_matched = False
+    files_matched = True
 
-    for repo in config['repos']:
-        for hook in repo['hooks']:
-            include = hook.get('files', '')
-            if include and not files_matches_any(files, include):
-                print(
-                    'The files pattern for {} does not match any files'
-                    .format(hook['id'])
-                )
-                files_not_matched = True
+    for repo in runner.repositories:
+        for hook_id, hook in repo.hooks:
+            include, exclude = hook['files'], hook['exclude']
+            filtered = _filter_by_include_exclude(files, include, exclude)
+            types, exclude_types = hook['types'], hook['exclude_types']
+            filtered = _filter_by_types(filtered, types, exclude_types)
+            if not filtered:
+                print('{} does not apply to this repository'.format(hook_id))
+                files_matched = False
 
-    return files_not_matched
+    return files_matched
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser()
+    parser.add_argument('filenames', nargs='*', default=[C.CONFIG_FILE])
+    args = parser.parse_args(argv)
+
+    retv = 0
+    for filename in args.filenames:
+        retv |= not check_all_hooks_match_files(filename)
+    return retv
 
 
 if __name__ == '__main__':
-    sys.exit(check_files_matches_any())
+    exit(main())

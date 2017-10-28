@@ -729,7 +729,7 @@ def test_meta_hook_not_present(store, fake_log_handler):
     assert fake_log_handler.handle.call_args[0][0].msg == (
         '`i-dont-exist` is not a valid meta hook.  '
         'Typo? Perhaps it is introduced in a newer version?  '
-        'Often `pre-commit autoupdate` fixes this.'
+        'Often `pip install --upgrade pre-commit` fixes this.'
     )
 
 

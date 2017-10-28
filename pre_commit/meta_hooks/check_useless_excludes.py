@@ -1,5 +1,7 @@
+from __future__ import print_function
+
+import argparse
 import re
-import sys
 
 import pre_commit.constants as C
 from pre_commit.clientlib import load_config
@@ -14,14 +16,17 @@ def exclude_matches_any(filenames, include, exclude):
     return False
 
 
-def check_useless_excludes(config_file=None):
-    config = load_config(config_file or C.CONFIG_FILE)
+def check_useless_excludes(config_file):
+    config = load_config(config_file)
     files = get_all_files()
     useless_excludes = False
 
     exclude = config.get('exclude')
     if exclude != '^$' and not exclude_matches_any(files, '', exclude):
-        print('The global exclude pattern does not match any files')
+        print(
+            'The global exclude pattern {!r} does not match any files'
+            .format(exclude),
+        )
         useless_excludes = True
 
     for repo in config['repos']:
@@ -29,13 +34,24 @@ def check_useless_excludes(config_file=None):
             include, exclude = hook.get('files', ''), hook.get('exclude')
             if exclude and not exclude_matches_any(files, include, exclude):
                 print(
-                    'The exclude pattern for {} does not match any files'
-                    .format(hook['id'])
+                    'The exclude pattern {!r} for {} does not match any files'
+                    .format(exclude, hook['id']),
                 )
                 useless_excludes = True
 
     return useless_excludes
 
 
+def main(argv=None):
+    parser = argparse.ArgumentParser()
+    parser.add_argument('filenames', nargs='*', default=[C.CONFIG_FILE])
+    args = parser.parse_args(argv)
+
+    retv = 0
+    for filename in args.filenames:
+        retv |= check_useless_excludes(filename)
+    return retv
+
+
 if __name__ == '__main__':
-    sys.exit(check_useless_excludes())
+    exit(main())
