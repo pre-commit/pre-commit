@@ -4,7 +4,9 @@ import io
 import json
 import logging
 import os
+import pipes
 import shutil
+import sys
 from collections import defaultdict
 
 import pkg_resources
@@ -14,6 +16,7 @@ import pre_commit.constants as C
 from pre_commit import five
 from pre_commit import git
 from pre_commit.clientlib import is_local_repo
+from pre_commit.clientlib import is_meta_repo
 from pre_commit.clientlib import load_manifest
 from pre_commit.clientlib import MANIFEST_HOOK_DICT
 from pre_commit.languages.all import languages
@@ -125,6 +128,12 @@ def _hook(*hook_dicts):
     return ret
 
 
+def _hook_from_manifest_dct(dct):
+    dct = validate(apply_defaults(dct, MANIFEST_HOOK_DICT), MANIFEST_HOOK_DICT)
+    dct = _hook(dct)
+    return dct
+
+
 class Repository(object):
     def __init__(self, repo_config, store):
         self.repo_config = repo_config
@@ -135,6 +144,8 @@ class Repository(object):
     def create(cls, config, store):
         if is_local_repo(config):
             return LocalRepository(config, store)
+        elif is_meta_repo(config):
+            return MetaRepository(config, store)
         else:
             return cls(config, store)
 
@@ -221,14 +232,8 @@ class LocalRepository(Repository):
 
     @cached_property
     def hooks(self):
-        def _from_manifest_dct(dct):
-            dct = validate(dct, MANIFEST_HOOK_DICT)
-            dct = apply_defaults(dct, MANIFEST_HOOK_DICT)
-            dct = _hook(dct)
-            return dct
-
         return tuple(
-            (hook['id'], _from_manifest_dct(hook))
+            (hook['id'], _hook_from_manifest_dct(hook))
             for hook in self.repo_config['hooks']
         )
 
@@ -244,6 +249,60 @@ class LocalRepository(Repository):
                 language, version, deps,
             ))
         return tuple(ret)
+
+
+class MetaRepository(LocalRepository):
+    @cached_property
+    def manifest_hooks(self):
+        # The hooks are imported here to prevent circular imports.
+        from pre_commit.meta_hooks import check_files_matches_any
+        from pre_commit.meta_hooks import check_useless_excludes
+
+        def _make_entry(mod):
+            """the hook `entry` is passed through `shlex.split()` by the
+            command runner, so to prevent issues with spaces and backslashes
+            (on Windows) it must be quoted here.
+            """
+            return '{} -m {}'.format(pipes.quote(sys.executable), mod.__name__)
+
+        meta_hooks = [
+            {
+                'id': 'check-files-matches-any',
+                'name': 'Check hooks match any files',
+                'files': '.pre-commit-config.yaml',
+                'language': 'system',
+                'entry': _make_entry(check_files_matches_any),
+            },
+            {
+                'id': 'check-useless-excludes',
+                'name': 'Check for useless excludes',
+                'files': '.pre-commit-config.yaml',
+                'language': 'system',
+                'entry': _make_entry(check_useless_excludes),
+            },
+        ]
+
+        return {
+            hook['id']: _hook_from_manifest_dct(hook)
+            for hook in meta_hooks
+        }
+
+    @cached_property
+    def hooks(self):
+        for hook in self.repo_config['hooks']:
+            if hook['id'] not in self.manifest_hooks:
+                logger.error(
+                    '`{}` is not a valid meta hook.  '
+                    'Typo? Perhaps it is introduced in a newer version?  '
+                    'Often `pip install --upgrade pre-commit` fixes this.'
+                    .format(hook['id']),
+                )
+                exit(1)
+
+        return tuple(
+            (hook['id'], _hook(self.manifest_hooks[hook['id']], hook))
+            for hook in self.repo_config['hooks']
+        )
 
 
 class _UniqueList(list):

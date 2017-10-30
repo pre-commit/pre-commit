@@ -721,6 +721,18 @@ def test_hook_id_not_present(tempdir_factory, store, fake_log_handler):
     )
 
 
+def test_meta_hook_not_present(store, fake_log_handler):
+    config = {'repo': 'meta', 'hooks': [{'id': 'i-dont-exist'}]}
+    repo = Repository.create(config, store)
+    with pytest.raises(SystemExit):
+        repo.require_installed()
+    assert fake_log_handler.handle.call_args[0][0].msg == (
+        '`i-dont-exist` is not a valid meta hook.  '
+        'Typo? Perhaps it is introduced in a newer version?  '
+        'Often `pip install --upgrade pre-commit` fixes this.'
+    )
+
+
 def test_too_new_version(tempdir_factory, store, fake_log_handler):
     path = make_repo(tempdir_factory, 'script_hooks_repo')
     with modify_manifest(path) as manifest:

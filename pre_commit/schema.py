@@ -101,6 +101,9 @@ def _check_conditional(self, dct):
         if isinstance(self.condition_value, Not):
             op = 'is'
             cond_val = self.condition_value.val
+        elif isinstance(self.condition_value, NotIn):
+            op = 'is any of'
+            cond_val = self.condition_value.values
         else:
             op = 'is not'
             cond_val = self.condition_value
@@ -198,12 +201,17 @@ class Array(collections.namedtuple('Array', ('of',))):
         return [remove_defaults(val, self.of) for val in v]
 
 
-class Not(object):
-    def __init__(self, val):
-        self.val = val
-
+class Not(collections.namedtuple('Not', ('val',))):
     def __eq__(self, other):
         return other is not MISSING and other != self.val
+
+
+class NotIn(collections.namedtuple('NotIn', ('values',))):
+    def __new__(cls, *values):
+        return super(NotIn, cls).__new__(cls, values=values)
+
+    def __eq__(self, other):
+        return other is not MISSING and other not in self.values
 
 
 def check_any(_):

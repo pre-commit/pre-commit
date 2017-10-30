@@ -645,6 +645,31 @@ def test_local_hook_fails(
     )
 
 
+def test_meta_hook_passes(
+        cap_out, repo_with_passing_hook, mock_out_store_directory,
+):
+    config = OrderedDict((
+        ('repo', 'meta'),
+        (
+            'hooks', (
+                OrderedDict((
+                    ('id', 'check-useless-excludes'),
+                )),
+            ),
+        ),
+    ))
+    add_config_to_repo(repo_with_passing_hook, config)
+
+    _test_run(
+        cap_out,
+        repo_with_passing_hook,
+        opts={},
+        expected_outputs=[b'Check for useless excludes'],
+        expected_ret=0,
+        stage=False,
+    )
+
+
 @pytest.yield_fixture
 def modified_config_repo(repo_with_passing_hook):
     with modify_config(repo_with_passing_hook, commit=False) as config:

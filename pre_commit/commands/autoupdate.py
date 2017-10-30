@@ -11,6 +11,7 @@ import pre_commit.constants as C
 from pre_commit import output
 from pre_commit.clientlib import CONFIG_SCHEMA
 from pre_commit.clientlib import is_local_repo
+from pre_commit.clientlib import is_meta_repo
 from pre_commit.clientlib import load_config
 from pre_commit.commands.migrate_config import migrate_config
 from pre_commit.repository import Repository
@@ -115,7 +116,7 @@ def autoupdate(runner, tags_only):
     input_config = load_config(runner.config_file_path)
 
     for repo_config in input_config['repos']:
-        if is_local_repo(repo_config):
+        if is_local_repo(repo_config) or is_meta_repo(repo_config):
             output_repos.append(repo_config)
             continue
         output.write('Updating {}...'.format(repo_config['repo']))
