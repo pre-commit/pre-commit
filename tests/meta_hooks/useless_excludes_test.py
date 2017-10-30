@@ -29,7 +29,7 @@ def test_useless_exclude_global(capsys, tempdir_factory):
     add_config_to_repo(repo, config)
 
     with cwd(repo):
-        assert check_useless_excludes.main(argv=[]) == 1
+        assert check_useless_excludes.main(()) == 1
 
     out, _ = capsys.readouterr()
     assert "The global exclude pattern 'foo' does not match any files" in out
@@ -52,7 +52,7 @@ def test_useless_exclude_for_hook(capsys, tempdir_factory):
     add_config_to_repo(repo, config)
 
     with cwd(repo):
-        assert check_useless_excludes.main(argv=[]) == 1
+        assert check_useless_excludes.main(()) == 1
 
     out, _ = capsys.readouterr()
     expected = (
@@ -78,7 +78,7 @@ def test_no_excludes(capsys, tempdir_factory):
     add_config_to_repo(repo, config)
 
     with cwd(repo):
-        assert check_useless_excludes.main(argv=[]) == 0
+        assert check_useless_excludes.main(()) == 0
 
     out, _ = capsys.readouterr()
     assert out == ''
@@ -101,7 +101,7 @@ def test_valid_exclude(capsys, tempdir_factory):
     add_config_to_repo(repo, config)
 
     with cwd(repo):
-        assert check_useless_excludes.main(argv=[]) == 0
+        assert check_useless_excludes.main(()) == 0
 
     out, _ = capsys.readouterr()
     assert out == ''

@@ -1,16 +1,16 @@
 import argparse
 
 import pre_commit.constants as C
+from pre_commit import git
 from pre_commit.commands.run import _filter_by_include_exclude
 from pre_commit.commands.run import _filter_by_types
-from pre_commit.git import get_all_files
 from pre_commit.runner import Runner
 
 
 def check_all_hooks_match_files(config_file):
     runner = Runner.create(config_file)
-    files = get_all_files()
-    files_matched = True
+    files = git.get_all_files()
+    retv = 0
 
     for repo in runner.repositories:
         for hook_id, hook in repo.hooks:
@@ -20,9 +20,9 @@ def check_all_hooks_match_files(config_file):
             filtered = _filter_by_types(filtered, types, exclude_types)
             if not filtered:
                 print('{} does not apply to this repository'.format(hook_id))
-                files_matched = False
+                retv = 1
 
-    return files_matched
+    return retv
 
 
 def main(argv=None):
@@ -32,7 +32,7 @@ def main(argv=None):
 
     retv = 0
     for filename in args.filenames:
-        retv |= not check_all_hooks_match_files(filename)
+        retv |= check_all_hooks_match_files(filename)
     return retv
 
 

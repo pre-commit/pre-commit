@@ -128,6 +128,12 @@ def _hook(*hook_dicts):
     return ret
 
 
+def _hook_from_manifest_dct(dct):
+    dct = validate(apply_defaults(dct, MANIFEST_HOOK_DICT), MANIFEST_HOOK_DICT)
+    dct = _hook(dct)
+    return dct
+
+
 class Repository(object):
     def __init__(self, repo_config, store):
         self.repo_config = repo_config
@@ -226,14 +232,8 @@ class LocalRepository(Repository):
 
     @cached_property
     def hooks(self):
-        def _from_manifest_dct(dct):
-            dct = validate(dct, MANIFEST_HOOK_DICT)
-            dct = apply_defaults(dct, MANIFEST_HOOK_DICT)
-            dct = _hook(dct)
-            return dct
-
         return tuple(
-            (hook['id'], _from_manifest_dct(hook))
+            (hook['id'], _hook_from_manifest_dct(hook))
             for hook in self.repo_config['hooks']
         )
 
@@ -258,33 +258,32 @@ class MetaRepository(LocalRepository):
         from pre_commit.meta_hooks import check_files_matches_any
         from pre_commit.meta_hooks import check_useless_excludes
 
-        # Note: the hook `entry` is passed through `shlex.split()` by the
-        # command runner, so to prevent issues with spaces and backslashes
-        # (on Windows) it must be quoted here.
+        def _make_entry(mod):
+            """the hook `entry` is passed through `shlex.split()` by the
+            command runner, so to prevent issues with spaces and backslashes
+            (on Windows) it must be quoted here.
+            """
+            return '{} -m {}'.format(pipes.quote(sys.executable), mod.__name__)
+
         meta_hooks = [
-            {
-                'id': 'check-useless-excludes',
-                'name': 'Check for useless excludes',
-                'files': '.pre-commit-config.yaml',
-                'language': 'system',
-                'entry': pipes.quote(sys.executable),
-                'args': ['-m', check_useless_excludes.__name__],
-            },
             {
                 'id': 'check-files-matches-any',
                 'name': 'Check hooks match any files',
                 'files': '.pre-commit-config.yaml',
                 'language': 'system',
-                'entry': pipes.quote(sys.executable),
-                'args': ['-m', check_files_matches_any.__name__],
+                'entry': _make_entry(check_files_matches_any),
+            },
+            {
+                'id': 'check-useless-excludes',
+                'name': 'Check for useless excludes',
+                'files': '.pre-commit-config.yaml',
+                'language': 'system',
+                'entry': _make_entry(check_useless_excludes),
             },
         ]
 
         return {
-            hook['id']: apply_defaults(
-                validate(hook, MANIFEST_HOOK_DICT),
-                MANIFEST_HOOK_DICT,
-            )
+            hook['id']: _hook_from_manifest_dct(hook)
             for hook in meta_hooks
         }
 

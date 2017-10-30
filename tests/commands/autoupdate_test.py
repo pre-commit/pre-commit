@@ -295,6 +295,24 @@ def test_autoupdate_local_hooks_with_out_of_date_repo(
     assert new_config_writen['repos'][0] == local_config
 
 
+def test_autoupdate_meta_hooks(tmpdir, capsys):
+    cfg = tmpdir.join(C.CONFIG_FILE)
+    cfg.write(
+        'repos:\n'
+        '-   repo: meta\n'
+        '    hooks:\n'
+        '    -   id: check-useless-excludes\n',
+    )
+    ret = autoupdate(Runner(tmpdir.strpath, C.CONFIG_FILE), tags_only=True)
+    assert ret == 0
+    assert cfg.read() == (
+        'repos:\n'
+        '-   repo: meta\n'
+        '    hooks:\n'
+        '    -   id: check-useless-excludes\n'
+    )
+
+
 def test_updates_old_format_to_new_format(tmpdir, capsys):
     cfg = tmpdir.join(C.CONFIG_FILE)
     cfg.write(

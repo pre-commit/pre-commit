@@ -25,3 +25,7 @@ repos:
     sha: v0.6.4
     hooks:
     -   id: add-trailing-comma
+-   repo: meta
+    hooks:
+    -   id: check-useless-excludes
+    -   id: check-files-matches-any
