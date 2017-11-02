@@ -82,7 +82,10 @@ def docker_cmd():
         'docker', 'run',
         '--rm',
         '-u', '{}:{}'.format(os.getuid(), os.getgid()),
-        '-v', '{}:/src:rw'.format(os.getcwd()),
+        # https://docs.docker.com/engine/reference/commandline/run/#mount-volumes-from-container-volumes-from
+        # The `Z` option tells Docker to label the content with a private
+        # unshared label. Only the current container can use a private volume.
+        '-v', '{}:/src:rw,Z'.format(os.getcwd()),
         '--workdir', '/src',
     )
 
