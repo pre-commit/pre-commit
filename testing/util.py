@@ -32,11 +32,6 @@ skipif_cant_run_docker = pytest.mark.skipif(
     reason='Docker isn\'t running or can\'t  be accessed',
 )
 
-skipif_slowtests_false = pytest.mark.skipif(
-    os.environ.get('slowtests') == 'false',
-    reason='slowtests=false',
-)
-
 skipif_cant_run_swift = pytest.mark.skipif(
     parse_shebang.find_executable('swift') is None,
     reason='swift isn\'t installed or can\'t be found',
