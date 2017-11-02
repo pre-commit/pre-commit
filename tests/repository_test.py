@@ -31,7 +31,6 @@ from testing.fixtures import modify_manifest
 from testing.util import get_resource_path
 from testing.util import skipif_cant_run_docker
 from testing.util import skipif_cant_run_swift
-from testing.util import skipif_slowtests_false
 from testing.util import xfailif_no_pcre_support
 from testing.util import xfailif_windows_no_node
 from testing.util import xfailif_windows_no_ruby
@@ -145,7 +144,6 @@ def test_versioned_python_hook(tempdir_factory, store):
     )
 
 
-@skipif_slowtests_false
 @skipif_cant_run_docker
 @pytest.mark.integration
 def test_run_a_docker_hook(tempdir_factory, store):
@@ -156,7 +154,6 @@ def test_run_a_docker_hook(tempdir_factory, store):
     )
 
 
-@skipif_slowtests_false
 @skipif_cant_run_docker
 @pytest.mark.integration
 def test_run_a_docker_hook_with_entry_args(tempdir_factory, store):
@@ -167,7 +164,6 @@ def test_run_a_docker_hook_with_entry_args(tempdir_factory, store):
     )
 
 
-@skipif_slowtests_false
 @skipif_cant_run_docker
 @pytest.mark.integration
 def test_run_a_failing_docker_hook(tempdir_factory, store):
@@ -179,7 +175,6 @@ def test_run_a_failing_docker_hook(tempdir_factory, store):
     )
 
 
-@skipif_slowtests_false
 @skipif_cant_run_docker
 @pytest.mark.integration
 @pytest.mark.parametrize('hook_id', ('echo-entrypoint', 'echo-cmd'))
@@ -191,7 +186,6 @@ def test_run_a_docker_image_hook(tempdir_factory, store, hook_id):
     )
 
 
-@skipif_slowtests_false
 @xfailif_windows_no_node
 @pytest.mark.integration
 def test_run_a_node_hook(tempdir_factory, store):
@@ -201,7 +195,6 @@ def test_run_a_node_hook(tempdir_factory, store):
     )
 
 
-@skipif_slowtests_false
 @xfailif_windows_no_node
 @pytest.mark.integration
 def test_run_versioned_node_hook(tempdir_factory, store):
@@ -211,7 +204,6 @@ def test_run_versioned_node_hook(tempdir_factory, store):
     )
 
 
-@skipif_slowtests_false
 @xfailif_windows_no_ruby
 @pytest.mark.integration
 def test_run_a_ruby_hook(tempdir_factory, store):
@@ -221,7 +213,6 @@ def test_run_a_ruby_hook(tempdir_factory, store):
     )
 
 
-@skipif_slowtests_false
 @xfailif_windows_no_ruby
 @pytest.mark.integration
 def test_run_versioned_ruby_hook(tempdir_factory, store):
@@ -233,7 +224,6 @@ def test_run_versioned_ruby_hook(tempdir_factory, store):
     )
 
 
-@skipif_slowtests_false
 @xfailif_windows_no_ruby
 @pytest.mark.integration
 def test_run_ruby_hook_with_disable_shared_gems(
@@ -499,7 +489,6 @@ def test_additional_dependencies_roll_forward(tempdir_factory, store):
         assert 'mccabe' in output
 
 
-@skipif_slowtests_false
 @xfailif_windows_no_ruby
 @pytest.mark.integration
 def test_additional_ruby_dependencies_installed(
@@ -516,7 +505,6 @@ def test_additional_ruby_dependencies_installed(
         assert 'tins' in output
 
 
-@skipif_slowtests_false
 @xfailif_windows_no_node
 @pytest.mark.integration
 def test_additional_node_dependencies_installed(

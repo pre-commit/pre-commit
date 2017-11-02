@@ -11,7 +11,6 @@ from pre_commit import make_archives
 from pre_commit.util import cmd_output
 from pre_commit.util import cwd
 from testing.fixtures import git_dir
-from testing.util import skipif_slowtests_false
 
 
 def test_make_archive(tempdir_factory):
@@ -50,7 +49,6 @@ def test_make_archive(tempdir_factory):
     assert not os.path.exists(os.path.join(extract_dir, 'foo', 'bar'))
 
 
-@skipif_slowtests_false
 @pytest.mark.integration
 def test_main(tmpdir):
     make_archives.main(('--dest', tmpdir.strpath))

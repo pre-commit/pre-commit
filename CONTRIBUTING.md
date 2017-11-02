@@ -39,9 +39,6 @@ Alternatively, with the environment activated you can run all of the tests
 using:
 `py.test tests`
 
-To skip the slower ruby / node integration tests, you can set the environment
-variable `slowtests=false`.
-
 ### Setting up the hooks
 
 With the environment activated simply run `pre-commit install`.
