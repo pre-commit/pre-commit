@@ -1,6 +1,6 @@
 from collections import OrderedDict
 
-from pre_commit.meta_hooks import check_files_matches_any
+from pre_commit.meta_hooks import check_hooks_apply
 from pre_commit.util import cwd
 from testing.fixtures import add_config_to_repo
 from testing.fixtures import git_dir
@@ -25,7 +25,7 @@ def test_hook_excludes_everything(
     add_config_to_repo(repo, config)
 
     with cwd(repo):
-        assert check_files_matches_any.main(()) == 1
+        assert check_hooks_apply.main(()) == 1
 
     out, _ = capsys.readouterr()
     assert 'check-useless-excludes does not apply to this repository' in out
@@ -50,7 +50,7 @@ def test_hook_includes_nothing(
     add_config_to_repo(repo, config)
 
     with cwd(repo):
-        assert check_files_matches_any.main(()) == 1
+        assert check_hooks_apply.main(()) == 1
 
     out, _ = capsys.readouterr()
     assert 'check-useless-excludes does not apply to this repository' in out
@@ -75,7 +75,7 @@ def test_hook_types_not_matched(
     add_config_to_repo(repo, config)
 
     with cwd(repo):
-        assert check_files_matches_any.main(()) == 1
+        assert check_hooks_apply.main(()) == 1
 
     out, _ = capsys.readouterr()
     assert 'check-useless-excludes does not apply to this repository' in out
@@ -100,7 +100,7 @@ def test_hook_types_excludes_everything(
     add_config_to_repo(repo, config)
 
     with cwd(repo):
-        assert check_files_matches_any.main(()) == 1
+        assert check_hooks_apply.main(()) == 1
 
     out, _ = capsys.readouterr()
     assert 'check-useless-excludes does not apply to this repository' in out
@@ -124,7 +124,7 @@ def test_valid_includes(
     add_config_to_repo(repo, config)
 
     with cwd(repo):
-        assert check_files_matches_any.main(()) == 0
+        assert check_hooks_apply.main(()) == 0
 
     out, _ = capsys.readouterr()
     assert out == ''
