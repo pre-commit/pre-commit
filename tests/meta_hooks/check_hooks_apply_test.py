@@ -116,6 +116,12 @@ def test_valid_includes(
                 OrderedDict((
                     ('id', 'check-useless-excludes'),
                 )),
+                # Should not be reported as an error due to always_run
+                OrderedDict((
+                    ('id', 'check-useless-excludes'),
+                    ('files', '^$'),
+                    ('always_run', True),
+                )),
             ),
         ),
     ))
