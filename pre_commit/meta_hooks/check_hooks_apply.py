@@ -14,6 +14,8 @@ def check_all_hooks_match_files(config_file):
 
     for repo in runner.repositories:
         for hook_id, hook in repo.hooks:
+            if hook['always_run']:
+                continue
             include, exclude = hook['files'], hook['exclude']
             filtered = _filter_by_include_exclude(files, include, exclude)
             types, exclude_types = hook['types'], hook['exclude_types']
