@@ -255,7 +255,7 @@ class MetaRepository(LocalRepository):
     @cached_property
     def manifest_hooks(self):
         # The hooks are imported here to prevent circular imports.
-        from pre_commit.meta_hooks import check_files_matches_any
+        from pre_commit.meta_hooks import check_hooks_apply
         from pre_commit.meta_hooks import check_useless_excludes
 
         def _make_entry(mod):
@@ -267,11 +267,11 @@ class MetaRepository(LocalRepository):
 
         meta_hooks = [
             {
-                'id': 'check-files-matches-any',
-                'name': 'Check hooks match any files',
+                'id': 'check-hooks-apply',
+                'name': 'Check hooks apply to the repository',
                 'files': '.pre-commit-config.yaml',
                 'language': 'system',
-                'entry': _make_entry(check_files_matches_any),
+                'entry': _make_entry(check_hooks_apply),
             },
             {
                 'id': 'check-useless-excludes',

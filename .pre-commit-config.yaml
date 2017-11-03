@@ -27,5 +27,5 @@ repos:
     -   id: add-trailing-comma
 -   repo: meta
     hooks:
+    -   id: check-hooks-apply
     -   id: check-useless-excludes
-    -   id: check-files-matches-any
