@@ -123,6 +123,7 @@ def test_autoupdate_out_of_date_repo(
     assert 'exclude' not in after
     assert out_of_date_repo.head_sha in after
 
+
 def test_autoupdate_out_of_date_repo_with_correct_repo_name(
         out_of_date_repo, in_tmpdir, mock_out_store_directory,
 ):
@@ -139,9 +140,8 @@ def test_autoupdate_out_of_date_repo_with_correct_repo_name(
     after = open(C.CONFIG_FILE).read()
     assert ret == 0
     assert before != after
-    # Make sure we don't add defaults
-    assert 'exclude' not in after
     assert out_of_date_repo.head_sha in after
+
 
 def test_autoupdate_out_of_date_repo_with_wrong_repo_name(
         out_of_date_repo, in_tmpdir, mock_out_store_directory,
@@ -159,6 +159,7 @@ def test_autoupdate_out_of_date_repo_with_wrong_repo_name(
     after = open(C.CONFIG_FILE).read()
     assert ret == 0
     assert before == after
+
 
 def test_does_not_reformat(
         out_of_date_repo, mock_out_store_directory, in_tmpdir,

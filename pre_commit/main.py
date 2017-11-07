@@ -168,10 +168,7 @@ def main(argv=None):
         ),
     )
     autoupdate_parser.add_argument(
-        '--repo', nargs=1, default=None,
-        help=(
-            'Repository to update the hooks of.'
-        ),
+        '--repo', help='Only update this repository.',
     )
 
     migrate_config_parser = subparsers.add_parser(
