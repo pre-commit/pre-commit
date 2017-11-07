@@ -114,14 +114,35 @@ def test_autoupdate_out_of_date_repo(
     )
     write_config('.', config)
 
+    runner = Runner('.', C.CONFIG_FILE)
     before = open(C.CONFIG_FILE).read()
-    ret = autoupdate(Runner('.', C.CONFIG_FILE), tags_only=False)
+    repo_name = 'file://{}'.format(out_of_date_repo.path)
+    # It will update the repo, because the name matches
+    ret = autoupdate(runner, tags_only=False, repo=repo_name)
     after = open(C.CONFIG_FILE).read()
     assert ret == 0
     assert before != after
     # Make sure we don't add defaults
     assert 'exclude' not in after
     assert out_of_date_repo.head_sha in after
+
+
+def test_autoupdate_out_of_date_repo_wrong_repo_name(
+        out_of_date_repo, in_tmpdir, mock_out_store_directory,
+):
+    # Write out the config
+    config = make_config_from_repo(
+        out_of_date_repo.path, sha=out_of_date_repo.original_sha, check=False,
+    )
+    write_config('.', config)
+
+    runner = Runner('.', C.CONFIG_FILE)
+    before = open(C.CONFIG_FILE).read()
+    # It will not update it, because the name doesn't match
+    ret = autoupdate(runner, tags_only=False, repo='wrong_repo_name')
+    after = open(C.CONFIG_FILE).read()
+    assert ret == 0
+    assert before == after
 
 
 def test_does_not_reformat(
