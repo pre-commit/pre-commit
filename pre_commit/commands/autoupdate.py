@@ -106,7 +106,7 @@ def _write_new_config_file(path, output):
         f.write(to_write)
 
 
-def autoupdate(runner, tags_only):
+def autoupdate(runner, tags_only, repo=None):
     """Auto-update the pre-commit config to the latest versions of repos."""
     migrate_config(runner, quiet=True)
     retv = 0
@@ -116,6 +116,10 @@ def autoupdate(runner, tags_only):
     input_config = load_config(runner.config_file_path)
 
     for repo_config in input_config['repos']:
+        # Skip any repo_configs that aren't the specified repo
+        if repo and repo != repo_config['repo']:
+            continue
+
         if is_local_repo(repo_config) or is_meta_repo(repo_config):
             output_repos.append(repo_config)
             continue

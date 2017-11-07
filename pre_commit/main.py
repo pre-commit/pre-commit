@@ -167,6 +167,9 @@ def main(argv=None):
             'tagged version (the default behavior).'
         ),
     )
+    autoupdate_parser.add_argument(
+        '--repo', help='Only update this repository.',
+    )
 
     migrate_config_parser = subparsers.add_parser(
         'migrate-config',
@@ -245,7 +248,11 @@ def main(argv=None):
         elif args.command == 'autoupdate':
             if args.tags_only:
                 logger.warning('--tags-only is the default')
-            return autoupdate(runner, tags_only=not args.bleeding_edge)
+            return autoupdate(
+                runner,
+                tags_only=not args.bleeding_edge,
+                repo=args.repo,
+            )
         elif args.command == 'migrate-config':
             return migrate_config(runner)
         elif args.command == 'run':
