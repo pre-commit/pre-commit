@@ -118,6 +118,7 @@ def autoupdate(runner, tags_only, repo=None):
     for repo_config in input_config['repos']:
         # Skip any repo_configs that aren't the specified repo
         if repo and repo != repo_config['repo']:
+            output_repos.append(repo_config)
             continue
 
         if is_local_repo(repo_config) or is_meta_repo(repo_config):
