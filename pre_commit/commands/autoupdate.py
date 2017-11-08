@@ -116,7 +116,7 @@ def autoupdate(runner, tags_only, repo=None):
     input_config = load_config(runner.config_file_path)
 
     for repo_config in input_config['repos']:
-        # Skip updating any repo_configs that aren't the specified repo
+        # Skip updating any repo_configs that aren't for the specified repo
         if repo and repo != repo_config['repo']:
             output_repos.append(repo_config)
             continue
