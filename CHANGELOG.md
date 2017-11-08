@@ -1,3 +1,36 @@
+1.4.0
+=====
+
+### Features
+- Lazily install repositories.
+    - When running `pre-commit run <hookid>`, pre-commit will only install
+      the necessary repositories.
+    - #637 issue by @webknjaz.
+    - #639 PR by @asottile.
+- Version defaulting now applies to local hooks as well.
+    - This extends #556 to apply to local hooks.
+    - #646 PR by @asottile.
+- Add new `repo: meta` hooks.
+    - `meta` hooks expose some linters of the pre-commit configuration itself.
+    - `id: check-useless-excludes`: ensures that `exclude` directives actually
+      apply to *any* file in the repository.
+    - `id: check-hooks-apply`: ensures that the configured hooks apply to
+      at least one file in the repository.
+    - pre-commit/pre-commit-hooks#63 issue by @asottile.
+    - #405 issue by @asottile.
+    - #643 PR by @hackedd.
+    - #653 PR by @asottile.
+    - #654 PR by @asottile.
+- Allow a specific repository to be autoupdated instead of all repositories.
+    - `pre-commit autoupdate --repo ...`
+    - #656 issue by @KevinHock.
+    - #657 PR by @KevinHock.
+
+### Fixes
+- Apply selinux labelling option to docker volumes
+    - #642 PR by @jimmidyson.
+
+
 1.3.0
 =====
 
