@@ -127,10 +127,12 @@ def test_autoupdate_out_of_date_repo(
 def test_autoupdate_out_of_date_repo_with_correct_repo_name(
         out_of_date_repo, in_tmpdir, mock_out_store_directory,
 ):
-    # Write out the config
-    config = make_config_from_repo(
+    stale_config = make_config_from_repo(
         out_of_date_repo.path, sha=out_of_date_repo.original_sha, check=False,
     )
+    local_config = config_with_local_hooks()
+    config = {'repos': [stale_config, local_config]}
+    # Write out the config
     write_config('.', config)
 
     runner = Runner('.', C.CONFIG_FILE)
@@ -141,6 +143,7 @@ def test_autoupdate_out_of_date_repo_with_correct_repo_name(
     assert ret == 0
     assert before != after
     assert out_of_date_repo.head_sha in after
+    assert local_config['repo'] in after
 
 
 def test_autoupdate_out_of_date_repo_with_wrong_repo_name(
