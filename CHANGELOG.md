@@ -1,3 +1,11 @@
+1.4.1
+=====
+
+### Fixes
+- `pre-commit autoupdate --repo ...` no longer deletes other repos.
+    - #660 issue by @KevinHock.
+    - #661 PR by @KevinHock.
+
 1.4.0
 =====
 
