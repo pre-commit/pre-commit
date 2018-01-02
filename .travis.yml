@@ -17,7 +17,7 @@ install: pip install coveralls tox
 script: tox
 before_install:
     # work around https://github.com/travis-ci/travis-ci/issues/8363
-    - pyenv global system 3.5
+    - which python3.5 || (pyenv install 3.5.4 && pyenv global system 3.5.4)
     - git --version
     - |
         if [ "$LATEST_GIT" = "1" ]; then
