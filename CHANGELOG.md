@@ -1,3 +1,10 @@
+1.4.2
+=====
+
+### Fixes
+- `pre-commit` no longer clears `GIT_SSH` environment variable when cloning.
+    - #671 PR by rp-tanium.
+
 1.4.1
 =====
 
