@@ -77,10 +77,9 @@ def no_git_env():
     # GIT_DIR: Causes git clone to clone wrong thing
     # GIT_INDEX_FILE: Causes 'error invalid object ...' during commit
 
-    # list of explicitly whitelisted variables
-    allowed_git_envs = ['GIT_SSH']
     return {
-        k: v for k, v in os.environ.items() if not k.startswith('GIT_') or k in allowed_git_envs
+        k: v for k, v in os.environ.items()
+        if not k.startswith('GIT_') or k in {'GIT_SSH'}
     }
 
 
