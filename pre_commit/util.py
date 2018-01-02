@@ -77,7 +77,8 @@ def no_git_env():
     # GIT_DIR: Causes git clone to clone wrong thing
     # GIT_INDEX_FILE: Causes 'error invalid object ...' during commit
     return {
-        k: v for k, v in os.environ.items() if not k.startswith('GIT_')
+        k: v for k, v in os.environ.items()
+        if not k.startswith('GIT_') or k in {'GIT_SSH'}
     }
 
 
