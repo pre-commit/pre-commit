@@ -4,7 +4,7 @@ import sys
 
 
 def func():
-    print('{}.{}'.format(*sys.version_info[:2]))
+    print(sys.version_info[0])
     print(repr(sys.argv[1:]))
     print('Hello World')
     return 0
