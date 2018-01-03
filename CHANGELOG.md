@@ -1,9 +1,16 @@
+1.4.3
+=====
+
+### Fixes
+- `pre-commit` on windows can find pythons at non-hardcoded paths.
+    - #674 PR by @asottile
+
 1.4.2
 =====
 
 ### Fixes
 - `pre-commit` no longer clears `GIT_SSH` environment variable when cloning.
-    - #671 PR by rp-tanium.
+    - #671 PR by @rp-tanium.
 
 1.4.1
 =====
