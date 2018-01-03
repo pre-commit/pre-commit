@@ -9,6 +9,7 @@ from pre_commit.envcontext import UNSET
 from pre_commit.envcontext import Var
 from pre_commit.languages import helpers
 from pre_commit.parse_shebang import find_executable
+from pre_commit.util import CalledProcessError
 from pre_commit.util import clean_path_on_failure
 from pre_commit.util import cmd_output
 from pre_commit.xargs import xargs
@@ -40,6 +41,17 @@ def in_env(repo_cmd_runner, language_version):
         yield
 
 
+def _find_by_py_launcher(version):  # pragma: no cover (windows only)
+    if version.startswith('python'):
+        try:
+            return cmd_output(
+                'py', '-{}'.format(version[len('python'):]),
+                '-c', 'import sys; print(sys.executable)',
+            )[1].strip()
+        except CalledProcessError:
+            pass
+
+
 def _get_default_version():  # pragma: no cover (platform dependent)
     def _norm(path):
         _, exe = os.path.split(path.lower())
@@ -64,6 +76,9 @@ def _get_default_version():  # pragma: no cover (platform dependent)
     # Next try the `pythonX.X` executable
     exe = 'python{}.{}'.format(*sys.version_info)
     if find_executable(exe):
+        return exe
+
+    if _find_by_py_launcher(exe):
         return exe
 
     # Give a best-effort try for windows
@@ -97,6 +112,10 @@ def norm_version(version):
         # Try looking up by name
         version_exec = find_executable(version)
         if version_exec and version_exec != version:
+            return version_exec
+
+        version_exec = _find_by_py_launcher(version)
+        if version_exec:
             return version_exec
 
         # If it is in the form pythonx.x search in the default
