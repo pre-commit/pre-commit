@@ -193,7 +193,7 @@ def _run_hooks(config, repo_hooks, args, environ):
             subprocess.call(('git', 'diff', '--quiet', '--no-ext-diff')) != 0
     ):
         print('All changes made by hooks:')
-        subprocess.call(('git', 'diff', '--no-ext-diff'))
+        subprocess.call(('git', '--no-pager', 'diff', '--no-ext-diff'))
     return retval
 
 
