@@ -1,9 +1,16 @@
+1.4.4
+=====
+
+### Fixes
+- Invoke `git diff` without a pager during `--show-diff-on-failure`.
+    - #676 PR by @asottile.
+
 1.4.3
 =====
 
 ### Fixes
 - `pre-commit` on windows can find pythons at non-hardcoded paths.
-    - #674 PR by @asottile
+    - #674 PR by @asottile.
 
 1.4.2
 =====
