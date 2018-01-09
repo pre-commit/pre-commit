@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import argparse
 import collections
 import functools
+import os
 
 from aspy.yaml import ordered_load
 from identify.identify import ALL_TAGS
@@ -154,6 +155,9 @@ def ordered_load_normalize_legacy_config(contents):
     if isinstance(data, list):
         # TODO: Once happy, issue a deprecation warning and instructions
         data = collections.OrderedDict([('repos', data)])
+
+    for repo_config in data['repos']:
+        repo_config['repo'] = os.path.expanduser(repo_config['repo'])
 
     return data
 
