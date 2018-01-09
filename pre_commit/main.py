@@ -42,7 +42,7 @@ def _add_color_option(parser):
 
 def _add_config_option(parser):
     parser.add_argument(
-        '-c', '--config', default='.pre-commit-config.yaml',
+        '-c', '--config', default=C.CONFIG_FILE,
         help='Path to alternate config file',
     )
 

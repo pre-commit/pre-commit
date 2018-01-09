@@ -269,14 +269,14 @@ class MetaRepository(LocalRepository):
             {
                 'id': 'check-hooks-apply',
                 'name': 'Check hooks apply to the repository',
-                'files': '.pre-commit-config.yaml',
+                'files': C.CONFIG_FILE,
                 'language': 'system',
                 'entry': _make_entry(check_hooks_apply),
             },
             {
                 'id': 'check-useless-excludes',
                 'name': 'Check for useless excludes',
-                'files': '.pre-commit-config.yaml',
+                'files': C.CONFIG_FILE,
                 'language': 'system',
                 'entry': _make_entry(check_useless_excludes),
             },

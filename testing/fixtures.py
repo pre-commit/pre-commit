@@ -47,7 +47,7 @@ def modify_manifest(path):
     with io.open(manifest_path, 'w') as manifest_file:
         manifest_file.write(ordered_dump(manifest, **C.YAML_DUMP_KWARGS))
     cmd_output(
-        'git', 'commit', '-am', 'update .pre-commit-hooks.yaml', cwd=path,
+        'git', 'commit', '-am', 'update {}'.format(C.MANIFEST_FILE), cwd=path,
     )
 
 

@@ -683,7 +683,7 @@ def test_error_with_unstaged_config(
 ):
     args = run_opts()
     ret, printed = _do_run(cap_out, modified_config_repo, args)
-    assert b'Your .pre-commit-config.yaml is unstaged.' in printed
+    assert b'Your pre-commit configuration is unstaged.' in printed
     assert ret == 1
 
 
@@ -695,7 +695,7 @@ def test_no_unstaged_error_with_all_files_or_files(
 ):
     args = run_opts(**opts)
     ret, printed = _do_run(cap_out, modified_config_repo, args)
-    assert b'Your .pre-commit-config.yaml is unstaged.' not in printed
+    assert b'Your pre-commit configuration is unstaged.' not in printed
 
 
 def test_files_running_subdir(
