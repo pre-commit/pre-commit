@@ -1,3 +1,14 @@
+1.4.5
+=====
+
+### Fixes
+- Fix `local` golang repositories with `additional_dependencies`.
+    - #679 #680 issue and PR by @asottile.
+
+### Misc
+- Replace some string literals with constants
+    - #678 PR by @revolter.
+
 1.4.4
 =====
 
