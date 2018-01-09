@@ -9,6 +9,7 @@ import sys
 
 from identify.identify import tags_from_path
 
+import pre_commit.constants as C
 from pre_commit import color
 from pre_commit import git
 from pre_commit import output
@@ -222,10 +223,10 @@ def run(runner, args, environ=os.environ):
         logger.error('Specify both --origin and --source.')
         return 1
     if _has_unstaged_config(runner) and not no_stash:
-        logger.error(
-            'Your .pre-commit-config.yaml is unstaged.\n'
-            '`git add .pre-commit-config.yaml` to fix this.',
-        )
+        logger.error((
+            'Your {0} is unstaged.\n'
+            '`git add {0}` to fix this.'
+        ).format(C.CONFIG_FILE),)
         return 1
 
     # Expose origin / source as environment variables for hooks to consume
