@@ -9,7 +9,6 @@ import sys
 
 from identify.identify import tags_from_path
 
-import pre_commit.constants as C
 from pre_commit import color
 from pre_commit import git
 from pre_commit import output
