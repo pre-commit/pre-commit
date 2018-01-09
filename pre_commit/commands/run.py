@@ -223,10 +223,10 @@ def run(runner, args, environ=os.environ):
         logger.error('Specify both --origin and --source.')
         return 1
     if _has_unstaged_config(runner) and not no_stash:
-        logger.error((
-            'Your {0} is unstaged.\n'
-            '`git add {0}` to fix this.'
-        ).format(C.CONFIG_FILE),)
+        logger.error(
+            'Your pre-commit configuration is unstaged.\n'
+            '`git add {}` to fix this.'.format(runner.config_file),
+        )
         return 1
 
     # Expose origin / source as environment variables for hooks to consume
