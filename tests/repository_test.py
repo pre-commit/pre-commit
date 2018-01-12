@@ -191,7 +191,7 @@ def test_run_a_docker_image_hook(tempdir_factory, store, hook_id):
 def test_run_a_node_hook(tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'node_hooks_repo',
-        'foo', ['/dev/null'], b'Hello World\n',
+        'foo', [os.devnull], b'Hello World\n',
     )
 
 
@@ -200,7 +200,7 @@ def test_run_a_node_hook(tempdir_factory, store):
 def test_run_versioned_node_hook(tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'node_0_11_8_hooks_repo',
-        'node-11-8-hook', ['/dev/null'], b'v0.11.8\nHello World\n',
+        'node-11-8-hook', [os.devnull], b'v0.11.8\nHello World\n',
     )
 
 
@@ -209,7 +209,7 @@ def test_run_versioned_node_hook(tempdir_factory, store):
 def test_run_a_ruby_hook(tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'ruby_hooks_repo',
-        'ruby_hook', ['/dev/null'], b'Hello world from a ruby hook\n',
+        'ruby_hook', [os.devnull], b'Hello world from a ruby hook\n',
     )
 
 
@@ -219,7 +219,7 @@ def test_run_versioned_ruby_hook(tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'ruby_versioned_hooks_repo',
         'ruby_hook',
-        ['/dev/null'],
+        [os.devnull],
         b'2.1.5\nHello world from a ruby hook\n',
     )
 
@@ -242,7 +242,7 @@ def test_run_ruby_hook_with_disable_shared_gems(
         _test_hook_repo(
             tempdir_factory, store, 'ruby_versioned_hooks_repo',
             'ruby_hook',
-            ['/dev/null'],
+            [os.devnull],
             b'2.1.5\nHello world from a ruby hook\n',
         )
 
@@ -251,7 +251,7 @@ def test_run_ruby_hook_with_disable_shared_gems(
 def test_system_hook_with_spaces(tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'system_hook_with_spaces_repo',
-        'system-hook-with-spaces', ['/dev/null'], b'Hello World\n',
+        'system-hook-with-spaces', [os.devnull], b'Hello World\n',
     )
 
 
@@ -276,7 +276,7 @@ def test_golang_hook(tempdir_factory, store):
 def test_missing_executable(tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'not_found_exe',
-        'not-found-exe', ['/dev/null'],
+        'not-found-exe', [os.devnull],
         b'Executable `i-dont-exist-lol` not found',
         expected_return_code=1,
     )
@@ -424,7 +424,7 @@ def test_cwd_of_hook(tempdir_factory, store):
 def test_lots_of_files(tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'script_hooks_repo',
-        'bash_hook', ['/dev/null'] * 15000, mock.ANY,
+        'bash_hook', [os.devnull] * 15000, mock.ANY,
     )
 
 
@@ -467,7 +467,7 @@ def test_additional_python_dependencies_installed(tempdir_factory, store):
     config['hooks'][0]['additional_dependencies'] = ['mccabe']
     repo = Repository.create(config, store)
     repo.require_installed()
-    with python.in_env(repo._cmd_runner, 'default'):
+    with python.in_env(repo._prefix, 'default'):
         output = cmd_output('pip', 'freeze', '-l')[1]
         assert 'mccabe' in output
 
@@ -484,7 +484,7 @@ def test_additional_dependencies_roll_forward(tempdir_factory, store):
     repo = Repository.create(config, store)
     repo.require_installed()
     # We should see our additional dependency installed
-    with python.in_env(repo._cmd_runner, 'default'):
+    with python.in_env(repo._prefix, 'default'):
         output = cmd_output('pip', 'freeze', '-l')[1]
         assert 'mccabe' in output
 
@@ -499,7 +499,7 @@ def test_additional_ruby_dependencies_installed(
     config['hooks'][0]['additional_dependencies'] = ['thread_safe', 'tins']
     repo = Repository.create(config, store)
     repo.require_installed()
-    with ruby.in_env(repo._cmd_runner, 'default'):
+    with ruby.in_env(repo._prefix, 'default'):
         output = cmd_output('gem', 'list', '--local')[1]
         assert 'thread_safe' in output
         assert 'tins' in output
@@ -516,7 +516,7 @@ def test_additional_node_dependencies_installed(
     config['hooks'][0]['additional_dependencies'] = ['lodash']
     repo = Repository.create(config, store)
     repo.require_installed()
-    with node.in_env(repo._cmd_runner, 'default'):
+    with node.in_env(repo._prefix, 'default'):
         cmd_output('npm', 'config', 'set', 'global', 'true')
         output = cmd_output('npm', 'ls')[1]
         assert 'lodash' in output
@@ -533,7 +533,7 @@ def test_additional_golang_dependencies_installed(
     config['hooks'][0]['additional_dependencies'] = deps
     repo = Repository.create(config, store)
     repo.require_installed()
-    binaries = os.listdir(repo._cmd_runner.path(
+    binaries = os.listdir(repo._prefix.path(
         helpers.environment_dir(golang.ENVIRONMENT_DIR, 'default'), 'bin',
     ))
     # normalize for windows
@@ -600,7 +600,7 @@ def test_control_c_control_c_on_install(tempdir_factory, store):
 
     # Should have made an environment, however this environment is broken!
     envdir = 'py_env-{}'.format(python.get_default_version())
-    assert repo._cmd_runner.exists(envdir)
+    assert repo._prefix.exists(envdir)
 
     # However, it should be perfectly runnable (reinstall after botched
     # install)
@@ -618,7 +618,7 @@ def test_invalidated_virtualenv(tempdir_factory, store):
     # Simulate breaking of the virtualenv
     repo.require_installed()
     version = python.get_default_version()
-    libdir = repo._cmd_runner.path('py_env-{}'.format(version), 'lib', version)
+    libdir = repo._prefix.path('py_env-{}'.format(version), 'lib', version)
     paths = [
         os.path.join(libdir, p) for p in ('site.py', 'site.pyc', '__pycache__')
     ]

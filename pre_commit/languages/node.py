@@ -33,8 +33,8 @@ def get_env_patch(venv):  # pragma: windows no cover
 
 
 @contextlib.contextmanager
-def in_env(repo_cmd_runner, language_version):  # pragma: windows no cover
-    envdir = repo_cmd_runner.path(
+def in_env(prefix, language_version):  # pragma: windows no cover
+    envdir = prefix.path(
         helpers.environment_dir(ENVIRONMENT_DIR, language_version),
     )
     with envcontext(get_env_patch(envdir)):
@@ -42,31 +42,26 @@ def in_env(repo_cmd_runner, language_version):  # pragma: windows no cover
 
 
 def install_environment(
-        repo_cmd_runner, version, additional_dependencies,
+        prefix, version, additional_dependencies,
 ):  # pragma: windows no cover
     additional_dependencies = tuple(additional_dependencies)
-    assert repo_cmd_runner.exists('package.json')
+    assert prefix.exists('package.json')
     directory = helpers.environment_dir(ENVIRONMENT_DIR, version)
 
-    env_dir = repo_cmd_runner.path(directory)
+    env_dir = prefix.path(directory)
     with clean_path_on_failure(env_dir):
-        cmd = [
-            sys.executable, '-m', 'nodeenv', '--prebuilt',
-            '{{prefix}}{}'.format(directory),
-        ]
-
+        cmd = [sys.executable, '-m', 'nodeenv', '--prebuilt', env_dir]
         if version != 'default':
             cmd.extend(['-n', version])
+        cmd_output(*cmd)
 
-        repo_cmd_runner.run(cmd)
-
-        with in_env(repo_cmd_runner, version):
+        with in_env(prefix, version):
             helpers.run_setup_cmd(
-                repo_cmd_runner,
+                prefix,
                 ('npm', 'install', '-g', '.') + additional_dependencies,
             )
 
 
-def run_hook(repo_cmd_runner, hook, file_args):  # pragma: windows no cover
-    with in_env(repo_cmd_runner, hook['language_version']):
+def run_hook(prefix, hook, file_args):  # pragma: windows no cover
+    with in_env(prefix, hook['language_version']):
         return xargs(helpers.to_cmd(hook), file_args)

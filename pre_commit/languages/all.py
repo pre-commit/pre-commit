@@ -23,25 +23,25 @@ from pre_commit.languages import system
 #     return 'default' if there is no better option.
 #    """
 #
-# def healthy(repo_cmd_runner, language_version):
+# def healthy(prefix, language_version):
 #     """Return whether or not the environment is considered functional."""
 #
-# def install_environment(repo_cmd_runner, version, additional_dependencies):
+# def install_environment(prefix, version, additional_dependencies):
 #     """Installs a repository in the given repository.  Note that the current
 #     working directory will already be inside the repository.
 #
 #     Args:
-#         repo_cmd_runner - `PrefixedCommandRunner` bound to the repository.
+#         prefix - `Prefix` bound to the repository.
 #         version - A version specified in the hook configuration or
 #             'default'.
 #     """
 #
-# def run_hook(repo_cmd_runner, hook, file_args):
+# def run_hook(prefix, hook, file_args):
 #     """Runs a hook and returns the returncode and output of running that
 #     hook.
 #
 #     Args:
-#         repo_cmd_runner - `PrefixedCommandRunner` bound to the repository.
+#         prefix - `Prefix` bound to the repository.
 #         hook - Hook dictionary
 #         file_args - The files to be run
 #
@@ -62,6 +62,4 @@ languages = {
     'swift': swift,
     'system': system,
 }
-
-
-all_languages = languages.keys()
+all_languages = sorted(languages)

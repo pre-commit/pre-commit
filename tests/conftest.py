@@ -14,7 +14,6 @@ import six
 import pre_commit.constants as C
 from pre_commit import output
 from pre_commit.logging_handler import add_logging_handler
-from pre_commit.prefixed_command_runner import PrefixedCommandRunner
 from pre_commit.runner import Runner
 from pre_commit.store import Store
 from pre_commit.util import cmd_output
@@ -153,11 +152,6 @@ def mock_out_store_directory(tempdir_factory):
 @pytest.yield_fixture
 def store(tempdir_factory):
     yield Store(os.path.join(tempdir_factory.get(), '.pre-commit'))
-
-
-@pytest.yield_fixture
-def cmd_runner(tempdir_factory):
-    yield PrefixedCommandRunner(tempdir_factory.get())
 
 
 @pytest.yield_fixture

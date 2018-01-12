@@ -7,6 +7,7 @@ from pre_commit.envcontext import envcontext
 from pre_commit.envcontext import Var
 from pre_commit.languages import helpers
 from pre_commit.util import clean_path_on_failure
+from pre_commit.util import cmd_output
 from pre_commit.xargs import xargs
 
 ENVIRONMENT_DIR = 'swift_env'
@@ -22,8 +23,8 @@ def get_env_patch(venv):  # pragma: windows no cover
 
 
 @contextlib.contextmanager
-def in_env(repo_cmd_runner):  # pragma: windows no cover
-    envdir = repo_cmd_runner.path(
+def in_env(prefix):  # pragma: windows no cover
+    envdir = prefix.path(
         helpers.environment_dir(ENVIRONMENT_DIR, 'default'),
     )
     with envcontext(get_env_patch(envdir)):
@@ -31,25 +32,25 @@ def in_env(repo_cmd_runner):  # pragma: windows no cover
 
 
 def install_environment(
-        repo_cmd_runner, version, additional_dependencies,
+        prefix, version, additional_dependencies,
 ):  # pragma: windows no cover
     helpers.assert_version_default('swift', version)
     helpers.assert_no_additional_deps('swift', additional_dependencies)
-    directory = repo_cmd_runner.path(
+    directory = prefix.path(
         helpers.environment_dir(ENVIRONMENT_DIR, 'default'),
     )
 
     # Build the swift package
     with clean_path_on_failure(directory):
         os.mkdir(directory)
-        repo_cmd_runner.run((
+        cmd_output(
             'swift', 'build',
-            '-C', '{prefix}',
+            '-C', prefix.prefix_dir,
             '-c', BUILD_CONFIG,
             '--build-path', os.path.join(directory, BUILD_DIR),
-        ))
+        )
 
 
-def run_hook(repo_cmd_runner, hook, file_args):  # pragma: windows no cover
-    with in_env(repo_cmd_runner):
+def run_hook(prefix, hook, file_args):  # pragma: windows no cover
+    with in_env(prefix):
         return xargs(helpers.to_cmd(hook), file_args)

@@ -5,8 +5,8 @@ import shlex
 from pre_commit.util import cmd_output
 
 
-def run_setup_cmd(runner, cmd):
-    cmd_output(*cmd, cwd=runner.prefix_dir, encoding=None)
+def run_setup_cmd(prefix, cmd):
+    cmd_output(*cmd, cwd=prefix.prefix_dir, encoding=None)
 
 
 def environment_dir(ENVIRONMENT_DIR, language_version):
@@ -39,9 +39,9 @@ def basic_get_default_version():
     return 'default'
 
 
-def basic_healthy(repo_cmd_runner, language_version):
+def basic_healthy(prefix, language_version):
     return True
 
 
-def no_install(repo_cmd_runner, version, additional_dependencies):
+def no_install(prefix, version, additional_dependencies):
     raise AssertionError('This type is not installable')

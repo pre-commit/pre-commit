@@ -21,7 +21,7 @@ from pre_commit.clientlib import load_manifest
 from pre_commit.clientlib import MANIFEST_HOOK_DICT
 from pre_commit.languages.all import languages
 from pre_commit.languages.helpers import environment_dir
-from pre_commit.prefixed_command_runner import PrefixedCommandRunner
+from pre_commit.prefix import Prefix
 from pre_commit.schema import apply_defaults
 from pre_commit.schema import validate
 
@@ -33,22 +33,22 @@ def _state(additional_deps):
     return {'additional_dependencies': sorted(additional_deps)}
 
 
-def _state_filename(cmd_runner, venv):
-    return cmd_runner.path(
+def _state_filename(prefix, venv):
+    return prefix.path(
         venv, '.install_state_v' + C.INSTALLED_STATE_VERSION,
     )
 
 
-def _read_state(cmd_runner, venv):
-    filename = _state_filename(cmd_runner, venv)
+def _read_state(prefix, venv):
+    filename = _state_filename(prefix, venv)
     if not os.path.exists(filename):
         return None
     else:
         return json.loads(io.open(filename).read())
 
 
-def _write_state(cmd_runner, venv, state):
-    state_filename = _state_filename(cmd_runner, venv)
+def _write_state(prefix, venv, state):
+    state_filename = _state_filename(prefix, venv)
     staging = state_filename + 'staging'
     with io.open(staging, 'w') as state_file:
         state_file.write(five.to_text(json.dumps(state)))
@@ -56,24 +56,24 @@ def _write_state(cmd_runner, venv, state):
     os.rename(staging, state_filename)
 
 
-def _installed(cmd_runner, language_name, language_version, additional_deps):
+def _installed(prefix, language_name, language_version, additional_deps):
     language = languages[language_name]
     venv = environment_dir(language.ENVIRONMENT_DIR, language_version)
     return (
         venv is None or (
-            _read_state(cmd_runner, venv) == _state(additional_deps) and
-            language.healthy(cmd_runner, language_version)
+            _read_state(prefix, venv) == _state(additional_deps) and
+            language.healthy(prefix, language_version)
         )
     )
 
 
 def _install_all(venvs, repo_url, store):
-    """Tuple of (cmd_runner, language, version, deps)"""
+    """Tuple of (prefix, language, version, deps)"""
     def _need_installed():
         return tuple(
-            (cmd_runner, language_name, version, deps)
-            for cmd_runner, language_name, version, deps in venvs
-            if not _installed(cmd_runner, language_name, version, deps)
+            (prefix, language_name, version, deps)
+            for prefix, language_name, version, deps in venvs
+            if not _installed(prefix, language_name, version, deps)
         )
 
     if not _need_installed():
@@ -90,19 +90,19 @@ def _install_all(venvs, repo_url, store):
         logger.info('Once installed this environment will be reused.')
         logger.info('This may take a few minutes...')
 
-        for cmd_runner, language_name, version, deps in need_installed:
+        for prefix, language_name, version, deps in need_installed:
             language = languages[language_name]
             venv = environment_dir(language.ENVIRONMENT_DIR, version)
 
             # There's potentially incomplete cleanup from previous runs
             # Clean it up!
-            if cmd_runner.exists(venv):
-                shutil.rmtree(cmd_runner.path(venv))
+            if prefix.exists(venv):
+                shutil.rmtree(prefix.path(venv))
 
-            language.install_environment(cmd_runner, version, deps)
+            language.install_environment(prefix, version, deps)
             # Write our state to indicate we're installed
             state = _state(deps)
-            _write_state(cmd_runner, venv, state)
+            _write_state(prefix, venv, state)
 
 
 def _hook(*hook_dicts):
@@ -156,11 +156,11 @@ class Repository(object):
         )
 
     @cached_property
-    def _cmd_runner(self):
-        return PrefixedCommandRunner(self._repo_path)
+    def _prefix(self):
+        return Prefix(self._repo_path)
 
-    def _cmd_runner_from_deps(self, language_name, deps):
-        return self._cmd_runner
+    def _prefix_from_deps(self, language_name, deps):
+        return self._prefix
 
     @cached_property
     def manifest_hooks(self):
@@ -194,7 +194,7 @@ class Repository(object):
             )
         ret = []
         for (language, version), deps in deps_dict.items():
-            ret.append((self._cmd_runner, language, version, deps))
+            ret.append((self._prefix, language, version, deps))
         return tuple(ret)
 
     def require_installed(self):
@@ -211,20 +211,20 @@ class Repository(object):
         self.require_installed()
         language_name = hook['language']
         deps = hook['additional_dependencies']
-        cmd_runner = self._cmd_runner_from_deps(language_name, deps)
-        return languages[language_name].run_hook(cmd_runner, hook, file_args)
+        prefix = self._prefix_from_deps(language_name, deps)
+        return languages[language_name].run_hook(prefix, hook, file_args)
 
 
 class LocalRepository(Repository):
-    def _cmd_runner_from_deps(self, language_name, deps):
-        """local repositories have a cmd runner per hook"""
+    def _prefix_from_deps(self, language_name, deps):
+        """local repositories have a prefix per hook"""
         language = languages[language_name]
         # pcre / pygrep / script / system / docker_image do not have
         # environments so they work out of the current directory
         if language.ENVIRONMENT_DIR is None:
-            return PrefixedCommandRunner(git.get_root())
+            return Prefix(git.get_root())
         else:
-            return PrefixedCommandRunner(self.store.make_local(deps))
+            return Prefix(self.store.make_local(deps))
 
     @cached_property
     def manifest(self):
@@ -245,7 +245,7 @@ class LocalRepository(Repository):
             version = hook['language_version']
             deps = hook['additional_dependencies']
             ret.append((
-                self._cmd_runner_from_deps(language, deps),
+                self._prefix_from_deps(language, deps),
                 language, version, deps,
             ))
         return tuple(ret)

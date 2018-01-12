@@ -26,8 +26,8 @@ def get_env_patch(venv):
 
 
 @contextlib.contextmanager
-def in_env(repo_cmd_runner):
-    envdir = repo_cmd_runner.path(
+def in_env(prefix):
+    envdir = prefix.path(
         helpers.environment_dir(ENVIRONMENT_DIR, 'default'),
     )
     with envcontext(get_env_patch(envdir)):
@@ -50,20 +50,18 @@ def guess_go_dir(remote_url):
         return 'unknown_src_dir'
 
 
-def install_environment(repo_cmd_runner, version, additional_dependencies):
+def install_environment(prefix, version, additional_dependencies):
     helpers.assert_version_default('golang', version)
-    directory = repo_cmd_runner.path(
+    directory = prefix.path(
         helpers.environment_dir(ENVIRONMENT_DIR, 'default'),
     )
 
     with clean_path_on_failure(directory):
-        remote = git.get_remote_url(repo_cmd_runner.path())
+        remote = git.get_remote_url(prefix.prefix_dir)
         repo_src_dir = os.path.join(directory, 'src', guess_go_dir(remote))
 
         # Clone into the goenv we'll create
-        helpers.run_setup_cmd(
-            repo_cmd_runner, ('git', 'clone', '.', repo_src_dir),
-        )
+        helpers.run_setup_cmd(prefix, ('git', 'clone', '.', repo_src_dir))
 
         if sys.platform == 'cygwin':  # pragma: no cover
             _, gopath, _ = cmd_output('cygpath', '-w', directory)
@@ -75,10 +73,10 @@ def install_environment(repo_cmd_runner, version, additional_dependencies):
         for dependency in additional_dependencies:
             cmd_output('go', 'get', dependency, cwd=repo_src_dir, env=env)
         # Same some disk space, we don't need these after installation
-        rmtree(repo_cmd_runner.path(directory, 'src'))
-        rmtree(repo_cmd_runner.path(directory, 'pkg'))
+        rmtree(prefix.path(directory, 'src'))
+        rmtree(prefix.path(directory, 'pkg'))
 
 
-def run_hook(repo_cmd_runner, hook, file_args):
-    with in_env(repo_cmd_runner):
+def run_hook(prefix, hook, file_args):
+    with in_env(prefix):
         return xargs(helpers.to_cmd(hook), file_args)

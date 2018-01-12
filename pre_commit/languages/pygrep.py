@@ -27,7 +27,7 @@ def _process_filename_by_line(pattern, filename):
     return retv
 
 
-def run_hook(repo_cmd_runner, hook, file_args):
+def run_hook(prefix, hook, file_args):
     exe = (sys.executable, '-m', __name__)
     exe += tuple(hook['args']) + (hook['entry'],)
     return xargs(exe, file_args)

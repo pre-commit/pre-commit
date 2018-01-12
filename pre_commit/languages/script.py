@@ -10,7 +10,7 @@ healthy = helpers.basic_healthy
 install_environment = helpers.no_install
 
 
-def run_hook(repo_cmd_runner, hook, file_args):
+def run_hook(prefix, hook, file_args):
     cmd = helpers.to_cmd(hook)
-    cmd = (repo_cmd_runner.prefix_dir + cmd[0],) + cmd[1:]
+    cmd = (prefix.prefix_dir + cmd[0],) + cmd[1:]
     return xargs(cmd, file_args)
