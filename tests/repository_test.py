@@ -199,8 +199,8 @@ def test_run_a_node_hook(tempdir_factory, store):
 @pytest.mark.integration
 def test_run_versioned_node_hook(tempdir_factory, store):
     _test_hook_repo(
-        tempdir_factory, store, 'node_0_11_8_hooks_repo',
-        'node-11-8-hook', [os.devnull], b'v0.11.8\nHello World\n',
+        tempdir_factory, store, 'node_versioned_hooks_repo',
+        'versioned-node-hook', [os.devnull], b'v9.3.0\nHello World\n',
     )
 
 

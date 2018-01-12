@@ -1,5 +1,0 @@
-{
-    "name": "node-11-8-hook",
-    "version": "0.0.1",
-    "bin": {"node-11-8-hook": "./bin/main.js"}
-}

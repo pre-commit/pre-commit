@@ -1,0 +1,5 @@
+{
+    "name": "versioned-node-hook",
+    "version": "0.0.1",
+    "bin": {"versioned-node-hook": "./bin/main.js"}
+}
