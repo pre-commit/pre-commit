@@ -10,5 +10,5 @@ healthy = helpers.basic_healthy
 install_environment = helpers.no_install
 
 
-def run_hook(repo_cmd_runner, hook, file_args):
+def run_hook(prefix, hook, file_args):
     return xargs(helpers.to_cmd(hook), file_args)

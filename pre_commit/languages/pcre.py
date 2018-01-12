@@ -13,7 +13,7 @@ healthy = helpers.basic_healthy
 install_environment = helpers.no_install
 
 
-def run_hook(repo_cmd_runner, hook, file_args):
+def run_hook(prefix, hook, file_args):
     # For PCRE the entry is the regular expression to match
     cmd = (GREP, '-H', '-n', '-P') + tuple(hook['args']) + (hook['entry'],)
 

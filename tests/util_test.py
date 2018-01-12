@@ -5,11 +5,40 @@ import random
 
 import pytest
 
+from pre_commit.util import CalledProcessError
 from pre_commit.util import clean_path_on_failure
 from pre_commit.util import cmd_output
 from pre_commit.util import cwd
 from pre_commit.util import memoize_by_cwd
 from pre_commit.util import tmpdir
+
+
+def test_CalledProcessError_str():
+    error = CalledProcessError(
+        1, [str('git'), str('status')], 0, (str('stdout'), str('stderr')),
+    )
+    assert str(error) == (
+        "Command: ['git', 'status']\n"
+        "Return code: 1\n"
+        "Expected return code: 0\n"
+        "Output: \n"
+        "    stdout\n"
+        "Errors: \n"
+        "    stderr\n"
+    )
+
+
+def test_CalledProcessError_str_nooutput():
+    error = CalledProcessError(
+        1, [str('git'), str('status')], 0, (str(''), str('')),
+    )
+    assert str(error) == (
+        "Command: ['git', 'status']\n"
+        "Return code: 1\n"
+        "Expected return code: 0\n"
+        "Output: (none)\n"
+        "Errors: (none)\n"
+    )
 
 
 @pytest.fixture

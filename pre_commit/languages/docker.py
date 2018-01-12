@@ -22,10 +22,9 @@ def md5(s):  # pragma: windows no cover
     return hashlib.md5(five.to_bytes(s)).hexdigest()
 
 
-def docker_tag(repo_cmd_runner):  # pragma: windows no cover
-    return 'pre-commit-{}'.format(
-        md5(os.path.basename(repo_cmd_runner.path())),
-    ).lower()
+def docker_tag(prefix):  # pragma: windows no cover
+    md5sum = md5(os.path.basename(prefix.prefix_dir)).lower()
+    return 'pre-commit-{}'.format(md5sum)
 
 
 def docker_is_running():  # pragma: windows no cover
@@ -41,39 +40,36 @@ def assert_docker_available():  # pragma: windows no cover
     )
 
 
-def build_docker_image(repo_cmd_runner, **kwargs):  # pragma: windows no cover
+def build_docker_image(prefix, **kwargs):  # pragma: windows no cover
     pull = kwargs.pop('pull')
     assert not kwargs, kwargs
     cmd = (
         'docker', 'build',
-        '--tag', docker_tag(repo_cmd_runner),
+        '--tag', docker_tag(prefix),
         '--label', PRE_COMMIT_LABEL,
     )
     if pull:
         cmd += ('--pull',)
     # This must come last for old versions of docker.  See #477
     cmd += ('.',)
-    helpers.run_setup_cmd(repo_cmd_runner, cmd)
+    helpers.run_setup_cmd(prefix, cmd)
 
 
 def install_environment(
-        repo_cmd_runner, version, additional_dependencies,
+        prefix, version, additional_dependencies,
 ):  # pragma: windows no cover
-    assert repo_cmd_runner.exists('Dockerfile'), (
-        'No Dockerfile was found in the hook repository'
-    )
     helpers.assert_version_default('docker', version)
     helpers.assert_no_additional_deps('docker', additional_dependencies)
     assert_docker_available()
 
-    directory = repo_cmd_runner.path(
+    directory = prefix.path(
         helpers.environment_dir(ENVIRONMENT_DIR, 'default'),
     )
 
     # Docker doesn't really have relevant disk environment, but pre-commit
     # still needs to cleanup it's state files on failure
     with clean_path_on_failure(directory):
-        build_docker_image(repo_cmd_runner, pull=True)
+        build_docker_image(prefix, pull=True)
         os.mkdir(directory)
 
 
@@ -90,15 +86,15 @@ def docker_cmd():
     )
 
 
-def run_hook(repo_cmd_runner, hook, file_args):  # pragma: windows no cover
+def run_hook(prefix, hook, file_args):  # pragma: windows no cover
     assert_docker_available()
     # Rebuild the docker image in case it has gone missing, as many people do
     # automated cleanup of docker images.
-    build_docker_image(repo_cmd_runner, pull=False)
+    build_docker_image(prefix, pull=False)
 
     hook_cmd = helpers.to_cmd(hook)
     entry_exe, cmd_rest = hook_cmd[0], hook_cmd[1:]
 
-    entry_tag = ('--entrypoint', entry_exe, docker_tag(repo_cmd_runner))
+    entry_tag = ('--entrypoint', entry_exe, docker_tag(prefix))
     cmd = docker_cmd() + entry_tag + cmd_rest
     return xargs(cmd, file_args)
