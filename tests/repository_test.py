@@ -31,8 +31,8 @@ from testing.fixtures import modify_manifest
 from testing.util import get_resource_path
 from testing.util import skipif_cant_run_docker
 from testing.util import skipif_cant_run_swift
+from testing.util import xfailif_broken_deep_listdir
 from testing.util import xfailif_no_pcre_support
-from testing.util import xfailif_windows_no_node
 from testing.util import xfailif_windows_no_ruby
 
 
@@ -186,7 +186,7 @@ def test_run_a_docker_image_hook(tempdir_factory, store, hook_id):
     )
 
 
-@xfailif_windows_no_node
+@xfailif_broken_deep_listdir
 @pytest.mark.integration
 def test_run_a_node_hook(tempdir_factory, store):
     _test_hook_repo(
@@ -195,12 +195,12 @@ def test_run_a_node_hook(tempdir_factory, store):
     )
 
 
-@xfailif_windows_no_node
+@xfailif_broken_deep_listdir
 @pytest.mark.integration
 def test_run_versioned_node_hook(tempdir_factory, store):
     _test_hook_repo(
-        tempdir_factory, store, 'node_0_11_8_hooks_repo',
-        'node-11-8-hook', [os.devnull], b'v0.11.8\nHello World\n',
+        tempdir_factory, store, 'node_versioned_hooks_repo',
+        'versioned-node-hook', [os.devnull], b'v9.3.0\nHello World\n',
     )
 
 
@@ -505,7 +505,7 @@ def test_additional_ruby_dependencies_installed(
         assert 'tins' in output
 
 
-@xfailif_windows_no_node
+@xfailif_broken_deep_listdir
 @pytest.mark.integration
 def test_additional_node_dependencies_installed(
         tempdir_factory, store,

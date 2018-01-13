@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 import os.path
+import sys
 
 import pytest
 
@@ -42,9 +43,21 @@ xfailif_windows_no_ruby = pytest.mark.xfail(
     reason='Ruby support not yet implemented on windows.',
 )
 
-xfailif_windows_no_node = pytest.mark.xfail(
-    os.name == 'nt',
-    reason='Node support not yet implemented on windows.',
+
+def broken_deep_listdir():  # pragma: no cover (platform specific)
+    if sys.platform != 'win32':
+        return False
+    try:
+        os.listdir(str('\\\\?\\') + os.path.abspath(str('.')))
+    except OSError:
+        return True
+    else:
+        return False
+
+
+xfailif_broken_deep_listdir = pytest.mark.xfail(
+    broken_deep_listdir(),
+    reason='Node on windows requires deep listdir',
 )
 
 

@@ -7,6 +7,7 @@ import sys
 from pre_commit.envcontext import envcontext
 from pre_commit.envcontext import Var
 from pre_commit.languages import helpers
+from pre_commit.languages.python import bin_dir
 from pre_commit.util import clean_path_on_failure
 from pre_commit.util import cmd_output
 from pre_commit.xargs import xargs
@@ -17,10 +18,17 @@ get_default_version = helpers.basic_get_default_version
 healthy = helpers.basic_healthy
 
 
-def get_env_patch(venv):  # pragma: windows no cover
+def _envdir(prefix, version):
+    directory = helpers.environment_dir(ENVIRONMENT_DIR, version)
+    return prefix.path(directory)
+
+
+def get_env_patch(venv):
     if sys.platform == 'cygwin':  # pragma: no cover
         _, win_venv, _ = cmd_output('cygpath', '-w', venv)
         install_prefix = r'{}\bin'.format(win_venv.strip())
+    elif sys.platform == 'win32':  # pragma: no cover
+        install_prefix = bin_dir(venv)
     else:
         install_prefix = venv
     return (
@@ -28,29 +36,26 @@ def get_env_patch(venv):  # pragma: windows no cover
         ('NPM_CONFIG_PREFIX', install_prefix),
         ('npm_config_prefix', install_prefix),
         ('NODE_PATH', os.path.join(venv, 'lib', 'node_modules')),
-        ('PATH', (os.path.join(venv, 'bin'), os.pathsep, Var('PATH'))),
+        ('PATH', (bin_dir(venv), os.pathsep, Var('PATH'))),
     )
 
 
 @contextlib.contextmanager
-def in_env(prefix, language_version):  # pragma: windows no cover
-    envdir = prefix.path(
-        helpers.environment_dir(ENVIRONMENT_DIR, language_version),
-    )
-    with envcontext(get_env_patch(envdir)):
+def in_env(prefix, language_version):
+    with envcontext(get_env_patch(_envdir(prefix, language_version))):
         yield
 
 
-def install_environment(
-        prefix, version, additional_dependencies,
-):  # pragma: windows no cover
+def install_environment(prefix, version, additional_dependencies):
     additional_dependencies = tuple(additional_dependencies)
     assert prefix.exists('package.json')
-    directory = helpers.environment_dir(ENVIRONMENT_DIR, version)
+    envdir = _envdir(prefix, version)
 
-    env_dir = prefix.path(directory)
-    with clean_path_on_failure(env_dir):
-        cmd = [sys.executable, '-m', 'nodeenv', '--prebuilt', env_dir]
+    # https://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx?f=255&MSPPError=-2147217396#maxpath
+    if sys.platform == 'win32':  # pragma: no cover
+        envdir = '\\\\?\\' + os.path.normpath(envdir)
+    with clean_path_on_failure(envdir):
+        cmd = [sys.executable, '-m', 'nodeenv', '--prebuilt', envdir]
         if version != 'default':
             cmd.extend(['-n', version])
         cmd_output(*cmd)
@@ -62,6 +67,6 @@ def install_environment(
             )
 
 
-def run_hook(prefix, hook, file_args):  # pragma: windows no cover
+def run_hook(prefix, hook, file_args):
     with in_env(prefix, hook['language_version']):
         return xargs(helpers.to_cmd(hook), file_args)
