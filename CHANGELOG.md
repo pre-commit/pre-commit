@@ -1,3 +1,21 @@
+1.5.0
+=====
+
+### Features
+- pre-commit now supports node hooks on windows.
+    - for now, requires python3 due to https://bugs.python.org/issue32539
+    - huge thanks to @wenzowski for the tip!
+    - #200 issue by @asottile.
+    - #685 PR by @asottile.
+
+### Misc
+- internal reorganization of `PrefixedCommandRunner` -> `Prefix`
+    - #684 PR by @asottile.
+- https-ify links.
+    - pre-commit.com is now served over https.
+    - #688 PR by @asottile.
+
+
 1.4.5
 =====
 
