@@ -67,6 +67,15 @@ def _run_single_hook(filenames, hook, repo, args, skips, cols):
     filenames = _filter_by_include_exclude(filenames, include, exclude)
     types, exclude_types = hook['types'], hook['exclude_types']
     filenames = _filter_by_types(filenames, types, exclude_types)
+
+    if hook['language'] == 'pcre':
+        logger.warning(
+            '`{}` (from {}) uses the deprecated pcre language.\n'
+            'The pcre language is scheduled for removal in pre-commit 2.x.\n'
+            'The pygrep language is a more portable (and usually drop-in) '
+            'replacement.'.format(hook['id'], repo.repo_config['repo']),
+        )
+
     if hook['id'] in skips:
         output.write(get_hook_message(
             _hook_msg_start(hook, args.verbose),
