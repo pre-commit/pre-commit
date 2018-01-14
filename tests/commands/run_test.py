@@ -529,7 +529,7 @@ def test_push_hook(cap_out, repo_with_passing_hook, mock_out_store_directory):
                     ('id', 'do_not_commit'),
                     ('name', 'hook 2'),
                     ('entry', 'DO NOT COMMIT'),
-                    ('language', 'pcre'),
+                    ('language', 'pygrep'),
                     ('types', ['text']),
                     ('stages', ['push']),
                 )),
@@ -592,7 +592,7 @@ def test_local_hook_passes(
                     ('id', 'do_not_commit'),
                     ('name', 'Block if "DO NOT COMMIT" is found'),
                     ('entry', 'DO NOT COMMIT'),
-                    ('language', 'pcre'),
+                    ('language', 'pygrep'),
                     ('files', '^(.*)$'),
                 )),
             ),
@@ -641,6 +641,35 @@ def test_local_hook_fails(
         opts={},
         expected_outputs=[b''],
         expected_ret=1,
+        stage=False,
+    )
+
+
+def test_pcre_deprecation_warning(
+        cap_out, repo_with_passing_hook, mock_out_store_directory,
+):
+    config = OrderedDict((
+        ('repo', 'local'),
+        (
+            'hooks', [OrderedDict((
+                ('id', 'pcre-hook'),
+                ('name', 'pcre-hook'),
+                ('language', 'pcre'),
+                ('entry', '.'),
+            ))],
+        ),
+    ))
+    add_config_to_repo(repo_with_passing_hook, config)
+
+    _test_run(
+        cap_out,
+        repo_with_passing_hook,
+        opts={},
+        expected_outputs=[
+            b'[WARNING] `pcre-hook` (from local) uses the deprecated '
+            b'pcre language.',
+        ],
+        expected_ret=0,
         stage=False,
     )
 
