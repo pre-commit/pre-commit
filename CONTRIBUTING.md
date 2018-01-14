@@ -44,7 +44,7 @@ With the environment activated simply run `pre-commit install`.
 
 ## Documentation
 
-Documentation is hosted at http://pre-commit.com
+Documentation is hosted at https://pre-commit.com
 
 This website is controlled through
 https://github.com/pre-commit/pre-commit.github.io

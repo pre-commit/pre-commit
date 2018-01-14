@@ -56,7 +56,7 @@ def normexe(orig_exe):
 
 def normalize_cmd(cmd):
     """Fixes for the following issues on windows
-    - http://bugs.python.org/issue8557
+    - https://bugs.python.org/issue8557
     - windows does not parse shebangs
 
     This function also makes deep-path shebangs work just fine

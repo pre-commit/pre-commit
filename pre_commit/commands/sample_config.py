@@ -8,8 +8,8 @@ from __future__ import unicode_literals
 # significantly faster than https:// or http://).  For now, periodically
 # manually updating the revision is fine.
 SAMPLE_CONFIG = '''\
-# See http://pre-commit.com for more information
-# See http://pre-commit.com/hooks.html for more hooks
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
 repos:
 -   repo: https://github.com/pre-commit/pre-commit-hooks
     sha: v0.9.2

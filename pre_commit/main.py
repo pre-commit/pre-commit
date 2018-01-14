@@ -94,7 +94,7 @@ def main(argv=None):
     argv = [five.to_text(arg) for arg in argv]
     parser = argparse.ArgumentParser()
 
-    # http://stackoverflow.com/a/8521644/812183
+    # https://stackoverflow.com/a/8521644/812183
     parser.add_argument(
         '-V', '--version',
         action='version',

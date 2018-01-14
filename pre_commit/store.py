@@ -68,7 +68,7 @@ class Store(object):
         os.close(fd)
         # sqlite doesn't close its fd with its contextmanager >.<
         # contextlib.closing fixes this.
-        # See: http://stackoverflow.com/a/28032829/812183
+        # See: https://stackoverflow.com/a/28032829/812183
         with contextlib.closing(sqlite3.connect(tmpfile)) as db:
             db.executescript(
                 'CREATE TABLE repos ('
