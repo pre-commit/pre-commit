@@ -158,7 +158,7 @@
 
 1.0.0
 =====
-pre-commit will now be following [semver](http://semver.org/).  Thanks to all
+pre-commit will now be following [semver](https://semver.org/).  Thanks to all
 of the [contributors](https://github.com/pre-commit/pre-commit/graphs/contributors)
 that have helped us get this far!
 
@@ -561,7 +561,7 @@ that have helped us get this far!
 
 0.3.5
 =====
-- Support running during `pre-push`.  See http://pre-commit.com/#advanced 'pre-commit during push'.
+- Support running during `pre-push`.  See https://pre-commit.com/#advanced 'pre-commit during push'.
 
 0.3.4
 =====

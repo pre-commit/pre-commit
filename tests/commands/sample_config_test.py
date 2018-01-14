@@ -9,8 +9,8 @@ def test_sample_config(capsys):
     assert ret == 0
     out, _ = capsys.readouterr()
     assert out == '''\
-# See http://pre-commit.com for more information
-# See http://pre-commit.com/hooks.html for more hooks
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
 repos:
 -   repo: https://github.com/pre-commit/pre-commit-hooks
     sha: v0.9.2
