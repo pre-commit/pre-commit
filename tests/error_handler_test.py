@@ -14,7 +14,7 @@ from pre_commit import error_handler
 from testing.util import cmd_output_mocked_pre_commit_home
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def mocked_log_and_exit():
     with mock.patch.object(error_handler, '_log_and_exit') as log_and_exit:
         yield log_and_exit

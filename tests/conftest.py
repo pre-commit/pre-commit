@@ -23,7 +23,7 @@ from testing.fixtures import make_consuming_repo
 from testing.fixtures import write_config
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def tempdir_factory(tmpdir):
     class TmpdirFactory(object):
         def __init__(self):
@@ -38,7 +38,7 @@ def tempdir_factory(tmpdir):
     yield TmpdirFactory()
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def in_tmpdir(tempdir_factory):
     path = tempdir_factory.get()
     with cwd(path):
@@ -65,7 +65,7 @@ def _make_conflict():
     cmd_output('git', 'merge', 'foo', retcode=None)
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def in_merge_conflict(tempdir_factory):
     path = make_consuming_repo(tempdir_factory, 'script_hooks_repo')
     with cwd(path):
@@ -80,7 +80,7 @@ def in_merge_conflict(tempdir_factory):
         yield os.path.join(conflict_path)
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def in_conflicting_submodule(tempdir_factory):
     git_dir_1 = git_dir(tempdir_factory)
     git_dir_2 = git_dir(tempdir_factory)
@@ -116,7 +116,7 @@ def commit_msg_repo(tempdir_factory):
         yield path
 
 
-@pytest.yield_fixture(autouse=True, scope='session')
+@pytest.fixture(autouse=True, scope='session')
 def dont_write_to_home_directory():
     """pre_commit.store.Store will by default write to the home directory
     We'll mock out `Store.get_default_directory` to raise invariantly so we
@@ -138,7 +138,7 @@ def configure_logging():
     add_logging_handler(use_color=False)
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def mock_out_store_directory(tempdir_factory):
     tmpdir = tempdir_factory.get()
     with mock.patch.object(
@@ -149,23 +149,23 @@ def mock_out_store_directory(tempdir_factory):
         yield tmpdir
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def store(tempdir_factory):
     yield Store(os.path.join(tempdir_factory.get(), '.pre-commit'))
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def runner_with_mocked_store(mock_out_store_directory):
     yield Runner('/', C.CONFIG_FILE)
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def log_info_mock():
     with mock.patch.object(logging.getLogger('pre_commit'), 'info') as mck:
         yield mck
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def log_warning_mock():
     with mock.patch.object(logging.getLogger('pre_commit'), 'warning') as mck:
         yield mck
@@ -197,7 +197,7 @@ class Fixture(object):
         return self.get_bytes().decode('UTF-8')
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def cap_out():
     stream = FakeStream()
     write = functools.partial(output.write, stream=stream)
@@ -207,7 +207,7 @@ def cap_out():
             yield Fixture(stream)
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def fake_log_handler():
     handler = mock.Mock(level=logging.INFO)
     logger = logging.getLogger('pre_commit')

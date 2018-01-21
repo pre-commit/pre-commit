@@ -30,7 +30,7 @@ def get_short_git_status():
     return dict(reversed(line.split()) for line in git_status.splitlines())
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def foo_staged(tempdir_factory):
     path = git_dir(tempdir_factory)
     with cwd(path):
@@ -132,7 +132,7 @@ def test_foo_both_modify_conflicting(foo_staged, patch_dir):
     _test_foo_state(foo_staged, FOO_CONTENTS.replace('1', 'a'), 'AM')
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def img_staged(tempdir_factory):
     path = git_dir(tempdir_factory)
     with cwd(path):
@@ -187,7 +187,7 @@ def test_img_conflict(img_staged, patch_dir):
     _test_img_state(img_staged, 'img2.jpg', 'AM')
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def submodule_with_commits(tempdir_factory):
     path = git_dir(tempdir_factory)
     with cwd(path):
@@ -203,7 +203,7 @@ def checkout_submodule(sha):
         cmd_output('git', 'checkout', sha)
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def sub_staged(submodule_with_commits, tempdir_factory):
     path = git_dir(tempdir_factory)
     with cwd(path):

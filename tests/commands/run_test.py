@@ -29,14 +29,14 @@ from testing.util import run_opts
 from testing.util import xfailif_no_symlink
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def repo_with_passing_hook(tempdir_factory):
     git_path = make_consuming_repo(tempdir_factory, 'script_hooks_repo')
     with cwd(git_path):
         yield git_path
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def repo_with_failing_hook(tempdir_factory):
     git_path = make_consuming_repo(tempdir_factory, 'failing_hook_repo')
     with cwd(git_path):
@@ -699,7 +699,7 @@ def test_meta_hook_passes(
     )
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def modified_config_repo(repo_with_passing_hook):
     with modify_config(repo_with_passing_hook, commit=False) as config:
         # Some minor modification

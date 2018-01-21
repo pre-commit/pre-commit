@@ -25,7 +25,7 @@ from testing.fixtures import write_config
 from testing.util import get_resource_path
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def up_to_date_repo(tempdir_factory):
     yield make_repo(tempdir_factory, 'python_hooks_repo')
 
@@ -81,7 +81,7 @@ def test_autoupdate_old_revision_broken(
     assert update_rev in after
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def out_of_date_repo(tempdir_factory):
     path = make_repo(tempdir_factory, 'python_hooks_repo')
     original_sha = git.head_sha(path)
@@ -221,7 +221,7 @@ def test_loses_formatting_when_not_detectable(
     assert after == expected
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def tagged_repo(out_of_date_repo):
     with cwd(out_of_date_repo.path):
         cmd_output('git', 'tag', 'v1.2.3')
@@ -241,7 +241,7 @@ def test_autoupdate_tagged_repo(
     assert 'v1.2.3' in open(C.CONFIG_FILE).read()
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def tagged_repo_with_more_commits(tagged_repo):
     with cwd(tagged_repo.path):
         cmd_output('git', 'commit', '--allow-empty', '-m', 'commit!')
@@ -262,7 +262,7 @@ def test_autoupdate_tags_only(
     assert 'v1.2.3' in open(C.CONFIG_FILE).read()
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def hook_disappearing_repo(tempdir_factory):
     path = make_repo(tempdir_factory, 'python_hooks_repo')
     original_sha = git.head_sha(path)
