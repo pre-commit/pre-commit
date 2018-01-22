@@ -19,7 +19,7 @@ FNS = (
 CMDS = tuple(fn.replace('_', '-') for fn in FNS)
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def mock_commands():
     mcks = {fn: mock.patch.object(main, fn).start() for fn in FNS}
     ret = auto_namedtuple(**mcks)
@@ -32,7 +32,7 @@ class CalledExit(Exception):
     pass
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def argparse_exit_mock():
     with mock.patch.object(
         argparse.ArgumentParser, 'exit', side_effect=CalledExit,
@@ -40,7 +40,7 @@ def argparse_exit_mock():
         yield exit_mock
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def argparse_parse_args_spy():
     parse_args_mock = mock.Mock()
 
