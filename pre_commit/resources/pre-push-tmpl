@@ -8,7 +8,8 @@ do
             if [ -n "$first_ancestor" ]; then
                 # Check that the ancestor has at least one parent
                 git rev-list --max-parents=0 "$local_sha" | grep "$first_ancestor" > /dev/null
-                if [ $? -ne 0 ]; then
+                if [ $? -eq 0 ]; then
+                    # Pushing the whole tree, including the root commit, so run on all files
                     args="--all-files"
                 else
                     source=$(git rev-parse "$first_ancestor"^)
