@@ -1,3 +1,11 @@
+1.5.1
+=====
+
+### Fixes
+- proper detection for root commit during pre-push
+    - #503 PR by @philipgian.
+    - #692 PR by @samskiter.
+
 1.5.0
 =====
 

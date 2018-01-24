@@ -9,7 +9,7 @@ setup(
         'hooks.'
     ),
     url='https://github.com/pre-commit/pre-commit',
-    version='1.5.0',
+    version='1.5.1',
 
     author='Anthony Sottile',
     author_email='asottile@umich.edu',
