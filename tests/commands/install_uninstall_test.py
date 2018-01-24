@@ -564,6 +564,23 @@ def test_pre_push_integration_accepted(tempdir_factory):
         assert 'Passed' in output
 
 
+def test_pre_push_new_upstream(tempdir_factory):
+    upstream = make_consuming_repo(tempdir_factory, 'script_hooks_repo')
+    upstream2 = git_dir(tempdir_factory)
+    path = tempdir_factory.get()
+    cmd_output('git', 'clone', upstream, path)
+    with cwd(path):
+        install(Runner(path, C.CONFIG_FILE), hook_type='pre-push')
+        assert _get_commit_output(tempdir_factory)[0] == 0
+
+        cmd_output('git', 'remote', 'rename', 'origin', 'upstream')
+        cmd_output('git', 'remote', 'add', 'origin', upstream2)
+        retc, output = _get_push_output(tempdir_factory)
+        assert retc == 0
+        assert 'Bash hook' in output
+        assert 'Passed' in output
+
+
 def test_pre_push_integration_empty_push(tempdir_factory):
     upstream = make_consuming_repo(tempdir_factory, 'script_hooks_repo')
     path = tempdir_factory.get()
