@@ -27,7 +27,7 @@ else
 fi
 
 # Run the legacy pre-commit if it exists
-if [ -x "$HERE"/{hook_type}.legacy ] && ! "$HERE"/{hook_type}.legacy; then
+if [ -x "$HERE"/{hook_type}.legacy ] && ! "$HERE"/{hook_type}.legacy "$@"; then
     retv=1
 fi
 
