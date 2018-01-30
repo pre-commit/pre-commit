@@ -611,6 +611,30 @@ def test_commit_msg_integration_passing(commit_msg_repo, tempdir_factory):
     assert first_line.endswith('...Passed')
 
 
+def test_commit_msg_legacy(commit_msg_repo, tempdir_factory):
+    runner = Runner(commit_msg_repo, C.CONFIG_FILE)
+
+    hook_path = runner.get_hook_path('commit-msg')
+    mkdirp(os.path.dirname(hook_path))
+    with io.open(hook_path, 'w') as hook_file:
+        hook_file.write(
+            '#!/usr/bin/env bash\n'
+            'set -eu\n'
+            'test -e "$1"\n'
+            'echo legacy\n',
+        )
+    make_executable(hook_path)
+
+    install(runner, hook_type='commit-msg')
+
+    msg = 'Hi\nSigned off by: asottile'
+    retc, out = _get_commit_output(tempdir_factory, commit_msg=msg)
+    assert retc == 0
+    first_line, second_line = out.splitlines()[:2]
+    assert first_line == 'legacy'
+    assert second_line.startswith('Must have "Signed off by:"...')
+
+
 def test_install_disallow_mising_config(tempdir_factory):
     path = make_consuming_repo(tempdir_factory, 'script_hooks_repo')
     with cwd(path):
