@@ -292,6 +292,23 @@ def test_always_run_alt_config(
     )
 
 
+def test_hook_verbose_enabled(
+        cap_out, repo_with_passing_hook, mock_out_store_directory,
+):
+    with modify_config() as config:
+        config['repos'][0]['hooks'][0]['always_run'] = True
+        config['repos'][0]['hooks'][0]['verbose'] = True
+
+    _test_run(
+        cap_out,
+        repo_with_passing_hook,
+        {},
+        (b'Hello World',),
+        0,
+        stage=False,
+    )
+
+
 @pytest.mark.parametrize(
     ('origin', 'source', 'expect_failure'),
     (

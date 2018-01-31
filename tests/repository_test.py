@@ -789,4 +789,5 @@ def test_manifest_hooks(tempdir_factory, store):
         'stages': [],
         'types': ['file'],
         'exclude_types': [],
+        'verbose': False,
     }
