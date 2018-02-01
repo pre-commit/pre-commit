@@ -11,4 +11,4 @@
 /venv*
 coverage-html
 dist
-.cache
+.pytest_cache
