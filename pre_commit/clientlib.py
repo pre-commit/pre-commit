@@ -68,6 +68,7 @@ MANIFEST_HOOK_DICT = schema.Map(
     schema.Optional('log_file', schema.check_string, ''),
     schema.Optional('minimum_pre_commit_version', schema.check_string, '0'),
     schema.Optional('stages', schema.check_array(schema.check_string), []),
+    schema.Optional('verbose', schema.check_bool, False),
 )
 MANIFEST_SCHEMA = schema.Array(MANIFEST_HOOK_DICT)
 

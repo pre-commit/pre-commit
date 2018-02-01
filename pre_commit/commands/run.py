@@ -130,7 +130,10 @@ def _run_single_hook(filenames, hook, repo, args, skips, cols):
 
     output.write_line(color.format_color(pass_fail, print_color, args.color))
 
-    if (stdout or stderr or file_modifications) and (retcode or args.verbose):
+    if (
+            (stdout or stderr or file_modifications) and
+            (retcode or args.verbose or hook['verbose'])
+    ):
         output.write_line('hookid: {}\n'.format(hook['id']))
 
         # Print a message if failing due to file modifications
