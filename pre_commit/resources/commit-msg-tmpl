@@ -1,1 +1,0 @@
-args="--hook-stage=commit-msg --commit-msg-filename=$1"

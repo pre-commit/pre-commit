@@ -3,7 +3,6 @@ from __future__ import unicode_literals
 
 import io
 import os.path
-import pipes
 import sys
 
 from pre_commit import output
@@ -21,6 +20,8 @@ PRIOR_HASHES = (
     'e358c9dae00eac5d06b38dfdb1e33a8c',
 )
 CURRENT_HASH = '138fd403232d2ddd5efb44317e38bf03'
+TEMPLATE_START = '# start templated\n'
+TEMPLATE_END = '# end templated\n'
 
 
 def is_our_script(filename):
@@ -50,32 +51,27 @@ def install(
     elif os.path.exists(legacy_path):
         output.write_line(
             'Running in migration mode with existing hooks at {}\n'
-            'Use -f to use only pre-commit.'.format(
-                legacy_path,
-            ),
+            'Use -f to use only pre-commit.'.format(legacy_path),
         )
 
-    with io.open(hook_path, 'w') as pre_commit_file_obj:
-        if hook_type == 'pre-push':
-            with io.open(resource_filename('pre-push-tmpl')) as f:
-                hook_specific_contents = f.read()
-        elif hook_type == 'commit-msg':
-            with io.open(resource_filename('commit-msg-tmpl')) as f:
-                hook_specific_contents = f.read()
-        elif hook_type == 'pre-commit':
-            hook_specific_contents = ''
-        else:
-            raise AssertionError('Unknown hook type: {}'.format(hook_type))
+    params = {
+        'CONFIG': runner.config_file,
+        'HOOK_TYPE': hook_type,
+        'INSTALL_PYTHON': sys.executable,
+        'SKIP_ON_MISSING_CONFIG': skip_on_missing_conf,
+    }
 
-        skip_on_missing_conf = 'true' if skip_on_missing_conf else 'false'
-        contents = io.open(resource_filename('hook-tmpl')).read().format(
-            sys_executable=pipes.quote(sys.executable),
-            hook_type=hook_type,
-            hook_specific=hook_specific_contents,
-            config_file=runner.config_file,
-            skip_on_missing_conf=skip_on_missing_conf,
-        )
-        pre_commit_file_obj.write(contents)
+    with io.open(hook_path, 'w') as hook_file:
+        with io.open(resource_filename('hook-tmpl')) as f:
+            contents = f.read()
+        before, rest = contents.split(TEMPLATE_START)
+        to_template, after = rest.split(TEMPLATE_END)
+
+        hook_file.write(before + TEMPLATE_START)
+        for line in to_template.splitlines():
+            var = line.split()[0]
+            hook_file.write('{} = {!r}\n'.format(var, params[var]))
+        hook_file.write(TEMPLATE_END + after)
     make_executable(hook_path)
 
     output.write_line('pre-commit installed at {}'.format(hook_path))

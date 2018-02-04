@@ -4,7 +4,6 @@ from __future__ import unicode_literals
 
 import io
 import os.path
-import pipes
 import re
 import shutil
 import subprocess
@@ -49,35 +48,11 @@ def test_is_previous_pre_commit(tmpdir):
 def test_install_pre_commit(tempdir_factory):
     path = git_dir(tempdir_factory)
     runner = Runner(path, C.CONFIG_FILE)
-    ret = install(runner)
-    assert ret == 0
-    assert os.path.exists(runner.pre_commit_path)
-    pre_commit_contents = io.open(runner.pre_commit_path).read()
-    pre_commit_script = resource_filename('hook-tmpl')
-    expected_contents = io.open(pre_commit_script).read().format(
-        sys_executable=pipes.quote(sys.executable),
-        hook_type='pre-commit',
-        hook_specific='',
-        config_file=runner.config_file,
-        skip_on_missing_conf='false',
-    )
-    assert pre_commit_contents == expected_contents
+    assert not install(runner)
     assert os.access(runner.pre_commit_path, os.X_OK)
 
-    ret = install(runner, hook_type='pre-push')
-    assert ret == 0
-    assert os.path.exists(runner.pre_push_path)
-    pre_push_contents = io.open(runner.pre_push_path).read()
-    pre_push_tmpl = resource_filename('pre-push-tmpl')
-    pre_push_template_contents = io.open(pre_push_tmpl).read()
-    expected_contents = io.open(pre_commit_script).read().format(
-        sys_executable=pipes.quote(sys.executable),
-        hook_type='pre-push',
-        hook_specific=pre_push_template_contents,
-        config_file=runner.config_file,
-        skip_on_missing_conf='false',
-    )
-    assert pre_push_contents == expected_contents
+    assert not install(runner, hook_type='pre-push')
+    assert os.access(runner.pre_push_path, os.X_OK)
 
 
 def test_install_hooks_directory_not_present(tempdir_factory):
@@ -242,7 +217,7 @@ def test_environment_not_sourced(tempdir_factory):
     path = make_consuming_repo(tempdir_factory, 'script_hooks_repo')
     with cwd(path):
         # Patch the executable to simulate rming virtualenv
-        with mock.patch.object(sys, 'executable', '/bin/false'):
+        with mock.patch.object(sys, 'executable', '/does-not-exist'):
             assert install(Runner(path, C.CONFIG_FILE)) == 0
 
         # Use a specific homedir to ignore --user installs
@@ -262,7 +237,7 @@ def test_environment_not_sourced(tempdir_factory):
         )
         assert ret == 1
         assert stdout == ''
-        assert stderr == (
+        assert stderr.replace('\r\n', '\n') == (
             '`pre-commit` not found.  '
             'Did you forget to activate your virtualenv?\n'
         )
@@ -591,6 +566,36 @@ def test_pre_push_integration_empty_push(tempdir_factory):
         retc, output = _get_push_output(tempdir_factory)
         assert output == 'Everything up-to-date\n'
         assert retc == 0
+
+
+def test_pre_push_legacy(tempdir_factory):
+    upstream = make_consuming_repo(tempdir_factory, 'script_hooks_repo')
+    path = tempdir_factory.get()
+    cmd_output('git', 'clone', upstream, path)
+    with cwd(path):
+        runner = Runner(path, C.CONFIG_FILE)
+
+        hook_path = runner.get_hook_path('pre-push')
+        mkdirp(os.path.dirname(hook_path))
+        with io.open(hook_path, 'w') as hook_file:
+            hook_file.write(
+                '#!/usr/bin/env bash\n'
+                'set -eu\n'
+                'read lr ls rr rs\n'
+                'test -n "$lr" -a -n "$ls" -a -n "$rr" -a -n "$rs"\n'
+                'echo legacy\n',
+            )
+        make_executable(hook_path)
+
+        install(runner, hook_type='pre-push')
+        assert _get_commit_output(tempdir_factory)[0] == 0
+
+        retc, output = _get_push_output(tempdir_factory)
+        assert retc == 0
+        first_line, _, third_line = output.splitlines()[:3]
+        assert first_line == 'legacy'
+        assert third_line.startswith('Bash hook')
+        assert third_line.endswith('Passed')
 
 
 def test_commit_msg_integration_failing(commit_msg_repo, tempdir_factory):
