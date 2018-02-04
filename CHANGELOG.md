@@ -1,3 +1,19 @@
+1.6.0
+=====
+
+### Features
+- Hooks now may have a `verbose` option to produce output even without failure
+    - #689 issue by @bagerard.
+    - #695 PR by @bagerard.
+- Installed hook no longer requires `bash`
+    - #699 PR by @asottile.
+
+### Fixes
+- legacy pre-push / commit-msg hooks are now invoked as if `git` called them
+    - #693 issue by @samskiter.
+    - #694 PR by @asottile.
+    - #699 PR by @asottile.
+
 1.5.1
 =====
 
