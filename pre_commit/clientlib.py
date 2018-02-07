@@ -5,25 +5,18 @@ import argparse
 import collections
 import functools
 
+import cfgv
 from aspy.yaml import ordered_load
 from identify.identify import ALL_TAGS
 
 import pre_commit.constants as C
-from pre_commit import schema
 from pre_commit.error_handler import FatalError
 from pre_commit.languages.all import all_languages
 
 
-def check_language(v):
-    if v not in all_languages:
-        raise schema.ValidationError(
-            'Expected {} to be in {!r}'.format(v, all_languages),
-        )
-
-
 def check_type_tag(tag):
     if tag not in ALL_TAGS:
-        raise schema.ValidationError(
+        raise cfgv.ValidationError(
             'Type tag {!r} is not recognized.  '
             'Try upgrading identify and pre-commit?'.format(tag),
         )
@@ -36,41 +29,40 @@ def _make_argparser(filenames_help):
     return parser
 
 
-MANIFEST_HOOK_DICT = schema.Map(
+MANIFEST_HOOK_DICT = cfgv.Map(
     'Hook', 'id',
 
-    schema.Required('id', schema.check_string),
-    schema.Required('name', schema.check_string),
-    schema.Required('entry', schema.check_string),
-    schema.Required(
-        'language', schema.check_and(schema.check_string, check_language),
+    cfgv.Required('id', cfgv.check_string),
+    cfgv.Required('name', cfgv.check_string),
+    cfgv.Required('entry', cfgv.check_string),
+    cfgv.Required(
+        'language',
+        cfgv.check_and(cfgv.check_string, cfgv.check_one_of(all_languages)),
     ),
 
-    schema.Optional(
-        'files', schema.check_and(schema.check_string, schema.check_regex),
-        '',
+    cfgv.Optional(
+        'files', cfgv.check_and(cfgv.check_string, cfgv.check_regex), '',
     ),
-    schema.Optional(
-        'exclude', schema.check_and(schema.check_string, schema.check_regex),
-        '^$',
+    cfgv.Optional(
+        'exclude', cfgv.check_and(cfgv.check_string, cfgv.check_regex), '^$',
     ),
-    schema.Optional('types', schema.check_array(check_type_tag), ['file']),
-    schema.Optional('exclude_types', schema.check_array(check_type_tag), []),
+    cfgv.Optional('types', cfgv.check_array(check_type_tag), ['file']),
+    cfgv.Optional('exclude_types', cfgv.check_array(check_type_tag), []),
 
-    schema.Optional(
-        'additional_dependencies', schema.check_array(schema.check_string), [],
+    cfgv.Optional(
+        'additional_dependencies', cfgv.check_array(cfgv.check_string), [],
     ),
-    schema.Optional('args', schema.check_array(schema.check_string), []),
-    schema.Optional('always_run', schema.check_bool, False),
-    schema.Optional('pass_filenames', schema.check_bool, True),
-    schema.Optional('description', schema.check_string, ''),
-    schema.Optional('language_version', schema.check_string, 'default'),
-    schema.Optional('log_file', schema.check_string, ''),
-    schema.Optional('minimum_pre_commit_version', schema.check_string, '0'),
-    schema.Optional('stages', schema.check_array(schema.check_string), []),
-    schema.Optional('verbose', schema.check_bool, False),
+    cfgv.Optional('args', cfgv.check_array(cfgv.check_string), []),
+    cfgv.Optional('always_run', cfgv.check_bool, False),
+    cfgv.Optional('pass_filenames', cfgv.check_bool, True),
+    cfgv.Optional('description', cfgv.check_string, ''),
+    cfgv.Optional('language_version', cfgv.check_string, 'default'),
+    cfgv.Optional('log_file', cfgv.check_string, ''),
+    cfgv.Optional('minimum_pre_commit_version', cfgv.check_string, '0'),
+    cfgv.Optional('stages', cfgv.check_array(cfgv.check_string), []),
+    cfgv.Optional('verbose', cfgv.check_bool, False),
 )
-MANIFEST_SCHEMA = schema.Array(MANIFEST_HOOK_DICT)
+MANIFEST_SCHEMA = cfgv.Array(MANIFEST_HOOK_DICT)
 
 
 class InvalidManifestError(FatalError):
@@ -78,7 +70,7 @@ class InvalidManifestError(FatalError):
 
 
 load_manifest = functools.partial(
-    schema.load_from_filename,
+    cfgv.load_from_filename,
     schema=MANIFEST_SCHEMA,
     load_strategy=ordered_load,
     exc_tp=InvalidManifestError,
@@ -101,40 +93,40 @@ def validate_manifest_main(argv=None):
 _LOCAL_SENTINEL = 'local'
 _META_SENTINEL = 'meta'
 
-CONFIG_HOOK_DICT = schema.Map(
+CONFIG_HOOK_DICT = cfgv.Map(
     'Hook', 'id',
 
-    schema.Required('id', schema.check_string),
+    cfgv.Required('id', cfgv.check_string),
 
     # All keys in manifest hook dict are valid in a config hook dict, but
     # are optional.
     # No defaults are provided here as the config is merged on top of the
     # manifest.
     *[
-        schema.OptionalNoDefault(item.key, item.check_fn)
+        cfgv.OptionalNoDefault(item.key, item.check_fn)
         for item in MANIFEST_HOOK_DICT.items
         if item.key != 'id'
     ]
 )
-CONFIG_REPO_DICT = schema.Map(
+CONFIG_REPO_DICT = cfgv.Map(
     'Repository', 'repo',
 
-    schema.Required('repo', schema.check_string),
-    schema.RequiredRecurse('hooks', schema.Array(CONFIG_HOOK_DICT)),
+    cfgv.Required('repo', cfgv.check_string),
+    cfgv.RequiredRecurse('hooks', cfgv.Array(CONFIG_HOOK_DICT)),
 
-    schema.Conditional(
-        'sha', schema.check_string,
+    cfgv.Conditional(
+        'sha', cfgv.check_string,
         condition_key='repo',
-        condition_value=schema.NotIn(_LOCAL_SENTINEL, _META_SENTINEL),
+        condition_value=cfgv.NotIn(_LOCAL_SENTINEL, _META_SENTINEL),
         ensure_absent=True,
     ),
 )
-CONFIG_SCHEMA = schema.Map(
+CONFIG_SCHEMA = cfgv.Map(
     'Config', None,
 
-    schema.RequiredRecurse('repos', schema.Array(CONFIG_REPO_DICT)),
-    schema.Optional('exclude', schema.check_regex, '^$'),
-    schema.Optional('fail_fast', schema.check_bool, False),
+    cfgv.RequiredRecurse('repos', cfgv.Array(CONFIG_REPO_DICT)),
+    cfgv.Optional('exclude', cfgv.check_regex, '^$'),
+    cfgv.Optional('fail_fast', cfgv.check_bool, False),
 )
 
 
@@ -160,7 +152,7 @@ def ordered_load_normalize_legacy_config(contents):
 
 
 load_config = functools.partial(
-    schema.load_from_filename,
+    cfgv.load_from_filename,
     schema=CONFIG_SCHEMA,
     load_strategy=ordered_load_normalize_legacy_config,
     exc_tp=InvalidConfigError,

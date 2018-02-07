@@ -6,6 +6,7 @@ from collections import OrderedDict
 
 from aspy.yaml import ordered_dump
 from aspy.yaml import ordered_load
+from cfgv import remove_defaults
 
 import pre_commit.constants as C
 from pre_commit import output
@@ -15,7 +16,6 @@ from pre_commit.clientlib import is_meta_repo
 from pre_commit.clientlib import load_config
 from pre_commit.commands.migrate_config import migrate_config
 from pre_commit.repository import Repository
-from pre_commit.schema import remove_defaults
 from pre_commit.util import CalledProcessError
 from pre_commit.util import cmd_output
 from pre_commit.util import cwd

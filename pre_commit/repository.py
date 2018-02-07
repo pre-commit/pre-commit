@@ -11,6 +11,8 @@ from collections import defaultdict
 
 import pkg_resources
 from cached_property import cached_property
+from cfgv import apply_defaults
+from cfgv import validate
 
 import pre_commit.constants as C
 from pre_commit import five
@@ -22,8 +24,6 @@ from pre_commit.clientlib import MANIFEST_HOOK_DICT
 from pre_commit.languages.all import languages
 from pre_commit.languages.helpers import environment_dir
 from pre_commit.prefix import Prefix
-from pre_commit.schema import apply_defaults
-from pre_commit.schema import validate
 
 
 logger = logging.getLogger('pre_commit')
