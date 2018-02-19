@@ -8,13 +8,13 @@ from collections import OrderedDict
 
 from aspy.yaml import ordered_dump
 from aspy.yaml import ordered_load
+from cfgv import apply_defaults
+from cfgv import validate
 
 import pre_commit.constants as C
 from pre_commit import git
 from pre_commit.clientlib import CONFIG_SCHEMA
 from pre_commit.clientlib import load_manifest
-from pre_commit.schema import apply_defaults
-from pre_commit.schema import validate
 from pre_commit.util import cmd_output
 from pre_commit.util import copy_tree_to_path
 from pre_commit.util import cwd

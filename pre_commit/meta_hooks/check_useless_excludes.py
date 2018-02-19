@@ -3,11 +3,12 @@ from __future__ import print_function
 import argparse
 import re
 
+from cfgv import apply_defaults
+
 import pre_commit.constants as C
 from pre_commit import git
 from pre_commit.clientlib import load_config
 from pre_commit.clientlib import MANIFEST_HOOK_DICT
-from pre_commit.schema import apply_defaults
 
 
 def exclude_matches_any(filenames, include, exclude):
