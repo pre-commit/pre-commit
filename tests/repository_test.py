@@ -517,8 +517,7 @@ def test_additional_node_dependencies_installed(
     repo = Repository.create(config, store)
     repo.require_installed()
     with node.in_env(repo._prefix, 'default'):
-        cmd_output('npm', 'config', 'set', 'global', 'true')
-        output = cmd_output('npm', 'ls')[1]
+        output = cmd_output('npm', 'ls', '-g')[1]
         assert 'lodash' in output
 
 
