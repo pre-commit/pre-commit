@@ -187,11 +187,14 @@ def test_unicode_merge_commit_message(tempdir_factory):
     with cwd(path):
         assert install(Runner(path, C.CONFIG_FILE)) == 0
         cmd_output('git', 'checkout', 'master', '-b', 'foo')
-        cmd_output('git', 'commit', '--allow-empty', '-m', 'branch2')
+        cmd_output('git', 'commit', '--allow-empty', '-n', '-m', 'branch2')
         cmd_output('git', 'checkout', 'master')
         cmd_output('git', 'merge', 'foo', '--no-ff', '--no-commit', '-m', '☃')
         # Used to crash
-        cmd_output('git', 'commit', '--no-edit')
+        cmd_output_mocked_pre_commit_home(
+            'git', 'commit', '--no-edit',
+            tempdir_factory=tempdir_factory,
+        )
 
 
 def test_install_idempotent(tempdir_factory):
