@@ -165,12 +165,6 @@ def log_info_mock():
         yield mck
 
 
-@pytest.fixture
-def log_warning_mock():
-    with mock.patch.object(logging.getLogger('pre_commit'), 'warning') as mck:
-        yield mck
-
-
 class FakeStream(object):
     def __init__(self):
         self.data = io.BytesIO()

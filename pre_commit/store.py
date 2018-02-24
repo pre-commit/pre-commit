@@ -72,9 +72,9 @@ class Store(object):
         with contextlib.closing(sqlite3.connect(tmpfile)) as db:
             db.executescript(
                 'CREATE TABLE repos ('
-                '    repo CHAR(255) NOT NULL,'
-                '    ref CHAR(255) NOT NULL,'
-                '    path CHAR(255) NOT NULL,'
+                '    repo TEXT NOT NULL,'
+                '    ref TEXT NOT NULL,'
+                '    path TEXT NOT NULL,'
                 '    PRIMARY KEY (repo, ref)'
                 ');',
             )
@@ -101,15 +101,17 @@ class Store(object):
             self._create()
             self.__created = True
 
-    def _new_repo(self, repo, ref, make_strategy):
+    def _new_repo(self, repo, ref, deps, make_strategy):
         self.require_created()
+        if deps:
+            repo = '{}:{}'.format(repo, ','.join(sorted(deps)))
 
         def _get_result():
             # Check if we already exist
             with sqlite3.connect(self.db_path) as db:
                 result = db.execute(
                     'SELECT path FROM repos WHERE repo = ? AND ref = ?',
-                    [repo, ref],
+                    (repo, ref),
                 ).fetchone()
                 if result:
                     return result[0]
@@ -137,7 +139,7 @@ class Store(object):
                 )
         return directory
 
-    def clone(self, repo, ref):
+    def clone(self, repo, ref, deps=()):
         """Clone the given url and checkout the specific ref."""
         def clone_strategy(directory):
             cmd_output(
@@ -151,7 +153,7 @@ class Store(object):
                     env=no_git_env(),
                 )
 
-        return self._new_repo(repo, ref, clone_strategy)
+        return self._new_repo(repo, ref, deps, clone_strategy)
 
     def make_local(self, deps):
         def make_local_strategy(directory):
@@ -172,8 +174,7 @@ class Store(object):
             _git_cmd('commit', '--no-edit', '--no-gpg-sign', '-n', '-minit')
 
         return self._new_repo(
-            'local:{}'.format(','.join(sorted(deps))), C.LOCAL_REPO_VERSION,
-            make_local_strategy,
+            'local', C.LOCAL_REPO_VERSION, deps, make_local_strategy,
         )
 
     @cached_property

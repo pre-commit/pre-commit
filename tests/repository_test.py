@@ -433,7 +433,7 @@ def test_venvs(tempdir_factory, store):
     path = make_repo(tempdir_factory, 'python_hooks_repo')
     config = make_config_from_repo(path)
     repo = Repository.create(config, store)
-    venv, = repo._venvs
+    venv, = repo._venvs()
     assert venv == (mock.ANY, 'python', python.get_default_version(), [])
 
 
@@ -443,50 +443,33 @@ def test_additional_dependencies(tempdir_factory, store):
     config = make_config_from_repo(path)
     config['hooks'][0]['additional_dependencies'] = ['pep8']
     repo = Repository.create(config, store)
-    venv, = repo._venvs
+    venv, = repo._venvs()
     assert venv == (mock.ANY, 'python', python.get_default_version(), ['pep8'])
-
-
-@pytest.mark.integration
-def test_additional_dependencies_duplicated(
-        tempdir_factory, store, log_warning_mock,
-):
-    path = make_repo(tempdir_factory, 'ruby_hooks_repo')
-    config = make_config_from_repo(path)
-    deps = ['thread_safe', 'tins', 'thread_safe']
-    config['hooks'][0]['additional_dependencies'] = deps
-    repo = Repository.create(config, store)
-    venv, = repo._venvs
-    assert venv == (mock.ANY, 'ruby', 'default', ['thread_safe', 'tins'])
-
-
-@pytest.mark.integration
-def test_additional_python_dependencies_installed(tempdir_factory, store):
-    path = make_repo(tempdir_factory, 'python_hooks_repo')
-    config = make_config_from_repo(path)
-    config['hooks'][0]['additional_dependencies'] = ['mccabe']
-    repo = Repository.create(config, store)
-    repo.require_installed()
-    with python.in_env(repo._prefix, 'default'):
-        output = cmd_output('pip', 'freeze', '-l')[1]
-        assert 'mccabe' in output
 
 
 @pytest.mark.integration
 def test_additional_dependencies_roll_forward(tempdir_factory, store):
     path = make_repo(tempdir_factory, 'python_hooks_repo')
-    config = make_config_from_repo(path)
-    # Run the repo once without additional_dependencies
-    repo = Repository.create(config, store)
-    repo.require_installed()
-    # Now run it with additional_dependencies
-    config['hooks'][0]['additional_dependencies'] = ['mccabe']
-    repo = Repository.create(config, store)
-    repo.require_installed()
-    # We should see our additional dependency installed
-    with python.in_env(repo._prefix, 'default'):
-        output = cmd_output('pip', 'freeze', '-l')[1]
-        assert 'mccabe' in output
+
+    config1 = make_config_from_repo(path)
+    repo1 = Repository.create(config1, store)
+    repo1.require_installed()
+    (prefix1, _, version1, _), = repo1._venvs()
+    with python.in_env(prefix1, version1):
+        assert 'mccabe' not in cmd_output('pip', 'freeze', '-l')[1]
+
+    # Make another repo with additional dependencies
+    config2 = make_config_from_repo(path)
+    config2['hooks'][0]['additional_dependencies'] = ['mccabe']
+    repo2 = Repository.create(config2, store)
+    repo2.require_installed()
+    (prefix2, _, version2, _), = repo2._venvs()
+    with python.in_env(prefix2, version2):
+        assert 'mccabe' in cmd_output('pip', 'freeze', '-l')[1]
+
+    # should not have affected original
+    with python.in_env(prefix1, version1):
+        assert 'mccabe' not in cmd_output('pip', 'freeze', '-l')[1]
 
 
 @xfailif_windows_no_ruby
@@ -499,7 +482,8 @@ def test_additional_ruby_dependencies_installed(
     config['hooks'][0]['additional_dependencies'] = ['thread_safe', 'tins']
     repo = Repository.create(config, store)
     repo.require_installed()
-    with ruby.in_env(repo._prefix, 'default'):
+    (prefix, _, version, _), = repo._venvs()
+    with ruby.in_env(prefix, version):
         output = cmd_output('gem', 'list', '--local')[1]
         assert 'thread_safe' in output
         assert 'tins' in output
@@ -516,7 +500,8 @@ def test_additional_node_dependencies_installed(
     config['hooks'][0]['additional_dependencies'] = ['lodash']
     repo = Repository.create(config, store)
     repo.require_installed()
-    with node.in_env(repo._prefix, 'default'):
+    (prefix, _, version, _), = repo._venvs()
+    with node.in_env(prefix, version):
         output = cmd_output('npm', 'ls', '-g')[1]
         assert 'lodash' in output
 
@@ -532,7 +517,8 @@ def test_additional_golang_dependencies_installed(
     config['hooks'][0]['additional_dependencies'] = deps
     repo = Repository.create(config, store)
     repo.require_installed()
-    binaries = os.listdir(repo._prefix.path(
+    (prefix, _, _, _), = repo._venvs()
+    binaries = os.listdir(prefix.path(
         helpers.environment_dir(golang.ENVIRONMENT_DIR, 'default'), 'bin',
     ))
     # normalize for windows
@@ -598,8 +584,9 @@ def test_control_c_control_c_on_install(tempdir_factory, store):
                 repo.run_hook(hook, [])
 
     # Should have made an environment, however this environment is broken!
-    envdir = 'py_env-{}'.format(python.get_default_version())
-    assert repo._prefix.exists(envdir)
+    (prefix, _, version, _), = repo._venvs()
+    envdir = 'py_env-{}'.format(version)
+    assert prefix.exists(envdir)
 
     # However, it should be perfectly runnable (reinstall after botched
     # install)
@@ -616,8 +603,8 @@ def test_invalidated_virtualenv(tempdir_factory, store):
 
     # Simulate breaking of the virtualenv
     repo.require_installed()
-    version = python.get_default_version()
-    libdir = repo._prefix.path('py_env-{}'.format(version), 'lib', version)
+    (prefix, _, version, _), = repo._venvs()
+    libdir = prefix.path('py_env-{}'.format(version), 'lib', version)
     paths = [
         os.path.join(libdir, p) for p in ('site.py', 'site.pyc', '__pycache__')
     ]
