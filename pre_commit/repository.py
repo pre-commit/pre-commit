@@ -150,8 +150,8 @@ class Repository(object):
 
     @cached_property
     def manifest_hooks(self):
-        repo, sha = self.repo_config['repo'], self.repo_config['sha']
-        repo_path = self.store.clone(repo, sha)
+        repo, rev = self.repo_config['repo'], self.repo_config['rev']
+        repo_path = self.store.clone(repo, rev)
         manifest_path = os.path.join(repo_path, C.MANIFEST_FILE)
         return {hook['id']: hook for hook in load_manifest(manifest_path)}
 
@@ -174,8 +174,8 @@ class Repository(object):
         )
 
     def _prefix_from_deps(self, language_name, deps):
-        repo, sha = self.repo_config['repo'], self.repo_config['sha']
-        return Prefix(self.store.clone(repo, sha, deps))
+        repo, rev = self.repo_config['repo'], self.repo_config['rev']
+        return Prefix(self.store.clone(repo, rev, deps))
 
     def _venvs(self):
         ret = []

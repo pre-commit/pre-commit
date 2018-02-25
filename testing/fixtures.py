@@ -78,11 +78,11 @@ def config_with_local_hooks():
     ))
 
 
-def make_config_from_repo(repo_path, sha=None, hooks=None, check=True):
+def make_config_from_repo(repo_path, rev=None, hooks=None, check=True):
     manifest = load_manifest(os.path.join(repo_path, C.MANIFEST_FILE))
     config = OrderedDict((
         ('repo', 'file://{}'.format(repo_path)),
-        ('sha', sha or git.head_sha(repo_path)),
+        ('rev', rev or git.head_rev(repo_path)),
         (
             'hooks',
             hooks or [OrderedDict((('id', hook['id']),)) for hook in manifest],

@@ -192,15 +192,14 @@ def submodule_with_commits(tempdir_factory):
     path = git_dir(tempdir_factory)
     with cwd(path):
         cmd_output('git', 'commit', '--allow-empty', '-m', 'foo')
-        sha1 = cmd_output('git', 'rev-parse', 'HEAD')[1].strip()
+        rev1 = cmd_output('git', 'rev-parse', 'HEAD')[1].strip()
         cmd_output('git', 'commit', '--allow-empty', '-m', 'bar')
-        sha2 = cmd_output('git', 'rev-parse', 'HEAD')[1].strip()
-        yield auto_namedtuple(path=path, sha1=sha1, sha2=sha2)
+        rev2 = cmd_output('git', 'rev-parse', 'HEAD')[1].strip()
+        yield auto_namedtuple(path=path, rev1=rev1, rev2=rev2)
 
 
-def checkout_submodule(sha):
-    with cwd('sub'):
-        cmd_output('git', 'checkout', sha)
+def checkout_submodule(rev):
+    cmd_output('git', '-C', 'sub', 'checkout', rev)
 
 
 @pytest.fixture
@@ -210,7 +209,7 @@ def sub_staged(submodule_with_commits, tempdir_factory):
         cmd_output(
             'git', 'submodule', 'add', submodule_with_commits.path, 'sub',
         )
-        checkout_submodule(submodule_with_commits.sha1)
+        checkout_submodule(submodule_with_commits.rev1)
         cmd_output('git', 'add', 'sub')
         yield auto_namedtuple(
             path=path,
@@ -219,11 +218,11 @@ def sub_staged(submodule_with_commits, tempdir_factory):
         )
 
 
-def _test_sub_state(path, sha='sha1', status='A'):
+def _test_sub_state(path, rev='rev1', status='A'):
     assert os.path.exists(path.sub_path)
     with cwd(path.sub_path):
-        actual_sha = cmd_output('git', 'rev-parse', 'HEAD')[1].strip()
-    assert actual_sha == getattr(path.submodule, sha)
+        actual_rev = cmd_output('git', 'rev-parse', 'HEAD')[1].strip()
+    assert actual_rev == getattr(path.submodule, rev)
     actual_status = get_short_git_status()['sub']
     assert actual_status == status
 
@@ -239,15 +238,15 @@ def test_sub_nothing_unstaged(sub_staged, patch_dir):
 
 
 def test_sub_something_unstaged(sub_staged, patch_dir):
-    checkout_submodule(sub_staged.submodule.sha2)
+    checkout_submodule(sub_staged.submodule.rev2)
 
-    _test_sub_state(sub_staged, 'sha2', 'AM')
+    _test_sub_state(sub_staged, 'rev2', 'AM')
 
     with staged_files_only(patch_dir):
         # This is different from others, we don't want to touch subs
-        _test_sub_state(sub_staged, 'sha2', 'AM')
+        _test_sub_state(sub_staged, 'rev2', 'AM')
 
-    _test_sub_state(sub_staged, 'sha2', 'AM')
+    _test_sub_state(sub_staged, 'rev2', 'AM')
 
 
 def test_stage_utf8_changes(foo_staged, patch_dir):

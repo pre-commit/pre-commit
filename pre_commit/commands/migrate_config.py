@@ -2,6 +2,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import io
+import re
 
 import yaml
 from aspy.yaml import ordered_load
@@ -16,10 +17,7 @@ def _is_header_line(line):
     return (line.startswith(('#', '---')) or not line.strip())
 
 
-def migrate_config(runner, quiet=False):
-    with io.open(runner.config_file_path) as f:
-        contents = f.read()
-
+def _migrate_map(contents):
     # Find the first non-header line
     lines = contents.splitlines(True)
     i = 0
@@ -39,6 +37,22 @@ def migrate_config(runner, quiet=False):
         except yaml.YAMLError:
             contents = header + 'repos:\n' + _indent(rest)
 
+    return contents
+
+
+def _migrate_sha_to_rev(contents):
+    reg = re.compile(r'(\n\s+)sha:')
+    return reg.sub(r'\1rev:', contents)
+
+
+def migrate_config(runner, quiet=False):
+    with io.open(runner.config_file_path) as f:
+        orig_contents = contents = f.read()
+
+    contents = _migrate_map(contents)
+    contents = _migrate_sha_to_rev(contents)
+
+    if contents != orig_contents:
         with io.open(runner.config_file_path, 'w') as f:
             f.write(contents)
 

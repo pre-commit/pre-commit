@@ -660,14 +660,14 @@ def test_tags_on_repositories(in_tmpdir, tempdir_factory, store):
     )
 
     repo_1 = Repository.create(
-        make_config_from_repo(git_dir_1, sha=tag), store,
+        make_config_from_repo(git_dir_1, rev=tag), store,
     )
     ret = repo_1.run_hook(repo_1.hooks[0][1], ['-L'])
     assert ret[0] == 0
     assert ret[1].strip() == _norm_pwd(in_tmpdir)
 
     repo_2 = Repository.create(
-        make_config_from_repo(git_dir_2, sha=tag), store,
+        make_config_from_repo(git_dir_2, rev=tag), store,
     )
     ret = repo_2.run_hook(repo_2.hooks[0][1], ['bar'])
     assert ret[0] == 0

@@ -200,9 +200,9 @@ def main(argv=None):
         'repo', help='Repository to source hooks from.',
     )
     try_repo_parser.add_argument(
-        '--ref',
+        '--ref', '--rev',
         help=(
-            'Manually select a ref to run against, otherwise the `HEAD` '
+            'Manually select a rev to run against, otherwise the `HEAD` '
             'revision will be used.'
         ),
     )

@@ -97,7 +97,7 @@ def get_changed_files(new, old):
     )[1])
 
 
-def head_sha(remote):
+def head_rev(remote):
     _, out, _ = cmd_output('git', 'ls-remote', '--exit-code', remote, 'HEAD')
     return out.split()[0]
 

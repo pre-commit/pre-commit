@@ -17,7 +17,7 @@ from pre_commit.util import tmpdir
 
 
 def try_repo(args):
-    ref = args.ref or git.head_sha(args.repo)
+    ref = args.ref or git.head_rev(args.repo)
 
     with tmpdir() as tempdir:
         if args.hook:
@@ -28,7 +28,7 @@ def try_repo(args):
             manifest = sorted(manifest, key=lambda hook: hook['id'])
             hooks = [{'id': hook['id']} for hook in manifest]
 
-        items = (('repo', args.repo), ('sha', ref), ('hooks', hooks))
+        items = (('repo', args.repo), ('rev', ref), ('hooks', hooks))
         config = {'repos': [collections.OrderedDict(items)]}
         config_s = ordered_dump(config, **C.YAML_DUMP_KWARGS)
 

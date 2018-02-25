@@ -8,6 +8,7 @@ from pre_commit.clientlib import CONFIG_HOOK_DICT
 from pre_commit.clientlib import CONFIG_SCHEMA
 from pre_commit.clientlib import is_local_repo
 from pre_commit.clientlib import MANIFEST_SCHEMA
+from pre_commit.clientlib import MigrateShaToRev
 from pre_commit.clientlib import validate_config_main
 from pre_commit.clientlib import validate_manifest_main
 from testing.util import get_resource_path
@@ -49,7 +50,7 @@ def test_validate_config_main(args, expected_output):
         (
             {'repos': [{
                 'repo': 'git@github.com:pre-commit/pre-commit-hooks',
-                'sha': 'cd74dc150c142c3be70b24eaf0b02cae9d235f37',
+                'rev': 'cd74dc150c142c3be70b24eaf0b02cae9d235f37',
                 'hooks': [{'id': 'pyflakes', 'files': '\\.py$'}],
             }]},
             True,
@@ -57,7 +58,7 @@ def test_validate_config_main(args, expected_output):
         (
             {'repos': [{
                 'repo': 'git@github.com:pre-commit/pre-commit-hooks',
-                'sha': 'cd74dc150c142c3be70b24eaf0b02cae9d235f37',
+                'rev': 'cd74dc150c142c3be70b24eaf0b02cae9d235f37',
                 'hooks': [
                     {
                         'id': 'pyflakes',
@@ -71,7 +72,7 @@ def test_validate_config_main(args, expected_output):
         (
             {'repos': [{
                 'repo': 'git@github.com:pre-commit/pre-commit-hooks',
-                'sha': 'cd74dc150c142c3be70b24eaf0b02cae9d235f37',
+                'rev': 'cd74dc150c142c3be70b24eaf0b02cae9d235f37',
                 'hooks': [
                     {
                         'id': 'pyflakes',
@@ -94,7 +95,7 @@ def test_config_valid(config_obj, expected):
 def test_config_with_local_hooks_definition_fails():
     config_obj = {'repos': [{
         'repo': 'local',
-        'sha': 'foo',
+        'rev': 'foo',
         'hooks': [{
             'id': 'do_not_commit',
             'name': 'Block if "DO NOT COMMIT" is found',
@@ -201,3 +202,45 @@ def test_validate_manifest_main(args, expected_output):
 def test_valid_manifests(manifest_obj, expected):
     ret = is_valid_according_to_schema(manifest_obj, MANIFEST_SCHEMA)
     assert ret is expected
+
+
+@pytest.mark.parametrize(
+    'dct',
+    (
+        {'repo': 'local'}, {'repo': 'meta'},
+        {'repo': 'wat', 'sha': 'wat'}, {'repo': 'wat', 'rev': 'wat'},
+    ),
+)
+def test_migrate_sha_to_rev_ok(dct):
+    MigrateShaToRev().check(dct)
+
+
+def test_migrate_sha_to_rev_dont_specify_both():
+    with pytest.raises(cfgv.ValidationError) as excinfo:
+        MigrateShaToRev().check({'repo': 'a', 'sha': 'b', 'rev': 'c'})
+    msg, = excinfo.value.args
+    assert msg == 'Cannot specify both sha and rev'
+
+
+@pytest.mark.parametrize(
+    'dct',
+    (
+        {'repo': 'a'},
+        {'repo': 'meta', 'sha': 'a'}, {'repo': 'meta', 'rev': 'a'},
+    ),
+)
+def test_migrate_sha_to_rev_conditional_check_failures(dct):
+    with pytest.raises(cfgv.ValidationError):
+        MigrateShaToRev().check(dct)
+
+
+def test_migrate_to_sha_apply_default():
+    dct = {'repo': 'a', 'sha': 'b'}
+    MigrateShaToRev().apply_default(dct)
+    assert dct == {'repo': 'a', 'rev': 'b'}
+
+
+def test_migrate_to_sha_ok():
+    dct = {'repo': 'a', 'rev': 'b'}
+    MigrateShaToRev().apply_default(dct)
+    assert dct == {'repo': 'a', 'rev': 'b'}

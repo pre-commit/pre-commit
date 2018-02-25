@@ -12,7 +12,7 @@ SAMPLE_CONFIG = '''\
 # See https://pre-commit.com/hooks.html for more hooks
 repos:
 -   repo: https://github.com/pre-commit/pre-commit-hooks
-    sha: v0.9.2
+    rev: v1.2.1-1
     hooks:
     -   id: trailing-whitespace
     -   id: end-of-file-fixer
