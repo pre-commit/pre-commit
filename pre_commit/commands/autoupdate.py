@@ -33,9 +33,9 @@ def _update_repo(repo_config, runner, tags_only):
     Args:
         repo_config - A config for a repository
     """
-    repo = Repository.create(repo_config, runner.store)
+    repo_path = runner.store.clone(repo_config['repo'], repo_config['sha'])
 
-    with cwd(repo._repo_path):
+    with cwd(repo_path):
         cmd_output('git', 'fetch')
         tag_cmd = ('git', 'describe', 'origin/master', '--tags')
         if tags_only:
@@ -57,7 +57,7 @@ def _update_repo(repo_config, runner, tags_only):
     new_repo = Repository.create(new_config, runner.store)
 
     # See if any of our hooks were deleted with the new commits
-    hooks = {hook['id'] for hook in repo.repo_config['hooks']}
+    hooks = {hook['id'] for hook in repo_config['hooks']}
     hooks_missing = hooks - (hooks & set(new_repo.manifest_hooks))
     if hooks_missing:
         raise RepositoryCannotBeUpdatedError(

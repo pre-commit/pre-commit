@@ -7,7 +7,6 @@ import os
 import pipes
 import shutil
 import sys
-from collections import defaultdict
 
 import pkg_resources
 from cached_property import cached_property
@@ -150,21 +149,10 @@ class Repository(object):
             return cls(config, store)
 
     @cached_property
-    def _repo_path(self):
-        return self.store.clone(
-            self.repo_config['repo'], self.repo_config['sha'],
-        )
-
-    @cached_property
-    def _prefix(self):
-        return Prefix(self._repo_path)
-
-    def _prefix_from_deps(self, language_name, deps):
-        return self._prefix
-
-    @cached_property
     def manifest_hooks(self):
-        manifest_path = os.path.join(self._repo_path, C.MANIFEST_FILE)
+        repo, sha = self.repo_config['repo'], self.repo_config['sha']
+        repo_path = self.store.clone(repo, sha)
+        manifest_path = os.path.join(repo_path, C.MANIFEST_FILE)
         return {hook['id']: hook for hook in load_manifest(manifest_path)}
 
     @cached_property
@@ -185,21 +173,25 @@ class Repository(object):
             for hook in self.repo_config['hooks']
         )
 
-    @cached_property
+    def _prefix_from_deps(self, language_name, deps):
+        repo, sha = self.repo_config['repo'], self.repo_config['sha']
+        return Prefix(self.store.clone(repo, sha, deps))
+
     def _venvs(self):
-        deps_dict = defaultdict(_UniqueList)
-        for _, hook in self.hooks:
-            deps_dict[(hook['language'], hook['language_version'])].update(
-                hook['additional_dependencies'],
-            )
         ret = []
-        for (language, version), deps in deps_dict.items():
-            ret.append((self._prefix, language, version, deps))
+        for _, hook in self.hooks:
+            language = hook['language']
+            version = hook['language_version']
+            deps = hook['additional_dependencies']
+            ret.append((
+                self._prefix_from_deps(language, deps),
+                language, version, deps,
+            ))
         return tuple(ret)
 
     def require_installed(self):
         if not self.__installed:
-            _install_all(self._venvs, self.repo_config['repo'], self.store)
+            _install_all(self._venvs(), self.repo_config['repo'], self.store)
             self.__installed = True
 
     def run_hook(self, hook, file_args):
@@ -236,19 +228,6 @@ class LocalRepository(Repository):
             (hook['id'], _hook_from_manifest_dct(hook))
             for hook in self.repo_config['hooks']
         )
-
-    @cached_property
-    def _venvs(self):
-        ret = []
-        for _, hook in self.hooks:
-            language = hook['language']
-            version = hook['language_version']
-            deps = hook['additional_dependencies']
-            ret.append((
-                self._prefix_from_deps(language, deps),
-                language, version, deps,
-            ))
-        return tuple(ret)
 
 
 class MetaRepository(LocalRepository):
@@ -303,14 +282,3 @@ class MetaRepository(LocalRepository):
             (hook['id'], _hook(self.manifest_hooks[hook['id']], hook))
             for hook in self.repo_config['hooks']
         )
-
-
-class _UniqueList(list):
-    def __init__(self):
-        self._set = set()
-
-    def update(self, obj):
-        for item in obj:
-            if item not in self._set:
-                self._set.add(item)
-                self.append(item)
