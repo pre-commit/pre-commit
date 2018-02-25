@@ -8,9 +8,9 @@ import pytest
 from pre_commit.util import CalledProcessError
 from pre_commit.util import clean_path_on_failure
 from pre_commit.util import cmd_output
-from pre_commit.util import cwd
 from pre_commit.util import memoize_by_cwd
 from pre_commit.util import tmpdir
+from testing.util import cwd
 
 
 def test_CalledProcessError_str():

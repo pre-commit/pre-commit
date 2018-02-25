@@ -7,10 +7,10 @@ from collections import OrderedDict
 import pre_commit.constants as C
 from pre_commit.runner import Runner
 from pre_commit.util import cmd_output
-from pre_commit.util import cwd
 from testing.fixtures import add_config_to_repo
 from testing.fixtures import git_dir
 from testing.fixtures import make_consuming_repo
+from testing.util import cwd
 
 
 def test_init_has_no_side_effects(tmpdir):

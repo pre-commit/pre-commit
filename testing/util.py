@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 
+import contextlib
 import os.path
 import sys
 
@@ -103,3 +104,13 @@ def run_opts(
         show_diff_on_failure=show_diff_on_failure,
         commit_msg_filename=commit_msg_filename,
     )
+
+
+@contextlib.contextmanager
+def cwd(path):
+    original_cwd = os.getcwd()
+    os.chdir(path)
+    try:
+        yield
+    finally:
+        os.chdir(original_cwd)

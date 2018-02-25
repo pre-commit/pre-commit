@@ -9,7 +9,6 @@ import pytest
 from pre_commit import git
 from pre_commit import make_archives
 from pre_commit.util import cmd_output
-from pre_commit.util import cwd
 from testing.fixtures import git_dir
 
 
@@ -17,16 +16,15 @@ def test_make_archive(tempdir_factory):
     output_dir = tempdir_factory.get()
     git_path = git_dir(tempdir_factory)
     # Add a files to the git directory
-    with cwd(git_path):
-        open('foo', 'a').close()
-        cmd_output('git', 'add', '.')
-        cmd_output('git', 'commit', '-m', 'foo')
-        # We'll use this sha
-        head_sha = git.head_sha('.')
-        # And check that this file doesn't exist
-        open('bar', 'a').close()
-        cmd_output('git', 'add', '.')
-        cmd_output('git', 'commit', '-m', 'bar')
+    open(os.path.join(git_path, 'foo'), 'a').close()
+    cmd_output('git', '-C', git_path, 'add', '.')
+    cmd_output('git', '-C', git_path, 'commit', '-m', 'foo')
+    # We'll use this sha
+    head_sha = git.head_sha(git_path)
+    # And check that this file doesn't exist
+    open(os.path.join(git_path, 'bar'), 'a').close()
+    cmd_output('git', '-C', git_path, 'add', '.')
+    cmd_output('git', '-C', git_path, 'commit', '-m', 'bar')
 
     # Do the thing
     archive_path = make_archives.make_archive(

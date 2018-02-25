@@ -13,9 +13,9 @@ from pre_commit import git
 from pre_commit.store import _get_default_directory
 from pre_commit.store import Store
 from pre_commit.util import cmd_output
-from pre_commit.util import cwd
 from pre_commit.util import rmtree
 from testing.fixtures import git_dir
+from testing.util import cwd
 
 
 def test_our_session_fixture_works():

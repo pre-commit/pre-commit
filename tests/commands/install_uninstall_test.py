@@ -20,7 +20,6 @@ from pre_commit.commands.install_uninstall import PRIOR_HASHES
 from pre_commit.commands.install_uninstall import uninstall
 from pre_commit.runner import Runner
 from pre_commit.util import cmd_output
-from pre_commit.util import cwd
 from pre_commit.util import make_executable
 from pre_commit.util import mkdirp
 from pre_commit.util import resource_filename
@@ -28,6 +27,7 @@ from testing.fixtures import git_dir
 from testing.fixtures import make_consuming_repo
 from testing.fixtures import remove_config_from_repo
 from testing.util import cmd_output_mocked_pre_commit_home
+from testing.util import cwd
 from testing.util import xfailif_no_symlink
 
 
@@ -153,9 +153,8 @@ def test_install_pre_commit_and_run_custom_path(tempdir_factory):
 def test_install_in_submodule_and_run(tempdir_factory):
     src_path = make_consuming_repo(tempdir_factory, 'script_hooks_repo')
     parent_path = git_dir(tempdir_factory)
-    with cwd(parent_path):
-        cmd_output('git', 'submodule', 'add', src_path, 'sub')
-        cmd_output('git', 'commit', '-m', 'foo')
+    cmd_output('git', '-C', parent_path, 'submodule', 'add', src_path, 'sub')
+    cmd_output('git', '-C', parent_path, 'commit', '-m', 'foo')
 
     sub_pth = os.path.join(parent_path, 'sub')
     with cwd(sub_pth):

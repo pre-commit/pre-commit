@@ -8,7 +8,6 @@ import tarfile
 
 from pre_commit import output
 from pre_commit.util import cmd_output
-from pre_commit.util import cwd
 from pre_commit.util import resource_filename
 from pre_commit.util import rmtree
 from pre_commit.util import tmpdir
@@ -42,8 +41,7 @@ def make_archive(name, repo, ref, destdir):
     with tmpdir() as tempdir:
         # Clone the repository to the temporary directory
         cmd_output('git', 'clone', repo, tempdir)
-        with cwd(tempdir):
-            cmd_output('git', 'checkout', ref)
+        cmd_output('git', '-C', tempdir, 'checkout', ref)
 
         # We don't want the '.git' directory
         # It adds a bunch of size to the archive and we don't use it at
