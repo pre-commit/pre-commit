@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 
+import os.path
 import pipes
 import shutil
 from collections import OrderedDict
@@ -14,7 +15,6 @@ from pre_commit.commands.autoupdate import autoupdate
 from pre_commit.commands.autoupdate import RepositoryCannotBeUpdatedError
 from pre_commit.runner import Runner
 from pre_commit.util import cmd_output
-from pre_commit.util import cwd
 from testing.auto_namedtuple import auto_namedtuple
 from testing.fixtures import add_config_to_repo
 from testing.fixtures import config_with_local_hooks
@@ -62,14 +62,13 @@ def test_autoupdate_old_revision_broken(
     path = make_repo(tempdir_factory, 'python_hooks_repo')
     config = make_config_from_repo(path, check=False)
 
-    with cwd(path):
-        cmd_output('git', 'mv', C.MANIFEST_FILE, 'nope.yaml')
-        cmd_output('git', 'commit', '-m', 'simulate old repo')
-        # Assume this is the revision the user's old repository was at
-        rev = git.head_sha(path)
-        cmd_output('git', 'mv', 'nope.yaml', C.MANIFEST_FILE)
-        cmd_output('git', 'commit', '-m', 'move hooks file')
-        update_rev = git.head_sha(path)
+    cmd_output('git', '-C', path, 'mv', C.MANIFEST_FILE, 'nope.yaml')
+    cmd_output('git', '-C', path, 'commit', '-m', 'simulate old repo')
+    # Assume this is the revision the user's old repository was at
+    rev = git.head_sha(path)
+    cmd_output('git', '-C', path, 'mv', 'nope.yaml', C.MANIFEST_FILE)
+    cmd_output('git', '-C', path, 'commit', '-m', 'move hooks file')
+    update_rev = git.head_sha(path)
 
     config['sha'] = rev
     write_config('.', config)
@@ -87,8 +86,7 @@ def out_of_date_repo(tempdir_factory):
     original_sha = git.head_sha(path)
 
     # Make a commit
-    with cwd(path):
-        cmd_output('git', 'commit', '--allow-empty', '-m', 'foo')
+    cmd_output('git', '-C', path, 'commit', '--allow-empty', '-m', 'foo')
     head_sha = git.head_sha(path)
 
     yield auto_namedtuple(
@@ -223,8 +221,7 @@ def test_loses_formatting_when_not_detectable(
 
 @pytest.fixture
 def tagged_repo(out_of_date_repo):
-    with cwd(out_of_date_repo.path):
-        cmd_output('git', 'tag', 'v1.2.3')
+    cmd_output('git', '-C', out_of_date_repo.path, 'tag', 'v1.2.3')
     yield out_of_date_repo
 
 
@@ -243,8 +240,8 @@ def test_autoupdate_tagged_repo(
 
 @pytest.fixture
 def tagged_repo_with_more_commits(tagged_repo):
-    with cwd(tagged_repo.path):
-        cmd_output('git', 'commit', '--allow-empty', '-m', 'commit!')
+    cmd = ('git', '-C', tagged_repo.path, 'commit', '--allow-empty', '-mfoo')
+    cmd_output(*cmd)
     yield tagged_repo
 
 
@@ -267,13 +264,12 @@ def hook_disappearing_repo(tempdir_factory):
     path = make_repo(tempdir_factory, 'python_hooks_repo')
     original_sha = git.head_sha(path)
 
-    with cwd(path):
-        shutil.copy(
-            get_resource_path('manifest_without_foo.yaml'),
-            C.MANIFEST_FILE,
-        )
-        cmd_output('git', 'add', '.')
-        cmd_output('git', 'commit', '-m', 'Remove foo')
+    shutil.copy(
+        get_resource_path('manifest_without_foo.yaml'),
+        os.path.join(path, C.MANIFEST_FILE),
+    )
+    cmd_output('git', '-C', path, 'add', '.')
+    cmd_output('git', '-C', path, 'commit', '-m', 'Remove foo')
 
     yield auto_namedtuple(path=path, original_sha=original_sha)
 

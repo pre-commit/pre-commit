@@ -18,7 +18,6 @@ from pre_commit.commands.migrate_config import migrate_config
 from pre_commit.repository import Repository
 from pre_commit.util import CalledProcessError
 from pre_commit.util import cmd_output
-from pre_commit.util import cwd
 
 
 class RepositoryCannotBeUpdatedError(RuntimeError):
@@ -35,17 +34,17 @@ def _update_repo(repo_config, runner, tags_only):
     """
     repo_path = runner.store.clone(repo_config['repo'], repo_config['sha'])
 
-    with cwd(repo_path):
-        cmd_output('git', 'fetch')
-        tag_cmd = ('git', 'describe', 'origin/master', '--tags')
-        if tags_only:
-            tag_cmd += ('--abbrev=0',)
-        else:
-            tag_cmd += ('--exact',)
-        try:
-            rev = cmd_output(*tag_cmd)[1].strip()
-        except CalledProcessError:
-            rev = cmd_output('git', 'rev-parse', 'origin/master')[1].strip()
+    cmd_output('git', '-C', repo_path, 'fetch')
+    tag_cmd = ('git', '-C', repo_path, 'describe', 'origin/master', '--tags')
+    if tags_only:
+        tag_cmd += ('--abbrev=0',)
+    else:
+        tag_cmd += ('--exact',)
+    try:
+        rev = cmd_output(*tag_cmd)[1].strip()
+    except CalledProcessError:
+        tag_cmd = ('git', '-C', repo_path, 'rev-parse', 'origin/master')
+        rev = cmd_output(*tag_cmd)[1].strip()
 
     # Don't bother trying to update if our sha is the same
     if rev == repo_config['sha']:

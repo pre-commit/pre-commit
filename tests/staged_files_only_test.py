@@ -11,9 +11,9 @@ import pytest
 
 from pre_commit.staged_files_only import staged_files_only
 from pre_commit.util import cmd_output
-from pre_commit.util import cwd
 from testing.auto_namedtuple import auto_namedtuple
 from testing.fixtures import git_dir
+from testing.util import cwd
 from testing.util import get_resource_path
 
 

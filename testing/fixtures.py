@@ -17,7 +17,6 @@ from pre_commit.clientlib import CONFIG_SCHEMA
 from pre_commit.clientlib import load_manifest
 from pre_commit.util import cmd_output
 from pre_commit.util import copy_tree_to_path
-from pre_commit.util import cwd
 from testing.util import get_resource_path
 
 
@@ -30,9 +29,8 @@ def git_dir(tempdir_factory):
 def make_repo(tempdir_factory, repo_source):
     path = git_dir(tempdir_factory)
     copy_tree_to_path(get_resource_path(repo_source), path)
-    with cwd(path):
-        cmd_output('git', 'add', '.')
-        cmd_output('git', 'commit', '-m', 'Add hooks')
+    cmd_output('git', '-C', path, 'add', '.')
+    cmd_output('git', '-C', path, 'commit', '-m', 'Add hooks')
     return path
 
 
@@ -116,17 +114,15 @@ def write_config(directory, config, config_file=C.CONFIG_FILE):
 
 def add_config_to_repo(git_path, config, config_file=C.CONFIG_FILE):
     write_config(git_path, config, config_file=config_file)
-    with cwd(git_path):
-        cmd_output('git', 'add', config_file)
-        cmd_output('git', 'commit', '-m', 'Add hooks config')
+    cmd_output('git', '-C', git_path, 'add', config_file)
+    cmd_output('git', '-C', git_path, 'commit', '-m', 'Add hooks config')
     return git_path
 
 
 def remove_config_from_repo(git_path, config_file=C.CONFIG_FILE):
     os.unlink(os.path.join(git_path, config_file))
-    with cwd(git_path):
-        cmd_output('git', 'add', config_file)
-        cmd_output('git', 'commit', '-m', 'Remove hooks config')
+    cmd_output('git', '-C', git_path, 'add', config_file)
+    cmd_output('git', '-C', git_path, 'commit', '-m', 'Remove hooks config')
     return git_path
 
 

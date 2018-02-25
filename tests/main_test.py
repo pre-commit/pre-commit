@@ -8,8 +8,8 @@ import mock
 import pytest
 
 from pre_commit import main
-from pre_commit.util import cwd
 from testing.auto_namedtuple import auto_namedtuple
+from testing.util import cwd
 
 
 FNS = (

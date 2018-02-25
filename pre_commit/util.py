@@ -16,16 +16,6 @@ from pre_commit import five
 from pre_commit import parse_shebang
 
 
-@contextlib.contextmanager
-def cwd(path):
-    original_cwd = os.getcwd()
-    os.chdir(path)
-    try:
-        yield
-    finally:
-        os.chdir(original_cwd)
-
-
 def mkdirp(path):
     try:
         os.makedirs(path)

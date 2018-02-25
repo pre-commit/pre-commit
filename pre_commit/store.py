@@ -14,7 +14,6 @@ from pre_commit import file_lock
 from pre_commit.util import clean_path_on_failure
 from pre_commit.util import cmd_output
 from pre_commit.util import copy_tree_to_path
-from pre_commit.util import cwd
 from pre_commit.util import no_git_env
 from pre_commit.util import resource_filename
 
@@ -142,16 +141,14 @@ class Store(object):
     def clone(self, repo, ref, deps=()):
         """Clone the given url and checkout the specific ref."""
         def clone_strategy(directory):
-            cmd_output(
-                'git', 'clone', '--no-checkout', repo, directory,
-                env=no_git_env(),
-            )
-            with cwd(directory):
-                cmd_output('git', 'reset', ref, '--hard', env=no_git_env())
-                cmd_output(
-                    'git', 'submodule', 'update', '--init', '--recursive',
-                    env=no_git_env(),
-                )
+            env = no_git_env()
+
+            def _git_cmd(*args):
+                return cmd_output('git', '-C', directory, *args, env=env)
+
+            _git_cmd('clone', '--no-checkout', repo, '.')
+            _git_cmd('reset', ref, '--hard')
+            _git_cmd('submodule', 'update', '--init', '--recursive')
 
         return self._new_repo(repo, ref, deps, clone_strategy)
 

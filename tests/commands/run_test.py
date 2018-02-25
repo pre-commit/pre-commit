@@ -18,13 +18,13 @@ from pre_commit.commands.run import _has_unmerged_paths
 from pre_commit.commands.run import run
 from pre_commit.runner import Runner
 from pre_commit.util import cmd_output
-from pre_commit.util import cwd
 from pre_commit.util import make_executable
 from testing.fixtures import add_config_to_repo
 from testing.fixtures import make_consuming_repo
 from testing.fixtures import modify_config
 from testing.fixtures import read_config
 from testing.util import cmd_output_mocked_pre_commit_home
+from testing.util import cwd
 from testing.util import run_opts
 from testing.util import xfailif_no_symlink
 

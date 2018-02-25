@@ -1,9 +1,9 @@
 from collections import OrderedDict
 
 from pre_commit.meta_hooks import check_useless_excludes
-from pre_commit.util import cwd
 from testing.fixtures import add_config_to_repo
 from testing.fixtures import git_dir
+from testing.util import cwd
 
 
 def test_useless_exclude_global(capsys, tempdir_factory):

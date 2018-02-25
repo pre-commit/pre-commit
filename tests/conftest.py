@@ -17,10 +17,10 @@ from pre_commit.logging_handler import add_logging_handler
 from pre_commit.runner import Runner
 from pre_commit.store import Store
 from pre_commit.util import cmd_output
-from pre_commit.util import cwd
 from testing.fixtures import git_dir
 from testing.fixtures import make_consuming_repo
 from testing.fixtures import write_config
+from testing.util import cwd
 
 
 @pytest.fixture
@@ -68,10 +68,9 @@ def _make_conflict():
 @pytest.fixture
 def in_merge_conflict(tempdir_factory):
     path = make_consuming_repo(tempdir_factory, 'script_hooks_repo')
-    with cwd(path):
-        open('dummy', 'a').close()
-        cmd_output('git', 'add', 'dummy')
-        cmd_output('git', 'commit', '-m', 'Add config.')
+    open(os.path.join(path, 'dummy'), 'a').close()
+    cmd_output('git', '-C', path, 'add', 'dummy')
+    cmd_output('git', '-C', path, 'commit', '-m', 'Add config.')
 
     conflict_path = tempdir_factory.get()
     cmd_output('git', 'clone', path, conflict_path)
@@ -84,10 +83,8 @@ def in_merge_conflict(tempdir_factory):
 def in_conflicting_submodule(tempdir_factory):
     git_dir_1 = git_dir(tempdir_factory)
     git_dir_2 = git_dir(tempdir_factory)
-    with cwd(git_dir_2):
-        cmd_output('git', 'commit', '--allow-empty', '-m', 'init!')
-    with cwd(git_dir_1):
-        cmd_output('git', 'submodule', 'add', git_dir_2, 'sub')
+    cmd_output('git', '-C', git_dir_2, 'commit', '--allow-empty', '-minit!')
+    cmd_output('git', '-C', git_dir_1, 'submodule', 'add', git_dir_2, 'sub')
     with cwd(os.path.join(git_dir_1, 'sub')):
         _make_conflict()
         yield

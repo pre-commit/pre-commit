@@ -9,8 +9,8 @@ import pytest
 from pre_commit import git
 from pre_commit.error_handler import FatalError
 from pre_commit.util import cmd_output
-from pre_commit.util import cwd
 from testing.fixtures import git_dir
+from testing.util import cwd
 
 
 def test_get_root_at_root(tempdir_factory):

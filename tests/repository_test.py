@@ -22,12 +22,12 @@ from pre_commit.languages import python
 from pre_commit.languages import ruby
 from pre_commit.repository import Repository
 from pre_commit.util import cmd_output
-from pre_commit.util import cwd
 from testing.fixtures import config_with_local_hooks
 from testing.fixtures import git_dir
 from testing.fixtures import make_config_from_repo
 from testing.fixtures import make_repo
 from testing.fixtures import modify_manifest
+from testing.util import cwd
 from testing.util import get_resource_path
 from testing.util import skipif_cant_run_docker
 from testing.util import skipif_cant_run_swift

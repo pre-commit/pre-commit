@@ -5,10 +5,10 @@ import re
 
 from pre_commit.commands.try_repo import try_repo
 from pre_commit.util import cmd_output
-from pre_commit.util import cwd
 from testing.auto_namedtuple import auto_namedtuple
 from testing.fixtures import git_dir
 from testing.fixtures import make_repo
+from testing.util import cwd
 from testing.util import run_opts
 
 
