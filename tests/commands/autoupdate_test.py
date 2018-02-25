@@ -138,7 +138,7 @@ def test_autoupdate_out_of_date_repo_with_correct_repo_name(
     runner = Runner('.', C.CONFIG_FILE)
     before = open(C.CONFIG_FILE).read()
     repo_name = 'file://{}'.format(out_of_date_repo.path)
-    ret = autoupdate(runner, tags_only=False, repo=repo_name)
+    ret = autoupdate(runner, tags_only=False, repos=(repo_name,))
     after = open(C.CONFIG_FILE).read()
     assert ret == 0
     assert before != after
@@ -158,7 +158,7 @@ def test_autoupdate_out_of_date_repo_with_wrong_repo_name(
     runner = Runner('.', C.CONFIG_FILE)
     before = open(C.CONFIG_FILE).read()
     # It will not update it, because the name doesn't match
-    ret = autoupdate(runner, tags_only=False, repo='wrong_repo_name')
+    ret = autoupdate(runner, tags_only=False, repos=('wrong_repo_name',))
     after = open(C.CONFIG_FILE).read()
     assert ret == 0
     assert before == after

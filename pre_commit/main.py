@@ -168,7 +168,8 @@ def main(argv=None):
         ),
     )
     autoupdate_parser.add_argument(
-        '--repo', help='Only update this repository.',
+        '--repo', dest='repos', action='append', metavar='REPO',
+        help='Only update this repository -- may be specified multiple times.',
     )
 
     migrate_config_parser = subparsers.add_parser(
@@ -251,7 +252,7 @@ def main(argv=None):
             return autoupdate(
                 runner,
                 tags_only=not args.bleeding_edge,
-                repo=args.repo,
+                repos=args.repos,
             )
         elif args.command == 'migrate-config':
             return migrate_config(runner)
