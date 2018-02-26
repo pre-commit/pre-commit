@@ -93,6 +93,36 @@ def validate_manifest_main(argv=None):
 _LOCAL_SENTINEL = 'local'
 _META_SENTINEL = 'meta'
 
+
+class MigrateShaToRev(object):
+    @staticmethod
+    def _cond(key):
+        return cfgv.Conditional(
+            key, cfgv.check_string,
+            condition_key='repo',
+            condition_value=cfgv.NotIn(_LOCAL_SENTINEL, _META_SENTINEL),
+            ensure_absent=True,
+        )
+
+    def check(self, dct):
+        if dct.get('repo') in {_LOCAL_SENTINEL, _META_SENTINEL}:
+            self._cond('rev').check(dct)
+            self._cond('sha').check(dct)
+        elif 'sha' in dct and 'rev' in dct:
+            raise cfgv.ValidationError('Cannot specify both sha and rev')
+        elif 'sha' in dct:
+            self._cond('sha').check(dct)
+        else:
+            self._cond('rev').check(dct)
+
+    def apply_default(self, dct):
+        if 'sha' in dct:
+            dct['rev'] = dct.pop('sha')
+
+    def remove_default(self, dct):
+        pass
+
+
 CONFIG_HOOK_DICT = cfgv.Map(
     'Hook', 'id',
 
@@ -114,12 +144,7 @@ CONFIG_REPO_DICT = cfgv.Map(
     cfgv.Required('repo', cfgv.check_string),
     cfgv.RequiredRecurse('hooks', cfgv.Array(CONFIG_HOOK_DICT)),
 
-    cfgv.Conditional(
-        'sha', cfgv.check_string,
-        condition_key='repo',
-        condition_value=cfgv.NotIn(_LOCAL_SENTINEL, _META_SENTINEL),
-        ensure_absent=True,
-    ),
+    MigrateShaToRev(),
 )
 CONFIG_SCHEMA = cfgv.Map(
     'Config', None,

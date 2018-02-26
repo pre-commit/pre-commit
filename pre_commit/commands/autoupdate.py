@@ -32,7 +32,7 @@ def _update_repo(repo_config, runner, tags_only):
     Args:
         repo_config - A config for a repository
     """
-    repo_path = runner.store.clone(repo_config['repo'], repo_config['sha'])
+    repo_path = runner.store.clone(repo_config['repo'], repo_config['rev'])
 
     cmd_output('git', '-C', repo_path, 'fetch')
     tag_cmd = ('git', '-C', repo_path, 'describe', 'origin/master', '--tags')
@@ -46,13 +46,13 @@ def _update_repo(repo_config, runner, tags_only):
         tag_cmd = ('git', '-C', repo_path, 'rev-parse', 'origin/master')
         rev = cmd_output(*tag_cmd)[1].strip()
 
-    # Don't bother trying to update if our sha is the same
-    if rev == repo_config['sha']:
+    # Don't bother trying to update if our rev is the same
+    if rev == repo_config['rev']:
         return repo_config
 
-    # Construct a new config with the head sha
+    # Construct a new config with the head rev
     new_config = OrderedDict(repo_config)
-    new_config['sha'] = rev
+    new_config['rev'] = rev
     new_repo = Repository.create(new_config, runner.store)
 
     # See if any of our hooks were deleted with the new commits
@@ -67,8 +67,8 @@ def _update_repo(repo_config, runner, tags_only):
     return new_config
 
 
-SHA_LINE_RE = re.compile(r'^(\s+)sha:(\s*)([^\s#]+)(.*)$', re.DOTALL)
-SHA_LINE_FMT = '{}sha:{}{}{}'
+REV_LINE_RE = re.compile(r'^(\s+)rev:(\s*)([^\s#]+)(.*)$', re.DOTALL)
+REV_LINE_FMT = '{}rev:{}{}{}'
 
 
 def _write_new_config_file(path, output):
@@ -77,25 +77,25 @@ def _write_new_config_file(path, output):
     new_contents = ordered_dump(output, **C.YAML_DUMP_KWARGS)
 
     lines = original_contents.splitlines(True)
-    sha_line_indices_rev = list(reversed([
-        i for i, line in enumerate(lines) if SHA_LINE_RE.match(line)
+    rev_line_indices_reversed = list(reversed([
+        i for i, line in enumerate(lines) if REV_LINE_RE.match(line)
     ]))
 
     for line in new_contents.splitlines(True):
-        if SHA_LINE_RE.match(line):
-            # It's possible we didn't identify the sha lines in the original
-            if not sha_line_indices_rev:
+        if REV_LINE_RE.match(line):
+            # It's possible we didn't identify the rev lines in the original
+            if not rev_line_indices_reversed:
                 break
-            line_index = sha_line_indices_rev.pop()
+            line_index = rev_line_indices_reversed.pop()
             original_line = lines[line_index]
-            orig_match = SHA_LINE_RE.match(original_line)
-            new_match = SHA_LINE_RE.match(line)
-            lines[line_index] = SHA_LINE_FMT.format(
+            orig_match = REV_LINE_RE.match(original_line)
+            new_match = REV_LINE_RE.match(line)
+            lines[line_index] = REV_LINE_FMT.format(
                 orig_match.group(1), orig_match.group(2),
                 new_match.group(3), orig_match.group(4),
             )
 
-    # If we failed to intelligently rewrite the sha lines, fall back to the
+    # If we failed to intelligently rewrite the rev lines, fall back to the
     # pretty-formatted yaml output
     to_write = ''.join(lines)
     if remove_defaults(ordered_load(to_write), CONFIG_SCHEMA) != output:
@@ -132,10 +132,10 @@ def autoupdate(runner, tags_only, repos=()):
             retv = 1
             continue
 
-        if new_repo_config['sha'] != repo_config['sha']:
+        if new_repo_config['rev'] != repo_config['rev']:
             changed = True
             output.write_line('updating {} -> {}.'.format(
-                repo_config['sha'], new_repo_config['sha'],
+                repo_config['rev'], new_repo_config['rev'],
             ))
             output_repos.append(new_repo_config)
         else:

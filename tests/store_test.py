@@ -91,10 +91,10 @@ def test_clone(store, tempdir_factory, log_info_mock):
     path = git_dir(tempdir_factory)
     with cwd(path):
         cmd_output('git', 'commit', '--allow-empty', '-m', 'foo')
-        sha = git.head_sha(path)
+        rev = git.head_rev(path)
         cmd_output('git', 'commit', '--allow-empty', '-m', 'bar')
 
-    ret = store.clone(path, sha)
+    ret = store.clone(path, rev)
     # Should have printed some stuff
     assert log_info_mock.call_args_list[0][0][0].startswith(
         'Initializing environment for ',
@@ -106,14 +106,14 @@ def test_clone(store, tempdir_factory, log_info_mock):
     # Directory should start with `repo`
     _, dirname = os.path.split(ret)
     assert dirname.startswith('repo')
-    # Should be checked out to the sha we specified
-    assert git.head_sha(ret) == sha
+    # Should be checked out to the rev we specified
+    assert git.head_rev(ret) == rev
 
     # Assert there's an entry in the sqlite db for this
     with sqlite3.connect(store.db_path) as db:
         path, = db.execute(
             'SELECT path from repos WHERE repo = ? and ref = ?',
-            [path, sha],
+            (path, rev),
         ).fetchone()
         assert path == ret
 
@@ -122,7 +122,7 @@ def test_clone_cleans_up_on_checkout_failure(store):
     try:
         # This raises an exception because you can't clone something that
         # doesn't exist!
-        store.clone('/i_dont_exist_lol', 'fake_sha')
+        store.clone('/i_dont_exist_lol', 'fake_rev')
     except Exception as e:
         assert '/i_dont_exist_lol' in six.text_type(e)
 

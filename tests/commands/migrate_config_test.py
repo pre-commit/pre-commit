@@ -118,3 +118,30 @@ def test_already_migrated_configuration_noop(tmpdir, capsys):
     out, _ = capsys.readouterr()
     assert out == 'Configuration is already migrated.\n'
     assert cfg.read() == contents
+
+
+def test_migrate_config_sha_to_rev(tmpdir):
+    contents = (
+        'repos:\n'
+        '-   repo: https://github.com/pre-commit/pre-commit-hooks\n'
+        '    sha: v1.2.0\n'
+        '    hooks: []\n'
+        'repos:\n'
+        '-   repo: https://github.com/pre-commit/pre-commit-hooks\n'
+        '    sha: v1.2.0\n'
+        '    hooks: []\n'
+    )
+    cfg = tmpdir.join(C.CONFIG_FILE)
+    cfg.write(contents)
+    assert not migrate_config(Runner(tmpdir.strpath, C.CONFIG_FILE))
+    contents = cfg.read()
+    assert contents == (
+        'repos:\n'
+        '-   repo: https://github.com/pre-commit/pre-commit-hooks\n'
+        '    rev: v1.2.0\n'
+        '    hooks: []\n'
+        'repos:\n'
+        '-   repo: https://github.com/pre-commit/pre-commit-hooks\n'
+        '    rev: v1.2.0\n'
+        '    hooks: []\n'
+    )

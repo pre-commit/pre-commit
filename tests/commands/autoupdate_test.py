@@ -32,9 +32,9 @@ def up_to_date_repo(tempdir_factory):
 
 def test_up_to_date_repo(up_to_date_repo, runner_with_mocked_store):
     config = make_config_from_repo(up_to_date_repo)
-    input_sha = config['sha']
+    input_rev = config['rev']
     ret = _update_repo(config, runner_with_mocked_store, tags_only=False)
-    assert ret['sha'] == input_sha
+    assert ret['rev'] == input_rev
 
 
 def test_autoupdate_up_to_date_repo(
@@ -65,12 +65,12 @@ def test_autoupdate_old_revision_broken(
     cmd_output('git', '-C', path, 'mv', C.MANIFEST_FILE, 'nope.yaml')
     cmd_output('git', '-C', path, 'commit', '-m', 'simulate old repo')
     # Assume this is the revision the user's old repository was at
-    rev = git.head_sha(path)
+    rev = git.head_rev(path)
     cmd_output('git', '-C', path, 'mv', 'nope.yaml', C.MANIFEST_FILE)
     cmd_output('git', '-C', path, 'commit', '-m', 'move hooks file')
-    update_rev = git.head_sha(path)
+    update_rev = git.head_rev(path)
 
-    config['sha'] = rev
+    config['rev'] = rev
     write_config('.', config)
     before = open(C.CONFIG_FILE).read()
     ret = autoupdate(Runner('.', C.CONFIG_FILE), tags_only=False)
@@ -83,24 +83,24 @@ def test_autoupdate_old_revision_broken(
 @pytest.fixture
 def out_of_date_repo(tempdir_factory):
     path = make_repo(tempdir_factory, 'python_hooks_repo')
-    original_sha = git.head_sha(path)
+    original_rev = git.head_rev(path)
 
     # Make a commit
     cmd_output('git', '-C', path, 'commit', '--allow-empty', '-m', 'foo')
-    head_sha = git.head_sha(path)
+    head_rev = git.head_rev(path)
 
     yield auto_namedtuple(
-        path=path, original_sha=original_sha, head_sha=head_sha,
+        path=path, original_rev=original_rev, head_rev=head_rev,
     )
 
 
 def test_out_of_date_repo(out_of_date_repo, runner_with_mocked_store):
     config = make_config_from_repo(
-        out_of_date_repo.path, sha=out_of_date_repo.original_sha,
+        out_of_date_repo.path, rev=out_of_date_repo.original_rev,
     )
     ret = _update_repo(config, runner_with_mocked_store, tags_only=False)
-    assert ret['sha'] != out_of_date_repo.original_sha
-    assert ret['sha'] == out_of_date_repo.head_sha
+    assert ret['rev'] != out_of_date_repo.original_rev
+    assert ret['rev'] == out_of_date_repo.head_rev
 
 
 def test_autoupdate_out_of_date_repo(
@@ -108,7 +108,7 @@ def test_autoupdate_out_of_date_repo(
 ):
     # Write out the config
     config = make_config_from_repo(
-        out_of_date_repo.path, sha=out_of_date_repo.original_sha, check=False,
+        out_of_date_repo.path, rev=out_of_date_repo.original_rev, check=False,
     )
     write_config('.', config)
 
@@ -119,14 +119,14 @@ def test_autoupdate_out_of_date_repo(
     assert before != after
     # Make sure we don't add defaults
     assert 'exclude' not in after
-    assert out_of_date_repo.head_sha in after
+    assert out_of_date_repo.head_rev in after
 
 
 def test_autoupdate_out_of_date_repo_with_correct_repo_name(
         out_of_date_repo, in_tmpdir, mock_out_store_directory,
 ):
     stale_config = make_config_from_repo(
-        out_of_date_repo.path, sha=out_of_date_repo.original_sha, check=False,
+        out_of_date_repo.path, rev=out_of_date_repo.original_rev, check=False,
     )
     local_config = config_with_local_hooks()
     config = {'repos': [stale_config, local_config]}
@@ -140,7 +140,7 @@ def test_autoupdate_out_of_date_repo_with_correct_repo_name(
     after = open(C.CONFIG_FILE).read()
     assert ret == 0
     assert before != after
-    assert out_of_date_repo.head_sha in after
+    assert out_of_date_repo.head_rev in after
     assert local_config['repo'] in after
 
 
@@ -149,7 +149,7 @@ def test_autoupdate_out_of_date_repo_with_wrong_repo_name(
 ):
     # Write out the config
     config = make_config_from_repo(
-        out_of_date_repo.path, sha=out_of_date_repo.original_sha, check=False,
+        out_of_date_repo.path, rev=out_of_date_repo.original_rev, check=False,
     )
     write_config('.', config)
 
@@ -168,40 +168,40 @@ def test_does_not_reformat(
     fmt = (
         'repos:\n'
         '-   repo: {}\n'
-        '    sha: {}  # definitely the version I want!\n'
+        '    rev: {}  # definitely the version I want!\n'
         '    hooks:\n'
         '    -   id: foo\n'
         '        # These args are because reasons!\n'
         '        args: [foo, bar, baz]\n'
     )
-    config = fmt.format(out_of_date_repo.path, out_of_date_repo.original_sha)
+    config = fmt.format(out_of_date_repo.path, out_of_date_repo.original_rev)
     with open(C.CONFIG_FILE, 'w') as f:
         f.write(config)
 
     autoupdate(Runner('.', C.CONFIG_FILE), tags_only=False)
     after = open(C.CONFIG_FILE).read()
-    expected = fmt.format(out_of_date_repo.path, out_of_date_repo.head_sha)
+    expected = fmt.format(out_of_date_repo.path, out_of_date_repo.head_rev)
     assert after == expected
 
 
 def test_loses_formatting_when_not_detectable(
         out_of_date_repo, mock_out_store_directory, in_tmpdir,
 ):
-    """A best-effort attempt is made at updating sha without rewriting
+    """A best-effort attempt is made at updating rev without rewriting
     formatting.  When the original formatting cannot be detected, this
     is abandoned.
     """
     config = (
         'repos: [\n'
         '    {{\n'
-        '        repo: {}, sha: {},\n'
+        '        repo: {}, rev: {},\n'
         '        hooks: [\n'
         '            # A comment!\n'
         '            {{id: foo}},\n'
         '        ],\n'
         '    }}\n'
         ']\n'.format(
-            pipes.quote(out_of_date_repo.path), out_of_date_repo.original_sha,
+            pipes.quote(out_of_date_repo.path), out_of_date_repo.original_rev,
         )
     )
     with open(C.CONFIG_FILE, 'w') as f:
@@ -212,10 +212,10 @@ def test_loses_formatting_when_not_detectable(
     expected = (
         'repos:\n'
         '-   repo: {}\n'
-        '    sha: {}\n'
+        '    rev: {}\n'
         '    hooks:\n'
         '    -   id: foo\n'
-    ).format(out_of_date_repo.path, out_of_date_repo.head_sha)
+    ).format(out_of_date_repo.path, out_of_date_repo.head_rev)
     assert after == expected
 
 
@@ -229,7 +229,7 @@ def test_autoupdate_tagged_repo(
         tagged_repo, in_tmpdir, mock_out_store_directory,
 ):
     config = make_config_from_repo(
-        tagged_repo.path, sha=tagged_repo.original_sha,
+        tagged_repo.path, rev=tagged_repo.original_rev,
     )
     write_config('.', config)
 
@@ -250,7 +250,7 @@ def test_autoupdate_tags_only(
 ):
     config = make_config_from_repo(
         tagged_repo_with_more_commits.path,
-        sha=tagged_repo_with_more_commits.original_sha,
+        rev=tagged_repo_with_more_commits.original_rev,
     )
     write_config('.', config)
 
@@ -262,7 +262,7 @@ def test_autoupdate_tags_only(
 @pytest.fixture
 def hook_disappearing_repo(tempdir_factory):
     path = make_repo(tempdir_factory, 'python_hooks_repo')
-    original_sha = git.head_sha(path)
+    original_rev = git.head_rev(path)
 
     shutil.copy(
         get_resource_path('manifest_without_foo.yaml'),
@@ -271,7 +271,7 @@ def hook_disappearing_repo(tempdir_factory):
     cmd_output('git', '-C', path, 'add', '.')
     cmd_output('git', '-C', path, 'commit', '-m', 'Remove foo')
 
-    yield auto_namedtuple(path=path, original_sha=original_sha)
+    yield auto_namedtuple(path=path, original_rev=original_rev)
 
 
 def test_hook_disppearing_repo_raises(
@@ -279,7 +279,7 @@ def test_hook_disppearing_repo_raises(
 ):
     config = make_config_from_repo(
         hook_disappearing_repo.path,
-        sha=hook_disappearing_repo.original_sha,
+        rev=hook_disappearing_repo.original_rev,
         hooks=[OrderedDict((('id', 'foo'),))],
     )
     with pytest.raises(RepositoryCannotBeUpdatedError):
@@ -291,7 +291,7 @@ def test_autoupdate_hook_disappearing_repo(
 ):
     config = make_config_from_repo(
         hook_disappearing_repo.path,
-        sha=hook_disappearing_repo.original_sha,
+        rev=hook_disappearing_repo.original_rev,
         hooks=[OrderedDict((('id', 'foo'),))],
         check=False,
     )
@@ -319,7 +319,7 @@ def test_autoupdate_local_hooks_with_out_of_date_repo(
         out_of_date_repo, in_tmpdir, mock_out_store_directory,
 ):
     stale_config = make_config_from_repo(
-        out_of_date_repo.path, sha=out_of_date_repo.original_sha, check=False,
+        out_of_date_repo.path, rev=out_of_date_repo.original_rev, check=False,
     )
     local_config = config_with_local_hooks()
     config = {'repos': [local_config, stale_config]}

@@ -39,7 +39,7 @@ def test_try_repo_repo_only(cap_out, tempdir_factory):
     assert re.match(
         '^repos:\n'
         '-   repo: .+\n'
-        '    sha: .+\n'
+        '    rev: .+\n'
         '    hooks:\n'
         '    -   id: bash_hook\n'
         '    -   id: bash_hook2\n'
@@ -63,7 +63,7 @@ def test_try_repo_with_specific_hook(cap_out, tempdir_factory):
     assert re.match(
         '^repos:\n'
         '-   repo: .+\n'
-        '    sha: .+\n'
+        '    rev: .+\n'
         '    hooks:\n'
         '    -   id: bash_hook\n$',
         config,

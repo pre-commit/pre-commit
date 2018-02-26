@@ -19,8 +19,8 @@ def test_make_archive(tempdir_factory):
     open(os.path.join(git_path, 'foo'), 'a').close()
     cmd_output('git', '-C', git_path, 'add', '.')
     cmd_output('git', '-C', git_path, 'commit', '-m', 'foo')
-    # We'll use this sha
-    head_sha = git.head_sha(git_path)
+    # We'll use this rev
+    head_rev = git.head_rev(git_path)
     # And check that this file doesn't exist
     open(os.path.join(git_path, 'bar'), 'a').close()
     cmd_output('git', '-C', git_path, 'add', '.')
@@ -28,7 +28,7 @@ def test_make_archive(tempdir_factory):
 
     # Do the thing
     archive_path = make_archives.make_archive(
-        'foo', git_path, head_sha, output_dir,
+        'foo', git_path, head_rev, output_dir,
     )
 
     assert archive_path == os.path.join(output_dir, 'foo.tar.gz')
