@@ -26,6 +26,15 @@ def _process_filename_by_line(pattern, filename):
                 output.write_line(line.rstrip(b'\r\n'))
     return retv
 
+def _process_filename_at_once(pattern, filename):
+    retv = 0
+    with open(filename, 'rb') as f:
+        match = pattern.search(f.read())
+        if match:
+            retv = 1
+            output.write('{}:'.format(filename))
+            output.write_line(match.group())
+    return retv
 
 def run_hook(prefix, hook, file_args):
     exe = (sys.executable, '-m', __name__)
@@ -42,6 +51,7 @@ def main(argv=None):
         ),
     )
     parser.add_argument('-i', '--ignore-case', action='store_true')
+    parser.add_argument('-z', '--null-data', action='store_true')
     parser.add_argument('pattern', help='python regex pattern.')
     parser.add_argument('filenames', nargs='*')
     args = parser.parse_args(argv)
@@ -51,7 +61,10 @@ def main(argv=None):
 
     retv = 0
     for filename in args.filenames:
-        retv |= _process_filename_by_line(pattern, filename)
+        if args.null_data:
+            retv |= _process_filename_at_once(pattern, filename)
+        else:
+            retv |= _process_filename_by_line(pattern, filename)
     return retv
 
 
