@@ -29,7 +29,7 @@ def _process_filename_by_line(pattern, filename):
 def _process_filename_at_once(pattern, filename):
     retv = 0
     with open(filename, 'rb') as f:
-        match = pattern.search(f.read())
+        match = pattern.search(f.read().decode('utf-8').replace('\n',''))
         if match:
             retv = 1
             output.write('{}:'.format(filename))
