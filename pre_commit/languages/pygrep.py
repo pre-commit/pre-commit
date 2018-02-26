@@ -26,15 +26,17 @@ def _process_filename_by_line(pattern, filename):
                 output.write_line(line.rstrip(b'\r\n'))
     return retv
 
+
 def _process_filename_at_once(pattern, filename):
     retv = 0
     with open(filename, 'rb') as f:
-        match = pattern.search(f.read().decode('utf-8').replace('\n',''))
+        match = pattern.search(f.read().decode('utf-8').replace('\n', ''))
         if match:
             retv = 1
             output.write('{}:'.format(filename))
             output.write_line(match.group())
     return retv
+
 
 def run_hook(prefix, hook, file_args):
     exe = (sys.executable, '-m', __name__)

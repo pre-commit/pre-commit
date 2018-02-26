@@ -39,6 +39,7 @@ def test_ignore_case(some_files, cap_out):
     assert ret == 1
     assert out == 'f2:1:[INFO] hi\n'
 
+
 def test_null_data(some_files, cap_out):
     ret = pygrep.main(('--null-data', r'foo.*bar', 'f1', 'f2', 'f3'))
     out = cap_out.get()
