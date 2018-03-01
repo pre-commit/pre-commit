@@ -55,7 +55,9 @@ def install_environment(prefix, version, additional_dependencies):
     if sys.platform == 'win32':  # pragma: no cover
         envdir = '\\\\?\\' + os.path.normpath(envdir)
     with clean_path_on_failure(envdir):
-        cmd = [sys.executable, '-m', 'nodeenv', '--prebuilt', envdir]
+        cmd = [
+            sys.executable, '-mnodeenv', '--prebuilt', '--clean-src', envdir,
+        ]
         if version != 'default':
             cmd.extend(['-n', version])
         cmd_output(*cmd)
