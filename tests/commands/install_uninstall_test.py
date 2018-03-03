@@ -66,6 +66,14 @@ def test_install_hooks_directory_not_present(tempdir_factory):
     assert os.path.exists(runner.pre_commit_path)
 
 
+def test_install_refuses_core_hookspath(tempdir_factory):
+    path = git_dir(tempdir_factory)
+    with cwd(path):
+        cmd_output('git', 'config', '--local', 'core.hooksPath', 'hooks')
+        runner = Runner(path, C.CONFIG_FILE)
+        assert install(runner)
+
+
 @xfailif_no_symlink
 def test_install_hooks_dead_symlink(
         tempdir_factory,

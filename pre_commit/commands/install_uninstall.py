@@ -2,14 +2,18 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import io
+import logging
 import os.path
 import sys
 
 from pre_commit import output
+from pre_commit.util import cmd_output
 from pre_commit.util import make_executable
 from pre_commit.util import mkdirp
 from pre_commit.util import resource_filename
 
+
+logger = logging.getLogger(__name__)
 
 # This is used to identify the hook file we install
 PRIOR_HASHES = (
@@ -36,6 +40,13 @@ def install(
         skip_on_missing_conf=False,
 ):
     """Install the pre-commit hooks."""
+    if cmd_output('git', 'config', 'core.hooksPath', retcode=None)[1].strip():
+        logger.error(
+            'Cowardly refusing to install hooks with `core.hooksPath` set.\n'
+            'hint: `git config --unset-all core.hooksPath`',
+        )
+        return 1
+
     hook_path = runner.get_hook_path(hook_type)
     legacy_path = hook_path + '.legacy'
 
