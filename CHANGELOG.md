@@ -1,3 +1,37 @@
+1.7.0
+=====
+
+### Features
+- pre-commit config validation was split to a separate `cfgv` library
+    - #700 PR by @asottile.
+- Allow `--repo` to be specified multiple times to autoupdate
+    - #658 issue by @KevinHock.
+    - #713 PR by @asottile.
+- Enable `rev` as a preferred alternative to `sha` in `.pre-commit-config.yaml`
+    - #106 issue by @asottile.
+    - #715 PR by @asottile.
+- Use `--clean-src` option when invoking `nodeenv` to save ~70MB per node env
+    - #717 PR by @asottile.
+- Refuse to install with `core.hooksPath` set
+    - pre-commit/pre-commit-hooks#250 issue by @revolter.
+    - #663 issue by @asottile.
+    - #718 PR by @asottile.
+
+### Fixes
+- hooks with `additional_dependencies` now get isolated environments
+    - #590 issue by @coldnight.
+    - #711 PR by @asottile.
+
+### Misc
+- test against swift 4.x
+    - #709 by @theresama.
+
+### Updating
+
+- Run `pre-commit migrate-config` to convert `sha` to `rev` in the
+  `.pre-commit-config.yaml` file.
+
+
 1.6.0
 =====
 
