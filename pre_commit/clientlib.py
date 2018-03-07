@@ -35,10 +35,7 @@ MANIFEST_HOOK_DICT = cfgv.Map(
     cfgv.Required('id', cfgv.check_string),
     cfgv.Required('name', cfgv.check_string),
     cfgv.Required('entry', cfgv.check_string),
-    cfgv.Required(
-        'language',
-        cfgv.check_and(cfgv.check_string, cfgv.check_one_of(all_languages)),
-    ),
+    cfgv.Required('language', cfgv.check_one_of(all_languages)),
 
     cfgv.Optional(
         'files', cfgv.check_and(cfgv.check_string, cfgv.check_regex), '',
@@ -59,7 +56,7 @@ MANIFEST_HOOK_DICT = cfgv.Map(
     cfgv.Optional('language_version', cfgv.check_string, 'default'),
     cfgv.Optional('log_file', cfgv.check_string, ''),
     cfgv.Optional('minimum_pre_commit_version', cfgv.check_string, '0'),
-    cfgv.Optional('stages', cfgv.check_array(cfgv.check_string), []),
+    cfgv.Optional('stages', cfgv.check_array(cfgv.check_one_of(C.STAGES)), []),
     cfgv.Optional('verbose', cfgv.check_bool, False),
 )
 MANIFEST_SCHEMA = cfgv.Array(MANIFEST_HOOK_DICT)
