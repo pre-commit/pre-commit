@@ -70,9 +70,8 @@ def _add_run_options(parser):
         help='Filename to check when running during `commit-msg`',
     )
     parser.add_argument(
-        '--hook-stage', choices=('commit', 'push', 'commit-msg'),
-        default='commit',
-        help='The stage during which the hook is fired e.g. commit or push.',
+        '--hook-stage', choices=C.STAGES, default='commit',
+        help='The stage during which the hook is fired.  One of %(choices)s',
     )
     parser.add_argument(
         '--show-diff-on-failure', action='store_true',

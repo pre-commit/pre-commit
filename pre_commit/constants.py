@@ -20,3 +20,6 @@ LOCAL_REPO_VERSION = '1'
 
 VERSION = pkg_resources.get_distribution('pre-commit').version
 VERSION_PARSED = pkg_resources.parse_version(VERSION)
+
+# `manual` is not invoked by any installed git hook.  See #719
+STAGES = ('commit', 'commit-msg', 'manual', 'push')

@@ -529,52 +529,37 @@ def test_lots_of_files(mock_out_store_directory, tempdir_factory):
         )
 
 
-def test_push_hook(cap_out, repo_with_passing_hook, mock_out_store_directory):
+def test_stages(cap_out, repo_with_passing_hook, mock_out_store_directory):
     config = OrderedDict((
         ('repo', 'local'),
         (
-            'hooks', (
-                OrderedDict((
-                    ('id', 'flake8'),
-                    ('name', 'hook 1'),
-                    ('entry', "'{}' -m flake8".format(sys.executable)),
-                    ('language', 'system'),
-                    ('types', ['python']),
-                    ('stages', ['commit']),
-                )),
-                OrderedDict((
-                    ('id', 'do_not_commit'),
-                    ('name', 'hook 2'),
-                    ('entry', 'DO NOT COMMIT'),
-                    ('language', 'pygrep'),
-                    ('types', ['text']),
-                    ('stages', ['push']),
-                )),
+            'hooks', tuple(
+                {
+                    'id': 'do-not-commit-{}'.format(i),
+                    'name': 'hook {}'.format(i),
+                    'entry': 'DO NOT COMMIT',
+                    'language': 'pygrep',
+                    'stages': [stage],
+                }
+                for i, stage in enumerate(('commit', 'push', 'manual'), 1)
             ),
         ),
     ))
     add_config_to_repo(repo_with_passing_hook, config)
 
-    open('dummy.py', 'a').close()
-    cmd_output('git', 'add', 'dummy.py')
+    stage_a_file()
 
-    _test_run(
-        cap_out,
-        repo_with_passing_hook,
-        {'hook_stage': 'commit'},
-        expected_outputs=[b'hook 1'],
-        expected_ret=0,
-        stage=False,
-    )
+    def _run_for_stage(stage):
+        args = run_opts(hook_stage=stage)
+        ret, printed = _do_run(cap_out, repo_with_passing_hook, args)
+        assert not ret, (ret, printed)
+        # this test should only run one hook
+        assert printed.count(b'hook ') == 1
+        return printed
 
-    _test_run(
-        cap_out,
-        repo_with_passing_hook,
-        {'hook_stage': 'push'},
-        expected_outputs=[b'hook 2'],
-        expected_ret=0,
-        stage=False,
-    )
+    assert _run_for_stage('commit').startswith(b'hook 1...')
+    assert _run_for_stage('push').startswith(b'hook 2...')
+    assert _run_for_stage('manual').startswith(b'hook 3...')
 
 
 def test_commit_msg_hook(cap_out, commit_msg_repo, mock_out_store_directory):
