@@ -518,7 +518,7 @@ def test_lots_of_files(mock_out_store_directory, tempdir_factory):
             filename = '{}{}'.format('a' * 100, i)
             open(filename, 'w').close()
 
-        cmd_output('bash', '-c', 'git add .')
+        cmd_output('git', 'add', '.')
         install(Runner(git_path, C.CONFIG_FILE))
 
         cmd_output_mocked_pre_commit_home(
