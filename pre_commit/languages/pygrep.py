@@ -33,7 +33,9 @@ def _process_filename_at_once(pattern, filename):
         match = pattern.search(f.read())
         if match:
             retv = 1
-            output.write('{}:{}-{}:'.format(filename, match.start(), match.end()))
+            output.write(
+                '{}:{}-{}:'.format(filename, match.start(), match.end()),
+            )
             output.write_line(match.group())
     return retv
 
