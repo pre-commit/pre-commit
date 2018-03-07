@@ -41,7 +41,21 @@ def test_ignore_case(some_files, cap_out):
 
 
 def test_null_data(some_files, cap_out):
-    ret = pygrep.main(('--null-data', r'foo.*bar', 'f1', 'f2', 'f3'))
+    ret = pygrep.main(('--null-data', r'foo\nbar', 'f1', 'f2', 'f3'))
     out = cap_out.get()
     assert ret == 1
-    assert out == 'f1:foobar\n'
+    assert out == 'f1:0-7:foo\nbar\n'
+
+
+def test_null_data_dotall_flag_is_enabled(some_files, cap_out):
+    ret = pygrep.main(('--null-data', r'o.*bar', 'f1', 'f2', 'f3'))
+    out = cap_out.get()
+    assert ret == 1
+    assert out == 'f1:1-7:oo\nbar\n'
+
+
+def test_null_data_multiline_flag_is_enabled(some_files, cap_out):
+    ret = pygrep.main(('--null-data', r'foo$.*bar', 'f1', 'f2', 'f3'))
+    out = cap_out.get()
+    assert ret == 1
+    assert out == 'f1:0-7:foo\nbar\n'

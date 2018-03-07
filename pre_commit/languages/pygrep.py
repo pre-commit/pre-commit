@@ -30,10 +30,10 @@ def _process_filename_by_line(pattern, filename):
 def _process_filename_at_once(pattern, filename):
     retv = 0
     with open(filename, 'rb') as f:
-        match = pattern.search(f.read().decode('utf-8').replace('\n', ''))
+        match = pattern.search(f.read())
         if match:
             retv = 1
-            output.write('{}:'.format(filename))
+            output.write('{}:{}-{}:'.format(filename, match.start(), match.end()))
             output.write_line(match.group())
     return retv
 
@@ -59,6 +59,9 @@ def main(argv=None):
     args = parser.parse_args(argv)
 
     flags = re.IGNORECASE if args.ignore_case else 0
+    if args.null_data:
+        flags = flags | re.MULTILINE | re.DOTALL
+
     pattern = re.compile(args.pattern.encode(), flags)
 
     retv = 0
