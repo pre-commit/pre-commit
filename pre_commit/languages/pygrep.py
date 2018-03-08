@@ -30,13 +30,21 @@ def _process_filename_by_line(pattern, filename):
 def _process_filename_at_once(pattern, filename):
     retv = 0
     with open(filename, 'rb') as f:
-        match = pattern.search(f.read())
+        contents = f.read()
+        match = pattern.search(contents)
         if match:
             retv = 1
-            output.write(
-                '{}:{}-{}:'.format(filename, match.start(), match.end()),
+            line_no = len(
+                re.compile('\n'.encode()).findall(contents, 0, match.start()),
             )
-            output.write_line(match.group())
+            output.write(
+                '{}:{}:'.format(filename, line_no + 1),
+            )
+
+            matched_lines = match.group().split('\n')
+            matched_lines[0] = contents.split('\n')[line_no]
+
+            output.write_line('\n'.join(matched_lines))
     return retv
 
 
@@ -55,20 +63,20 @@ def main(argv=None):
         ),
     )
     parser.add_argument('-i', '--ignore-case', action='store_true')
-    parser.add_argument('-z', '--null-data', action='store_true')
+    parser.add_argument('--multiline', action='store_true')
     parser.add_argument('pattern', help='python regex pattern.')
     parser.add_argument('filenames', nargs='*')
     args = parser.parse_args(argv)
 
     flags = re.IGNORECASE if args.ignore_case else 0
-    if args.null_data:
+    if args.multiline:
         flags = flags | re.MULTILINE | re.DOTALL
 
     pattern = re.compile(args.pattern.encode(), flags)
 
     retv = 0
     for filename in args.filenames:
-        if args.null_data:
+        if args.multiline:
             retv |= _process_filename_at_once(pattern, filename)
         else:
             retv |= _process_filename_by_line(pattern, filename)
