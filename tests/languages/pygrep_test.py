@@ -38,3 +38,31 @@ def test_ignore_case(some_files, cap_out):
     out = cap_out.get()
     assert ret == 1
     assert out == 'f2:1:[INFO] hi\n'
+
+
+def test_multiline(some_files, cap_out):
+    ret = pygrep.main(('--multiline', r'foo\nbar', 'f1', 'f2', 'f3'))
+    out = cap_out.get()
+    assert ret == 1
+    assert out == 'f1:1:foo\nbar\n'
+
+
+def test_multiline_line_number(some_files, cap_out):
+    ret = pygrep.main(('--multiline', r'ar', 'f1', 'f2', 'f3'))
+    out = cap_out.get()
+    assert ret == 1
+    assert out == 'f1:2:bar\n'
+
+
+def test_multiline_dotall_flag_is_enabled(some_files, cap_out):
+    ret = pygrep.main(('--multiline', r'o.*bar', 'f1', 'f2', 'f3'))
+    out = cap_out.get()
+    assert ret == 1
+    assert out == 'f1:1:foo\nbar\n'
+
+
+def test_multiline_multiline_flag_is_enabled(some_files, cap_out):
+    ret = pygrep.main(('--multiline', r'foo$.*bar', 'f1', 'f2', 'f3'))
+    out = cap_out.get()
+    assert ret == 1
+    assert out == 'f1:1:foo\nbar\n'

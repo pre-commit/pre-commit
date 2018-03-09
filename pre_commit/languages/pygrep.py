@@ -27,6 +27,23 @@ def _process_filename_by_line(pattern, filename):
     return retv
 
 
+def _process_filename_at_once(pattern, filename):
+    retv = 0
+    with open(filename, 'rb') as f:
+        contents = f.read()
+        match = pattern.search(contents)
+        if match:
+            retv = 1
+            line_no = contents[:match.start()].count(b'\n')
+            output.write('{}:{}:'.format(filename, line_no + 1))
+
+            matched_lines = match.group().split(b'\n')
+            matched_lines[0] = contents.split(b'\n')[line_no]
+
+            output.write_line(b'\n'.join(matched_lines))
+    return retv
+
+
 def run_hook(prefix, hook, file_args):
     exe = (sys.executable, '-m', __name__)
     exe += tuple(hook['args']) + (hook['entry'],)
@@ -42,16 +59,23 @@ def main(argv=None):
         ),
     )
     parser.add_argument('-i', '--ignore-case', action='store_true')
+    parser.add_argument('--multiline', action='store_true')
     parser.add_argument('pattern', help='python regex pattern.')
     parser.add_argument('filenames', nargs='*')
     args = parser.parse_args(argv)
 
     flags = re.IGNORECASE if args.ignore_case else 0
+    if args.multiline:
+        flags |= re.MULTILINE | re.DOTALL
+
     pattern = re.compile(args.pattern.encode(), flags)
 
     retv = 0
     for filename in args.filenames:
-        retv |= _process_filename_by_line(pattern, filename)
+        if args.multiline:
+            retv |= _process_filename_at_once(pattern, filename)
+        else:
+            retv |= _process_filename_by_line(pattern, filename)
     return retv
 
 
