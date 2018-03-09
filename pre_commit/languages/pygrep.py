@@ -34,17 +34,13 @@ def _process_filename_at_once(pattern, filename):
         match = pattern.search(contents)
         if match:
             retv = 1
-            line_no = len(
-                re.compile('\n'.encode()).findall(contents, 0, match.start()),
-            )
-            output.write(
-                '{}:{}:'.format(filename, line_no + 1),
-            )
+            line_no = contents[:match.start()].count(b'\n')
+            output.write('{}:{}:'.format(filename, line_no + 1))
 
-            matched_lines = match.group().split('\n')
-            matched_lines[0] = contents.split('\n')[line_no]
+            matched_lines = match.group().split(b'\n')
+            matched_lines[0] = contents.split(b'\n')[line_no]
 
-            output.write_line('\n'.join(matched_lines))
+            output.write_line(b'\n'.join(matched_lines))
     return retv
 
 
@@ -70,7 +66,7 @@ def main(argv=None):
 
     flags = re.IGNORECASE if args.ignore_case else 0
     if args.multiline:
-        flags = flags | re.MULTILINE | re.DOTALL
+        flags |= re.MULTILINE | re.DOTALL
 
     pattern = re.compile(args.pattern.encode(), flags)
 
