@@ -1,3 +1,14 @@
+1.8.0
+=====
+
+### Features
+- Add a `manual` stage for cli-only interaction
+    - #719 issue by @hectorv.
+    - #720 PR by @asottile.
+- Add a `--multiline` option to `pygrep` hooks
+    - #716 PR by @tdeo.
+
+
 1.7.0
 =====
 
