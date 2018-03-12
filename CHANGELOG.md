@@ -1,3 +1,14 @@
+1.8.1
+=====
+
+### Fixes
+- Fix integration with go 1.10 and `pkg` directory
+    - #725 PR by @asottile
+- Restore support for `git<1.8.5` (inadvertantly removed in 1.7.0)
+    - #723 issue by @JohnLyman.
+    - #724 PR by @asottile.
+
+
 1.8.0
 =====
 
