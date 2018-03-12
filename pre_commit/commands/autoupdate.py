@@ -34,17 +34,17 @@ def _update_repo(repo_config, runner, tags_only):
     """
     repo_path = runner.store.clone(repo_config['repo'], repo_config['rev'])
 
-    cmd_output('git', '-C', repo_path, 'fetch')
-    tag_cmd = ('git', '-C', repo_path, 'describe', 'origin/master', '--tags')
+    cmd_output('git', 'fetch', cwd=repo_path)
+    tag_cmd = ('git', 'describe', 'origin/master', '--tags')
     if tags_only:
         tag_cmd += ('--abbrev=0',)
     else:
         tag_cmd += ('--exact',)
     try:
-        rev = cmd_output(*tag_cmd)[1].strip()
+        rev = cmd_output(*tag_cmd, cwd=repo_path)[1].strip()
     except CalledProcessError:
-        tag_cmd = ('git', '-C', repo_path, 'rev-parse', 'origin/master')
-        rev = cmd_output(*tag_cmd)[1].strip()
+        tag_cmd = ('git', 'rev-parse', 'origin/master')
+        rev = cmd_output(*tag_cmd, cwd=repo_path)[1].strip()
 
     # Don't bother trying to update if our rev is the same
     if rev == repo_config['rev']:

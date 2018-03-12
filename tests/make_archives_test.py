@@ -17,14 +17,14 @@ def test_make_archive(tempdir_factory):
     git_path = git_dir(tempdir_factory)
     # Add a files to the git directory
     open(os.path.join(git_path, 'foo'), 'a').close()
-    cmd_output('git', '-C', git_path, 'add', '.')
-    cmd_output('git', '-C', git_path, 'commit', '-m', 'foo')
+    cmd_output('git', 'add', '.', cwd=git_path)
+    cmd_output('git', 'commit', '-m', 'foo', cwd=git_path)
     # We'll use this rev
     head_rev = git.head_rev(git_path)
     # And check that this file doesn't exist
     open(os.path.join(git_path, 'bar'), 'a').close()
-    cmd_output('git', '-C', git_path, 'add', '.')
-    cmd_output('git', '-C', git_path, 'commit', '-m', 'bar')
+    cmd_output('git', 'add', '.', cwd=git_path)
+    cmd_output('git', 'commit', '-m', 'bar', cwd=git_path)
 
     # Do the thing
     archive_path = make_archives.make_archive(
