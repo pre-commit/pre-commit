@@ -144,7 +144,7 @@ class Store(object):
             env = no_git_env()
 
             def _git_cmd(*args):
-                return cmd_output('git', '-C', directory, *args, env=env)
+                return cmd_output('git', *args, cwd=directory, env=env)
 
             _git_cmd('clone', '--no-checkout', repo, '.')
             _git_cmd('reset', ref, '--hard')
@@ -163,7 +163,7 @@ class Store(object):
 
             # initialize the git repository so it looks more like cloned repos
             def _git_cmd(*args):
-                cmd_output('git', '-C', directory, *args, env=env)
+                cmd_output('git', *args, cwd=directory, env=env)
 
             _git_cmd('init', '.')
             _git_cmd('config', 'remote.origin.url', '<<unknown>>')

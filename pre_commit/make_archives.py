@@ -41,7 +41,7 @@ def make_archive(name, repo, ref, destdir):
     with tmpdir() as tempdir:
         # Clone the repository to the temporary directory
         cmd_output('git', 'clone', repo, tempdir)
-        cmd_output('git', '-C', tempdir, 'checkout', ref)
+        cmd_output('git', 'checkout', ref, cwd=tempdir)
 
         # We don't want the '.git' directory
         # It adds a bunch of size to the archive and we don't use it at

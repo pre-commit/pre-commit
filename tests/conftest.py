@@ -69,8 +69,8 @@ def _make_conflict():
 def in_merge_conflict(tempdir_factory):
     path = make_consuming_repo(tempdir_factory, 'script_hooks_repo')
     open(os.path.join(path, 'dummy'), 'a').close()
-    cmd_output('git', '-C', path, 'add', 'dummy')
-    cmd_output('git', '-C', path, 'commit', '-m', 'Add config.')
+    cmd_output('git', 'add', 'dummy', cwd=path)
+    cmd_output('git', 'commit', '-m', 'Add config.', cwd=path)
 
     conflict_path = tempdir_factory.get()
     cmd_output('git', 'clone', path, conflict_path)
@@ -83,8 +83,8 @@ def in_merge_conflict(tempdir_factory):
 def in_conflicting_submodule(tempdir_factory):
     git_dir_1 = git_dir(tempdir_factory)
     git_dir_2 = git_dir(tempdir_factory)
-    cmd_output('git', '-C', git_dir_2, 'commit', '--allow-empty', '-minit!')
-    cmd_output('git', '-C', git_dir_1, 'submodule', 'add', git_dir_2, 'sub')
+    cmd_output('git', 'commit', '--allow-empty', '-minit!', cwd=git_dir_2)
+    cmd_output('git', 'submodule', 'add', git_dir_2, 'sub', cwd=git_dir_1)
     with cwd(os.path.join(git_dir_1, 'sub')):
         _make_conflict()
         yield

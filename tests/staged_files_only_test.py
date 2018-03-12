@@ -199,7 +199,7 @@ def submodule_with_commits(tempdir_factory):
 
 
 def checkout_submodule(rev):
-    cmd_output('git', '-C', 'sub', 'checkout', rev)
+    cmd_output('git', 'checkout', rev, cwd='sub')
 
 
 @pytest.fixture

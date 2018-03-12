@@ -161,8 +161,8 @@ def test_install_pre_commit_and_run_custom_path(tempdir_factory):
 def test_install_in_submodule_and_run(tempdir_factory):
     src_path = make_consuming_repo(tempdir_factory, 'script_hooks_repo')
     parent_path = git_dir(tempdir_factory)
-    cmd_output('git', '-C', parent_path, 'submodule', 'add', src_path, 'sub')
-    cmd_output('git', '-C', parent_path, 'commit', '-m', 'foo')
+    cmd_output('git', 'submodule', 'add', src_path, 'sub', cwd=parent_path)
+    cmd_output('git', 'commit', '-m', 'foo', cwd=parent_path)
 
     sub_pth = os.path.join(parent_path, 'sub')
     with cwd(sub_pth):

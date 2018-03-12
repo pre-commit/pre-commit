@@ -3,6 +3,5 @@
 set -ex
 git clone git://github.com/git/git --depth 1 /tmp/git
 pushd /tmp/git
-make prefix=/tmp/git -j 8 all
-make prefix=/tmp/git install
+make prefix=/tmp/git -j8 install
 popd
