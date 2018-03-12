@@ -74,7 +74,9 @@ def install_environment(prefix, version, additional_dependencies):
             cmd_output('go', 'get', dependency, cwd=repo_src_dir, env=env)
         # Same some disk space, we don't need these after installation
         rmtree(prefix.path(directory, 'src'))
-        rmtree(prefix.path(directory, 'pkg'))
+        pkgdir = prefix.path(directory, 'pkg')
+        if os.path.exists(pkgdir):  # pragma: no cover (go<1.10)
+            rmtree(pkgdir)
 
 
 def run_hook(prefix, hook, file_args):
