@@ -811,7 +811,7 @@ def test_include_exclude_base_case(some_filenames):
 
 
 @xfailif_no_symlink
-def test_matches_broken_symlink(tmpdir):  # pramga: no cover (non-windows)
+def test_matches_broken_symlink(tmpdir):  # pragma: no cover (non-windows)
     with tmpdir.as_cwd():
         os.symlink('does-not-exist', 'link')
         ret = _filter_by_include_exclude({'link'}, '', '^$')
