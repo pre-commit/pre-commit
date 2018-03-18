@@ -1,3 +1,12 @@
+1.8.2
+=====
+
+### Fixes
+- Fix cloning relative paths (regression in 1.7.0)
+    - #728 issue by @jdswensen.
+    - #729 PR by @asottile.
+
+
 1.8.1
 =====
 
