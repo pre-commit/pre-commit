@@ -143,10 +143,12 @@ class Store(object):
         def clone_strategy(directory):
             env = no_git_env()
 
+            cmd = ('git', 'clone', '--no-checkout', repo, directory)
+            cmd_output(*cmd, env=env)
+
             def _git_cmd(*args):
                 return cmd_output('git', *args, cwd=directory, env=env)
 
-            _git_cmd('clone', '--no-checkout', repo, '.')
             _git_cmd('reset', ref, '--hard')
             _git_cmd('submodule', 'update', '--init', '--recursive')
 

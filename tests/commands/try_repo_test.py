@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
+import os.path
 import re
 
 from pre_commit.commands.try_repo import try_repo
@@ -69,3 +70,13 @@ def test_try_repo_with_specific_hook(cap_out, tempdir_factory):
         config,
     )
     assert rest == '[bash_hook] Bash hook................................(no files to check)Skipped\n'  # noqa
+
+
+def test_try_repo_relative_path(cap_out, tempdir_factory):
+    repo = make_repo(tempdir_factory, 'modified_file_returns_zero_repo')
+    with cwd(git_dir(tempdir_factory)):
+        open('test-file', 'a').close()
+        cmd_output('git', 'add', '.')
+        relative_repo = os.path.relpath(repo, '.')
+        # previously crashed on cloning a relative path
+        assert not try_repo(try_repo_opts(relative_repo, hook='bash_hook'))
