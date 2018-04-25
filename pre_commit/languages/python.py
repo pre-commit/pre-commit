@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 
 import contextlib
 import os
+import subprocess
 import sys
 
 from pre_commit.envcontext import envcontext
@@ -13,6 +14,11 @@ from pre_commit.util import CalledProcessError
 from pre_commit.util import clean_path_on_failure
 from pre_commit.util import cmd_output
 from pre_commit.xargs import xargs
+
+try:
+    devnull = subprocess.DEVNULL
+except AttributeError:
+    devnull = open(os.devnull, 'w')
 
 
 ENVIRONMENT_DIR = 'py_env'
@@ -134,11 +140,26 @@ def install_environment(prefix, version, additional_dependencies):
     # Install a virtualenv
     env_dir = prefix.path(directory)
     with clean_path_on_failure(env_dir):
-        venv_cmd = [sys.executable, '-m', 'virtualenv', env_dir]
         if version != 'default':
-            venv_cmd.extend(['-p', norm_version(version)])
+            target_python = norm_version(version)
         else:
-            venv_cmd.extend(['-p', os.path.realpath(sys.executable)])
+            target_python = os.path.realpath(sys.executable)
+
+        try:
+            subprocess.check_call(
+                [target_python, '-c', 'import venv'],
+                stderr=devnull,
+                stdout=devnull,
+            )
+            venv_python = target_python
+            venv_module = 'venv'
+            extra_cmd = []
+        except subprocess.CalledProcessError:
+            venv_python = sys.executable
+            venv_module = 'virtualenv'
+            extra_cmd = ['-p', target_python]
+
+        venv_cmd = [venv_python, '-m', venv_module, env_dir] + extra_cmd
         venv_env = dict(os.environ, VIRTUALENV_NO_DOWNLOAD='1')
         cmd_output(*venv_cmd, cwd='/', env=venv_env)
         with in_env(prefix, version):
