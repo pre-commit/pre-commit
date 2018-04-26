@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 
 import contextlib
 import os
+import subprocess
 import sys
 
 from pre_commit.envcontext import envcontext
@@ -13,6 +14,11 @@ from pre_commit.util import CalledProcessError
 from pre_commit.util import clean_path_on_failure
 from pre_commit.util import cmd_output
 from pre_commit.xargs import xargs
+
+try:
+    devnull = subprocess.DEVNULL
+except AttributeError:
+    devnull = open(os.devnull, 'w')
 
 
 ENVIRONMENT_DIR = 'py_env'
@@ -108,23 +114,29 @@ def healthy(prefix, language_version):
 
 
 def norm_version(version):
+    if version.endswith('+venv'):
+        use_venv = True
+        version = version[:-5]
+    else:
+        use_venv = False
     if os.name == 'nt':  # pragma: no cover (windows)
         # Try looking up by name
         version_exec = find_executable(version)
         if version_exec and version_exec != version:
-            return version_exec
+            return version_exec, use_venv
 
         version_exec = _find_by_py_launcher(version)
         if version_exec:
-            return version_exec
+            return version_exec, use_venv
 
         # If it is in the form pythonx.x search in the default
         # place on windows
         if version.startswith('python'):
-            return r'C:\{}\python.exe'.format(version.replace('.', ''))
+            path = r'C:\{}\python.exe'.format(version.replace('.', ''))
+            return path, use_venv
 
         # Otherwise assume it is a path
-    return os.path.expanduser(version)
+    return os.path.expanduser(version), use_venv
 
 
 def install_environment(prefix, version, additional_dependencies):
@@ -134,11 +146,23 @@ def install_environment(prefix, version, additional_dependencies):
     # Install a virtualenv
     env_dir = prefix.path(directory)
     with clean_path_on_failure(env_dir):
-        venv_cmd = [sys.executable, '-m', 'virtualenv', env_dir]
         if version != 'default':
-            venv_cmd.extend(['-p', norm_version(version)])
+            target_python, use_venv = norm_version(version)
         else:
-            venv_cmd.extend(['-p', os.path.realpath(sys.executable)])
+            target_python = os.path.realpath(sys.executable)
+            use_venv = False
+
+        if use_venv:
+            venv_cmd = [target_python, '-m', 'venv', env_dir]
+        else:
+            venv_cmd = [
+                sys.executable,
+                '-m',
+                'virtualenv',
+                '-p',
+                target_python,
+                env_dir,
+            ]
         venv_env = dict(os.environ, VIRTUALENV_NO_DOWNLOAD='1')
         cmd_output(*venv_cmd, cwd='/', env=venv_env)
         with in_env(prefix, version):
