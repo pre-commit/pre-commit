@@ -144,7 +144,6 @@ class CalledProcessError(RuntimeError):
 def cmd_output(*cmd, **kwargs):
     retcode = kwargs.pop('retcode', 0)
     encoding = kwargs.pop('encoding', 'UTF-8')
-    __popen = kwargs.pop('__popen', subprocess.Popen)
 
     popen_kwargs = {
         'stdin': subprocess.PIPE,
@@ -165,7 +164,7 @@ def cmd_output(*cmd, **kwargs):
         returncode, stdout, stderr = e.to_output()
     else:
         popen_kwargs.update(kwargs)
-        proc = __popen(cmd, **popen_kwargs)
+        proc = subprocess.Popen(cmd, **popen_kwargs)
         stdout, stderr = proc.communicate()
         returncode = proc.returncode
     if encoding is not None and stdout is not None:
