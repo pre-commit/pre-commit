@@ -53,10 +53,12 @@ def _filter_by_types(filenames,
                      exclude_types,
                      get_tags=tags_from_path):
     types, exclude_types = frozenset(types), frozenset(exclude_types)
+    valid_types = types - exclude_types
+
     ret = []
     for filename in filenames:
-        tags = get_tags(filename)
-        if tags >= types and not tags & exclude_types:
+        tags = frozenset(get_tags(filename))
+        if len(valid_types.intersection(tags)) > 0:
             ret.append(filename)
     return tuple(ret)
 

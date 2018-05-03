@@ -834,15 +834,16 @@ def test_include_exclude_exclude_removes_files(some_filenames):
     ret = _filter_by_include_exclude(some_filenames, '', r'\.py$')
     assert ret == {'.pre-commit-hooks.yaml'}
 
+
 def get_tags_stub(interpreter):
     return lambda x: tags_from_interpreter(interpreter)
 
-@pytest.mark.current
+
 def test_filter_by_types_for_bash_by_interpreter():
     ret = _filter_by_types(['bash_script'], ['shell', 'sh', 'bash'], [], get_tags=get_tags_stub('bash'))
     assert ret == ('bash_script',)
 
-@pytest.mark.current
+
 def test_filter_by_types_for_python_by_interpreter():
     ret = _filter_by_types(['script.py'], ['python'], [], get_tags=get_tags_stub('python'))
     assert ret == ('script.py',)
