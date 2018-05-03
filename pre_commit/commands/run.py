@@ -48,11 +48,14 @@ def _filter_by_include_exclude(filenames, include, exclude):
     }
 
 
-def _filter_by_types(filenames, types, exclude_types):
+def _filter_by_types(filenames,
+                     types,
+                     exclude_types,
+                     get_tags=tags_from_path):
     types, exclude_types = frozenset(types), frozenset(exclude_types)
     ret = []
     for filename in filenames:
-        tags = tags_from_path(filename)
+        tags = get_tags(filename)
         if tags >= types and not tags & exclude_types:
             ret.append(filename)
     return tuple(ret)
