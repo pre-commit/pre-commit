@@ -212,21 +212,20 @@ def main(argv=None):
     )
     help.add_argument('help_cmd', nargs='?', help='Command to show help for.')
 
-    # Argparse doesn't really provide a way to use a `default` subparser
+    # argparse doesn't really provide a way to use a `default` subparser
     if len(argv) == 0:
         argv = ['run']
     args = parser.parse_args(argv)
-    if args.command == 'run':
+
+    if args.command == 'help' and args.help_cmd:
+        parser.parse_args([args.help_cmd, '--help'])
+    elif args.command == 'help':
+        parser.parse_args(['--help'])
+    elif args.command in {'run', 'try-repo'}:
         args.files = [
             os.path.relpath(os.path.abspath(filename), git.get_root())
             for filename in args.files
         ]
-
-    if args.command == 'help':
-        if args.help_cmd:
-            parser.parse_args([args.help_cmd, '--help'])
-        else:
-            parser.parse_args(['--help'])
 
     with error_handler():
         add_logging_handler(args.color)
