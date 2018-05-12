@@ -33,6 +33,7 @@ from testing.util import skipif_cant_run_docker
 from testing.util import skipif_cant_run_swift
 from testing.util import xfailif_broken_deep_listdir
 from testing.util import xfailif_no_pcre_support
+from testing.util import xfailif_no_venv
 from testing.util import xfailif_windows_no_ruby
 
 
@@ -109,6 +110,15 @@ def test_python_hook_weird_setup_cfg(tempdir_factory, store):
             'foo', [os.devnull],
             b"['" + five.to_bytes(os.devnull) + b"']\nHello World\n",
         )
+
+
+@xfailif_no_venv
+def test_python_venv(tempdir_factory, store):  # pragma: no cover (no venv)
+    _test_hook_repo(
+        tempdir_factory, store, 'python_venv_hooks_repo',
+        'foo', [os.devnull],
+        b"['" + five.to_bytes(os.devnull) + b"']\nHello World\n",
+    )
 
 
 @pytest.mark.integration
