@@ -1,0 +1,5 @@
+-   id: foo
+    name: Foo
+    entry: foo
+    language: python_venv
+    files: \.py$

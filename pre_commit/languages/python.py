@@ -16,7 +16,6 @@ from pre_commit.xargs import xargs
 
 
 ENVIRONMENT_DIR = 'py_env'
-HEALTH_MODS = ('datetime', 'io', 'os', 'ssl', 'weakref')
 
 
 def bin_dir(venv):
@@ -120,7 +119,8 @@ def py_interface(_dir, _make_venv):
     def healthy(prefix, language_version):
         with in_env(prefix, language_version):
             retcode, _, _ = cmd_output(
-                'python', '-c', 'import {}'.format(','.join(HEALTH_MODS)),
+                'python', '-c',
+                'import ctypes, datetime, io, os, ssl, weakref',
                 retcode=None,
             )
         return retcode == 0
