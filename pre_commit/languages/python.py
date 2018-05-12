@@ -16,6 +16,7 @@ from pre_commit.xargs import xargs
 
 
 ENVIRONMENT_DIR = 'py_env'
+HEALTH_MODS = ('datetime', 'io', 'os', 'ssl', 'weakref')
 
 
 def bin_dir(venv):
@@ -30,15 +31,6 @@ def get_env_patch(venv):
         ('VIRTUAL_ENV', venv),
         ('PATH', (bin_dir(venv), os.pathsep, Var('PATH'))),
     )
-
-
-@contextlib.contextmanager
-def in_env(prefix, language_version):
-    envdir = prefix.path(
-        helpers.environment_dir(ENVIRONMENT_DIR, language_version),
-    )
-    with envcontext(get_env_patch(envdir)):
-        yield
 
 
 def _find_by_py_launcher(version):  # pragma: no cover (windows only)
@@ -98,15 +90,6 @@ def get_default_version():
         return get_default_version()
 
 
-def healthy(prefix, language_version):
-    with in_env(prefix, language_version):
-        retcode, _, _ = cmd_output(
-            'python', '-c', 'import ctypes, datetime, io, os, ssl, weakref',
-            retcode=None,
-        )
-    return retcode == 0
-
-
 def norm_version(version):
     if os.name == 'nt':  # pragma: no cover (windows)
         # Try looking up by name
@@ -123,30 +106,53 @@ def norm_version(version):
         if version.startswith('python'):
             return r'C:\{}\python.exe'.format(version.replace('.', ''))
 
-        # Otherwise assume it is a path
+    # Otherwise assume it is a path
     return os.path.expanduser(version)
 
 
-def install_environment(prefix, version, additional_dependencies):
-    additional_dependencies = tuple(additional_dependencies)
-    directory = helpers.environment_dir(ENVIRONMENT_DIR, version)
+def py_interface(_dir, _make_venv):
+    @contextlib.contextmanager
+    def in_env(prefix, language_version):
+        envdir = prefix.path(helpers.environment_dir(_dir, language_version))
+        with envcontext(get_env_patch(envdir)):
+            yield
 
-    # Install a virtualenv
-    env_dir = prefix.path(directory)
-    with clean_path_on_failure(env_dir):
-        venv_cmd = [sys.executable, '-m', 'virtualenv', env_dir]
-        if version != 'default':
-            venv_cmd.extend(['-p', norm_version(version)])
-        else:
-            venv_cmd.extend(['-p', os.path.realpath(sys.executable)])
-        venv_env = dict(os.environ, VIRTUALENV_NO_DOWNLOAD='1')
-        cmd_output(*venv_cmd, cwd='/', env=venv_env)
-        with in_env(prefix, version):
-            helpers.run_setup_cmd(
-                prefix, ('pip', 'install', '.') + additional_dependencies,
+    def healthy(prefix, language_version):
+        with in_env(prefix, language_version):
+            retcode, _, _ = cmd_output(
+                'python', '-c', 'import {}'.format(','.join(HEALTH_MODS)),
+                retcode=None,
             )
+        return retcode == 0
+
+    def run_hook(prefix, hook, file_args):
+        with in_env(prefix, hook['language_version']):
+            return xargs(helpers.to_cmd(hook), file_args)
+
+    def install_environment(prefix, version, additional_dependencies):
+        additional_dependencies = tuple(additional_dependencies)
+        directory = helpers.environment_dir(_dir, version)
+
+        env_dir = prefix.path(directory)
+        with clean_path_on_failure(env_dir):
+            if version != 'default':
+                python = norm_version(version)
+            else:
+                python = os.path.realpath(sys.executable)
+            _make_venv(env_dir, python)
+            with in_env(prefix, version):
+                helpers.run_setup_cmd(
+                    prefix, ('pip', 'install', '.') + additional_dependencies,
+                )
+
+    return in_env, healthy, run_hook, install_environment
 
 
-def run_hook(prefix, hook, file_args):
-    with in_env(prefix, hook['language_version']):
-        return xargs(helpers.to_cmd(hook), file_args)
+def make_venv(envdir, python):
+    env = dict(os.environ, VIRTUALENV_NO_DOWNLOAD='1')
+    cmd = (sys.executable, '-mvirtualenv', envdir, '-p', python)
+    cmd_output(*cmd, env=env, cwd='/')
+
+
+_interface = py_interface(ENVIRONMENT_DIR, make_venv)
+in_env, healthy, run_hook, install_environment = _interface
