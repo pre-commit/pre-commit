@@ -42,6 +42,7 @@ setup(
         'nodeenv>=0.11.1',
         'pyyaml',
         'six',
+        'toml',
         'virtualenv',
     ],
     entry_points={

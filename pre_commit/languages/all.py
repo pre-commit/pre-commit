@@ -9,6 +9,7 @@ from pre_commit.languages import pygrep
 from pre_commit.languages import python
 from pre_commit.languages import python_venv
 from pre_commit.languages import ruby
+from pre_commit.languages import rust
 from pre_commit.languages import script
 from pre_commit.languages import swift
 from pre_commit.languages import system
@@ -60,6 +61,7 @@ languages = {
     'python': python,
     'python_venv': python_venv,
     'ruby': ruby,
+    'rust': rust,
     'script': script,
     'swift': swift,
     'system': system,
