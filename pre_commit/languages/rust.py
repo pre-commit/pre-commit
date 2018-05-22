@@ -22,7 +22,7 @@ def get_env_patch(target_dir):
     return (
         (
             'PATH',
-            (os.path.join(target_dir, 'release'), os.pathsep, Var('PATH')),
+            (os.path.join(target_dir, 'bin'), os.pathsep, Var('PATH')),
         ),
     )
 
@@ -47,20 +47,36 @@ def _add_dependencies(cargo_toml_path, additional_dependencies):
         f.truncate()
 
 
-def install_environment(prefix, version, additional_dependencies):
+def install_environment(prefix, version, additional_deps):
     helpers.assert_version_default('rust', version)
     directory = prefix.path(
         helpers.environment_dir(ENVIRONMENT_DIR, 'default'),
     )
 
-    if len(additional_dependencies) > 0:
-        _add_dependencies(prefix.path('Cargo.toml'), additional_dependencies)
+    # There are two cases where we might want to specify more dependencies:
+    # as dependencies for the library being built, and as binary packages
+    # to be `cargo install`'d.
+    #
+    # Unlike e.g. Python, if we just `cargo install` a library, it won't be
+    # used for compilation. And if we add a crate providing a binary to the
+    # `Cargo.toml`, the binary won't be built.
+    #
+    # Because of this, we allow specifying "cli" dependencies by prefixing
+    # with 'cli:'.
+    cli_deps = {dep for dep in additional_deps if dep.startswith('cli:')}
+    lib_deps = set(additional_deps) - cli_deps
+
+    if len(lib_deps) > 0:
+        _add_dependencies(prefix.path('Cargo.toml'), lib_deps)
 
     with clean_path_on_failure(directory):
-        cmd_output(
-            'cargo', 'build', '--release', '--bins', '--target-dir', directory,
-            cwd=prefix.prefix_dir,
-        )
+        packages_to_install = {()} | {(dep[len('cli:'):],) for dep in cli_deps}
+
+        for package in packages_to_install:
+            cmd_output(
+                'cargo', 'install', '--bins', '--root', directory, *package,
+                cwd=prefix.prefix_dir
+            )
 
 
 def run_hook(prefix, hook, file_args):
