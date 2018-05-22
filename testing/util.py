@@ -52,7 +52,11 @@ def broken_deep_listdir():  # pragma: no cover (platform specific)
         os.listdir(str('\\\\?\\') + os.path.abspath(str('.')))
     except OSError:
         return True
-    else:
+    try:
+        os.listdir(b'\\\\?\C:' + b'\\' * 300)
+    except TypeError:
+        return True
+    except OSError:
         return False
 
 
