@@ -479,31 +479,6 @@ def test_stdout_write_bug_py26(
         assert 'UnicodeDecodeError' not in stdout
 
 
-def test_hook_install_failure(mock_out_store_directory, tempdir_factory):
-    git_path = make_consuming_repo(tempdir_factory, 'not_installable_repo')
-    with cwd(git_path):
-        install(Runner(git_path, C.CONFIG_FILE))
-
-        _, stdout, _ = cmd_output_mocked_pre_commit_home(
-            'git', 'commit', '-m', 'Commit!',
-            # git commit puts pre-commit to stderr
-            stderr=subprocess.STDOUT,
-            retcode=None,
-            encoding=None,
-            tempdir_factory=tempdir_factory,
-        )
-        assert b'UnicodeDecodeError' not in stdout
-        # Doesn't actually happen, but a reasonable assertion
-        assert b'UnicodeEncodeError' not in stdout
-
-        # Sanity check our output
-        assert (
-            b'An unexpected error has occurred: CalledProcessError: ' in
-            stdout
-        )
-        assert '☃'.encode('UTF-8') + '²'.encode('latin1') in stdout
-
-
 def test_lots_of_files(mock_out_store_directory, tempdir_factory):
     # windows xargs seems to have a bug, here's a regression test for
     # our workaround
