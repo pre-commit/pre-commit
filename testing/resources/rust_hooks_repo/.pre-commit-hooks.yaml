@@ -1,0 +1,5 @@
+-   id: rust-hook
+    name: rust example hook
+    entry: rust-hello-world
+    language: rust
+    files: ''

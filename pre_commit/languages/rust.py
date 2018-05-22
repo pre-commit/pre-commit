@@ -39,6 +39,7 @@ def in_env(prefix):
 def _add_dependencies(cargo_toml_path, additional_dependencies):
     with open(cargo_toml_path, 'r+') as f:
         cargo_toml = toml.load(f)
+        cargo_toml.setdefault('dependencies', {})
         for dep in additional_dependencies:
             name, _, spec = dep.partition(':')
             cargo_toml['dependencies'][name] = spec or '*'
@@ -47,7 +48,7 @@ def _add_dependencies(cargo_toml_path, additional_dependencies):
         f.truncate()
 
 
-def install_environment(prefix, version, additional_deps):
+def install_environment(prefix, version, additional_dependencies):
     helpers.assert_version_default('rust', version)
     directory = prefix.path(
         helpers.environment_dir(ENVIRONMENT_DIR, 'default'),
@@ -63,14 +64,23 @@ def install_environment(prefix, version, additional_deps):
     #
     # Because of this, we allow specifying "cli" dependencies by prefixing
     # with 'cli:'.
-    cli_deps = {dep for dep in additional_deps if dep.startswith('cli:')}
-    lib_deps = set(additional_deps) - cli_deps
+    cli_deps = {
+        dep for dep in additional_dependencies if dep.startswith('cli:')
+    }
+    lib_deps = set(additional_dependencies) - cli_deps
 
     if len(lib_deps) > 0:
         _add_dependencies(prefix.path('Cargo.toml'), lib_deps)
 
     with clean_path_on_failure(directory):
-        packages_to_install = {()} | {(dep[len('cli:'):],) for dep in cli_deps}
+        packages_to_install = {()}
+        for cli_dep in cli_deps:
+            cli_dep = cli_dep[len('cli:'):]
+            package, _, version = cli_dep.partition(':')
+            if version != '':
+                packages_to_install.add((package, '--version', version))
+            else:
+                packages_to_install.add((package,))
 
         for package in packages_to_install:
             cmd_output(
