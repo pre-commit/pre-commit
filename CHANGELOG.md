@@ -1,3 +1,20 @@
+1.9.0
+=====
+
+### Features
+- Add new `python_venv` language which uses the `venv` module instead of
+  `virtualenv`
+    - #631 issue by @dongyuzheng.
+    - #739 PR by @ojii.
+- Include `LICENSE` in distribution
+    - #745 issue by @nicoddemus.
+    - #746 PR by @nicoddemus.
+
+### Fixes
+- Normalize relative paths for `pre-commit try-repo`
+    - #750 PR by @asottile.
+
+
 1.8.2
 =====
 
