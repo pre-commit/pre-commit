@@ -306,6 +306,8 @@ def test_additional_rust_cli_dependencies_installed(
     binaries = os.listdir(prefix.path(
         helpers.environment_dir(rust.ENVIRONMENT_DIR, 'default'), 'bin',
     ))
+    # normalize for windows
+    binaries = [os.path.splitext(binary)[0] for binary in binaries]
     assert 'shellharden' in binaries
 
 
@@ -324,6 +326,8 @@ def test_additional_rust_lib_dependencies_installed(
     binaries = os.listdir(prefix.path(
         helpers.environment_dir(rust.ENVIRONMENT_DIR, 'default'), 'bin',
     ))
+    # normalize for windows
+    binaries = [os.path.splitext(binary)[0] for binary in binaries]
     assert 'rust-hello-world' in binaries
     assert 'shellharden' not in binaries
 

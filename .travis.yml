@@ -24,6 +24,8 @@ before_install:
         fi
     - git --version
     - './get-swift.sh && export PATH="/tmp/swift/usr/bin:$PATH"'
+    - 'curl -sSf https://sh.rustup.rs | bash -s -- -y'
+    - export PATH="$HOME/.cargo/bin:$PATH"
 after_success: coveralls
 cache:
     directories:
