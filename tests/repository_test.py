@@ -604,6 +604,24 @@ def test_local_golang_additional_dependencies(store):
     assert _norm_out(ret[1]) == b"Hello, Go examples!\n"
 
 
+def test_local_rust_additional_dependencies(store):
+    config = {
+        'repo': 'local',
+        'hooks': [{
+            'id': 'hello',
+            'name': 'hello',
+            'entry': 'hello',
+            'language': 'rust',
+            'additional_dependencies': ['cli:hello-cli:0.2.2'],
+        }],
+    }
+    repo = Repository.create(config, store)
+    (_, hook), = repo.hooks
+    ret = repo.run_hook(hook, ())
+    assert ret[0] == 0
+    assert _norm_out(ret[1]) == b"Hello World!\n"
+
+
 def test_reinstall(tempdir_factory, store, log_info_mock):
     path = make_repo(tempdir_factory, 'python_hooks_repo')
     config = make_config_from_repo(path)
