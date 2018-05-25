@@ -26,7 +26,7 @@ your changes immediately.
 ### Running a specific test
 
 Running a specific test with the environment activated is as easy as:
-`py.test tests -k test_the_name_of_your_test`
+`pytest tests -k test_the_name_of_your_test`
 
 ### Running all the tests
 
@@ -36,7 +36,7 @@ significant cpu while running the slower node / ruby integration tests.
 
 Alternatively, with the environment activated you can run all of the tests
 using:
-`py.test tests`
+`pytest tests`
 
 ### Setting up the hooks
 
