@@ -11,6 +11,8 @@ install:
     - pip install tox virtualenv --upgrade
     - "mkdir -p C:\\Temp"
     - "SET TMPDIR=C:\\Temp"
+    - "curl -sSf https://sh.rustup.rs | bash -s -- -y"
+    - "SET PATH=%USERPROFILE%\\.cargo\\bin;%PATH%"
 
 # Not a C# project
 build: false

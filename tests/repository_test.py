@@ -20,6 +20,7 @@ from pre_commit.languages import node
 from pre_commit.languages import pcre
 from pre_commit.languages import python
 from pre_commit.languages import ruby
+from pre_commit.languages import rust
 from pre_commit.repository import Repository
 from pre_commit.util import cmd_output
 from testing.fixtures import config_with_local_hooks
@@ -280,6 +281,55 @@ def test_golang_hook(tempdir_factory, store):
         tempdir_factory, store, 'golang_hooks_repo',
         'golang-hook', [], b'hello world\n',
     )
+
+
+@pytest.mark.integration
+def test_rust_hook(tempdir_factory, store):
+    _test_hook_repo(
+        tempdir_factory, store, 'rust_hooks_repo',
+        'rust-hook', [], b'hello world\n',
+    )
+
+
+@pytest.mark.integration
+@pytest.mark.parametrize('dep', ('cli:shellharden:3.1.0', 'cli:shellharden'))
+def test_additional_rust_cli_dependencies_installed(
+        tempdir_factory, store, dep,
+):
+    path = make_repo(tempdir_factory, 'rust_hooks_repo')
+    config = make_config_from_repo(path)
+    # A small rust package with no dependencies.
+    config['hooks'][0]['additional_dependencies'] = [dep]
+    repo = Repository.create(config, store)
+    repo.require_installed()
+    (prefix, _, _, _), = repo._venvs()
+    binaries = os.listdir(prefix.path(
+        helpers.environment_dir(rust.ENVIRONMENT_DIR, 'default'), 'bin',
+    ))
+    # normalize for windows
+    binaries = [os.path.splitext(binary)[0] for binary in binaries]
+    assert 'shellharden' in binaries
+
+
+@pytest.mark.integration
+def test_additional_rust_lib_dependencies_installed(
+        tempdir_factory, store,
+):
+    path = make_repo(tempdir_factory, 'rust_hooks_repo')
+    config = make_config_from_repo(path)
+    # A small rust package with no dependencies.
+    deps = ['shellharden:3.1.0']
+    config['hooks'][0]['additional_dependencies'] = deps
+    repo = Repository.create(config, store)
+    repo.require_installed()
+    (prefix, _, _, _), = repo._venvs()
+    binaries = os.listdir(prefix.path(
+        helpers.environment_dir(rust.ENVIRONMENT_DIR, 'default'), 'bin',
+    ))
+    # normalize for windows
+    binaries = [os.path.splitext(binary)[0] for binary in binaries]
+    assert 'rust-hello-world' in binaries
+    assert 'shellharden' not in binaries
 
 
 @pytest.mark.integration
@@ -552,6 +602,24 @@ def test_local_golang_additional_dependencies(store):
     ret = repo.run_hook(hook, ('filename',))
     assert ret[0] == 0
     assert _norm_out(ret[1]) == b"Hello, Go examples!\n"
+
+
+def test_local_rust_additional_dependencies(store):
+    config = {
+        'repo': 'local',
+        'hooks': [{
+            'id': 'hello',
+            'name': 'hello',
+            'entry': 'hello',
+            'language': 'rust',
+            'additional_dependencies': ['cli:hello-cli:0.2.2'],
+        }],
+    }
+    repo = Repository.create(config, store)
+    (_, hook), = repo.hooks
+    ret = repo.run_hook(hook, ())
+    assert ret[0] == 0
+    assert _norm_out(ret[1]) == b"Hello World!\n"
 
 
 def test_reinstall(tempdir_factory, store, log_info_mock):
