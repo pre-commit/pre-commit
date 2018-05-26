@@ -1,3 +1,10 @@
+1.10.0
+======
+
+### Features
+- Add support for hooks written in `rust`
+    - #751 PR by @chriskuehl.
+
 1.9.0
 =====
 
