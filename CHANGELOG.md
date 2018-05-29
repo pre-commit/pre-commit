@@ -1,3 +1,11 @@
+1.10.1
+======
+
+### Fixes
+- `python_venv` language would leak dependencies when pre-commit was installed
+  in a `-mvirtualenv` virtualenv
+    - #755 #756 issue and PR by @asottile.
+
 1.10.0
 ======
 
