@@ -1,6 +1,8 @@
 from setuptools import find_packages
 from setuptools import setup
 
+with open('README.md') as f:
+    long_description = f.read()
 
 setup(
     name='pre_commit',
@@ -8,12 +10,12 @@ setup(
         'A framework for managing and maintaining multi-language pre-commit '
         'hooks.'
     ),
+    long_description=long_description,
+    long_description_content_type='text/markdown',
     url='https://github.com/pre-commit/pre-commit',
     version='1.10.1',
-
     author='Anthony Sottile',
     author_email='asottile@umich.edu',
-
     classifiers=[
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python :: 2',
@@ -24,7 +26,6 @@ setup(
         'Programming Language :: Python :: Implementation :: CPython',
         'Programming Language :: Python :: Implementation :: PyPy',
     ],
-
     packages=find_packages(exclude=('tests*', 'testing*')),
     package_data={
         'pre_commit': [
