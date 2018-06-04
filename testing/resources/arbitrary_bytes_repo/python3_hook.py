@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 import sys
 
 
-def func():
+def main():
     # Intentionally write mixed encoding to the output.  This should not crash
     # pre-commit and should write bytes to the output.
     sys.stdout.buffer.write('☃'.encode('UTF-8') + '²'.encode('latin1') + b'\n')
