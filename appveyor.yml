@@ -19,6 +19,7 @@ build: false
 
 before_test:
   # Shut up CRLF messages
+  - git config --global core.autocrlf false
   - git config --global core.safecrlf false
 
 test_script: tox
