@@ -19,11 +19,11 @@ before_install:
     - git --version
     - |
         if [ "$LATEST_GIT" = "1" ]; then
-            ./latest-git.sh
+            testing/latest-git.sh
             export PATH="/tmp/git/bin:$PATH"
         fi
     - git --version
-    - './get-swift.sh && export PATH="/tmp/swift/usr/bin:$PATH"'
+    - 'testing/get-swift.sh && export PATH="/tmp/swift/usr/bin:$PATH"'
     - 'curl -sSf https://sh.rustup.rs | bash -s -- -y'
     - export PATH="$HOME/.cargo/bin:$PATH"
 after_success: coveralls
