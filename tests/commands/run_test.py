@@ -770,19 +770,19 @@ def test_fail_fast(
 def some_filenames():
     return (
         '.pre-commit-hooks.yaml',
-        'pre_commit/main.py',
-        'pre_commit/git.py',
         'im_a_file_that_doesnt_exist.py',
+        'pre_commit/git.py',
+        'pre_commit/main.py',
     )
 
 
 def test_include_exclude_base_case(some_filenames):
     ret = _filter_by_include_exclude(some_filenames, '', '^$')
-    assert ret == {
+    assert ret == [
         '.pre-commit-hooks.yaml',
-        'pre_commit/main.py',
         'pre_commit/git.py',
-    }
+        'pre_commit/main.py',
+    ]
 
 
 @xfailif_no_symlink
@@ -790,19 +790,19 @@ def test_matches_broken_symlink(tmpdir):  # pragma: no cover (non-windows)
     with tmpdir.as_cwd():
         os.symlink('does-not-exist', 'link')
         ret = _filter_by_include_exclude({'link'}, '', '^$')
-        assert ret == {'link'}
+        assert ret == ['link']
 
 
 def test_include_exclude_total_match(some_filenames):
     ret = _filter_by_include_exclude(some_filenames, r'^.*\.py$', '^$')
-    assert ret == {'pre_commit/main.py', 'pre_commit/git.py'}
+    assert ret == ['pre_commit/git.py', 'pre_commit/main.py']
 
 
 def test_include_exclude_does_search_instead_of_match(some_filenames):
     ret = _filter_by_include_exclude(some_filenames, r'\.yaml$', '^$')
-    assert ret == {'.pre-commit-hooks.yaml'}
+    assert ret == ['.pre-commit-hooks.yaml']
 
 
 def test_include_exclude_exclude_removes_files(some_filenames):
     ret = _filter_by_include_exclude(some_filenames, '', r'\.py$')
-    assert ret == {'.pre-commit-hooks.yaml'}
+    assert ret == ['.pre-commit-hooks.yaml']
