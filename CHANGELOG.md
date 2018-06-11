@@ -1,3 +1,11 @@
+1.10.2
+======
+
+### Fixes
+- pre-commit now invokes hooks with a consistent ordering of filenames
+    - issue by @mxr.
+    - #767 PR by @asottile.
+
 1.10.1
 ======
 
