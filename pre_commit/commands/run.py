@@ -38,14 +38,14 @@ def _hook_msg_start(hook, verbose):
 
 def _filter_by_include_exclude(filenames, include, exclude):
     include_re, exclude_re = re.compile(include), re.compile(exclude)
-    return {
+    return [
         filename for filename in filenames
         if (
             include_re.search(filename) and
             not exclude_re.search(filename) and
             os.path.lexists(filename)
         )
-    }
+    ]
 
 
 def _filter_by_types(filenames, types, exclude_types):
