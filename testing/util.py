@@ -53,7 +53,7 @@ def broken_deep_listdir():  # pragma: no cover (platform specific)
     except OSError:
         return True
     try:
-        os.listdir(b'\\\\?\C:' + b'\\' * 300)
+        os.listdir(b'\\\\?\\C:' + b'\\' * 300)
     except TypeError:
         return True
     except OSError:
