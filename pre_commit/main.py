@@ -248,7 +248,7 @@ def main(argv=None):
             if args.tags_only:
                 logger.warning('--tags-only is the default')
             return autoupdate(
-                runner,
+                runner, runner.store,
                 tags_only=not args.bleeding_edge,
                 repos=args.repos,
             )

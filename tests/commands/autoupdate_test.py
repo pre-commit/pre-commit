@@ -30,31 +30,27 @@ def up_to_date_repo(tempdir_factory):
     yield make_repo(tempdir_factory, 'python_hooks_repo')
 
 
-def test_up_to_date_repo(up_to_date_repo, runner_with_mocked_store):
+def test_up_to_date_repo(up_to_date_repo, store):
     config = make_config_from_repo(up_to_date_repo)
     input_rev = config['rev']
-    ret = _update_repo(config, runner_with_mocked_store, tags_only=False)
+    ret = _update_repo(config, store, tags_only=False)
     assert ret['rev'] == input_rev
 
 
-def test_autoupdate_up_to_date_repo(
-        up_to_date_repo, in_tmpdir, mock_out_store_directory,
-):
+def test_autoupdate_up_to_date_repo(up_to_date_repo, in_tmpdir, store):
     # Write out the config
     config = make_config_from_repo(up_to_date_repo, check=False)
     write_config('.', config)
 
     before = open(C.CONFIG_FILE).read()
     assert '^$' not in before
-    ret = autoupdate(Runner('.', C.CONFIG_FILE), tags_only=False)
+    ret = autoupdate(Runner('.', C.CONFIG_FILE), store, tags_only=False)
     after = open(C.CONFIG_FILE).read()
     assert ret == 0
     assert before == after
 
 
-def test_autoupdate_old_revision_broken(
-    tempdir_factory, in_tmpdir, mock_out_store_directory,
-):
+def test_autoupdate_old_revision_broken(tempdir_factory, in_tmpdir, store):
     """In $FUTURE_VERSION, hooks.yaml will no longer be supported.  This
     asserts that when that day comes, pre-commit will be able to autoupdate
     despite not being able to read hooks.yaml in that repository.
@@ -73,7 +69,7 @@ def test_autoupdate_old_revision_broken(
     config['rev'] = rev
     write_config('.', config)
     before = open(C.CONFIG_FILE).read()
-    ret = autoupdate(Runner('.', C.CONFIG_FILE), tags_only=False)
+    ret = autoupdate(Runner('.', C.CONFIG_FILE), store, tags_only=False)
     after = open(C.CONFIG_FILE).read()
     assert ret == 0
     assert before != after
@@ -94,18 +90,16 @@ def out_of_date_repo(tempdir_factory):
     )
 
 
-def test_out_of_date_repo(out_of_date_repo, runner_with_mocked_store):
+def test_out_of_date_repo(out_of_date_repo, store):
     config = make_config_from_repo(
         out_of_date_repo.path, rev=out_of_date_repo.original_rev,
     )
-    ret = _update_repo(config, runner_with_mocked_store, tags_only=False)
+    ret = _update_repo(config, store, tags_only=False)
     assert ret['rev'] != out_of_date_repo.original_rev
     assert ret['rev'] == out_of_date_repo.head_rev
 
 
-def test_autoupdate_out_of_date_repo(
-        out_of_date_repo, in_tmpdir, mock_out_store_directory,
-):
+def test_autoupdate_out_of_date_repo(out_of_date_repo, in_tmpdir, store):
     # Write out the config
     config = make_config_from_repo(
         out_of_date_repo.path, rev=out_of_date_repo.original_rev, check=False,
@@ -113,7 +107,7 @@ def test_autoupdate_out_of_date_repo(
     write_config('.', config)
 
     before = open(C.CONFIG_FILE).read()
-    ret = autoupdate(Runner('.', C.CONFIG_FILE), tags_only=False)
+    ret = autoupdate(Runner('.', C.CONFIG_FILE), store, tags_only=False)
     after = open(C.CONFIG_FILE).read()
     assert ret == 0
     assert before != after
@@ -123,7 +117,7 @@ def test_autoupdate_out_of_date_repo(
 
 
 def test_autoupdate_out_of_date_repo_with_correct_repo_name(
-        out_of_date_repo, in_tmpdir, mock_out_store_directory,
+        out_of_date_repo, in_tmpdir, store,
 ):
     stale_config = make_config_from_repo(
         out_of_date_repo.path, rev=out_of_date_repo.original_rev, check=False,
@@ -136,7 +130,7 @@ def test_autoupdate_out_of_date_repo_with_correct_repo_name(
     runner = Runner('.', C.CONFIG_FILE)
     before = open(C.CONFIG_FILE).read()
     repo_name = 'file://{}'.format(out_of_date_repo.path)
-    ret = autoupdate(runner, tags_only=False, repos=(repo_name,))
+    ret = autoupdate(runner, store, tags_only=False, repos=(repo_name,))
     after = open(C.CONFIG_FILE).read()
     assert ret == 0
     assert before != after
@@ -145,7 +139,7 @@ def test_autoupdate_out_of_date_repo_with_correct_repo_name(
 
 
 def test_autoupdate_out_of_date_repo_with_wrong_repo_name(
-        out_of_date_repo, in_tmpdir, mock_out_store_directory,
+        out_of_date_repo, in_tmpdir, store,
 ):
     # Write out the config
     config = make_config_from_repo(
@@ -156,15 +150,13 @@ def test_autoupdate_out_of_date_repo_with_wrong_repo_name(
     runner = Runner('.', C.CONFIG_FILE)
     before = open(C.CONFIG_FILE).read()
     # It will not update it, because the name doesn't match
-    ret = autoupdate(runner, tags_only=False, repos=('wrong_repo_name',))
+    ret = autoupdate(runner, store, tags_only=False, repos=('dne',))
     after = open(C.CONFIG_FILE).read()
     assert ret == 0
     assert before == after
 
 
-def test_does_not_reformat(
-        out_of_date_repo, mock_out_store_directory, in_tmpdir,
-):
+def test_does_not_reformat(in_tmpdir, out_of_date_repo, store):
     fmt = (
         'repos:\n'
         '-   repo: {}\n'
@@ -178,14 +170,14 @@ def test_does_not_reformat(
     with open(C.CONFIG_FILE, 'w') as f:
         f.write(config)
 
-    autoupdate(Runner('.', C.CONFIG_FILE), tags_only=False)
+    autoupdate(Runner('.', C.CONFIG_FILE), store, tags_only=False)
     after = open(C.CONFIG_FILE).read()
     expected = fmt.format(out_of_date_repo.path, out_of_date_repo.head_rev)
     assert after == expected
 
 
 def test_loses_formatting_when_not_detectable(
-        out_of_date_repo, mock_out_store_directory, in_tmpdir,
+        out_of_date_repo, store, in_tmpdir,
 ):
     """A best-effort attempt is made at updating rev without rewriting
     formatting.  When the original formatting cannot be detected, this
@@ -207,7 +199,7 @@ def test_loses_formatting_when_not_detectable(
     with open(C.CONFIG_FILE, 'w') as f:
         f.write(config)
 
-    autoupdate(Runner('.', C.CONFIG_FILE), tags_only=False)
+    autoupdate(Runner('.', C.CONFIG_FILE), store, tags_only=False)
     after = open(C.CONFIG_FILE).read()
     expected = (
         'repos:\n'
@@ -225,15 +217,13 @@ def tagged_repo(out_of_date_repo):
     yield out_of_date_repo
 
 
-def test_autoupdate_tagged_repo(
-        tagged_repo, in_tmpdir, mock_out_store_directory,
-):
+def test_autoupdate_tagged_repo(tagged_repo, in_tmpdir, store):
     config = make_config_from_repo(
         tagged_repo.path, rev=tagged_repo.original_rev,
     )
     write_config('.', config)
 
-    ret = autoupdate(Runner('.', C.CONFIG_FILE), tags_only=False)
+    ret = autoupdate(Runner('.', C.CONFIG_FILE), store, tags_only=False)
     assert ret == 0
     assert 'v1.2.3' in open(C.CONFIG_FILE).read()
 
@@ -244,16 +234,14 @@ def tagged_repo_with_more_commits(tagged_repo):
     yield tagged_repo
 
 
-def test_autoupdate_tags_only(
-        tagged_repo_with_more_commits, in_tmpdir, mock_out_store_directory,
-):
+def test_autoupdate_tags_only(tagged_repo_with_more_commits, in_tmpdir, store):
     config = make_config_from_repo(
         tagged_repo_with_more_commits.path,
         rev=tagged_repo_with_more_commits.original_rev,
     )
     write_config('.', config)
 
-    ret = autoupdate(Runner('.', C.CONFIG_FILE), tags_only=True)
+    ret = autoupdate(Runner('.', C.CONFIG_FILE), store, tags_only=True)
     assert ret == 0
     assert 'v1.2.3' in open(C.CONFIG_FILE).read()
 
@@ -273,20 +261,18 @@ def hook_disappearing_repo(tempdir_factory):
     yield auto_namedtuple(path=path, original_rev=original_rev)
 
 
-def test_hook_disppearing_repo_raises(
-        hook_disappearing_repo, runner_with_mocked_store,
-):
+def test_hook_disppearing_repo_raises(hook_disappearing_repo, store):
     config = make_config_from_repo(
         hook_disappearing_repo.path,
         rev=hook_disappearing_repo.original_rev,
         hooks=[OrderedDict((('id', 'foo'),))],
     )
     with pytest.raises(RepositoryCannotBeUpdatedError):
-        _update_repo(config, runner_with_mocked_store, tags_only=False)
+        _update_repo(config, store, tags_only=False)
 
 
 def test_autoupdate_hook_disappearing_repo(
-        hook_disappearing_repo, in_tmpdir, mock_out_store_directory,
+        hook_disappearing_repo, in_tmpdir, store,
 ):
     config = make_config_from_repo(
         hook_disappearing_repo.path,
@@ -297,25 +283,25 @@ def test_autoupdate_hook_disappearing_repo(
     write_config('.', config)
 
     before = open(C.CONFIG_FILE).read()
-    ret = autoupdate(Runner('.', C.CONFIG_FILE), tags_only=False)
+    ret = autoupdate(Runner('.', C.CONFIG_FILE), store, tags_only=False)
     after = open(C.CONFIG_FILE).read()
     assert ret == 1
     assert before == after
 
 
-def test_autoupdate_local_hooks(tempdir_factory):
+def test_autoupdate_local_hooks(tempdir_factory, store):
     git_path = git_dir(tempdir_factory)
     config = config_with_local_hooks()
     path = add_config_to_repo(git_path, config)
     runner = Runner(path, C.CONFIG_FILE)
-    assert autoupdate(runner, tags_only=False) == 0
+    assert autoupdate(runner, store, tags_only=False) == 0
     new_config_writen = load_config(runner.config_file_path)
     assert len(new_config_writen['repos']) == 1
     assert new_config_writen['repos'][0] == config
 
 
 def test_autoupdate_local_hooks_with_out_of_date_repo(
-        out_of_date_repo, in_tmpdir, mock_out_store_directory,
+        out_of_date_repo, in_tmpdir, store,
 ):
     stale_config = make_config_from_repo(
         out_of_date_repo.path, rev=out_of_date_repo.original_rev, check=False,
@@ -324,13 +310,13 @@ def test_autoupdate_local_hooks_with_out_of_date_repo(
     config = {'repos': [local_config, stale_config]}
     write_config('.', config)
     runner = Runner('.', C.CONFIG_FILE)
-    assert autoupdate(runner, tags_only=False) == 0
+    assert autoupdate(runner, store, tags_only=False) == 0
     new_config_writen = load_config(runner.config_file_path)
     assert len(new_config_writen['repos']) == 2
     assert new_config_writen['repos'][0] == local_config
 
 
-def test_autoupdate_meta_hooks(tmpdir, capsys):
+def test_autoupdate_meta_hooks(tmpdir, capsys, store):
     cfg = tmpdir.join(C.CONFIG_FILE)
     cfg.write(
         'repos:\n'
@@ -338,7 +324,8 @@ def test_autoupdate_meta_hooks(tmpdir, capsys):
         '    hooks:\n'
         '    -   id: check-useless-excludes\n',
     )
-    ret = autoupdate(Runner(tmpdir.strpath, C.CONFIG_FILE), tags_only=True)
+    runner = Runner(tmpdir.strpath, C.CONFIG_FILE)
+    ret = autoupdate(runner, store, tags_only=True)
     assert ret == 0
     assert cfg.read() == (
         'repos:\n'
@@ -348,7 +335,7 @@ def test_autoupdate_meta_hooks(tmpdir, capsys):
     )
 
 
-def test_updates_old_format_to_new_format(tmpdir, capsys):
+def test_updates_old_format_to_new_format(tmpdir, capsys, store):
     cfg = tmpdir.join(C.CONFIG_FILE)
     cfg.write(
         '-   repo: local\n'
@@ -358,7 +345,8 @@ def test_updates_old_format_to_new_format(tmpdir, capsys):
         '        entry: ./bin/foo.sh\n'
         '        language: script\n',
     )
-    ret = autoupdate(Runner(tmpdir.strpath, C.CONFIG_FILE), tags_only=True)
+    runner = Runner(tmpdir.strpath, C.CONFIG_FILE)
+    ret = autoupdate(runner, store, tags_only=True)
     assert ret == 0
     contents = cfg.read()
     assert contents == (
