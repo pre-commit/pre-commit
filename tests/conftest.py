@@ -11,10 +11,8 @@ import mock
 import pytest
 import six
 
-import pre_commit.constants as C
 from pre_commit import output
 from pre_commit.logging_handler import add_logging_handler
-from pre_commit.runner import Runner
 from pre_commit.store import Store
 from pre_commit.util import cmd_output
 from testing.fixtures import git_dir
@@ -149,11 +147,6 @@ def mock_out_store_directory(tempdir_factory):
 @pytest.fixture
 def store(tempdir_factory):
     yield Store(os.path.join(tempdir_factory.get(), '.pre-commit'))
-
-
-@pytest.fixture
-def runner_with_mocked_store(mock_out_store_directory):
-    yield Runner('/', C.CONFIG_FILE)
 
 
 @pytest.fixture

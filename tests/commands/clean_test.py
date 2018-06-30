@@ -6,7 +6,6 @@ import mock
 import pytest
 
 from pre_commit.commands.clean import clean
-from pre_commit.util import rmtree
 
 
 @pytest.fixture(autouse=True)
@@ -21,17 +20,16 @@ def fake_old_dir(tempdir_factory):
         yield fake_old_dir
 
 
-def test_clean(runner_with_mocked_store, fake_old_dir):
+def test_clean(store, fake_old_dir):
+    store.require_created()
     assert os.path.exists(fake_old_dir)
-    assert os.path.exists(runner_with_mocked_store.store.directory)
-    clean(runner_with_mocked_store)
+    assert os.path.exists(store.directory)
+    clean(store)
     assert not os.path.exists(fake_old_dir)
-    assert not os.path.exists(runner_with_mocked_store.store.directory)
+    assert not os.path.exists(store.directory)
 
 
-def test_clean_empty(runner_with_mocked_store):
-    """Make sure clean succeeds when the directory doesn't exist."""
-    rmtree(runner_with_mocked_store.store.directory)
-    assert not os.path.exists(runner_with_mocked_store.store.directory)
-    clean(runner_with_mocked_store)
-    assert not os.path.exists(runner_with_mocked_store.store.directory)
+def test_clean_idempotent(store):
+    assert not os.path.exists(store.directory)
+    clean(store)
+    assert not os.path.exists(store.directory)

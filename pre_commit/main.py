@@ -243,7 +243,7 @@ def main(argv=None):
         elif args.command == 'uninstall':
             return uninstall(runner, hook_type=args.hook_type)
         elif args.command == 'clean':
-            return clean(runner)
+            return clean(runner.store)
         elif args.command == 'autoupdate':
             if args.tags_only:
                 logger.warning('--tags-only is the default')
