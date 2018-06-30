@@ -39,10 +39,7 @@ class Store(object):
     __created = False
 
     def __init__(self, directory=None):
-        if directory is None:
-            directory = self.get_default_directory()
-
-        self.directory = directory
+        self.directory = directory or Store.get_default_directory()
 
     @contextlib.contextmanager
     def exclusive_lock(self):

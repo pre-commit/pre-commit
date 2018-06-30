@@ -21,6 +21,7 @@ from pre_commit.commands.try_repo import try_repo
 from pre_commit.error_handler import error_handler
 from pre_commit.logging_handler import add_logging_handler
 from pre_commit.runner import Runner
+from pre_commit.store import Store
 
 
 logger = logging.getLogger('pre_commit')
@@ -230,32 +231,34 @@ def main(argv=None):
     with error_handler():
         add_logging_handler(args.color)
         runner = Runner.create(args.config)
+        store = Store()
         git.check_for_cygwin_mismatch()
 
         if args.command == 'install':
             return install(
-                runner, overwrite=args.overwrite, hooks=args.install_hooks,
+                runner, store,
+                overwrite=args.overwrite, hooks=args.install_hooks,
                 hook_type=args.hook_type,
                 skip_on_missing_conf=args.allow_missing_config,
             )
         elif args.command == 'install-hooks':
-            return install_hooks(runner)
+            return install_hooks(runner, store)
         elif args.command == 'uninstall':
             return uninstall(runner, hook_type=args.hook_type)
         elif args.command == 'clean':
-            return clean(runner.store)
+            return clean(store)
         elif args.command == 'autoupdate':
             if args.tags_only:
                 logger.warning('--tags-only is the default')
             return autoupdate(
-                runner, runner.store,
+                runner, store,
                 tags_only=not args.bleeding_edge,
                 repos=args.repos,
             )
         elif args.command == 'migrate-config':
             return migrate_config(runner)
         elif args.command == 'run':
-            return run(runner, args)
+            return run(runner, store, args)
         elif args.command == 'sample-config':
             return sample_config()
         elif args.command == 'try-repo':

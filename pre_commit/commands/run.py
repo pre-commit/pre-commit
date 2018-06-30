@@ -13,6 +13,7 @@ from pre_commit import color
 from pre_commit import git
 from pre_commit import output
 from pre_commit.output import get_hook_message
+from pre_commit.repository import repositories
 from pre_commit.staged_files_only import staged_files_only
 from pre_commit.util import cmd_output
 from pre_commit.util import memoize_by_cwd
@@ -223,7 +224,7 @@ def _has_unstaged_config(runner):
     return retcode == 1
 
 
-def run(runner, args, environ=os.environ):
+def run(runner, store, args, environ=os.environ):
     no_stash = args.all_files or bool(args.files)
 
     # Check if we have unresolved merge conflict files and fail fast.
@@ -248,11 +249,11 @@ def run(runner, args, environ=os.environ):
     if no_stash:
         ctx = noop_context()
     else:
-        ctx = staged_files_only(runner.store.directory)
+        ctx = staged_files_only(store.directory)
 
     with ctx:
         repo_hooks = []
-        for repo in runner.repositories:
+        for repo in repositories(runner.config, store):
             for _, hook in repo.hooks:
                 if (
                     (not args.hook or hook['id'] == args.hook) and

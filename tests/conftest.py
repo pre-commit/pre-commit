@@ -134,7 +134,7 @@ def configure_logging():
 
 
 @pytest.fixture
-def mock_out_store_directory(tempdir_factory):
+def mock_store_dir(tempdir_factory):
     tmpdir = tempdir_factory.get()
     with mock.patch.object(
         Store,

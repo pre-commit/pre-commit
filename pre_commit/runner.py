@@ -6,8 +6,6 @@ from cached_property import cached_property
 
 from pre_commit import git
 from pre_commit.clientlib import load_config
-from pre_commit.repository import Repository
-from pre_commit.store import Store
 
 
 class Runner(object):
@@ -15,10 +13,9 @@ class Runner(object):
     repository under test.
     """
 
-    def __init__(self, git_root, config_file, store_dir=None):
+    def __init__(self, git_root, config_file):
         self.git_root = git_root
         self.config_file = config_file
-        self._store_dir = store_dir
 
     @classmethod
     def create(cls, config_file):
@@ -42,12 +39,6 @@ class Runner(object):
     def config(self):
         return load_config(self.config_file_path)
 
-    @cached_property
-    def repositories(self):
-        """Returns a tuple of the configured repositories."""
-        repos = self.config['repos']
-        return tuple(Repository.create(x, self.store) for x in repos)
-
     def get_hook_path(self, hook_type):
         return os.path.join(self.git_dir, 'hooks', hook_type)
 
@@ -58,7 +49,3 @@ class Runner(object):
     @cached_property
     def pre_push_path(self):
         return self.get_hook_path('pre-push')
-
-    @cached_property
-    def store(self):
-        return Store(self._store_dir)
