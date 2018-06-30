@@ -20,10 +20,11 @@ def try_repo(args):
     ref = args.ref or git.head_rev(args.repo)
 
     with tmpdir() as tempdir:
+        store = Store(tempdir)
         if args.hook:
             hooks = [{'id': args.hook}]
         else:
-            repo_path = Store(tempdir).clone(args.repo, ref)
+            repo_path = store.clone(args.repo, ref)
             manifest = load_manifest(os.path.join(repo_path, C.MANIFEST_FILE))
             manifest = sorted(manifest, key=lambda hook: hook['id'])
             hooks = [{'id': hook['id']} for hook in manifest]
@@ -42,5 +43,4 @@ def try_repo(args):
         output.write(config_s)
         output.write_line('=' * 79)
 
-        runner = Runner('.', config_filename, store_dir=tempdir)
-        return run(runner, args)
+        return run(Runner('.', config_filename), store, args)

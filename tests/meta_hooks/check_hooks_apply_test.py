@@ -6,9 +6,7 @@ from testing.fixtures import git_dir
 from testing.util import cwd
 
 
-def test_hook_excludes_everything(
-        capsys, tempdir_factory, mock_out_store_directory,
-):
+def test_hook_excludes_everything(capsys, tempdir_factory, mock_store_dir):
     config = OrderedDict((
         ('repo', 'meta'),
         (
@@ -31,9 +29,7 @@ def test_hook_excludes_everything(
     assert 'check-useless-excludes does not apply to this repository' in out
 
 
-def test_hook_includes_nothing(
-        capsys, tempdir_factory, mock_out_store_directory,
-):
+def test_hook_includes_nothing(capsys, tempdir_factory, mock_store_dir):
     config = OrderedDict((
         ('repo', 'meta'),
         (
@@ -56,9 +52,7 @@ def test_hook_includes_nothing(
     assert 'check-useless-excludes does not apply to this repository' in out
 
 
-def test_hook_types_not_matched(
-        capsys, tempdir_factory, mock_out_store_directory,
-):
+def test_hook_types_not_matched(capsys, tempdir_factory, mock_store_dir):
     config = OrderedDict((
         ('repo', 'meta'),
         (
@@ -82,7 +76,7 @@ def test_hook_types_not_matched(
 
 
 def test_hook_types_excludes_everything(
-        capsys, tempdir_factory, mock_out_store_directory,
+        capsys, tempdir_factory, mock_store_dir,
 ):
     config = OrderedDict((
         ('repo', 'meta'),
@@ -106,9 +100,7 @@ def test_hook_types_excludes_everything(
     assert 'check-useless-excludes does not apply to this repository' in out
 
 
-def test_valid_includes(
-        capsys, tempdir_factory, mock_out_store_directory,
-):
+def test_valid_includes(capsys, tempdir_factory, mock_store_dir):
     config = OrderedDict((
         ('repo', 'meta'),
         (

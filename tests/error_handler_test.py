@@ -73,14 +73,14 @@ def test_error_handler_uncaught_error(mocked_log_and_exit):
     )
 
 
-def test_log_and_exit(cap_out, mock_out_store_directory):
+def test_log_and_exit(cap_out, mock_store_dir):
     with pytest.raises(SystemExit):
         error_handler._log_and_exit(
             'msg', error_handler.FatalError('hai'), "I'm a stacktrace",
         )
 
     printed = cap_out.get()
-    log_file = os.path.join(mock_out_store_directory, 'pre-commit.log')
+    log_file = os.path.join(mock_store_dir, 'pre-commit.log')
     assert printed == (
         'msg: FatalError: hai\n'
         'Check the log at {}\n'.format(log_file)
@@ -94,7 +94,7 @@ def test_log_and_exit(cap_out, mock_out_store_directory):
     )
 
 
-def test_error_handler_non_ascii_exception(mock_out_store_directory):
+def test_error_handler_non_ascii_exception(mock_store_dir):
     with pytest.raises(SystemExit):
         with error_handler.error_handler():
             raise ValueError('☃')

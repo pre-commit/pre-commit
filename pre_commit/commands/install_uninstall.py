@@ -7,6 +7,7 @@ import os.path
 import sys
 
 from pre_commit import output
+from pre_commit.repository import repositories
 from pre_commit.util import cmd_output
 from pre_commit.util import make_executable
 from pre_commit.util import mkdirp
@@ -36,7 +37,7 @@ def is_our_script(filename):
 
 
 def install(
-        runner, overwrite=False, hooks=False, hook_type='pre-commit',
+        runner, store, overwrite=False, hooks=False, hook_type='pre-commit',
         skip_on_missing_conf=False,
 ):
     """Install the pre-commit hooks."""
@@ -89,13 +90,13 @@ def install(
 
     # If they requested we install all of the hooks, do so.
     if hooks:
-        install_hooks(runner)
+        install_hooks(runner, store)
 
     return 0
 
 
-def install_hooks(runner):
-    for repository in runner.repositories:
+def install_hooks(runner, store):
+    for repository in repositories(runner.config, store):
         repository.require_installed()
 
 

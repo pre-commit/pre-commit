@@ -24,7 +24,7 @@ class RepositoryCannotBeUpdatedError(RuntimeError):
     pass
 
 
-def _update_repo(repo_config, runner, tags_only):
+def _update_repo(repo_config, store, tags_only):
     """Updates a repository to the tip of `master`.  If the repository cannot
     be updated because a hook that is configured does not exist in `master`,
     this raises a RepositoryCannotBeUpdatedError
@@ -32,7 +32,7 @@ def _update_repo(repo_config, runner, tags_only):
     Args:
         repo_config - A config for a repository
     """
-    repo_path = runner.store.clone(repo_config['repo'], repo_config['rev'])
+    repo_path = store.clone(repo_config['repo'], repo_config['rev'])
 
     cmd_output('git', 'fetch', cwd=repo_path)
     tag_cmd = ('git', 'describe', 'origin/master', '--tags')
@@ -53,7 +53,7 @@ def _update_repo(repo_config, runner, tags_only):
     # Construct a new config with the head rev
     new_config = OrderedDict(repo_config)
     new_config['rev'] = rev
-    new_repo = Repository.create(new_config, runner.store)
+    new_repo = Repository.create(new_config, store)
 
     # See if any of our hooks were deleted with the new commits
     hooks = {hook['id'] for hook in repo_config['hooks']}
@@ -105,7 +105,7 @@ def _write_new_config_file(path, output):
         f.write(to_write)
 
 
-def autoupdate(runner, tags_only, repos=()):
+def autoupdate(runner, store, tags_only, repos=()):
     """Auto-update the pre-commit config to the latest versions of repos."""
     migrate_config(runner, quiet=True)
     retv = 0
@@ -125,7 +125,7 @@ def autoupdate(runner, tags_only, repos=()):
             continue
         output.write('Updating {}...'.format(repo_config['repo']))
         try:
-            new_repo_config = _update_repo(repo_config, runner, tags_only)
+            new_repo_config = _update_repo(repo_config, store, tags_only)
         except RepositoryCannotBeUpdatedError as error:
             output.write_line(error.args[0])
             output_repos.append(repo_config)

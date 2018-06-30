@@ -282,3 +282,7 @@ class MetaRepository(LocalRepository):
             (hook['id'], _hook(self.manifest_hooks[hook['id']], hook))
             for hook in self.repo_config['hooks']
         )
+
+
+def repositories(config, store):
+    return tuple(Repository.create(x, store) for x in config['repos'])

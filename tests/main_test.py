@@ -92,13 +92,13 @@ def test_help_other_command(
 
 
 @pytest.mark.parametrize('command', CMDS)
-def test_all_cmds(command, mock_commands):
+def test_all_cmds(command, mock_commands, mock_store_dir):
     main.main((command,))
     assert getattr(mock_commands, command.replace('-', '_')).call_count == 1
     assert_only_one_mock_called(mock_commands)
 
 
-def test_try_repo():
+def test_try_repo(mock_store_dir):
     with mock.patch.object(main, 'try_repo') as patch:
         main.main(('try-repo', '.'))
     assert patch.call_count == 1
@@ -123,12 +123,12 @@ def test_help_cmd_in_empty_directory(
 
 
 def test_expected_fatal_error_no_git_repo(
-        tempdir_factory, cap_out, mock_out_store_directory,
+        tempdir_factory, cap_out, mock_store_dir,
 ):
     with cwd(tempdir_factory.get()):
         with pytest.raises(SystemExit):
             main.main([])
-    log_file = os.path.join(mock_out_store_directory, 'pre-commit.log')
+    log_file = os.path.join(mock_store_dir, 'pre-commit.log')
     assert cap_out.get() == (
         'An error has occurred: FatalError: git failed. '
         'Is it installed, and are you in a Git repository directory?\n'
@@ -136,6 +136,6 @@ def test_expected_fatal_error_no_git_repo(
     )
 
 
-def test_warning_on_tags_only(mock_commands, cap_out):
+def test_warning_on_tags_only(mock_commands, cap_out, mock_store_dir):
     main.main(('autoupdate', '--tags-only'))
     assert '--tags-only is the default' in cap_out.get()
