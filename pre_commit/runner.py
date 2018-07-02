@@ -27,11 +27,7 @@ class Runner(object):
         os.chdir(root)
         return cls(root, config_file)
 
-    @cached_property
-    def git_dir(self):
-        return git.get_git_dir(self.git_root)
-
-    @cached_property
+    @property
     def config_file_path(self):
         return os.path.join(self.git_root, self.config_file)
 
@@ -40,12 +36,4 @@ class Runner(object):
         return load_config(self.config_file_path)
 
     def get_hook_path(self, hook_type):
-        return os.path.join(self.git_dir, 'hooks', hook_type)
-
-    @cached_property
-    def pre_commit_path(self):
-        return self.get_hook_path('pre-commit')
-
-    @cached_property
-    def pre_push_path(self):
-        return self.get_hook_path('pre-push')
+        return os.path.join(git.get_git_dir(self.git_root), 'hooks', hook_type)

@@ -7,8 +7,6 @@ import os.path
 import sqlite3
 import tempfile
 
-from cached_property import cached_property
-
 import pre_commit.constants as C
 from pre_commit import file_lock
 from pre_commit.util import clean_path_on_failure
@@ -173,6 +171,6 @@ class Store(object):
             'local', C.LOCAL_REPO_VERSION, deps, make_local_strategy,
         )
 
-    @cached_property
+    @property
     def db_path(self):
         return os.path.join(self.directory, 'db.db')
