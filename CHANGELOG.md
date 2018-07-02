@@ -1,3 +1,11 @@
+1.10.3
+======
+
+### Fixes
+- Fix `pre-push` during a force push without a fetch
+    - #777 issue by @domenkozar.
+    - #778 PR by @asottile.
+
 1.10.2
 ======
 
