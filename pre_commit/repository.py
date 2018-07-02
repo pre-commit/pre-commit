@@ -218,7 +218,7 @@ class LocalRepository(Repository):
         else:
             return Prefix(self.store.make_local(deps))
 
-    @cached_property
+    @property
     def manifest(self):
         raise NotImplementedError
 

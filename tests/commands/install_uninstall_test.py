@@ -49,21 +49,21 @@ def test_install_pre_commit(tempdir_factory, store):
     path = git_dir(tempdir_factory)
     runner = Runner(path, C.CONFIG_FILE)
     assert not install(runner, store)
-    assert os.access(runner.pre_commit_path, os.X_OK)
+    assert os.access(os.path.join(path, '.git/hooks/pre-commit'), os.X_OK)
 
     assert not install(runner, store, hook_type='pre-push')
-    assert os.access(runner.pre_push_path, os.X_OK)
+    assert os.access(os.path.join(path, '.git/hooks/pre-push'), os.X_OK)
 
 
 def test_install_hooks_directory_not_present(tempdir_factory, store):
     path = git_dir(tempdir_factory)
     # Simulate some git clients which don't make .git/hooks #234
-    hooks = os.path.join(path, '.git', 'hooks')
+    hooks = os.path.join(path, '.git/hooks')
     if os.path.exists(hooks):  # pragma: no cover (latest git)
         shutil.rmtree(hooks)
     runner = Runner(path, C.CONFIG_FILE)
     install(runner, store)
-    assert os.path.exists(runner.pre_commit_path)
+    assert os.path.exists(os.path.join(path, '.git/hooks/pre-commit'))
 
 
 def test_install_refuses_core_hookspath(tempdir_factory, store):
@@ -80,10 +80,10 @@ def test_install_hooks_dead_symlink(
 ):  # pragma: no cover (non-windows)
     path = git_dir(tempdir_factory)
     runner = Runner(path, C.CONFIG_FILE)
-    mkdirp(os.path.dirname(runner.pre_commit_path))
-    os.symlink('/fake/baz', os.path.join(path, '.git', 'hooks', 'pre-commit'))
+    mkdirp(os.path.join(path, '.git/hooks'))
+    os.symlink('/fake/baz', os.path.join(path, '.git/hooks/pre-commit'))
     install(runner, store)
-    assert os.path.exists(runner.pre_commit_path)
+    assert os.path.exists(os.path.join(path, '.git/hooks/pre-commit'))
 
 
 def test_uninstall_does_not_blow_up_when_not_there(tempdir_factory):
@@ -96,11 +96,11 @@ def test_uninstall_does_not_blow_up_when_not_there(tempdir_factory):
 def test_uninstall(tempdir_factory, store):
     path = git_dir(tempdir_factory)
     runner = Runner(path, C.CONFIG_FILE)
-    assert not os.path.exists(runner.pre_commit_path)
+    assert not os.path.exists(os.path.join(path, '.git/hooks/pre-commit'))
     install(runner, store)
-    assert os.path.exists(runner.pre_commit_path)
+    assert os.path.exists(os.path.join(path, '.git/hooks/pre-commit'))
     uninstall(runner)
-    assert not os.path.exists(runner.pre_commit_path)
+    assert not os.path.exists(os.path.join(path, '.git/hooks/pre-commit'))
 
 
 def _get_commit_output(tempdir_factory, touch_file='foo', **kwargs):
@@ -282,16 +282,19 @@ EXISTING_COMMIT_RUN = re.compile(
 )
 
 
+def _write_legacy_hook(path):
+    mkdirp(os.path.join(path, '.git/hooks'))
+    with io.open(os.path.join(path, '.git/hooks/pre-commit'), 'w') as f:
+        f.write('#!/usr/bin/env bash\necho "legacy hook"\n')
+    make_executable(f.name)
+
+
 def test_install_existing_hooks_no_overwrite(tempdir_factory, store):
     path = make_consuming_repo(tempdir_factory, 'script_hooks_repo')
     with cwd(path):
         runner = Runner(path, C.CONFIG_FILE)
 
-        # Write out an "old" hook
-        mkdirp(os.path.dirname(runner.pre_commit_path))
-        with io.open(runner.pre_commit_path, 'w') as hook_file:
-            hook_file.write('#!/usr/bin/env bash\necho "legacy hook"\n')
-        make_executable(runner.pre_commit_path)
+        _write_legacy_hook(path)
 
         # Make sure we installed the "old" hook correctly
         ret, output = _get_commit_output(tempdir_factory, touch_file='baz')
@@ -313,11 +316,7 @@ def test_install_existing_hook_no_overwrite_idempotent(tempdir_factory, store):
     with cwd(path):
         runner = Runner(path, C.CONFIG_FILE)
 
-        # Write out an "old" hook
-        mkdirp(os.path.dirname(runner.pre_commit_path))
-        with io.open(runner.pre_commit_path, 'w') as hook_file:
-            hook_file.write('#!/usr/bin/env bash\necho "legacy hook"\n')
-        make_executable(runner.pre_commit_path)
+        _write_legacy_hook(path)
 
         # Install twice
         assert install(runner, store) == 0
@@ -343,10 +342,10 @@ def test_failing_existing_hook_returns_1(tempdir_factory, store):
         runner = Runner(path, C.CONFIG_FILE)
 
         # Write out a failing "old" hook
-        mkdirp(os.path.dirname(runner.pre_commit_path))
-        with io.open(runner.pre_commit_path, 'w') as hook_file:
-            hook_file.write('#!/usr/bin/env bash\necho "fail!"\nexit 1\n')
-        make_executable(runner.pre_commit_path)
+        mkdirp(os.path.join(path, '.git/hooks'))
+        with io.open(os.path.join(path, '.git/hooks/pre-commit'), 'w') as f:
+            f.write('#!/usr/bin/env bash\necho "fail!"\nexit 1\n')
+        make_executable(f.name)
 
         assert install(runner, store) == 0
 
@@ -372,12 +371,7 @@ def test_install_overwrite(tempdir_factory, store):
     with cwd(path):
         runner = Runner(path, C.CONFIG_FILE)
 
-        # Write out the "old" hook
-        mkdirp(os.path.dirname(runner.pre_commit_path))
-        with io.open(runner.pre_commit_path, 'w') as hook_file:
-            hook_file.write('#!/usr/bin/env bash\necho "legacy hook"\n')
-        make_executable(runner.pre_commit_path)
-
+        _write_legacy_hook(path)
         assert install(runner, store, overwrite=True) == 0
 
         ret, output = _get_commit_output(tempdir_factory)
@@ -390,11 +384,7 @@ def test_uninstall_restores_legacy_hooks(tempdir_factory, store):
     with cwd(path):
         runner = Runner(path, C.CONFIG_FILE)
 
-        # Write out an "old" hook
-        mkdirp(os.path.dirname(runner.pre_commit_path))
-        with io.open(runner.pre_commit_path, 'w') as hook_file:
-            hook_file.write('#!/usr/bin/env bash\necho "legacy hook"\n')
-        make_executable(runner.pre_commit_path)
+        _write_legacy_hook(path)
 
         # Now install and uninstall pre-commit
         assert install(runner, store) == 0
@@ -412,17 +402,15 @@ def test_replace_old_commit_script(tempdir_factory, store):
         runner = Runner(path, C.CONFIG_FILE)
 
         # Install a script that looks like our old script
-        pre_commit_contents = io.open(
-            resource_filename('hook-tmpl'),
-        ).read()
+        pre_commit_contents = io.open(resource_filename('hook-tmpl')).read()
         new_contents = pre_commit_contents.replace(
             CURRENT_HASH, PRIOR_HASHES[-1],
         )
 
-        mkdirp(os.path.dirname(runner.pre_commit_path))
-        with io.open(runner.pre_commit_path, 'w') as pre_commit_file:
-            pre_commit_file.write(new_contents)
-        make_executable(runner.pre_commit_path)
+        mkdirp(os.path.join(path, '.git/hooks'))
+        with io.open(os.path.join(path, '.git/hooks/pre-commit'), 'w') as f:
+            f.write(new_contents)
+        make_executable(f.name)
 
         # Install normally
         assert install(runner, store) == 0
@@ -436,14 +424,14 @@ def test_uninstall_doesnt_remove_not_our_hooks(tempdir_factory):
     path = git_dir(tempdir_factory)
     with cwd(path):
         runner = Runner(path, C.CONFIG_FILE)
-        mkdirp(os.path.dirname(runner.pre_commit_path))
-        with io.open(runner.pre_commit_path, 'w') as pre_commit_file:
-            pre_commit_file.write('#!/usr/bin/env bash\necho 1\n')
-        make_executable(runner.pre_commit_path)
+        mkdirp(os.path.join(path, '.git/hooks'))
+        with io.open(os.path.join(path, '.git/hooks/pre-commit'), 'w') as f:
+            f.write('#!/usr/bin/env bash\necho 1\n')
+        make_executable(f.name)
 
         assert uninstall(runner) == 0
 
-        assert os.path.exists(runner.pre_commit_path)
+        assert os.path.exists(os.path.join(path, '.git/hooks/pre-commit'))
 
 
 PRE_INSTALLED = re.compile(
@@ -583,17 +571,16 @@ def test_pre_push_legacy(tempdir_factory, store):
     with cwd(path):
         runner = Runner(path, C.CONFIG_FILE)
 
-        hook_path = runner.get_hook_path('pre-push')
-        mkdirp(os.path.dirname(hook_path))
-        with io.open(hook_path, 'w') as hook_file:
-            hook_file.write(
+        mkdirp(os.path.join(path, '.git/hooks'))
+        with io.open(os.path.join(path, '.git/hooks/pre-push'), 'w') as f:
+            f.write(
                 '#!/usr/bin/env bash\n'
                 'set -eu\n'
                 'read lr ls rr rs\n'
                 'test -n "$lr" -a -n "$ls" -a -n "$rr" -a -n "$rs"\n'
                 'echo legacy\n',
             )
-        make_executable(hook_path)
+        make_executable(f.name)
 
         install(runner, store, hook_type='pre-push')
         assert _get_commit_output(tempdir_factory)[0] == 0

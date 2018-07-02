@@ -5,7 +5,6 @@ import os.path
 
 import pre_commit.constants as C
 from pre_commit.runner import Runner
-from pre_commit.util import cmd_output
 from testing.fixtures import git_dir
 from testing.util import cwd
 
@@ -43,19 +42,3 @@ def test_config_file_path():
     runner = Runner(os.path.join('foo', 'bar'), C.CONFIG_FILE)
     expected_path = os.path.join('foo', 'bar', C.CONFIG_FILE)
     assert runner.config_file_path == expected_path
-
-
-def test_pre_commit_path(in_tmpdir):
-    path = os.path.join('foo', 'bar')
-    cmd_output('git', 'init', path)
-    runner = Runner(path, C.CONFIG_FILE)
-    expected_path = os.path.join(path, '.git', 'hooks', 'pre-commit')
-    assert runner.pre_commit_path == expected_path
-
-
-def test_pre_push_path(in_tmpdir):
-    path = os.path.join('foo', 'bar')
-    cmd_output('git', 'init', path)
-    runner = Runner(path, C.CONFIG_FILE)
-    expected_path = os.path.join(path, '.git', 'hooks', 'pre-push')
-    assert runner.pre_push_path == expected_path
