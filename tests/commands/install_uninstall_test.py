@@ -495,13 +495,13 @@ def test_installed_from_venv(tempdir_factory, store):
         assert NORMAL_PRE_COMMIT_RUN.match(output)
 
 
-def _get_push_output(tempdir_factory):
+def _get_push_output(tempdir_factory, opts=()):
     return cmd_output_mocked_pre_commit_home(
-        'git', 'push', 'origin', 'HEAD:new_branch',
+        'git', 'push', 'origin', 'HEAD:new_branch', *opts,
         # git push puts pre-commit to stderr
         stderr=subprocess.STDOUT,
         tempdir_factory=tempdir_factory,
-        retcode=None,
+        retcode=None
     )[:2]
 
 
@@ -530,6 +530,26 @@ def test_pre_push_integration_accepted(tempdir_factory, store):
         assert _get_commit_output(tempdir_factory)[0] == 0
 
         retc, output = _get_push_output(tempdir_factory)
+        assert retc == 0
+        assert 'Bash hook' in output
+        assert 'Passed' in output
+
+
+def test_pre_push_force_push_without_fetch(tempdir_factory, store):
+    upstream = make_consuming_repo(tempdir_factory, 'script_hooks_repo')
+    path1 = tempdir_factory.get()
+    path2 = tempdir_factory.get()
+    cmd_output('git', 'clone', upstream, path1)
+    cmd_output('git', 'clone', upstream, path2)
+    with cwd(path1):
+        assert _get_commit_output(tempdir_factory)[0] == 0
+        assert _get_push_output(tempdir_factory)[0] == 0
+
+    with cwd(path2):
+        install(Runner(path2, C.CONFIG_FILE), store, hook_type='pre-push')
+        assert _get_commit_output(tempdir_factory, commit_msg='force!')[0] == 0
+
+        retc, output = _get_push_output(tempdir_factory, opts=('--force',))
         assert retc == 0
         assert 'Bash hook' in output
         assert 'Passed' in output
