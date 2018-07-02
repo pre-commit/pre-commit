@@ -105,6 +105,10 @@ def _exe():
     )
 
 
+def _rev_exists(rev):
+    return not subprocess.call(('git', 'rev-list', '--quiet', rev))
+
+
 def _pre_push(stdin):
     remote = sys.argv[1]
 
@@ -113,7 +117,7 @@ def _pre_push(stdin):
         _, local_sha, _, remote_sha = line.split()
         if local_sha == Z40:
             continue
-        elif remote_sha != Z40:
+        elif remote_sha != Z40 and _rev_exists(remote_sha):
             opts = ('--origin', local_sha, '--source', remote_sha)
         else:
             # First ancestor not found in remote
