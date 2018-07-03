@@ -11,6 +11,6 @@ fi
 
 mkdir -p /tmp/swift
 pushd /tmp/swift
-    wget "$SWIFT_URL" -O swift.tar.gz
-    tar -xf swift.tar.gz --strip 1
+    wget -N -c "$SWIFT_URL" -O "$HOME"/.swift/swift.tar.gz
+    tar -xf "$HOME"/.swift/swift.tar.gz --strip 1
 popd

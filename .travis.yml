@@ -32,3 +32,4 @@ cache:
         - $HOME/.cache/pip
         - $HOME/.cache/pre-commit
         - $HOME/.rustup
+        - $HOME/.swift
