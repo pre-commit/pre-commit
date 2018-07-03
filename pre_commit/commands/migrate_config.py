@@ -32,7 +32,7 @@ def _migrate_map(contents):
         # will yield a valid configuration
         try:
             trial_contents = header + 'repos:\n' + rest
-            yaml.load(trial_contents)
+            ordered_load(trial_contents)
             contents = trial_contents
         except yaml.YAMLError:
             contents = header + 'repos:\n' + _indent(rest)
