@@ -85,6 +85,22 @@ def test_normexe_does_not_exist():
     assert excinfo.value.args == ('Executable `i-dont-exist-lol` not found',)
 
 
+def test_normexe_does_not_exist_sep():
+    with pytest.raises(OSError) as excinfo:
+        parse_shebang.normexe('./i-dont-exist-lol')
+    assert excinfo.value.args == ('Executable `./i-dont-exist-lol` not found',)
+
+
+def test_normexe_is_a_directory(tmpdir):
+    with tmpdir.as_cwd():
+        tmpdir.join('exe').ensure_dir()
+        exe = os.path.join('.', 'exe')
+        with pytest.raises(OSError) as excinfo:
+            parse_shebang.normexe(exe)
+        msg, = excinfo.value.args
+        assert msg == 'Executable `{}` is a directory'.format(exe)
+
+
 def test_normexe_already_full_path():
     assert parse_shebang.normexe(sys.executable) == sys.executable
 
@@ -107,14 +123,14 @@ def test_normalize_cmd_PATH():
 
 
 def test_normalize_cmd_shebang(in_tmpdir):
-    python = distutils.spawn.find_executable('python')
-    path = write_executable(python.replace(os.sep, '/'))
+    python = distutils.spawn.find_executable('python').replace(os.sep, '/')
+    path = write_executable(python)
     assert parse_shebang.normalize_cmd((path,)) == (python, path)
 
 
 def test_normalize_cmd_PATH_shebang_full_path(in_tmpdir):
-    python = distutils.spawn.find_executable('python')
-    path = write_executable(python.replace(os.sep, '/'))
+    python = distutils.spawn.find_executable('python').replace(os.sep, '/')
+    path = write_executable(python)
     with bin_on_path():
         ret = parse_shebang.normalize_cmd(('run',))
         assert ret == (python, os.path.abspath(path))
