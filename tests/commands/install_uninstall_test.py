@@ -640,7 +640,7 @@ def test_commit_msg_integration_passing(
 def test_commit_msg_legacy(commit_msg_repo, tempdir_factory, store):
     runner = Runner(commit_msg_repo, C.CONFIG_FILE)
 
-    hook_path = runner.get_hook_path('commit-msg')
+    hook_path = os.path.join(commit_msg_repo, '.git/hooks/commit-msg')
     mkdirp(os.path.dirname(hook_path))
     with io.open(hook_path, 'w') as hook_file:
         hook_file.write(
