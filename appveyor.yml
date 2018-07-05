@@ -27,3 +27,4 @@ test_script: tox
 cache:
   - '%LOCALAPPDATA%\pip\cache'
   - '%USERPROFILE%\.cache\pre-commit'
+  - '%USERPROFILE%\.cargo'
