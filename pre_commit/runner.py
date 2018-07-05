@@ -34,6 +34,3 @@ class Runner(object):
     @cached_property
     def config(self):
         return load_config(self.config_file_path)
-
-    def get_hook_path(self, hook_type):
-        return os.path.join(git.get_git_dir(self.git_root), 'hooks', hook_type)

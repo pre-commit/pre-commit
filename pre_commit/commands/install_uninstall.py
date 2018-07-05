@@ -6,6 +6,7 @@ import logging
 import os.path
 import sys
 
+from pre_commit import git
 from pre_commit import output
 from pre_commit.repository import repositories
 from pre_commit.util import cmd_output
@@ -29,6 +30,11 @@ TEMPLATE_START = '# start templated\n'
 TEMPLATE_END = '# end templated\n'
 
 
+def _hook_paths(git_root, hook_type):
+    pth = os.path.join(git.get_git_dir(git_root), 'hooks', hook_type)
+    return pth, '{}.legacy'.format(pth)
+
+
 def is_our_script(filename):
     if not os.path.exists(filename):
         return False
@@ -48,8 +54,7 @@ def install(
         )
         return 1
 
-    hook_path = runner.get_hook_path(hook_type)
-    legacy_path = hook_path + '.legacy'
+    hook_path, legacy_path = _hook_paths(runner.git_root, hook_type)
 
     mkdirp(os.path.dirname(hook_path))
 
@@ -102,8 +107,8 @@ def install_hooks(runner, store):
 
 def uninstall(runner, hook_type='pre-commit'):
     """Uninstall the pre-commit hooks."""
-    hook_path = runner.get_hook_path(hook_type)
-    legacy_path = hook_path + '.legacy'
+    hook_path, legacy_path = _hook_paths(runner.git_root, hook_type)
+
     # If our file doesn't exist or it isn't ours, gtfo.
     if not os.path.exists(hook_path) or not is_our_script(hook_path):
         return 0
