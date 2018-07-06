@@ -41,7 +41,7 @@ setup(
         'cfgv>=1.0.0',
         'identify>=1.0.0',
         'nodeenv>=0.11.1',
-        'pyyaml>=4.2b4',
+        'pyyaml>=3.13',
         'six',
         'toml',
         'virtualenv',
