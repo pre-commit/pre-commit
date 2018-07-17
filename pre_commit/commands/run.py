@@ -1,4 +1,3 @@
-from __future__ import print_function
 from __future__ import unicode_literals
 
 import logging
@@ -205,7 +204,7 @@ def _run_hooks(config, repo_hooks, args, environ):
             args.show_diff_on_failure and
             subprocess.call(('git', 'diff', '--quiet', '--no-ext-diff')) != 0
     ):
-        print('All changes made by hooks:')
+        output.write_line('All changes made by hooks:')
         subprocess.call(('git', '--no-pager', 'diff', '--no-ext-diff'))
     return retval
 
