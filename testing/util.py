@@ -48,16 +48,7 @@ xfailif_windows_no_ruby = pytest.mark.xfail(
 def broken_deep_listdir():  # pragma: no cover (platform specific)
     if sys.platform != 'win32':
         return False
-    try:
-        os.listdir(str('\\\\?\\') + os.path.abspath(str('.')))
-    except OSError:
-        return True
-    try:
-        os.listdir(b'\\\\?\\C:' + b'\\' * 300)
-    except TypeError:
-        return True
-    except OSError:
-        return False
+    return True  # see #798
 
 
 xfailif_broken_deep_listdir = pytest.mark.xfail(
