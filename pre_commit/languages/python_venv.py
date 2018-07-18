@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 import os.path
+import sys
 
 from pre_commit.languages import python
 from pre_commit.util import CalledProcessError
@@ -8,6 +9,13 @@ from pre_commit.util import cmd_output
 
 
 ENVIRONMENT_DIR = 'py_venv'
+
+
+def get_default_version():  # pragma: no cover (version specific)
+    if sys.version_info < (3,):
+        return 'python3'
+    else:
+        return python.get_default_version()
 
 
 def orig_py_exe(exe):  # pragma: no cover (platform specific)
@@ -43,6 +51,5 @@ def make_venv(envdir, python):
     cmd_output(orig_py_exe(python), '-mvenv', envdir, cwd='/')
 
 
-get_default_version = python.get_default_version
 _interface = python.py_interface(ENVIRONMENT_DIR, make_venv)
 in_env, healthy, run_hook, install_environment = _interface
