@@ -254,11 +254,13 @@ def run(runner, store, args, environ=os.environ):
         repo_hooks = []
         for repo in repositories(runner.config, store):
             for _, hook in repo.hooks:
-                if (
-                    (not args.hook or hook['id'] == args.hook) and
-                    not hook['stages'] or args.hook_stage in hook['stages']
-                ):
-                    repo_hooks.append((repo, hook))
+                if args.hook:
+                    if args.hook == hook['id']:
+                        repo_hooks.append((repo, hook))
+                        break
+                else:
+                    if not hook['stages'] or args.hook_stage in hook['stages']:
+                        repo_hooks.append((repo, hook))
 
         if args.hook and not repo_hooks:
             output.write_line('No hook with id `{}`'.format(args.hook))
