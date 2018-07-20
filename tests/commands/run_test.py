@@ -792,4 +792,4 @@ def test_args_hook_only(cap_out, store, repo_with_passing_hook):
         repo_with_passing_hook,
         run_opts(hook='do_not_commit'),
     )
-    assert 'flake8' not in printed
+    assert b'flake8' not in printed
