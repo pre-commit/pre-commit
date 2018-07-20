@@ -762,3 +762,34 @@ def test_include_exclude_does_search_instead_of_match(some_filenames):
 def test_include_exclude_exclude_removes_files(some_filenames):
     ret = _filter_by_include_exclude(some_filenames, '', r'\.py$')
     assert ret == ['.pre-commit-hooks.yaml']
+
+
+def test_args_hook_only(cap_out, store, repo_with_passing_hook):
+    config = OrderedDict((
+        ('repo', 'local'),
+        (
+            'hooks', (
+                OrderedDict((
+                    ('id', 'flake8'),
+                    ('name', 'flake8'),
+                    ('entry', "'{}' -m flake8".format(sys.executable)),
+                    ('language', 'system'),
+                    ('stages', ['commit']),
+                )), OrderedDict((
+                    ('id', 'do_not_commit'),
+                    ('name', 'Block if "DO NOT COMMIT" is found'),
+                    ('entry', 'DO NOT COMMIT'),
+                    ('language', 'pygrep'),
+                )),
+            ),
+        ),
+    ))
+    add_config_to_repo(repo_with_passing_hook, config)
+    stage_a_file()
+    ret, printed = _do_run(
+        cap_out,
+        store,
+        repo_with_passing_hook,
+        run_opts(hook='do_not_commit'),
+    )
+    assert b'flake8' not in printed

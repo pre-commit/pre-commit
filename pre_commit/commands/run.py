@@ -256,7 +256,7 @@ def run(runner, store, args, environ=os.environ):
             for _, hook in repo.hooks:
                 if (
                     (not args.hook or hook['id'] == args.hook) and
-                    not hook['stages'] or args.hook_stage in hook['stages']
+                    (not hook['stages'] or args.hook_stage in hook['stages'])
                 ):
                     repo_hooks.append((repo, hook))
 
