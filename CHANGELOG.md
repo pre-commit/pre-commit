@@ -5,11 +5,19 @@
 - Replace `yaml.load` with safe alternative
     - `yaml.load` can lead to arbitrary code execution, though not where it
       was used
-    - issue by @tonybaloney
+    - issue by @tonybaloney.
     - #779 PR by @asottile.
 - Improve not found error with script paths (`./exe`)
     - #782 issue by @ssbarnea.
     - #785 PR by @asottile.
+- Fix minor buffering issue during `--show-diff-on-failure`
+    - #796 PR by @asottile.
+- Default `language_version: python3` for `python_venv` when running in python2
+    - #794 issue by @ssbarnea.
+    - #797 PR by @asottile.
+- `pre-commit run X` only run `X` and not hooks with `stages: [...]`
+    - #772 issue by @asottile.
+    - #803 PR by @mblayman.
 
 ### Misc
 - Improve travis-ci build times by caching rust / swift artifacts
