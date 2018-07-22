@@ -1,3 +1,22 @@
+1.10.4
+======
+
+### Fixes
+- Replace `yaml.load` with safe alternative
+    - `yaml.load` can lead to arbitrary code execution, though not where it
+      was used
+    - issue by @tonybaloney
+    - #779 PR by @asottile.
+- Improve not found error with script paths (`./exe`)
+    - #782 issue by @ssbarnea.
+    - #785 PR by @asottile.
+
+### Misc
+- Improve travis-ci build times by caching rust / swift artifacts
+    - #781 PR by @expobrain.
+- Test against python3.7
+    - #789 PR by @expobrain.
+
 1.10.3
 ======
 
