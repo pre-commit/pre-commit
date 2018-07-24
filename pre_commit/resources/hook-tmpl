@@ -7,6 +7,9 @@ import os
 import subprocess
 import sys
 
+# work around https://github.com/Homebrew/homebrew-core/issues/30445
+os.environ.pop('__PYVENV_LAUNCHER__', None)
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 Z40 = '0' * 40
 ID_HASH = '138fd403232d2ddd5efb44317e38bf03'
