@@ -172,6 +172,19 @@ def test_install_in_submodule_and_run(tempdir_factory, store):
         assert NORMAL_PRE_COMMIT_RUN.match(output)
 
 
+def test_install_in_worktree_and_run(tempdir_factory, store):
+    src_path = make_consuming_repo(tempdir_factory, 'script_hooks_repo')
+    path = tempdir_factory.get()
+    cmd_output('git', '-C', src_path, 'branch', '-m', 'notmaster')
+    cmd_output('git', '-C', src_path, 'worktree', 'add', path, '-b', 'master')
+
+    with cwd(path):
+        assert install(Runner(path, C.CONFIG_FILE), store) == 0
+        ret, output = _get_commit_output(tempdir_factory)
+        assert ret == 0
+        assert NORMAL_PRE_COMMIT_RUN.match(output)
+
+
 def test_commit_am(tempdir_factory, store):
     """Regression test for #322."""
     path = make_consuming_repo(tempdir_factory, 'script_hooks_repo')
