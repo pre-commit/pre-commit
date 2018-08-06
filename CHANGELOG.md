@@ -1,3 +1,14 @@
+1.10.5
+======
+
+### Fixes
+- Work around `PATH` issue with `brew` `python` on `macos`
+    - Homebrew/homebrew-core#30445 issue by @asottile.
+    - #805 PR by @asottile.
+- Support `pre-commit install` inside a worktree
+    - #808 issue by @s0undt3ch.
+    - #809 PR by @asottile.
+
 1.10.4
 ======
 

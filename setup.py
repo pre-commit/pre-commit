@@ -13,7 +13,7 @@ setup(
     long_description=long_description,
     long_description_content_type='text/markdown',
     url='https://github.com/pre-commit/pre-commit',
-    version='1.10.4',
+    version='1.10.5',
     author='Anthony Sottile',
     author_email='asottile@umich.edu',
     classifiers=[
