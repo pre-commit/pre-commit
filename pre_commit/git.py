@@ -31,10 +31,16 @@ def get_root():
 
 
 def get_git_dir(git_root):
-    return os.path.normpath(os.path.join(
-        git_root,
-        cmd_output('git', 'rev-parse', '--git-dir', cwd=git_root)[1].strip(),
-    ))
+    def _git_dir(opt):
+        return os.path.normpath(os.path.join(
+            git_root,
+            cmd_output('git', 'rev-parse', opt, cwd=git_root)[1].strip(),
+        ))
+
+    try:
+        return _git_dir('--git-common-dir')
+    except CalledProcessError:  # pragma: no cover (git < 2.5)
+        return _git_dir('--git-dir')
 
 
 def get_remote_url(git_root):
