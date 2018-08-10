@@ -70,7 +70,8 @@ def get_conflicted_files():
     logger.info('Checking merge-conflict files only.')
     # Need to get the conflicted files from the MERGE_MSG because they could
     # have resolved the conflict by choosing one side or the other
-    merge_msg = open(os.path.join(get_git_dir('.'), 'MERGE_MSG'), 'rb').read()
+    with open(os.path.join(get_git_dir('.'), 'MERGE_MSG'), 'rb') as f:
+        merge_msg = f.read()
     merge_conflict_filenames = parse_merge_msg_for_conflicts(merge_msg)
 
     # This will get the rest of the changes made after the merge.

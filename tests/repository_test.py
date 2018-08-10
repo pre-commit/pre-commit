@@ -63,7 +63,6 @@ def _test_hook_repo(
     assert _norm_out(ret[1]) == expected
 
 
-@pytest.mark.integration
 def test_python_hook(tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'python_hooks_repo',
@@ -72,7 +71,6 @@ def test_python_hook(tempdir_factory, store):
     )
 
 
-@pytest.mark.integration
 def test_python_hook_default_version(tempdir_factory, store):
     # make sure that this continues to work for platforms where default
     # language detection does not work
@@ -82,7 +80,6 @@ def test_python_hook_default_version(tempdir_factory, store):
         test_python_hook(tempdir_factory, store)
 
 
-@pytest.mark.integration
 def test_python_hook_args_with_spaces(tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'python_hooks_repo',
@@ -99,7 +96,6 @@ def test_python_hook_args_with_spaces(tempdir_factory, store):
     )
 
 
-@pytest.mark.integration
 def test_python_hook_weird_setup_cfg(tempdir_factory, store):
     path = git_dir(tempdir_factory)
     with cwd(path):
@@ -122,7 +118,6 @@ def test_python_venv(tempdir_factory, store):  # pragma: no cover (no venv)
     )
 
 
-@pytest.mark.integration
 def test_switch_language_versions_doesnt_clobber(tempdir_factory, store):
     # We're using the python3 repo because it prints the python version
     path = make_repo(tempdir_factory, 'python3_hooks_repo')
@@ -145,7 +140,6 @@ def test_switch_language_versions_doesnt_clobber(tempdir_factory, store):
     run_on_version('python3', b'3\n[]\nHello World\n')
 
 
-@pytest.mark.integration
 def test_versioned_python_hook(tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'python3_hooks_repo',
@@ -156,7 +150,6 @@ def test_versioned_python_hook(tempdir_factory, store):
 
 
 @skipif_cant_run_docker
-@pytest.mark.integration
 def test_run_a_docker_hook(tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'docker_hooks_repo',
@@ -166,7 +159,6 @@ def test_run_a_docker_hook(tempdir_factory, store):
 
 
 @skipif_cant_run_docker
-@pytest.mark.integration
 def test_run_a_docker_hook_with_entry_args(tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'docker_hooks_repo',
@@ -176,7 +168,6 @@ def test_run_a_docker_hook_with_entry_args(tempdir_factory, store):
 
 
 @skipif_cant_run_docker
-@pytest.mark.integration
 def test_run_a_failing_docker_hook(tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'docker_hooks_repo',
@@ -187,7 +178,6 @@ def test_run_a_failing_docker_hook(tempdir_factory, store):
 
 
 @skipif_cant_run_docker
-@pytest.mark.integration
 @pytest.mark.parametrize('hook_id', ('echo-entrypoint', 'echo-cmd'))
 def test_run_a_docker_image_hook(tempdir_factory, store, hook_id):
     _test_hook_repo(
@@ -198,7 +188,6 @@ def test_run_a_docker_image_hook(tempdir_factory, store, hook_id):
 
 
 @xfailif_broken_deep_listdir
-@pytest.mark.integration
 def test_run_a_node_hook(tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'node_hooks_repo',
@@ -207,7 +196,6 @@ def test_run_a_node_hook(tempdir_factory, store):
 
 
 @xfailif_broken_deep_listdir
-@pytest.mark.integration
 def test_run_versioned_node_hook(tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'node_versioned_hooks_repo',
@@ -216,7 +204,6 @@ def test_run_versioned_node_hook(tempdir_factory, store):
 
 
 @xfailif_windows_no_ruby
-@pytest.mark.integration
 def test_run_a_ruby_hook(tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'ruby_hooks_repo',
@@ -225,7 +212,6 @@ def test_run_a_ruby_hook(tempdir_factory, store):
 
 
 @xfailif_windows_no_ruby
-@pytest.mark.integration
 def test_run_versioned_ruby_hook(tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'ruby_versioned_hooks_repo',
@@ -236,7 +222,6 @@ def test_run_versioned_ruby_hook(tempdir_factory, store):
 
 
 @xfailif_windows_no_ruby
-@pytest.mark.integration
 def test_run_ruby_hook_with_disable_shared_gems(
         tempdir_factory,
         store,
@@ -258,7 +243,6 @@ def test_run_ruby_hook_with_disable_shared_gems(
         )
 
 
-@pytest.mark.integration
 def test_system_hook_with_spaces(tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'system_hook_with_spaces_repo',
@@ -267,7 +251,6 @@ def test_system_hook_with_spaces(tempdir_factory, store):
 
 
 @skipif_cant_run_swift
-@pytest.mark.integration
 def test_swift_hook(tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'swift_hooks_repo',
@@ -275,7 +258,6 @@ def test_swift_hook(tempdir_factory, store):
     )
 
 
-@pytest.mark.integration
 def test_golang_hook(tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'golang_hooks_repo',
@@ -283,7 +265,6 @@ def test_golang_hook(tempdir_factory, store):
     )
 
 
-@pytest.mark.integration
 def test_rust_hook(tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'rust_hooks_repo',
@@ -291,7 +272,6 @@ def test_rust_hook(tempdir_factory, store):
     )
 
 
-@pytest.mark.integration
 @pytest.mark.parametrize('dep', ('cli:shellharden:3.1.0', 'cli:shellharden'))
 def test_additional_rust_cli_dependencies_installed(
         tempdir_factory, store, dep,
@@ -311,7 +291,6 @@ def test_additional_rust_cli_dependencies_installed(
     assert 'shellharden' in binaries
 
 
-@pytest.mark.integration
 def test_additional_rust_lib_dependencies_installed(
         tempdir_factory, store,
 ):
@@ -332,7 +311,6 @@ def test_additional_rust_lib_dependencies_installed(
     assert 'shellharden' not in binaries
 
 
-@pytest.mark.integration
 def test_missing_executable(tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'not_found_exe',
@@ -342,7 +320,6 @@ def test_missing_executable(tempdir_factory, store):
     )
 
 
-@pytest.mark.integration
 def test_run_a_script_hook(tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'script_hooks_repo',
@@ -350,7 +327,6 @@ def test_run_a_script_hook(tempdir_factory, store):
     )
 
 
-@pytest.mark.integration
 def test_run_hook_with_spaced_args(tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'arg_per_line_hooks_repo',
@@ -360,7 +336,6 @@ def test_run_hook_with_spaced_args(tempdir_factory, store):
     )
 
 
-@pytest.mark.integration
 def test_run_hook_with_curly_braced_arguments(tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'arg_per_line_hooks_repo',
@@ -469,7 +444,6 @@ def _norm_pwd(path):
     )[1].strip()
 
 
-@pytest.mark.integration
 def test_cwd_of_hook(tempdir_factory, store):
     # Note: this doubles as a test for `system` hooks
     path = git_dir(tempdir_factory)
@@ -480,7 +454,6 @@ def test_cwd_of_hook(tempdir_factory, store):
         )
 
 
-@pytest.mark.integration
 def test_lots_of_files(tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'script_hooks_repo',
@@ -488,7 +461,6 @@ def test_lots_of_files(tempdir_factory, store):
     )
 
 
-@pytest.mark.integration
 def test_venvs(tempdir_factory, store):
     path = make_repo(tempdir_factory, 'python_hooks_repo')
     config = make_config_from_repo(path)
@@ -497,7 +469,6 @@ def test_venvs(tempdir_factory, store):
     assert venv == (mock.ANY, 'python', python.get_default_version(), [])
 
 
-@pytest.mark.integration
 def test_additional_dependencies(tempdir_factory, store):
     path = make_repo(tempdir_factory, 'python_hooks_repo')
     config = make_config_from_repo(path)
@@ -507,7 +478,6 @@ def test_additional_dependencies(tempdir_factory, store):
     assert venv == (mock.ANY, 'python', python.get_default_version(), ['pep8'])
 
 
-@pytest.mark.integration
 def test_additional_dependencies_roll_forward(tempdir_factory, store):
     path = make_repo(tempdir_factory, 'python_hooks_repo')
 
@@ -533,7 +503,6 @@ def test_additional_dependencies_roll_forward(tempdir_factory, store):
 
 
 @xfailif_windows_no_ruby
-@pytest.mark.integration
 def test_additional_ruby_dependencies_installed(
         tempdir_factory, store,
 ):  # pragma: no cover (non-windows)
@@ -550,7 +519,6 @@ def test_additional_ruby_dependencies_installed(
 
 
 @xfailif_broken_deep_listdir
-@pytest.mark.integration
 def test_additional_node_dependencies_installed(
         tempdir_factory, store,
 ):  # pragma: no cover (non-windows)
@@ -566,7 +534,6 @@ def test_additional_node_dependencies_installed(
         assert 'lodash' in output
 
 
-@pytest.mark.integration
 def test_additional_golang_dependencies_installed(
         tempdir_factory, store,
 ):
@@ -695,7 +662,6 @@ def test_invalidated_virtualenv(tempdir_factory, store):
     assert retv == 0
 
 
-@pytest.mark.integration
 def test_really_long_file_paths(tempdir_factory, store):
     base_path = tempdir_factory.get()
     really_long_path = os.path.join(base_path, 'really_long' * 10)
@@ -709,7 +675,6 @@ def test_really_long_file_paths(tempdir_factory, store):
         repo.require_installed()
 
 
-@pytest.mark.integration
 def test_config_overrides_repo_specifics(tempdir_factory, store):
     path = make_repo(tempdir_factory, 'script_hooks_repo')
     config = make_config_from_repo(path)
@@ -729,7 +694,6 @@ def _create_repo_with_tags(tempdir_factory, src, tag):
     return path
 
 
-@pytest.mark.integration
 def test_tags_on_repositories(in_tmpdir, tempdir_factory, store):
     tag = 'v1.1'
     git_dir_1 = _create_repo_with_tags(tempdir_factory, 'prints_cwd_repo', tag)

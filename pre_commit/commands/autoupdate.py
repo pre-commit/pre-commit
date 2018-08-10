@@ -72,7 +72,8 @@ REV_LINE_FMT = '{}rev:{}{}{}'
 
 
 def _write_new_config_file(path, output):
-    original_contents = open(path).read()
+    with open(path) as f:
+        original_contents = f.read()
     output = remove_defaults(output, CONFIG_SCHEMA)
     new_contents = ordered_dump(output, **C.YAML_DUMP_KWARGS)
 
