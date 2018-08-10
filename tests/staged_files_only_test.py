@@ -145,7 +145,7 @@ def img_staged(tempdir_factory):
 
 def _test_img_state(path, expected_file='img1.jpg', status='A'):
     assert os.path.exists(path.img_filename)
-    with io.open(path.img_filename, 'rb') as f1
+    with io.open(path.img_filename, 'rb') as f1:
         with io.open(get_resource_path(expected_file), 'rb') as f2:
             assert f1.read() == f2.read()
     actual_status = get_short_git_status()['img.jpg']
