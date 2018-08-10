@@ -43,7 +43,8 @@ def _read_state(prefix, venv):
     if not os.path.exists(filename):
         return None
     else:
-        return json.loads(io.open(filename).read())
+        with io.open(filename) as f:
+            return json.loads(f.read())
 
 
 def _write_state(prefix, venv, state):

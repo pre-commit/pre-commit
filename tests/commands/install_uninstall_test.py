@@ -415,7 +415,8 @@ def test_replace_old_commit_script(tempdir_factory, store):
         runner = Runner(path, C.CONFIG_FILE)
 
         # Install a script that looks like our old script
-        pre_commit_contents = io.open(resource_filename('hook-tmpl')).read()
+        with io.open(resource_filename('hook-tmpl')) as f:
+            pre_commit_contents = f.read()
         new_contents = pre_commit_contents.replace(
             CURRENT_HASH, PRIOR_HASHES[-1],
         )

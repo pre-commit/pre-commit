@@ -48,7 +48,8 @@ def _test_foo_state(
         encoding='UTF-8',
 ):
     assert os.path.exists(path.foo_filename)
-    assert io.open(path.foo_filename, encoding=encoding).read() == foo_contents
+    with io.open(path.foo_filename, encoding=encoding) as f:
+        assert f.read() == foo_contents
     actual_status = get_short_git_status()['foo']
     assert status == actual_status
 
@@ -144,10 +145,9 @@ def img_staged(tempdir_factory):
 
 def _test_img_state(path, expected_file='img1.jpg', status='A'):
     assert os.path.exists(path.img_filename)
-    assert (
-        io.open(path.img_filename, 'rb').read() ==
-        io.open(get_resource_path(expected_file), 'rb').read()
-    )
+    with io.open(path.img_filename, 'rb') as f1,\
+            io.open(get_resource_path(expected_file), 'rb') as f2:
+        assert f1.read() == f2.read()
     actual_status = get_short_git_status()['img.jpg']
     assert status == actual_status
 

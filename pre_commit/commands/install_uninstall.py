@@ -38,7 +38,8 @@ def _hook_paths(git_root, hook_type):
 def is_our_script(filename):
     if not os.path.exists(filename):
         return False
-    contents = io.open(filename).read()
+    with io.open(filename) as f:
+        contents = f.read()
     return any(h in contents for h in (CURRENT_HASH,) + PRIOR_HASHES)
 
 

@@ -87,11 +87,11 @@ def test_log_and_exit(cap_out, mock_store_dir):
     )
 
     assert os.path.exists(log_file)
-    contents = io.open(log_file).read()
-    assert contents == (
-        'msg: FatalError: hai\n'
-        "I'm a stacktrace\n"
-    )
+    with io.open(log_file) as f:
+        assert f.read() == (
+            'msg: FatalError: hai\n'
+            "I'm a stacktrace\n"
+        )
 
 
 def test_error_handler_non_ascii_exception(mock_store_dir):

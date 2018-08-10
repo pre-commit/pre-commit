@@ -42,10 +42,12 @@ def test_autoupdate_up_to_date_repo(up_to_date_repo, in_tmpdir, store):
     config = make_config_from_repo(up_to_date_repo, check=False)
     write_config('.', config)
 
-    before = open(C.CONFIG_FILE).read()
+    with open(C.CONFIG_FILE) as f:
+        before = f.read()
     assert '^$' not in before
     ret = autoupdate(Runner('.', C.CONFIG_FILE), store, tags_only=False)
-    after = open(C.CONFIG_FILE).read()
+    with open(C.CONFIG_FILE) as f:
+        after = f.read()
     assert ret == 0
     assert before == after
 
@@ -68,9 +70,11 @@ def test_autoupdate_old_revision_broken(tempdir_factory, in_tmpdir, store):
 
     config['rev'] = rev
     write_config('.', config)
-    before = open(C.CONFIG_FILE).read()
+    with open(C.CONFIG_FILE) as f:
+        before = f.read()
     ret = autoupdate(Runner('.', C.CONFIG_FILE), store, tags_only=False)
-    after = open(C.CONFIG_FILE).read()
+    with open(C.CONFIG_FILE) as f:
+        after = f.read()
     assert ret == 0
     assert before != after
     assert update_rev in after
@@ -106,9 +110,11 @@ def test_autoupdate_out_of_date_repo(out_of_date_repo, in_tmpdir, store):
     )
     write_config('.', config)
 
-    before = open(C.CONFIG_FILE).read()
+    with open(C.CONFIG_FILE) as f:
+        before = f.read()
     ret = autoupdate(Runner('.', C.CONFIG_FILE), store, tags_only=False)
-    after = open(C.CONFIG_FILE).read()
+    with open(C.CONFIG_FILE) as f:
+        after = f.read()
     assert ret == 0
     assert before != after
     # Make sure we don't add defaults
@@ -128,10 +134,12 @@ def test_autoupdate_out_of_date_repo_with_correct_repo_name(
     write_config('.', config)
 
     runner = Runner('.', C.CONFIG_FILE)
-    before = open(C.CONFIG_FILE).read()
+    with open(C.CONFIG_FILE) as f:
+        before = f.read()
     repo_name = 'file://{}'.format(out_of_date_repo.path)
     ret = autoupdate(runner, store, tags_only=False, repos=(repo_name,))
-    after = open(C.CONFIG_FILE).read()
+    with open(C.CONFIG_FILE) as f:
+        after = f.read()
     assert ret == 0
     assert before != after
     assert out_of_date_repo.head_rev in after
@@ -148,10 +156,12 @@ def test_autoupdate_out_of_date_repo_with_wrong_repo_name(
     write_config('.', config)
 
     runner = Runner('.', C.CONFIG_FILE)
-    before = open(C.CONFIG_FILE).read()
+    with open(C.CONFIG_FILE) as f:
+        before = f.read()
     # It will not update it, because the name doesn't match
     ret = autoupdate(runner, store, tags_only=False, repos=('dne',))
-    after = open(C.CONFIG_FILE).read()
+    with open(C.CONFIG_FILE) as f:
+        after = f.read()
     assert ret == 0
     assert before == after
 
@@ -171,7 +181,8 @@ def test_does_not_reformat(in_tmpdir, out_of_date_repo, store):
         f.write(config)
 
     autoupdate(Runner('.', C.CONFIG_FILE), store, tags_only=False)
-    after = open(C.CONFIG_FILE).read()
+    with open(C.CONFIG_FILE) as f:
+        after = f.read()
     expected = fmt.format(out_of_date_repo.path, out_of_date_repo.head_rev)
     assert after == expected
 
@@ -200,7 +211,8 @@ def test_loses_formatting_when_not_detectable(
         f.write(config)
 
     autoupdate(Runner('.', C.CONFIG_FILE), store, tags_only=False)
-    after = open(C.CONFIG_FILE).read()
+    with open(C.CONFIG_FILE) as f:
+        after = f.read()
     expected = (
         'repos:\n'
         '-   repo: {}\n'
@@ -225,7 +237,8 @@ def test_autoupdate_tagged_repo(tagged_repo, in_tmpdir, store):
 
     ret = autoupdate(Runner('.', C.CONFIG_FILE), store, tags_only=False)
     assert ret == 0
-    assert 'v1.2.3' in open(C.CONFIG_FILE).read()
+    with open(C.CONFIG_FILE) as f:
+        assert 'v1.2.3' in f.read()
 
 
 @pytest.fixture
@@ -243,7 +256,8 @@ def test_autoupdate_tags_only(tagged_repo_with_more_commits, in_tmpdir, store):
 
     ret = autoupdate(Runner('.', C.CONFIG_FILE), store, tags_only=True)
     assert ret == 0
-    assert 'v1.2.3' in open(C.CONFIG_FILE).read()
+    with open(C.CONFIG_FILE) as f:
+        assert 'v1.2.3' in f.read()
 
 
 @pytest.fixture
@@ -282,9 +296,11 @@ def test_autoupdate_hook_disappearing_repo(
     )
     write_config('.', config)
 
-    before = open(C.CONFIG_FILE).read()
+    with open(C.CONFIG_FILE) as f:
+        before = f.read()
     ret = autoupdate(Runner('.', C.CONFIG_FILE), store, tags_only=False)
-    after = open(C.CONFIG_FILE).read()
+    with open(C.CONFIG_FILE) as f:
+        after = f.read()
     assert ret == 1
     assert before == after
 

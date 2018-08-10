@@ -40,7 +40,8 @@ def modify_manifest(path):
     .pre-commit-hooks.yaml.
     """
     manifest_path = os.path.join(path, C.MANIFEST_FILE)
-    manifest = ordered_load(io.open(manifest_path).read())
+    with io.open(manifest_path) as f:
+        manifest = ordered_load(f.read())
     yield manifest
     with io.open(manifest_path, 'w') as manifest_file:
         manifest_file.write(ordered_dump(manifest, **C.YAML_DUMP_KWARGS))
@@ -55,7 +56,8 @@ def modify_config(path='.', commit=True):
     .pre-commit-config.yaml
     """
     config_path = os.path.join(path, C.CONFIG_FILE)
-    config = ordered_load(io.open(config_path).read())
+    with io.open(config_path) as f:
+        config = ordered_load(f.read())
     yield config
     with io.open(config_path, 'w', encoding='UTF-8') as config_file:
         config_file.write(ordered_dump(config, **C.YAML_DUMP_KWARGS))
@@ -100,7 +102,8 @@ def make_config_from_repo(repo_path, rev=None, hooks=None, check=True):
 
 def read_config(directory, config_file=C.CONFIG_FILE):
     config_path = os.path.join(directory, config_file)
-    config = ordered_load(io.open(config_path).read())
+    with io.open(config_path) as f:
+        config = ordered_load(f.read())
     return config
 
 
