@@ -4,8 +4,6 @@ from __future__ import unicode_literals
 import os.path
 import tarfile
 
-import pytest
-
 from pre_commit import git
 from pre_commit import make_archives
 from pre_commit.util import cmd_output
@@ -47,7 +45,6 @@ def test_make_archive(tempdir_factory):
     assert not os.path.exists(os.path.join(extract_dir, 'foo', 'bar'))
 
 
-@pytest.mark.integration
 def test_main(tmpdir):
     make_archives.main(('--dest', tmpdir.strpath))
 
