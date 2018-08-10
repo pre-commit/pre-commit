@@ -15,7 +15,7 @@ if six.PY2:  # pragma: no cover
         inspect.ArgSpec, varargs=None, keywords=None, defaults=None,
     )
     getargspec = inspect.getargspec
-else:
+else:  # pragma: no cover
     ArgSpec = functools.partial(
         inspect.FullArgSpec, varargs=None, varkw=None, defaults=None,
         kwonlyargs=[], kwonlydefaults=None, annotations={},
