@@ -589,6 +589,29 @@ def test_local_rust_additional_dependencies(store):
     assert _norm_out(ret[1]) == b"Hello World!\n"
 
 
+def test_fail_hooks(store):
+    config = {
+        'repo': 'local',
+        'hooks': [{
+            'id': 'fail',
+            'name': 'fail',
+            'language': 'fail',
+            'entry': 'make sure to name changelogs as .rst!',
+            'files': r'changelog/.*(?<!\.rst)$',
+        }],
+    }
+    repo = Repository.create(config, store)
+    (_, hook), = repo.hooks
+    ret = repo.run_hook(hook, ('changelog/1234.bugfix', 'changelog/wat'))
+    assert ret[0] == 1
+    assert ret[1] == (
+        b'make sure to name changelogs as .rst!\n'
+        b'\n'
+        b'changelog/1234.bugfix\n'
+        b'changelog/wat\n'
+    )
+
+
 def test_reinstall(tempdir_factory, store, log_info_mock):
     path = make_repo(tempdir_factory, 'python_hooks_repo')
     config = make_config_from_repo(path)
