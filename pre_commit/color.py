@@ -10,7 +10,6 @@ if os.name == 'nt':  # pragma: no cover (windows)
         enable_virtual_terminal_processing()
     except WindowsError:
         terminal_supports_colors = False
-        pass
 
 RED = '\033[41m'
 GREEN = '\033[42m'
