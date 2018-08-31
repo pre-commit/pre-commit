@@ -3,12 +3,13 @@ from __future__ import unicode_literals
 import os
 import sys
 
+terminal_supports_color = True
 if os.name == 'nt':  # pragma: no cover (windows)
     from pre_commit.color_windows import enable_virtual_terminal_processing
     try:
         enable_virtual_terminal_processing()
     except WindowsError:
-        pass
+        terminal_supports_color = False
 
 RED = '\033[41m'
 GREEN = '\033[42m'
@@ -47,4 +48,7 @@ def use_color(setting):
     if setting not in COLOR_CHOICES:
         raise InvalidColorSetting(setting)
 
-    return setting == 'always' or (setting == 'auto' and sys.stdout.isatty())
+    return (
+        setting == 'always' or
+        (setting == 'auto' and sys.stdout.isatty() and terminal_supports_color)
+    )

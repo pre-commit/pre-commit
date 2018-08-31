@@ -35,9 +35,16 @@ def test_use_color_no_tty():
         assert use_color('auto') is False
 
 
-def test_use_color_tty():
+def test_use_color_tty_with_color_support():
     with mock.patch.object(sys.stdout, 'isatty', return_value=True):
-        assert use_color('auto') is True
+        with mock.patch('pre_commit.color.terminal_supports_color', True):
+            assert use_color('auto') is True
+
+
+def test_use_color_tty_without_color_support():
+    with mock.patch.object(sys.stdout, 'isatty', return_value=True):
+        with mock.patch('pre_commit.color.terminal_supports_color', False):
+            assert use_color('auto') is False
 
 
 def test_use_color_raises_if_given_shenanigans():
