@@ -106,7 +106,7 @@ def test_hook_types_excludes_everything(
     assert 'check-useless-excludes does not apply to this repository' in out
 
 
-def test_valid_includes(capsys, tempdir_factory, mock_store_dir):
+def test_valid_always_run(capsys, tempdir_factory, mock_store_dir):
     config = {
         'repos': [
             {
@@ -117,6 +117,35 @@ def test_valid_includes(capsys, tempdir_factory, mock_store_dir):
                         'id': 'check-useless-excludes',
                         'files': '^$',
                         'always_run': True,
+                    },
+                ],
+            },
+        ],
+    }
+
+    repo = git_dir(tempdir_factory)
+    add_config_to_repo(repo, config)
+
+    with cwd(repo):
+        assert check_hooks_apply.main(()) == 0
+
+    out, _ = capsys.readouterr()
+    assert out == ''
+
+
+def test_valid_language_fail(capsys, tempdir_factory, mock_store_dir):
+    config = {
+        'repos': [
+            {
+                'repo': 'local',
+                'hooks': [
+                    # Should not be reported as an error due to language: fail
+                    {
+                        'id': 'changelogs-rst',
+                        'name': 'changelogs must be rst',
+                        'entry': 'changelog filenames must end in .rst',
+                        'language': 'fail',
+                        'files': r'changelog/.*(?<!\.rst)$',
                     },
                 ],
             },

@@ -15,7 +15,7 @@ def check_all_hooks_match_files(config_file):
 
     for repo in repositories(load_config(config_file), Store()):
         for hook_id, hook in repo.hooks:
-            if hook['always_run']:
+            if hook['always_run'] or hook['language'] == 'fail':
                 continue
             include, exclude = hook['files'], hook['exclude']
             filtered = _filter_by_include_exclude(files, include, exclude)
