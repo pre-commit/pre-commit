@@ -1,3 +1,17 @@
+1.11.0
+======
+
+### Features
+- Add new `fail` language which always fails
+    - light-weight way to forbid files by name.
+    - #812 #821 PRs by @asottile.
+
+### Fixes
+- Fix `ResourceWarning`s for unclosed files
+    - #811 PR by @BoboTiG.
+- Don't write ANSI colors on windows when color enabling fails
+    - #819 PR by @jeffreyrack.
+
 1.10.5
 ======
 
