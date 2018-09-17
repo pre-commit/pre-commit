@@ -18,6 +18,7 @@ install:
 build: false
 
 before_test:
+  - git --version
   # Shut up CRLF messages
   - git config --global core.safecrlf false
 
