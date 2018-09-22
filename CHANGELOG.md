@@ -1,3 +1,12 @@
+1.11.1
+======
+
+### Fixes
+- Fix `.git` dir detection in `git<2.5` (regression introduced in
+  [1.10.5](#1105))
+    - #831 issue by @mmacpherson.
+    - #832 PR by @asottile.
+
 1.11.0
 ======
 
