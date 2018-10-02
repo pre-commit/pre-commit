@@ -9,6 +9,7 @@ import pre_commit.constants as C
 from pre_commit import git
 from pre_commit.clientlib import load_config
 from pre_commit.clientlib import MANIFEST_HOOK_DICT
+from pre_commit.commands.run import _filter_by_types
 
 
 def exclude_matches_any(filenames, include, exclude):
@@ -39,8 +40,10 @@ def check_useless_excludes(config_file):
             # Not actually a manifest dict, but this more accurately reflects
             # the defaults applied during runtime
             hook = apply_defaults(hook, MANIFEST_HOOK_DICT)
+            types, exclude_types = hook['types'], hook['exclude_types']
+            filtered_by_types = _filter_by_types(files, types, exclude_types)
             include, exclude = hook['files'], hook['exclude']
-            if not exclude_matches_any(files, include, exclude):
+            if not exclude_matches_any(filtered_by_types, include, exclude):
                 print(
                     'The exclude pattern {!r} for {} does not match any files'
                     .format(exclude, hook['id']),

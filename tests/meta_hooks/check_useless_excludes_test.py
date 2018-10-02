@@ -51,6 +51,37 @@ def test_useless_exclude_for_hook(capsys, tempdir_factory):
     assert expected == out
 
 
+def test_useless_exclude_with_types_filter(capsys, tempdir_factory):
+    config = {
+        'repos': [
+            {
+                'repo': 'meta',
+                'hooks': [
+                    {
+                        'id': 'check-useless-excludes',
+                        'exclude': '.pre-commit-config.yaml',
+                        'types': ['python'],
+                    },
+                ],
+            },
+        ],
+    }
+
+    repo = git_dir(tempdir_factory)
+    add_config_to_repo(repo, config)
+
+    with cwd(repo):
+        assert check_useless_excludes.main(()) == 1
+
+    out, _ = capsys.readouterr()
+    out = out.strip()
+    expected = (
+        "The exclude pattern '.pre-commit-config.yaml' for "
+        "check-useless-excludes does not match any files"
+    )
+    assert expected == out
+
+
 def test_no_excludes(capsys, tempdir_factory):
     config = {
         'repos': [
