@@ -1,41 +1,54 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
+import sys
+
 from pre_commit import parse_shebang
 from pre_commit.util import cmd_output
 
 
-# Limit used previously to avoid "xargs ... Bad file number" on windows
-# This is slightly less than the posix mandated minimum
-MAX_LENGTH = 4000
+# TODO: properly compute max_length value
+def _get_platform_max_length():
+    # posix minimum
+    return 4 * 1024
+
+
+def _get_command_length(command, arg):
+    parts = command + (arg,)
+    full_cmd = ' '.join(parts)
+
+    # win32 uses the amount of characters, more details at:
+    # https://blogs.msdn.microsoft.com/oldnewthing/20031210-00/?p=41553/
+    if sys.platform == 'win32':
+        return len(full_cmd)
+
+    return len(full_cmd.encode(sys.getdefaultencoding()))
 
 
 class ArgumentTooLongError(RuntimeError):
     pass
 
 
-def partition(cmd, varargs, _max_length=MAX_LENGTH):
+def partition(cmd, varargs, _max_length=None):
+    _max_length = _max_length or _get_platform_max_length()
     cmd = tuple(cmd)
     ret = []
 
     ret_cmd = []
-    total_len = len(' '.join(cmd))
     # Reversed so arguments are in order
     varargs = list(reversed(varargs))
 
     while varargs:
         arg = varargs.pop()
 
-        if total_len + 1 + len(arg) <= _max_length:
+        if _get_command_length(cmd + tuple(ret_cmd), arg) <= _max_length:
             ret_cmd.append(arg)
-            total_len += len(arg)
         elif not ret_cmd:
             raise ArgumentTooLongError(arg)
         else:
             # We've exceeded the length, yield a command
             ret.append(cmd + tuple(ret_cmd))
             ret_cmd = []
-            total_len = len(' '.join(cmd))
             varargs.append(arg)
 
     ret.append(cmd + tuple(ret_cmd))
