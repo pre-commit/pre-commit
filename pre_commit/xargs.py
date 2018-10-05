@@ -22,7 +22,7 @@ def _get_command_length(command, arg):
     if sys.platform == 'win32':
         return len(full_cmd)
 
-    return len(full_cmd.encode(sys.getdefaultencoding()))
+    return len(full_cmd.encode(sys.getfilesystemencoding()))
 
 
 class ArgumentTooLongError(RuntimeError):

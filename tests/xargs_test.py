@@ -11,7 +11,7 @@ from pre_commit import xargs
 def sys_win32_mock(mocker):
     return mocker.Mock(
         platform='win32',
-        getdefaultencoding=mocker.Mock(return_value='utf-8'),
+        getfilesystemencoding=mocker.Mock(return_value='utf-8'),
     )
 
 
@@ -19,7 +19,7 @@ def sys_win32_mock(mocker):
 def sys_linux_mock(mocker):
     return mocker.Mock(
         platform='linux',
-        getdefaultencoding=mocker.Mock(return_value='utf-8'),
+        getfilesystemencoding=mocker.Mock(return_value='utf-8'),
     )
 
 
