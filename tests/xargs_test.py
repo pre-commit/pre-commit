@@ -1,7 +1,6 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import
 from __future__ import unicode_literals
-
-from unittest import mock
 
 import pytest
 
@@ -9,18 +8,18 @@ from pre_commit import xargs
 
 
 @pytest.fixture
-def sys_win32_mock():
-    return mock.Mock(
+def sys_win32_mock(mocker):
+    return mocker.Mock(
         platform='win32',
-        getdefaultencoding=mock.Mock(return_value='utf-8'),
+        getdefaultencoding=mocker.Mock(return_value='utf-8'),
     )
 
 
 @pytest.fixture
-def sys_linux_mock():
-    return mock.Mock(
+def sys_linux_mock(mocker):
+    return mocker.Mock(
         platform='linux',
-        getdefaultencoding=mock.Mock(return_value='utf-8'),
+        getdefaultencoding=mocker.Mock(return_value='utf-8'),
     )
 
 
@@ -53,28 +52,28 @@ def test_partition_limits():
     )
 
 
-def test_partition_limit_win32(sys_win32_mock):
+def test_partition_limit_win32(mocker, sys_win32_mock):
     cmd = ('ninechars',)
     varargs = ('😑' * 10,)
-    with mock.patch('pre_commit.xargs.sys', sys_win32_mock):
+    with mocker.mock_module.patch('pre_commit.xargs.sys', sys_win32_mock):
         ret = xargs.partition(cmd, varargs, _max_length=20)
 
     assert ret == (cmd + varargs,)
 
 
-def test_partition_limit_linux(sys_linux_mock):
+def test_partition_limit_linux(mocker, sys_linux_mock):
     cmd = ('ninechars',)
     varargs = ('😑' * 5,)
-    with mock.patch('pre_commit.xargs.sys', sys_linux_mock):
+    with mocker.mock_module.patch('pre_commit.xargs.sys', sys_linux_mock):
         ret = xargs.partition(cmd, varargs, _max_length=30)
 
     assert ret == (cmd + varargs,)
 
 
-def test_argument_too_long_with_large_unicode(sys_linux_mock):
+def test_argument_too_long_with_large_unicode(mocker, sys_linux_mock):
     cmd = ('ninechars',)
     varargs = ('😑' * 10,)  # 4 bytes * 10
-    with mock.patch('pre_commit.xargs.sys', sys_linux_mock):
+    with mocker.mock_module.patch('pre_commit.xargs.sys', sys_linux_mock):
         with pytest.raises(xargs.ArgumentTooLongError):
             xargs.partition(cmd, varargs, _max_length=20)
 

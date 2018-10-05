@@ -5,3 +5,4 @@ flake8
 mock
 pytest
 pytest-env
+pytest-mock
