@@ -13,9 +13,8 @@ def _get_platform_max_length():
     return 4 * 1024
 
 
-def _get_command_length(command, arg):
-    parts = command + (arg,)
-    full_cmd = ' '.join(parts)
+def _command_length(*cmd):
+    full_cmd = ' '.join(cmd)
 
     # win32 uses the amount of characters, more details at:
     # https://blogs.msdn.microsoft.com/oldnewthing/20031210-00/?p=41553/
@@ -38,17 +37,21 @@ def partition(cmd, varargs, _max_length=None):
     # Reversed so arguments are in order
     varargs = list(reversed(varargs))
 
+    total_length = _command_length(*cmd)
     while varargs:
         arg = varargs.pop()
 
-        if _get_command_length(cmd + tuple(ret_cmd), arg) <= _max_length:
+        arg_length = _command_length(arg) + 1
+        if total_length + arg_length <= _max_length:
             ret_cmd.append(arg)
+            total_length += arg_length
         elif not ret_cmd:
             raise ArgumentTooLongError(arg)
         else:
             # We've exceeded the length, yield a command
             ret.append(cmd + tuple(ret_cmd))
             ret_cmd = []
+            total_length = _command_length(*cmd)
             varargs.append(arg)
 
     ret.append(cmd + tuple(ret_cmd))
