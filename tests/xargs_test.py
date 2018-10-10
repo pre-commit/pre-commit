@@ -55,7 +55,8 @@ def test_partition_limits():
 
 def test_partition_limit_win32(sys_win32_mock):
     cmd = ('ninechars',)
-    varargs = ('😑' * 10,)
+    # counted as half because of utf-16 encode
+    varargs = ('😑' * 5,)
     with mock.patch('pre_commit.xargs.sys', sys_win32_mock):
         ret = xargs.partition(cmd, varargs, _max_length=20)
 
