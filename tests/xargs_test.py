@@ -55,7 +55,7 @@ def test_partition_limits():
 
 def test_partition_limit_win32(sys_win32_mock):
     cmd = ('ninechars',)
-    varargs = (u'😑' * 10,)
+    varargs = ('😑' * 10,)
     with mock.patch('pre_commit.xargs.sys', sys_win32_mock):
         ret = xargs.partition(cmd, varargs, _max_length=20)
 
@@ -64,7 +64,7 @@ def test_partition_limit_win32(sys_win32_mock):
 
 def test_partition_limit_linux(sys_linux_mock):
     cmd = ('ninechars',)
-    varargs = (u'😑' * 5,)
+    varargs = ('😑' * 5,)
     with mock.patch('pre_commit.xargs.sys', sys_linux_mock):
         ret = xargs.partition(cmd, varargs, _max_length=30)
 
@@ -73,7 +73,7 @@ def test_partition_limit_linux(sys_linux_mock):
 
 def test_argument_too_long_with_large_unicode(sys_linux_mock):
     cmd = ('ninechars',)
-    varargs = (u'😑' * 10,)  # 4 bytes * 10
+    varargs = ('😑' * 10,)  # 4 bytes * 10
     with mock.patch('pre_commit.xargs.sys', sys_linux_mock):
         with pytest.raises(xargs.ArgumentTooLongError):
             xargs.partition(cmd, varargs, _max_length=20)

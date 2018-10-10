@@ -17,9 +17,9 @@ def _command_length(*cmd):
     full_cmd = ' '.join(cmd)
 
     # win32 uses the amount of characters, more details at:
-    # https://blogs.msdn.microsoft.com/oldnewthing/20031210-00/?p=41553/
+    # https://github.com/pre-commit/pre-commit/pull/839
     if sys.platform == 'win32':
-        return len(full_cmd)
+        return len(full_cmd.encode('utf-16le')) // 2
 
     return len(full_cmd.encode(sys.getfilesystemencoding()))
 
