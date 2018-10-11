@@ -527,11 +527,13 @@ def test_pre_push_integration_failing(tempdir_factory, store):
         install(Runner(path, C.CONFIG_FILE), store, hook_type='pre-push')
         # commit succeeds because pre-commit is only installed for pre-push
         assert _get_commit_output(tempdir_factory)[0] == 0
+        assert _get_commit_output(tempdir_factory, touch_file='zzz')[0] == 0
 
         retc, output = _get_push_output(tempdir_factory)
         assert retc == 1
         assert 'Failing hook' in output
         assert 'Failed' in output
+        assert 'foo zzz' in output  # both filenames should be printed
         assert 'hookid: failing_hook' in output
 
 
