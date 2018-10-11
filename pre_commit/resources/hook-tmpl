@@ -123,14 +123,15 @@ def _pre_push(stdin):
         elif remote_sha != Z40 and _rev_exists(remote_sha):
             opts = ('--origin', local_sha, '--source', remote_sha)
         else:
-            # First ancestor not found in remote
-            first_ancestor = subprocess.check_output((
-                'git', 'rev-list', '--max-count=1', '--topo-order',
-                '--reverse', local_sha, '--not', '--remotes={}'.format(remote),
+            # ancestors not found in remote
+            ancestors = subprocess.check_output((
+                'git', 'rev-list', local_sha, '--topo-order', '--reverse',
+                '--not', '--remotes={}'.format(remote),
             )).decode().strip()
-            if not first_ancestor:
+            if not ancestors:
                 continue
             else:
+                first_ancestor = ancestors.splitlines()[0]
                 cmd = ('git', 'rev-list', '--max-parents=0', local_sha)
                 roots = set(subprocess.check_output(cmd).decode().splitlines())
                 if first_ancestor in roots:
