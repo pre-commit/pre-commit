@@ -1,3 +1,14 @@
+1.11.2
+======
+
+### Fixes
+- `check-useless-exclude` now considers `types`
+    - #704 issue by @asottile.
+    - #837 PR by @georgeyk.
+- `pre-push` hook was not identifying all commits on push to new branch
+    - #843 issue by @prem-nuro.
+    - #844 PR by @asottile.
+
 1.11.1
 ======
 
