@@ -1,10 +1,9 @@
 repos:
 -   repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v1.4.0
+    rev: v2.0.0
     hooks:
     -   id: trailing-whitespace
     -   id: end-of-file-fixer
-    -   id: autopep8-wrapper
     -   id: check-docstring-first
     -   id: check-json
     -   id: check-yaml
@@ -12,17 +11,21 @@ repos:
     -   id: name-tests-test
     -   id: requirements-txt-fixer
     -   id: flake8
+-   repo: https://github.com/pre-commit/mirrors-autopep8
+    rev: v1.4
+    hooks:
+    -   id: autopep8
 -   repo: https://github.com/pre-commit/pre-commit
-    rev: v1.10.5
+    rev: v1.11.2
     hooks:
     -   id: validate_manifest
 -   repo: https://github.com/asottile/reorder_python_imports
-    rev: v1.1.0
+    rev: v1.3.0
     hooks:
     -   id: reorder-python-imports
         language_version: python2.7
 -   repo: https://github.com/asottile/add-trailing-comma
-    rev: v0.6.4
+    rev: v0.7.1
     hooks:
     -   id: add-trailing-comma
 -   repo: meta
