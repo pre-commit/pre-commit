@@ -22,7 +22,7 @@ from pre_commit.runner import Runner
 from pre_commit.util import cmd_output
 from pre_commit.util import make_executable
 from pre_commit.util import mkdirp
-from pre_commit.util import resource_filename
+from pre_commit.util import resource_text
 from testing.fixtures import git_dir
 from testing.fixtures import make_consuming_repo
 from testing.fixtures import remove_config_from_repo
@@ -36,7 +36,7 @@ def test_is_not_script():
 
 
 def test_is_script():
-    assert is_our_script(resource_filename('hook-tmpl'))
+    assert is_our_script('pre_commit/resources/hook-tmpl')
 
 
 def test_is_previous_pre_commit(tmpdir):
@@ -415,8 +415,7 @@ def test_replace_old_commit_script(tempdir_factory, store):
         runner = Runner(path, C.CONFIG_FILE)
 
         # Install a script that looks like our old script
-        with io.open(resource_filename('hook-tmpl')) as f:
-            pre_commit_contents = f.read()
+        pre_commit_contents = resource_text('hook-tmpl')
         new_contents = pre_commit_contents.replace(
             CURRENT_HASH, PRIOR_HASHES[-1],
         )

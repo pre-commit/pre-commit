@@ -153,3 +153,12 @@ def test_require_created_when_directory_exists_but_not_db(store):
     os.makedirs(store.directory)
     store.require_created()
     assert os.path.exists(store.db_path)
+
+
+def test_local_resources_reflects_reality():
+    on_disk = {
+        res[len('empty_template_'):]
+        for res in os.listdir('pre_commit/resources')
+        if res.startswith('empty_template_')
+    }
+    assert on_disk == set(Store.LOCAL_RESOURCES)

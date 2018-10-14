@@ -11,9 +11,8 @@ import pre_commit.constants as C
 from pre_commit import file_lock
 from pre_commit.util import clean_path_on_failure
 from pre_commit.util import cmd_output
-from pre_commit.util import copy_tree_to_path
 from pre_commit.util import no_git_env
-from pre_commit.util import resource_filename
+from pre_commit.util import resource_text
 
 
 logger = logging.getLogger('pre_commit')
@@ -149,9 +148,17 @@ class Store(object):
 
         return self._new_repo(repo, ref, deps, clone_strategy)
 
+    LOCAL_RESOURCES = (
+        'Cargo.toml', 'main.go', 'main.rs', '.npmignore', 'package.json',
+        'pre_commit_dummy_package.gemspec', 'setup.py',
+    )
+
     def make_local(self, deps):
         def make_local_strategy(directory):
-            copy_tree_to_path(resource_filename('empty_template'), directory)
+            for resource in self.LOCAL_RESOURCES:
+                contents = resource_text('empty_template_{}'.format(resource))
+                with io.open(os.path.join(directory, resource), 'w') as f:
+                    f.write(contents)
 
             env = no_git_env()
             name, email = 'pre-commit', 'asottile+pre-commit@umich.edu'

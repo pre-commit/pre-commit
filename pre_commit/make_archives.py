@@ -8,7 +8,6 @@ import tarfile
 
 from pre_commit import output
 from pre_commit.util import cmd_output
-from pre_commit.util import resource_filename
 from pre_commit.util import rmtree
 from pre_commit.util import tmpdir
 
@@ -56,7 +55,7 @@ def make_archive(name, repo, ref, destdir):
 
 def main(argv=None):
     parser = argparse.ArgumentParser()
-    parser.add_argument('--dest', default=resource_filename())
+    parser.add_argument('--dest', default='pre_commit/resources')
     args = parser.parse_args(argv)
     for archive_name, repo, ref in REPOS:
         output.write_line('Making {}.tar.gz for {}@{}'.format(

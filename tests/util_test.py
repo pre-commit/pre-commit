@@ -9,6 +9,7 @@ from pre_commit.util import CalledProcessError
 from pre_commit.util import clean_path_on_failure
 from pre_commit.util import cmd_output
 from pre_commit.util import memoize_by_cwd
+from pre_commit.util import parse_version
 from pre_commit.util import tmpdir
 from testing.util import cwd
 
@@ -117,3 +118,9 @@ def test_cmd_output_exe_not_found():
     ret, out, _ = cmd_output('i-dont-exist', retcode=None)
     assert ret == 1
     assert out == 'Executable `i-dont-exist` not found'
+
+
+def test_parse_version():
+    assert parse_version('0.0') == parse_version('0.0')
+    assert parse_version('0.1') > parse_version('0.0')
+    assert parse_version('2.1') >= parse_version('2')

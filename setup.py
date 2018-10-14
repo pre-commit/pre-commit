@@ -29,10 +29,9 @@ setup(
     packages=find_packages(exclude=('tests*', 'testing*')),
     package_data={
         'pre_commit': [
-            'resources/*-tmpl',
+            'resources/hook-tmpl',
             'resources/*.tar.gz',
-            'resources/empty_template/*',
-            'resources/empty_template/.npmignore',
+            'resources/empty_template_*',
         ],
     },
     install_requires=[
@@ -40,12 +39,15 @@ setup(
         'cached-property',
         'cfgv>=1.0.0',
         'identify>=1.0.0',
+        # if this makes it into python3.8 move to extras_require
+        'importlib-metadata',
         'nodeenv>=0.11.1',
         'pyyaml',
         'six',
         'toml',
         'virtualenv',
     ],
+    extras_require={':python_version<"3.7"': ['importlib-resources']},
     entry_points={
         'console_scripts': [
             'pre-commit = pre_commit.main:main',

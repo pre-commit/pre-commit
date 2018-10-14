@@ -11,7 +11,7 @@ from pre_commit.envcontext import Var
 from pre_commit.languages import helpers
 from pre_commit.util import CalledProcessError
 from pre_commit.util import clean_path_on_failure
-from pre_commit.util import resource_filename
+from pre_commit.util import resource_bytesio
 from pre_commit.xargs import xargs
 
 
@@ -47,22 +47,23 @@ def in_env(prefix, language_version):  # pragma: windows no cover
         yield
 
 
+def _extract_resource(filename, dest):
+    with resource_bytesio(filename) as bio:
+        with tarfile.open(fileobj=bio) as tf:
+            tf.extractall(dest)
+
+
 def _install_rbenv(prefix, version='default'):  # pragma: windows no cover
     directory = helpers.environment_dir(ENVIRONMENT_DIR, version)
 
-    with tarfile.open(resource_filename('rbenv.tar.gz')) as tf:
-        tf.extractall(prefix.path('.'))
+    _extract_resource('rbenv.tar.gz', prefix.path('.'))
     shutil.move(prefix.path('rbenv'), prefix.path(directory))
 
     # Only install ruby-build if the version is specified
     if version != 'default':
-        # ruby-download
-        with tarfile.open(resource_filename('ruby-download.tar.gz')) as tf:
-            tf.extractall(prefix.path(directory, 'plugins'))
-
-        # ruby-build
-        with tarfile.open(resource_filename('ruby-build.tar.gz')) as tf:
-            tf.extractall(prefix.path(directory, 'plugins'))
+        plugins_dir = prefix.path(directory, 'plugins')
+        _extract_resource('ruby-download.tar.gz', plugins_dir)
+        _extract_resource('ruby-build.tar.gz', plugins_dir)
 
     activate_path = prefix.path(directory, 'bin', 'activate')
     with io.open(activate_path, 'w') as activate_file:

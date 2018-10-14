@@ -7,13 +7,20 @@ import os.path
 import shutil
 import stat
 import subprocess
+import sys
 import tempfile
 
-import pkg_resources
 import six
 
 from pre_commit import five
 from pre_commit import parse_shebang
+
+if sys.version_info >= (3, 7):  # pragma: no cover (PY37+)
+    from importlib.resources import open_binary
+    from importlib.resources import read_text
+else:  # pragma: no cover (<PY37)
+    from importlib_resources import open_binary
+    from importlib_resources import read_text
 
 
 def mkdirp(path):
@@ -84,10 +91,12 @@ def tmpdir():
         rmtree(tempdir)
 
 
-def resource_filename(*segments):
-    return pkg_resources.resource_filename(
-        'pre_commit', os.path.join('resources', *segments),
-    )
+def resource_bytesio(filename):
+    return open_binary('pre_commit.resources', filename)
+
+
+def resource_text(filename):
+    return read_text('pre_commit.resources', filename)
 
 
 def make_executable(filename):
@@ -195,19 +204,6 @@ def rmtree(path):
     shutil.rmtree(path, ignore_errors=False, onerror=handle_remove_readonly)
 
 
-def copy_tree_to_path(src_dir, dest_dir):
-    """Copies all of the things inside src_dir to an already existing dest_dir.
-
-    This looks eerily similar to shutil.copytree, but copytree has no option
-    for not creating dest_dir.
-    """
-    names = os.listdir(src_dir)
-
-    for name in names:
-        srcname = os.path.join(src_dir, name)
-        destname = os.path.join(dest_dir, name)
-
-        if os.path.isdir(srcname):
-            shutil.copytree(srcname, destname)
-        else:
-            shutil.copy(srcname, destname)
+def parse_version(s):
+    """poor man's version comparison"""
+    return tuple(int(p) for p in s.split('.'))

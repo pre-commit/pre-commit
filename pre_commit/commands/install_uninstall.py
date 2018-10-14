@@ -12,7 +12,7 @@ from pre_commit.repository import repositories
 from pre_commit.util import cmd_output
 from pre_commit.util import make_executable
 from pre_commit.util import mkdirp
-from pre_commit.util import resource_filename
+from pre_commit.util import resource_text
 
 
 logger = logging.getLogger(__name__)
@@ -80,8 +80,7 @@ def install(
     }
 
     with io.open(hook_path, 'w') as hook_file:
-        with io.open(resource_filename('hook-tmpl')) as f:
-            contents = f.read()
+        contents = resource_text('hook-tmpl')
         before, rest = contents.split(TEMPLATE_START)
         to_template, after = rest.split(TEMPLATE_END)
 
