@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import contextlib
 import io
 import os.path
+import shutil
 from collections import OrderedDict
 
 from aspy.yaml import ordered_dump
@@ -16,8 +17,25 @@ from pre_commit import git
 from pre_commit.clientlib import CONFIG_SCHEMA
 from pre_commit.clientlib import load_manifest
 from pre_commit.util import cmd_output
-from pre_commit.util import copy_tree_to_path
 from testing.util import get_resource_path
+
+
+def copy_tree_to_path(src_dir, dest_dir):
+    """Copies all of the things inside src_dir to an already existing dest_dir.
+
+    This looks eerily similar to shutil.copytree, but copytree has no option
+    for not creating dest_dir.
+    """
+    names = os.listdir(src_dir)
+
+    for name in names:
+        srcname = os.path.join(src_dir, name)
+        destname = os.path.join(dest_dir, name)
+
+        if os.path.isdir(srcname):
+            shutil.copytree(srcname, destname)
+        else:
+            shutil.copy(srcname, destname)
 
 
 def git_dir(tempdir_factory):

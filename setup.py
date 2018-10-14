@@ -29,10 +29,9 @@ setup(
     packages=find_packages(exclude=('tests*', 'testing*')),
     package_data={
         'pre_commit': [
-            'resources/*-tmpl',
+            'resources/hook-tmpl',
             'resources/*.tar.gz',
-            'resources/empty_template/*',
-            'resources/empty_template/.npmignore',
+            'resources/empty_template_*',
         ],
     },
     install_requires=[
@@ -48,6 +47,7 @@ setup(
         'toml',
         'virtualenv',
     ],
+    extras_require={':python_version<"3.7"': ['importlib-resources']},
     entry_points={
         'console_scripts': [
             'pre-commit = pre_commit.main:main',
