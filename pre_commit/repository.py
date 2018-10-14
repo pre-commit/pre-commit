@@ -8,7 +8,6 @@ import pipes
 import shutil
 import sys
 
-import pkg_resources
 from cached_property import cached_property
 from cfgv import apply_defaults
 from cfgv import validate
@@ -23,6 +22,7 @@ from pre_commit.clientlib import MANIFEST_HOOK_DICT
 from pre_commit.languages.all import languages
 from pre_commit.languages.helpers import environment_dir
 from pre_commit.prefix import Prefix
+from pre_commit.util import parse_version
 
 
 logger = logging.getLogger('pre_commit')
@@ -110,13 +110,13 @@ def _hook(*hook_dicts):
     for dct in rest:
         ret.update(dct)
 
-    version = pkg_resources.parse_version(ret['minimum_pre_commit_version'])
-    if version > C.VERSION_PARSED:
+    version = ret['minimum_pre_commit_version']
+    if parse_version(version) > parse_version(C.VERSION):
         logger.error(
             'The hook `{}` requires pre-commit version {} but version {} '
             'is installed.  '
             'Perhaps run `pip install --upgrade pre-commit`.'.format(
-                ret['id'], version, C.VERSION_PARSED,
+                ret['id'], version, C.VERSION,
             ),
         )
         exit(1)

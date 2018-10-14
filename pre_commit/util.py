@@ -211,3 +211,8 @@ def copy_tree_to_path(src_dir, dest_dir):
             shutil.copytree(srcname, destname)
         else:
             shutil.copy(srcname, destname)
+
+
+def parse_version(s):
+    """poor man's version comparison"""
+    return tuple(int(p) for p in s.split('.'))
