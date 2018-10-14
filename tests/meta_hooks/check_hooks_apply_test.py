@@ -106,39 +106,20 @@ def test_hook_types_excludes_everything(
     assert 'check-useless-excludes does not apply to this repository' in out
 
 
-def test_valid_always_run(capsys, tempdir_factory, mock_store_dir):
-    config = {
-        'repos': [
-            {
-                'repo': 'meta',
-                'hooks': [
-                    # Should not be reported as an error due to always_run
-                    {
-                        'id': 'check-useless-excludes',
-                        'files': '^$',
-                        'always_run': True,
-                    },
-                ],
-            },
-        ],
-    }
-
-    repo = git_dir(tempdir_factory)
-    add_config_to_repo(repo, config)
-
-    with cwd(repo):
-        assert check_hooks_apply.main(()) == 0
-
-    out, _ = capsys.readouterr()
-    assert out == ''
-
-
-def test_valid_language_fail(capsys, tempdir_factory, mock_store_dir):
+def test_valid_exceptions(capsys, tempdir_factory, mock_store_dir):
     config = {
         'repos': [
             {
                 'repo': 'local',
                 'hooks': [
+                    # applies to a file
+                    {
+                        'id': 'check-yaml',
+                        'name': 'check yaml',
+                        'entry': './check-yaml',
+                        'language': 'script',
+                        'files': r'\.yaml$',
+                    },
                     # Should not be reported as an error due to language: fail
                     {
                         'id': 'changelogs-rst',
@@ -146,6 +127,15 @@ def test_valid_language_fail(capsys, tempdir_factory, mock_store_dir):
                         'entry': 'changelog filenames must end in .rst',
                         'language': 'fail',
                         'files': r'changelog/.*(?<!\.rst)$',
+                    },
+                    # Should not be reported as an error due to always_run
+                    {
+                        'id': 'i-always-run',
+                        'name': 'make check',
+                        'entry': 'make check',
+                        'language': 'system',
+                        'files': '^$',
+                        'always_run': True,
                     },
                 ],
             },
