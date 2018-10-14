@@ -8,6 +8,7 @@ omit =
     # Don't complain if non-runnable code isn't run
     */__main__.py
     pre_commit/color_windows.py
+    pre_commit/resources/*
 
 [report]
 show_missing = True
