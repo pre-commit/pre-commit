@@ -837,6 +837,7 @@ def test_manifest_hooks(tempdir_factory, store):
         'minimum_pre_commit_version': '0',
         'name': 'Bash hook',
         'pass_filenames': True,
+        'require_serial': False,
         'stages': [],
         'types': ['file'],
         'exclude_types': [],

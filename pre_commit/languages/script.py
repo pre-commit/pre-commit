@@ -13,4 +13,8 @@ install_environment = helpers.no_install
 def run_hook(prefix, hook, file_args):
     cmd = helpers.to_cmd(hook)
     cmd = (prefix.path(cmd[0]),) + cmd[1:]
-    return xargs(cmd, file_args)
+    return xargs(
+        cmd,
+        file_args,
+        target_concurrency=helpers.target_concurrency(hook),
+    )

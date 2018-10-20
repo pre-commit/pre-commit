@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 
+import multiprocessing
 import shlex
 
 from pre_commit.util import cmd_output
@@ -45,3 +46,11 @@ def basic_healthy(prefix, language_version):
 
 def no_install(prefix, version, additional_dependencies):
     raise AssertionError('This type is not installable')
+
+
+def target_concurrency(hook):
+    if hook['require_serial']:
+        return 1
+    else:
+        # TODO: something smart!
+        return multiprocessing.cpu_count()

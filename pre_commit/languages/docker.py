@@ -97,4 +97,8 @@ def run_hook(prefix, hook, file_args):  # pragma: windows no cover
 
     entry_tag = ('--entrypoint', entry_exe, docker_tag(prefix))
     cmd = docker_cmd() + entry_tag + cmd_rest
-    return xargs(cmd, file_args)
+    return xargs(
+        cmd,
+        file_args,
+        target_concurrency=helpers.target_concurrency(hook),
+    )

@@ -127,7 +127,11 @@ def py_interface(_dir, _make_venv):
 
     def run_hook(prefix, hook, file_args):
         with in_env(prefix, hook['language_version']):
-            return xargs(helpers.to_cmd(hook), file_args)
+            return xargs(
+                helpers.to_cmd(hook),
+                file_args,
+                target_concurrency=helpers.target_concurrency(hook),
+            )
 
     def install_environment(prefix, version, additional_dependencies):
         additional_dependencies = tuple(additional_dependencies)

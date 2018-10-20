@@ -3,6 +3,7 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 import sys
+import time
 
 import mock
 import pytest
@@ -132,3 +133,20 @@ def test_xargs_retcode_normal():
 
     ret, _, _ = xargs.xargs(exit_cmd, ('0', '1'), _max_length=max_length)
     assert ret == 1
+
+
+def test_xargs_concurrency():
+    bash_cmd = ('bash', '-c')
+    print_pid = ('sleep 0.5 && echo $$',)
+
+    start = time.time()
+    ret, stdout, _ = xargs.xargs(
+        bash_cmd, print_pid * 5,
+        target_concurrency=5,
+        _max_length=len(' '.join(bash_cmd + print_pid)),
+    )
+    elapsed = time.time() - start
+    assert ret == 0
+    pids = stdout.splitlines()
+    assert len(pids) == 5
+    assert elapsed < 1

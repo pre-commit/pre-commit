@@ -1,8 +1,11 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
+import contextlib
+import multiprocessing.pool
 import sys
 
+import concurrent.futures
 import six
 
 from pre_commit import parse_shebang
@@ -65,12 +68,23 @@ def partition(cmd, varargs, _max_length=None):
     return tuple(ret)
 
 
+@contextlib.contextmanager
+def _threadpool(size):
+    pool = multiprocessing.pool.ThreadPool(size)
+    try:
+        yield pool
+    finally:
+        pool.terminate()
+
+
 def xargs(cmd, varargs, **kwargs):
     """A simplified implementation of xargs.
 
     negate: Make nonzero successful and zero a failure
+    target_concurrency: Target number of partitions to run concurrently
     """
     negate = kwargs.pop('negate', False)
+    target_concurrency = kwargs.pop('target_concurrency', 1)
     retcode = 0
     stdout = b''
     stderr = b''
@@ -80,10 +94,17 @@ def xargs(cmd, varargs, **kwargs):
     except parse_shebang.ExecutableNotFoundError as e:
         return e.to_output()
 
-    for run_cmd in partition(cmd, varargs, **kwargs):
-        proc_retcode, proc_out, proc_err = cmd_output(
-            *run_cmd, encoding=None, retcode=None
-        )
+    # TODO: teach partition to intelligently target our desired concurrency
+    # while still respecting max_length.
+    partitions = partition(cmd, varargs, **kwargs)
+
+    def run_cmd_partition(run_cmd):
+        return cmd_output(*run_cmd, encoding=None, retcode=None)
+
+    with _threadpool(min(len(partitions), target_concurrency)) as pool:
+        results = pool.map(run_cmd_partition, partitions)
+
+    for proc_retcode, proc_out, proc_err in results:
         # This is *slightly* too clever so I'll explain it.
         # First the xor boolean table:
         #     T | F |

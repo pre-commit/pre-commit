@@ -56,6 +56,7 @@ MANIFEST_HOOK_DICT = cfgv.Map(
     cfgv.Optional('language_version', cfgv.check_string, 'default'),
     cfgv.Optional('log_file', cfgv.check_string, ''),
     cfgv.Optional('minimum_pre_commit_version', cfgv.check_string, '0'),
+    cfgv.Optional('require_serial', cfgv.check_bool, False),
     cfgv.Optional('stages', cfgv.check_array(cfgv.check_one_of(C.STAGES)), []),
     cfgv.Optional('verbose', cfgv.check_bool, False),
 )

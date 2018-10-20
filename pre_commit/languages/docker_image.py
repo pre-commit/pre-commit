@@ -16,4 +16,8 @@ install_environment = helpers.no_install
 def run_hook(prefix, hook, file_args):  # pragma: windows no cover
     assert_docker_available()
     cmd = docker_cmd() + helpers.to_cmd(hook)
-    return xargs(cmd, file_args)
+    return xargs(
+        cmd,
+        file_args,
+        target_concurrency=helpers.target_concurrency(hook),
+    )
