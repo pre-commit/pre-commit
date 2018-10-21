@@ -1,7 +1,9 @@
 from __future__ import absolute_import
+from __future__ import division
 from __future__ import unicode_literals
 
 import contextlib
+import math
 import multiprocessing.pool
 import sys
 
@@ -37,8 +39,13 @@ class ArgumentTooLongError(RuntimeError):
     pass
 
 
-def partition(cmd, varargs, _max_length=None):
+def partition(cmd, varargs, target_concurrency, _max_length=None):
     _max_length = _max_length or _get_platform_max_length()
+
+    # Generally, we try to partition evenly into at least `target_concurrency`
+    # partitions, but we don't want a bunch of tiny partitions.
+    max_args = max(4, math.ceil(len(varargs) / target_concurrency))
+
     cmd = tuple(cmd)
     ret = []
 
@@ -51,7 +58,10 @@ def partition(cmd, varargs, _max_length=None):
         arg = varargs.pop()
 
         arg_length = _command_length(arg) + 1
-        if total_length + arg_length <= _max_length:
+        if (
+                total_length + arg_length <= _max_length
+                and len(ret_cmd) < max_args
+        ):
             ret_cmd.append(arg)
             total_length += arg_length
         elif not ret_cmd:
@@ -94,9 +104,7 @@ def xargs(cmd, varargs, **kwargs):
     except parse_shebang.ExecutableNotFoundError as e:
         return e.to_output()
 
-    # TODO: teach partition to intelligently target our desired concurrency
-    # while still respecting max_length.
-    partitions = partition(cmd, varargs, **kwargs)
+    partitions = partition(cmd, varargs, target_concurrency, **kwargs)
 
     def run_cmd_partition(run_cmd):
         return cmd_output(*run_cmd, encoding=None, retcode=None)

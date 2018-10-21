@@ -36,11 +36,11 @@ def linux_mock():
 
 
 def test_partition_trivial():
-    assert xargs.partition(('cmd',), ()) == (('cmd',),)
+    assert xargs.partition(('cmd',), (), 1) == (('cmd',),)
 
 
 def test_partition_simple():
-    assert xargs.partition(('cmd',), ('foo',)) == (('cmd', 'foo'),)
+    assert xargs.partition(('cmd',), ('foo',), 1) == (('cmd', 'foo'),)
 
 
 def test_partition_limits():
@@ -54,6 +54,7 @@ def test_partition_limits():
             '.' * 5,
             '.' * 6,
         ),
+        1,
         _max_length=20,
     )
     assert ret == (
@@ -68,21 +69,21 @@ def test_partition_limit_win32_py3(win32_py3_mock):
     cmd = ('ninechars',)
     # counted as half because of utf-16 encode
     varargs = ('😑' * 5,)
-    ret = xargs.partition(cmd, varargs, _max_length=20)
+    ret = xargs.partition(cmd, varargs, 1, _max_length=20)
     assert ret == (cmd + varargs,)
 
 
 def test_partition_limit_win32_py2(win32_py2_mock):
     cmd = ('ninechars',)
     varargs = ('😑' * 5,)  # 4 bytes * 5
-    ret = xargs.partition(cmd, varargs, _max_length=30)
+    ret = xargs.partition(cmd, varargs, 1, _max_length=30)
     assert ret == (cmd + varargs,)
 
 
 def test_partition_limit_linux(linux_mock):
     cmd = ('ninechars',)
     varargs = ('😑' * 5,)
-    ret = xargs.partition(cmd, varargs, _max_length=30)
+    ret = xargs.partition(cmd, varargs, 1, _max_length=30)
     assert ret == (cmd + varargs,)
 
 
@@ -90,12 +91,39 @@ def test_argument_too_long_with_large_unicode(linux_mock):
     cmd = ('ninechars',)
     varargs = ('😑' * 10,)  # 4 bytes * 10
     with pytest.raises(xargs.ArgumentTooLongError):
-        xargs.partition(cmd, varargs, _max_length=20)
+        xargs.partition(cmd, varargs, 1, _max_length=20)
+
+
+def test_partition_target_concurrency():
+    ret = xargs.partition(
+        ('foo',), ('A',) * 22,
+        4,
+        _max_length=50,
+    )
+    assert ret == (
+        ('foo',) + ('A',) * 6,
+        ('foo',) + ('A',) * 6,
+        ('foo',) + ('A',) * 6,
+        ('foo',) + ('A',) * 4,
+    )
+
+
+def test_partition_target_concurrency_wont_make_tiny_partitions():
+    ret = xargs.partition(
+        ('foo',), ('A',) * 10,
+        4,
+        _max_length=50,
+    )
+    assert ret == (
+        ('foo',) + ('A',) * 4,
+        ('foo',) + ('A',) * 4,
+        ('foo',) + ('A',) * 2,
+    )
 
 
 def test_argument_too_long():
     with pytest.raises(xargs.ArgumentTooLongError):
-        xargs.partition(('a' * 5,), ('a' * 5,), _max_length=10)
+        xargs.partition(('a' * 5,), ('a' * 5,), 1, _max_length=10)
 
 
 def test_xargs_smoke():
