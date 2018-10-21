@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 import multiprocessing
+import os
 import shlex
 
 from pre_commit.util import cmd_output
@@ -52,5 +53,11 @@ def target_concurrency(hook):
     if hook['require_serial']:
         return 1
     else:
-        # TODO: something smart!
-        return multiprocessing.cpu_count()
+        # Travis appears to have a bunch of CPUs, but we can't use them all.
+        if 'TRAVIS' in os.environ:
+            return 2
+        else:
+            try:
+                return multiprocessing.cpu_count()
+            except NotImplementedError:
+                return 1
