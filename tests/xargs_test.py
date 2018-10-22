@@ -177,4 +177,6 @@ def test_xargs_concurrency():
     assert ret == 0
     pids = stdout.splitlines()
     assert len(pids) == 5
-    assert elapsed < 1
+    # It would take 0.5*5=2.5 seconds ot run all of these in serial, so if it
+    # takes less, they must have run concurrently.
+    assert elapsed < 2.5
