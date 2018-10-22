@@ -40,7 +40,15 @@ def test_target_concurrency_normal():
 
 
 def test_target_concurrency_cpu_count_require_serial_true():
-    assert helpers.target_concurrency({'require_serial': True}) == 1
+    with mock.patch.dict(os.environ, {}, clear=True):
+        assert helpers.target_concurrency({'require_serial': True}) == 1
+
+
+def test_target_concurrency_testing_env_var():
+    with mock.patch.dict(
+            os.environ, {'PRE_COMMIT_NO_CONCURRENCY': '1'}, clear=True,
+    ):
+        assert helpers.target_concurrency({'require_serial': False}) == 1
 
 
 def test_target_concurrency_on_travis():
@@ -52,4 +60,5 @@ def test_target_concurrency_cpu_count_not_implemented():
     with mock.patch.object(
             multiprocessing, 'cpu_count', side_effect=NotImplementedError,
     ):
-        assert helpers.target_concurrency({'require_serial': False}) == 1
+        with mock.patch.dict(os.environ, {}, clear=True):
+            assert helpers.target_concurrency({'require_serial': False}) == 1

@@ -50,7 +50,7 @@ def no_install(prefix, version, additional_dependencies):
 
 
 def target_concurrency(hook):
-    if hook['require_serial']:
+    if hook['require_serial'] or 'PRE_COMMIT_NO_CONCURRENCY' in os.environ:
         return 1
     else:
         # Travis appears to have a bunch of CPUs, but we can't use them all.
