@@ -4,7 +4,6 @@ from __future__ import unicode_literals
 
 import contextlib
 import math
-import multiprocessing.pool
 import sys
 
 import concurrent.futures
@@ -79,12 +78,12 @@ def partition(cmd, varargs, target_concurrency, _max_length=None):
 
 
 @contextlib.contextmanager
-def _threadpool(size):
-    pool = multiprocessing.pool.ThreadPool(size)
-    try:
-        yield pool
-    finally:
-        pool.terminate()
+def _thread_mapper(maxsize):
+    if maxsize == 1:
+        yield map
+    else:
+        with concurrent.futures.ThreadPoolExecutor(maxsize) as ex:
+            yield ex.map
 
 
 def xargs(cmd, varargs, **kwargs):
@@ -109,22 +108,24 @@ def xargs(cmd, varargs, **kwargs):
     def run_cmd_partition(run_cmd):
         return cmd_output(*run_cmd, encoding=None, retcode=None)
 
-    with _threadpool(min(len(partitions), target_concurrency)) as pool:
-        results = pool.map(run_cmd_partition, partitions)
+    with _thread_mapper(
+            min(len(partitions), target_concurrency),
+    ) as thread_map:
+        results = thread_map(run_cmd_partition, partitions)
 
-    for proc_retcode, proc_out, proc_err in results:
-        # This is *slightly* too clever so I'll explain it.
-        # First the xor boolean table:
-        #     T | F |
-        #   +-------+
-        # T | F | T |
-        # --+-------+
-        # F | T | F |
-        # --+-------+
-        # When negate is True, it has the effect of flipping the return code
-        # Otherwise, the retuncode is unchanged
-        retcode |= bool(proc_retcode) ^ negate
-        stdout += proc_out
-        stderr += proc_err
+        for proc_retcode, proc_out, proc_err in results:
+            # This is *slightly* too clever so I'll explain it.
+            # First the xor boolean table:
+            #     T | F |
+            #   +-------+
+            # T | F | T |
+            # --+-------+
+            # F | T | F |
+            # --+-------+
+            # When negate is True, it has the effect of flipping the return
+            # code. Otherwise, the returncode is unchanged.
+            retcode |= bool(proc_retcode) ^ negate
+            stdout += proc_out
+            stderr += proc_err
 
     return retcode, stdout, stderr

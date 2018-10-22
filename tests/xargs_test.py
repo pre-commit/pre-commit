@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 import sys
 import time
 
+import concurrent.futures
 import mock
 import pytest
 import six
@@ -180,3 +181,15 @@ def test_xargs_concurrency():
     # It would take 0.5*5=2.5 seconds ot run all of these in serial, so if it
     # takes less, they must have run concurrently.
     assert elapsed < 2.5
+
+
+def test_thread_mapper_concurrency_uses_threadpoolexecutor_map():
+    with xargs._thread_mapper(10) as thread_map:
+        assert isinstance(
+            thread_map.__self__, concurrent.futures.ThreadPoolExecutor,
+        ) is True
+
+
+def test_thread_mapper_concurrency_uses_regular_map():
+    with xargs._thread_mapper(1) as thread_map:
+        assert thread_map is map

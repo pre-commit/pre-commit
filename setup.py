@@ -47,7 +47,10 @@ setup(
         'toml',
         'virtualenv',
     ],
-    extras_require={':python_version<"3.7"': ['importlib-resources']},
+    extras_require={
+        ':python_version<"3.2"': ['futures'],
+        ':python_version<"3.7"': ['importlib-resources'],
+    },
     entry_points={
         'console_scripts': [
             'pre-commit = pre_commit.main:main',
