@@ -1,3 +1,14 @@
+1.12.0
+======
+
+### Fixes
+- Install multi-hook repositories only once (performance)
+    - issue by @chriskuehl.
+    - #852 PR by @asottile.
+- Improve performance by factoring out pkg_resources (performance)
+    - #840 issue by @RonnyPfannschmidt.
+    - #846 PR by @asottile.
+
 1.11.2
 ======
 
