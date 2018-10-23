@@ -179,12 +179,12 @@ class Repository(object):
         return Prefix(self.store.clone(repo, rev, deps))
 
     def _venvs(self):
-        ret = []
+        ret = set()
         for _, hook in self.hooks:
             language = hook['language']
             version = hook['language_version']
-            deps = hook['additional_dependencies']
-            ret.append((
+            deps = tuple(hook['additional_dependencies'])
+            ret.add((
                 self._prefix_from_deps(language, deps),
                 language, version, deps,
             ))

@@ -1,11 +1,11 @@
 from __future__ import unicode_literals
 
+import collections
 import os.path
 
 
-class Prefix(object):
-    def __init__(self, prefix_dir):
-        self.prefix_dir = prefix_dir
+class Prefix(collections.namedtuple('Prefix', ('prefix_dir',))):
+    __slots__ = ()
 
     def path(self, *parts):
         return os.path.normpath(os.path.join(self.prefix_dir, *parts))
