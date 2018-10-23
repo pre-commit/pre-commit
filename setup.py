@@ -28,10 +28,10 @@ setup(
     ],
     packages=find_packages(exclude=('tests*', 'testing*')),
     package_data={
-        'pre_commit': [
-            'resources/hook-tmpl',
-            'resources/*.tar.gz',
-            'resources/empty_template_*',
+        'pre_commit.resources': [
+            '*.tar.gz',
+            'empty_template_*',
+            'hook-tmpl',
         ],
     },
     install_requires=[
