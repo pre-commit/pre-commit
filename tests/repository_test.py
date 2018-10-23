@@ -466,7 +466,7 @@ def test_venvs(tempdir_factory, store):
     config = make_config_from_repo(path)
     repo = Repository.create(config, store)
     venv, = repo._venvs()
-    assert venv == (mock.ANY, 'python', python.get_default_version(), [])
+    assert venv == (mock.ANY, 'python', python.get_default_version(), ())
 
 
 def test_additional_dependencies(tempdir_factory, store):
@@ -474,8 +474,8 @@ def test_additional_dependencies(tempdir_factory, store):
     config = make_config_from_repo(path)
     config['hooks'][0]['additional_dependencies'] = ['pep8']
     repo = Repository.create(config, store)
-    venv, = repo._venvs()
-    assert venv == (mock.ANY, 'python', python.get_default_version(), ['pep8'])
+    env, = repo._venvs()
+    assert env == (mock.ANY, 'python', python.get_default_version(), ('pep8',))
 
 
 def test_additional_dependencies_roll_forward(tempdir_factory, store):
