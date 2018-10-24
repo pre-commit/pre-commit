@@ -3,6 +3,8 @@ from __future__ import unicode_literals
 
 import sys
 
+import six
+
 from pre_commit import parse_shebang
 from pre_commit.util import cmd_output
 
@@ -19,9 +21,13 @@ def _command_length(*cmd):
     # win32 uses the amount of characters, more details at:
     # https://github.com/pre-commit/pre-commit/pull/839
     if sys.platform == 'win32':
-        return len(full_cmd.encode('utf-16le')) // 2
-
-    return len(full_cmd.encode(sys.getfilesystemencoding()))
+        # the python2.x apis require bytes, we encode as UTF-8
+        if six.PY2:
+            return len(full_cmd.encode('utf-8'))
+        else:
+            return len(full_cmd.encode('utf-16le')) // 2
+    else:
+        return len(full_cmd.encode(sys.getfilesystemencoding()))
 
 
 class ArgumentTooLongError(RuntimeError):
