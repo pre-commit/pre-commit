@@ -1,41 +1,63 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
+import sys
+
+import six
+
 from pre_commit import parse_shebang
 from pre_commit.util import cmd_output
 
 
-# Limit used previously to avoid "xargs ... Bad file number" on windows
-# This is slightly less than the posix mandated minimum
-MAX_LENGTH = 4000
+# TODO: properly compute max_length value
+def _get_platform_max_length():
+    # posix minimum
+    return 4 * 1024
+
+
+def _command_length(*cmd):
+    full_cmd = ' '.join(cmd)
+
+    # win32 uses the amount of characters, more details at:
+    # https://github.com/pre-commit/pre-commit/pull/839
+    if sys.platform == 'win32':
+        # the python2.x apis require bytes, we encode as UTF-8
+        if six.PY2:
+            return len(full_cmd.encode('utf-8'))
+        else:
+            return len(full_cmd.encode('utf-16le')) // 2
+    else:
+        return len(full_cmd.encode(sys.getfilesystemencoding()))
 
 
 class ArgumentTooLongError(RuntimeError):
     pass
 
 
-def partition(cmd, varargs, _max_length=MAX_LENGTH):
+def partition(cmd, varargs, _max_length=None):
+    _max_length = _max_length or _get_platform_max_length()
     cmd = tuple(cmd)
     ret = []
 
     ret_cmd = []
-    total_len = len(' '.join(cmd))
     # Reversed so arguments are in order
     varargs = list(reversed(varargs))
 
+    total_length = _command_length(*cmd)
     while varargs:
         arg = varargs.pop()
 
-        if total_len + 1 + len(arg) <= _max_length:
+        arg_length = _command_length(arg) + 1
+        if total_length + arg_length <= _max_length:
             ret_cmd.append(arg)
-            total_len += len(arg)
+            total_length += arg_length
         elif not ret_cmd:
             raise ArgumentTooLongError(arg)
         else:
             # We've exceeded the length, yield a command
             ret.append(cmd + tuple(ret_cmd))
             ret_cmd = []
-            total_len = len(' '.join(cmd))
+            total_length = _command_length(*cmd)
             varargs.append(arg)
 
     ret.append(cmd + tuple(ret_cmd))
