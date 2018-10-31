@@ -14,6 +14,7 @@ from pre_commit.clientlib import CONFIG_SCHEMA
 from pre_commit.clientlib import is_local_repo
 from pre_commit.clientlib import is_meta_repo
 from pre_commit.clientlib import load_config
+from pre_commit.clientlib import InvalidManifestError
 from pre_commit.commands.migrate_config import migrate_config
 from pre_commit.repository import Repository
 from pre_commit.util import CalledProcessError
@@ -57,7 +58,10 @@ def _update_repo(repo_config, store, tags_only):
 
     # See if any of our hooks were deleted with the new commits
     hooks = {hook['id'] for hook in repo_config['hooks']}
-    hooks_missing = hooks - (hooks & set(new_repo.manifest_hooks))
+    try:
+        hooks_missing = hooks - (hooks & set(new_repo.manifest_hooks))
+    except InvalidManifestError as e:
+        raise RepositoryCannotBeUpdatedError(e.args[0])
     if hooks_missing:
         raise RepositoryCannotBeUpdatedError(
             'Cannot update because the tip of master is missing these hooks:\n'
