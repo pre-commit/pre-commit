@@ -12,7 +12,6 @@ from pre_commit.languages import helpers
 from pre_commit.util import CalledProcessError
 from pre_commit.util import clean_path_on_failure
 from pre_commit.util import resource_bytesio
-from pre_commit.xargs import xargs
 
 
 ENVIRONMENT_DIR = 'rbenv'
@@ -126,8 +125,4 @@ def install_environment(
 
 def run_hook(prefix, hook, file_args):  # pragma: windows no cover
     with in_env(prefix, hook['language_version']):
-        return xargs(
-            helpers.to_cmd(hook),
-            file_args,
-            target_concurrency=helpers.target_concurrency(hook),
-        )
+        return helpers.run_xargs(hook, helpers.to_cmd(hook), file_args)

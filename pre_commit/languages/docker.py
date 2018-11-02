@@ -9,7 +9,6 @@ from pre_commit.languages import helpers
 from pre_commit.util import CalledProcessError
 from pre_commit.util import clean_path_on_failure
 from pre_commit.util import cmd_output
-from pre_commit.xargs import xargs
 
 
 ENVIRONMENT_DIR = 'docker'
@@ -97,8 +96,4 @@ def run_hook(prefix, hook, file_args):  # pragma: windows no cover
 
     entry_tag = ('--entrypoint', entry_exe, docker_tag(prefix))
     cmd = docker_cmd() + entry_tag + cmd_rest
-    return xargs(
-        cmd,
-        file_args,
-        target_concurrency=helpers.target_concurrency(hook),
-    )
+    return helpers.run_xargs(hook, cmd, file_args)

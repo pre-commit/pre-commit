@@ -5,6 +5,7 @@ import os
 import shlex
 
 from pre_commit.util import cmd_output
+from pre_commit.xargs import xargs
 
 
 def run_setup_cmd(prefix, cmd):
@@ -61,3 +62,7 @@ def target_concurrency(hook):
                 return multiprocessing.cpu_count()
             except NotImplementedError:
                 return 1
+
+
+def run_xargs(hook, cmd, file_args):
+    return xargs(cmd, file_args, target_concurrency=target_concurrency(hook))

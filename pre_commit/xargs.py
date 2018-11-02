@@ -108,9 +108,8 @@ def xargs(cmd, varargs, **kwargs):
     def run_cmd_partition(run_cmd):
         return cmd_output(*run_cmd, encoding=None, retcode=None)
 
-    with _thread_mapper(
-            min(len(partitions), target_concurrency),
-    ) as thread_map:
+    threads = min(len(partitions), target_concurrency)
+    with _thread_mapper(threads) as thread_map:
         results = thread_map(run_cmd_partition, partitions)
 
         for proc_retcode, proc_out, proc_err in results:

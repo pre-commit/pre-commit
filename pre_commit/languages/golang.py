@@ -11,7 +11,6 @@ from pre_commit.languages import helpers
 from pre_commit.util import clean_path_on_failure
 from pre_commit.util import cmd_output
 from pre_commit.util import rmtree
-from pre_commit.xargs import xargs
 
 
 ENVIRONMENT_DIR = 'golangenv'
@@ -81,8 +80,4 @@ def install_environment(prefix, version, additional_dependencies):
 
 def run_hook(prefix, hook, file_args):
     with in_env(prefix):
-        return xargs(
-            helpers.to_cmd(hook),
-            file_args,
-            target_concurrency=helpers.target_concurrency(hook),
-        )
+        return helpers.run_xargs(hook, helpers.to_cmd(hook), file_args)

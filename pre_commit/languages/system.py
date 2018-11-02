@@ -1,7 +1,6 @@
 from __future__ import unicode_literals
 
 from pre_commit.languages import helpers
-from pre_commit.xargs import xargs
 
 
 ENVIRONMENT_DIR = None
@@ -11,8 +10,4 @@ install_environment = helpers.no_install
 
 
 def run_hook(prefix, hook, file_args):
-    return xargs(
-        helpers.to_cmd(hook),
-        file_args,
-        target_concurrency=helpers.target_concurrency(hook),
-    )
+    return helpers.run_xargs(hook, helpers.to_cmd(hook), file_args)
