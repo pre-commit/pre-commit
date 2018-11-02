@@ -1,8 +1,11 @@
 from __future__ import unicode_literals
 
+import multiprocessing
+import os
 import shlex
 
 from pre_commit.util import cmd_output
+from pre_commit.xargs import xargs
 
 
 def run_setup_cmd(prefix, cmd):
@@ -45,3 +48,21 @@ def basic_healthy(prefix, language_version):
 
 def no_install(prefix, version, additional_dependencies):
     raise AssertionError('This type is not installable')
+
+
+def target_concurrency(hook):
+    if hook['require_serial'] or 'PRE_COMMIT_NO_CONCURRENCY' in os.environ:
+        return 1
+    else:
+        # Travis appears to have a bunch of CPUs, but we can't use them all.
+        if 'TRAVIS' in os.environ:
+            return 2
+        else:
+            try:
+                return multiprocessing.cpu_count()
+            except NotImplementedError:
+                return 1
+
+
+def run_xargs(hook, cmd, file_args):
+    return xargs(cmd, file_args, target_concurrency=target_concurrency(hook))

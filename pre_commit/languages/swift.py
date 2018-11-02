@@ -8,7 +8,6 @@ from pre_commit.envcontext import Var
 from pre_commit.languages import helpers
 from pre_commit.util import clean_path_on_failure
 from pre_commit.util import cmd_output
-from pre_commit.xargs import xargs
 
 ENVIRONMENT_DIR = 'swift_env'
 get_default_version = helpers.basic_get_default_version
@@ -53,4 +52,4 @@ def install_environment(
 
 def run_hook(prefix, hook, file_args):  # pragma: windows no cover
     with in_env(prefix):
-        return xargs(helpers.to_cmd(hook), file_args)
+        return helpers.run_xargs(hook, helpers.to_cmd(hook), file_args)
