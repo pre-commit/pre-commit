@@ -260,6 +260,21 @@ def test_autoupdate_tags_only(tagged_repo_with_more_commits, in_tmpdir, store):
         assert 'v1.2.3' in f.read()
 
 
+def test_autoupdate_latest_no_config(out_of_date_repo, in_tmpdir, store):
+    config = make_config_from_repo(
+        out_of_date_repo.path, rev=out_of_date_repo.original_rev,
+    )
+    write_config('.', config)
+
+    cmd_output('git', '-C', out_of_date_repo.path, 'rm', '-r', ':/')
+    cmd_output('git', '-C', out_of_date_repo.path, 'commit', '-m', 'rm')
+
+    ret = autoupdate(Runner('.', C.CONFIG_FILE), store, tags_only=False)
+    assert ret == 1
+    with open(C.CONFIG_FILE) as f:
+        assert out_of_date_repo.original_rev in f.read()
+
+
 @pytest.fixture
 def hook_disappearing_repo(tempdir_factory):
     path = make_repo(tempdir_factory, 'python_hooks_repo')

@@ -132,7 +132,7 @@ def autoupdate(runner, store, tags_only, repos=()):
         try:
             new_repo_config = _update_repo(repo_config, store, tags_only)
         except RepositoryCannotBeUpdatedError as error:
-            output.write_line(error.args[0])
+            output.write_line(str(error))
             output_repos.append(repo_config)
             retv = 1
             continue
