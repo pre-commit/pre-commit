@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import re
 from collections import OrderedDict
 
+import six
 from aspy.yaml import ordered_dump
 from aspy.yaml import ordered_load
 from cfgv import remove_defaults
@@ -58,7 +59,7 @@ def _update_repo(repo_config, store, tags_only):
     try:
         new_hooks = Repository.create(new_config, store).manifest_hooks
     except InvalidManifestError as e:
-        raise RepositoryCannotBeUpdatedError(e.args[0])
+        raise RepositoryCannotBeUpdatedError(six.text_type(e))
 
     # See if any of our hooks were deleted with the new commits
     hooks = {hook['id'] for hook in repo_config['hooks']}
@@ -133,7 +134,7 @@ def autoupdate(runner, store, tags_only, repos=()):
         try:
             new_repo_config = _update_repo(repo_config, store, tags_only)
         except RepositoryCannotBeUpdatedError as error:
-            output.write_line(str(error))
+            output.write_line(error.args[0])
             output_repos.append(repo_config)
             retv = 1
             continue
