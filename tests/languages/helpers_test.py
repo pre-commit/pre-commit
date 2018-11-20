@@ -62,3 +62,7 @@ def test_target_concurrency_cpu_count_not_implemented():
     ):
         with mock.patch.dict(os.environ, {}, clear=True):
             assert helpers.target_concurrency({'require_serial': False}) == 1
+
+
+def test_shuffled_is_deterministic():
+    assert helpers._shuffled(range(10)) == [3, 7, 8, 2, 4, 6, 5, 1, 0, 9]
