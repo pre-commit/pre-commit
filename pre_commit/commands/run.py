@@ -25,8 +25,8 @@ logger = logging.getLogger('pre_commit')
 tags_from_path = memoize_by_cwd(tags_from_path)
 
 
-def _get_skips(environ):
-    skips = environ.get('SKIP', '')
+def _get_skips(environ, varname='SKIP'):
+    skips = environ.get(varname, '')
     return {skip.strip() for skip in skips.split(',') if skip.strip()}
 
 
@@ -62,7 +62,7 @@ SKIPPED = 'Skipped'
 NO_FILES = '(no files to check)'
 
 
-def _run_single_hook(filenames, hook, repo, args, skips, cols):
+def _run_single_hook(filenames, hook, repo, args, skips, cols, ignores):
     include, exclude = hook['files'], hook['exclude']
     filenames = _filter_by_include_exclude(filenames, include, exclude)
     types, exclude_types = hook['types'], hook['exclude_types']
@@ -119,7 +119,12 @@ def _run_single_hook(filenames, hook, repo, args, skips, cols):
     if file_modifications:
         retcode = 1
 
-    if retcode:
+    ignored = retcode and not file_modifications and hook['id'] in ignores
+    if ignored:
+        retcode = 0
+        print_color = color.YELLOW
+        pass_fail = 'Ignore'
+    elif retcode:
         retcode = 1
         print_color = color.RED
         pass_fail = 'Failed'
@@ -132,7 +137,7 @@ def _run_single_hook(filenames, hook, repo, args, skips, cols):
 
     if (
             (stdout or stderr or file_modifications) and
-            (retcode or args.verbose or hook['verbose'])
+            (retcode or ignored or args.verbose or hook['verbose'])
     ):
         output.write_line('hookid: {}\n'.format(hook['id']))
 
@@ -191,12 +196,15 @@ def _all_filenames(args):
 def _run_hooks(config, repo_hooks, args, environ):
     """Actually run the hooks."""
     skips = _get_skips(environ)
+    ignores = _get_skips(environ, 'IGNORE')
     cols = _compute_cols([hook for _, hook in repo_hooks], args.verbose)
     filenames = _all_filenames(args)
     filenames = _filter_by_include_exclude(filenames, '', config['exclude'])
     retval = 0
     for repo, hook in repo_hooks:
-        retval |= _run_single_hook(filenames, hook, repo, args, skips, cols)
+        retval |= _run_single_hook(
+            filenames, hook, repo, args, skips, cols, ignores,
+        )
         if retval and config['fail_fast']:
             break
     if (
