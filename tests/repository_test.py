@@ -6,6 +6,7 @@ import io
 import os.path
 import re
 import shutil
+import textwrap
 
 import mock
 import pytest
@@ -843,3 +844,50 @@ def test_manifest_hooks(tempdir_factory, store):
         'exclude_types': [],
         'verbose': False,
     }
+
+
+def test_python_additional_dependencies_requirements_file(
+    tempdir_factory,
+    store,
+):
+    path = make_repo(tempdir_factory, 'python_hooks_repo')
+    req1 = os.path.join(path, 'req1.txt')
+    with open(req1, 'w') as wfh:
+        wfh.write(textwrap.dedent('''
+            # This is a comment in the pip file
+            pep8
+        '''))
+    with cwd(path):
+        config = make_config_from_repo(path)
+        config['hooks'][0]['additional_dependencies'] = ['-r', 'req1.txt']
+        repo = Repository.create(config, store)
+        env, = repo._venvs()
+        assert env == (
+            mock.ANY, 'python', python.get_default_version(), ('pep8',),
+        )
+        config = make_config_from_repo(path)
+        config['hooks'][0]['additional_dependencies'] = ['-rreq1.txt']
+        repo = Repository.create(config, store)
+        env, = repo._venvs()
+        assert env == (
+            mock.ANY, 'python', python.get_default_version(), ('pep8',),
+        )
+        config = make_config_from_repo(path)
+        config['hooks'][0]['additional_dependencies'] = [
+            '--requirement',
+            'req1.txt',
+        ]
+        repo = Repository.create(config, store)
+        env, = repo._venvs()
+        assert env == (
+            mock.ANY, 'python', python.get_default_version(), ('pep8',),
+        )
+        config = make_config_from_repo(path)
+        config['hooks'][0]['additional_dependencies'] = [
+            '--requirement=req1.txt',
+        ]
+        repo = Repository.create(config, store)
+        env, = repo._venvs()
+        assert env == (
+            mock.ANY, 'python', python.get_default_version(), ('pep8',),
+        )

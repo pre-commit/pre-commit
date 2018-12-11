@@ -79,6 +79,136 @@ def _get_default_version():  # pragma: no cover (platform dependent)
     return 'default'
 
 
+def _parse_requirements_file(requirements_file):
+    options = []
+    collected_requirements = []
+    with open(requirements_file) as rfh:
+        for line in rfh:
+            req = line.strip()
+            if not req:
+                continue
+            if req.startswith('#'):
+                continue
+            if req.startswith(('-r ', '--requirement ')):
+                _, req_file = req.split(' ', 1)
+                req_file = os.path.realpath(
+                    os.path.join(os.path.dirname(requirements_file), req_file),
+                )
+                if not os.path.isfile(req_file):
+                    continue
+                for rreq in _parse_requirements_file(req_file):
+                    if rreq in collected_requirements:
+                        continue
+                    collected_requirements.append(rreq)
+                continue
+            if req.startswith('-r'):
+                req_file = req[:2]
+                req_file = os.path.realpath(
+                    os.path.join(os.path.dirname(requirements_file), req_file),
+                )
+                if not os.path.isfile(req_file):
+                    continue
+                for rreq in _parse_requirements_file(req_file):
+                    if rreq in collected_requirements:
+                        continue
+                    collected_requirements.append(rreq)
+                continue
+            if req.startswith('--requirement='):
+                req_file = req[:14]
+                req_file = os.path.realpath(
+                    os.path.join(os.path.dirname(requirements_file), req_file),
+                )
+                if not os.path.isfile(req_file):
+                    continue
+                for rreq in _parse_requirements_file(req_file):
+                    if rreq in collected_requirements:
+                        continue
+                    collected_requirements.append(rreq)
+                continue
+            if req.startswith('--'):
+                if req in options:
+                    continue
+                options.append(req)
+                continue
+            if req in collected_requirements:
+                continue
+            collected_requirements.append(req)
+    return options + collected_requirements
+
+
+def collect_requirements(git_root, additional_dependencies):
+    options = []
+    collected_requirements = []
+    next_is_requirements_file = False
+    for dep in additional_dependencies:
+        if dep in ('-r', '--requirement'):
+            # pip install -r requirement.txt or
+            # pip install --requirement requirement.txt
+            next_is_requirements_file = True
+            continue
+        elif dep.startswith('-r'):
+            # pip install -rrequirement.txt
+            requirements_file = os.path.join(git_root, dep[2:])
+            if not os.path.isfile(requirements_file):
+                print('Not a requirements_file: {}'.format(requirements_file))
+                continue
+            for rdep in _parse_requirements_file(requirements_file):
+                if rdep.startswith('--'):
+                    for part in rdep.split():
+                        if not part:
+                            continue
+                        if part in options:
+                            continue
+                        options.append(part)
+                    continue
+                if rdep in collected_requirements:
+                    continue
+                collected_requirements.append(rdep)
+        elif dep.startswith('--requirement='):
+            # pip install --requirement=requirement.txt
+            requirements_file = os.path.join(git_root, dep[14:])
+            if not os.path.isfile(requirements_file):
+                print('Not a requirements_file: {}'.format(requirements_file))
+                continue
+            for rdep in _parse_requirements_file(requirements_file):
+                if rdep.startswith('--'):
+                    for part in rdep.split():
+                        if not part:
+                            continue
+                        if part in options:
+                            continue
+                        options.append(part)
+                    continue
+                if rdep in collected_requirements:
+                    continue
+                collected_requirements.append(rdep)
+            continue
+        elif dep.startswith('--'):
+            options.append(dep)
+            continue
+        elif next_is_requirements_file:
+            next_is_requirements_file = False
+            requirements_file = os.path.join(git_root, dep)
+            if not os.path.isfile(requirements_file):
+                print('Not a requirements_file: {}'.format(requirements_file))
+                continue
+            for rdep in _parse_requirements_file(requirements_file):
+                if rdep.startswith('--'):
+                    for part in rdep.split():
+                        if not part:
+                            continue
+                        if part in options:
+                            continue
+                        options.append(part)
+                    continue
+                if rdep in collected_requirements:
+                    continue
+                collected_requirements.append(rdep)
+        else:
+            collected_requirements.append(dep)
+    return options + collected_requirements
+
+
 def get_default_version():
     # TODO: when dropping python2, use `functools.lru_cache(maxsize=1)`
     try:
@@ -106,6 +236,11 @@ def norm_version(version):
 
     # Otherwise assume it is a path
     return os.path.expanduser(version)
+
+
+def process_additional_dependencies(additional_dependencies):
+    git_root = os.path.abspath(os.getcwd())
+    return collect_requirements(git_root, additional_dependencies)
 
 
 def py_interface(_dir, _make_venv):

@@ -64,7 +64,8 @@ def modify_manifest(path):
     with io.open(manifest_path, 'w') as manifest_file:
         manifest_file.write(ordered_dump(manifest, **C.YAML_DUMP_KWARGS))
     cmd_output(
-        'git', 'commit', '--no-gpg-sign', '-am', 'update {}'.format(C.MANIFEST_FILE), cwd=path,
+        'git', 'commit', '--no-gpg-sign', '-am',
+        'update {}'.format(C.MANIFEST_FILE), cwd=path,
     )
 
 
@@ -80,7 +81,10 @@ def modify_config(path='.', commit=True):
     with io.open(config_path, 'w', encoding='UTF-8') as config_file:
         config_file.write(ordered_dump(config, **C.YAML_DUMP_KWARGS))
     if commit:
-        cmd_output('git', 'commit', '--no-gpg-sign', '-am', 'update config', cwd=path)
+        cmd_output(
+            'git', 'commit', '--no-gpg-sign', '-am', 'update config',
+            cwd=path,
+        )
 
 
 def config_with_local_hooks():
@@ -136,13 +140,19 @@ def write_config(directory, config, config_file=C.CONFIG_FILE):
 def add_config_to_repo(git_path, config, config_file=C.CONFIG_FILE):
     write_config(git_path, config, config_file=config_file)
     cmd_output('git', 'add', config_file, cwd=git_path)
-    cmd_output('git', 'commit', '--no-gpg-sign', '-m', 'Add hooks config', cwd=git_path)
+    cmd_output(
+        'git', 'commit', '--no-gpg-sign', '-m', 'Add hooks config',
+        cwd=git_path,
+    )
     return git_path
 
 
 def remove_config_from_repo(git_path, config_file=C.CONFIG_FILE):
     cmd_output('git', 'rm', config_file, cwd=git_path)
-    cmd_output('git', 'commit', '--no-gpg-sign', '-m', 'Remove hooks config', cwd=git_path)
+    cmd_output(
+        'git', 'commit', '--no-gpg-sign', '-m', 'Remove hooks config',
+        cwd=git_path,
+    )
     return git_path
 
 

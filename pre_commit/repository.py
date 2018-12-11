@@ -183,7 +183,15 @@ class Repository(object):
         for _, hook in self.hooks:
             language = hook['language']
             version = hook['language_version']
-            deps = tuple(hook['additional_dependencies'])
+            additional_dependencies = hook['additional_dependencies']
+            try:
+                deps = languages[language].process_additional_dependencies(
+                    additional_dependencies,
+                )
+            except AttributeError:
+                # Language does not implement process_additional_dependencies
+                deps = additional_dependencies
+            deps = tuple(deps)
             ret.add((
                 self._prefix_from_deps(language, deps),
                 language, version, deps,
