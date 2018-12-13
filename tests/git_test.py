@@ -155,3 +155,21 @@ def test_get_conflicted_files_non_ascii(in_merge_conflict):
     cmd_output('git', 'add', '.')
     ret = git.get_conflicted_files()
     assert ret == {'conflict_file', 'интервью'}
+
+
+def test_intent_to_add(in_git_dir):
+    in_git_dir.join('a').ensure()
+    cmd_output('git', 'add', '--intent-to-add', 'a')
+
+    assert git.intent_to_add_files() == ['a']
+
+
+def test_status_output_with_rename(in_git_dir):
+    in_git_dir.join('a').write('1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n')
+    cmd_output('git', 'add', 'a')
+    git_commit()
+    cmd_output('git', 'mv', 'a', 'b')
+    in_git_dir.join('c').ensure()
+    cmd_output('git', 'add', '--intent-to-add', 'c')
+
+    assert git.intent_to_add_files() == ['c']
