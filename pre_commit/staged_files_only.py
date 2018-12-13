@@ -29,10 +29,9 @@ def staged_files_only(patch_dir):
     context.
     """
     # Determine if there are unstaged files
-    tree = cmd_output('git', 'write-tree')[1].strip()
     retcode, diff_stdout_binary, _ = cmd_output(
-        'git', 'diff-index', '--ignore-submodules', '--binary',
-        '--exit-code', '--no-color', '--no-ext-diff', tree, '--',
+        'git', 'diff', '--ignore-submodules', '--binary',
+        '--exit-code', '--no-color', '--no-ext-diff', '--',
         retcode=None,
         encoding=None,
     )

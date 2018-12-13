@@ -350,3 +350,14 @@ def test_autocrlf_commited_crlf(in_git_dir, patch_dir):
 
     with staged_files_only(patch_dir):
         assert_no_diff()
+
+
+def test_intent_to_add(in_git_dir, patch_dir):
+    """Regression test for #881"""
+    _write(b'hello\nworld\n')
+    cmd_output('git', 'add', '--intent-to-add', 'foo')
+
+    with staged_files_only(patch_dir):
+        # there's another bug with `diff-index` with `--intent-to-add`
+        # TODO: use `assert_no_diff()`
+        cmd_output('git', 'diff', '--exit-code', '--')
