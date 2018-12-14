@@ -416,6 +416,32 @@ def test_multiple_hooks_same_id(cap_out, store, repo_with_passing_hook):
     assert output.count(b'Bash hook') == 2
 
 
+def test_aliased_hook_run(cap_out, store, repo_with_passing_hook):
+    with cwd(repo_with_passing_hook):
+        # Add bash hook on there again, aliased
+        with modify_config() as config:
+            config['repos'][0]['hooks'].append(
+                {'id': 'bash_hook', 'alias': 'foo_bash'},
+            )
+        stage_a_file()
+
+    ret, output = _do_run(
+        cap_out, store, repo_with_passing_hook,
+        run_opts(verbose=True, hook='bash_hook'),
+    )
+    assert ret == 0
+    # Both hooks will run since they share the same ID
+    assert output.count(b'Bash hook') == 2
+
+    ret, output = _do_run(
+        cap_out, store, repo_with_passing_hook,
+        run_opts(verbose=True, hook='foo_bash'),
+    )
+    assert ret == 0
+    # Only the aliased hook runs
+    assert output.count(b'Bash hook') == 1
+
+
 def test_non_ascii_hook_id(repo_with_passing_hook, tempdir_factory):
     with cwd(repo_with_passing_hook):
         _, stdout, _ = cmd_output_mocked_pre_commit_home(

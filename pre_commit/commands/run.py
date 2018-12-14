@@ -257,13 +257,17 @@ def run(config_file, store, args, environ=os.environ):
         for repo in repositories(config, store):
             for _, hook in repo.hooks:
                 if (
-                    (not args.hook or hook['id'] == args.hook) and
+                    (not args.hook or hook['id'] == args.hook or (
+                        hook['alias'] and hook['alias'] == args.hook
+                    )) and
                     (not hook['stages'] or args.hook_stage in hook['stages'])
                 ):
                     repo_hooks.append((repo, hook))
 
         if args.hook and not repo_hooks:
-            output.write_line('No hook with id `{}`'.format(args.hook))
+            output.write_line(
+                'No hook with id or alias `{}`'.format(args.hook),
+            )
             return 1
 
         for repo in {repo for repo, _ in repo_hooks}:
