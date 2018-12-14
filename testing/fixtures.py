@@ -65,7 +65,8 @@ def modify_manifest(path):
         manifest_file.write(ordered_dump(manifest, **C.YAML_DUMP_KWARGS))
     cmd_output(
         'git', 'commit', '--no-gpg-sign', '-am',
-        'update {}'.format(C.MANIFEST_FILE), cwd=path,
+        'update {}'.format(C.MANIFEST_FILE),
+        cwd=path,
     )
 
 
