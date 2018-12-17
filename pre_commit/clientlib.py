@@ -29,20 +29,6 @@ def _make_argparser(filenames_help):
     return parser
 
 
-class OptionalAlias(object):
-
-    def check(self, dct):
-        if 'alias' in dct:
-            cfgv.check_string(dct['alias'])
-
-    def apply_default(self, dct):
-        if 'alias' not in dct:
-            dct['alias'] = dct['id']
-
-    def remove_default(self, dct):
-        pass
-
-
 MANIFEST_HOOK_DICT = cfgv.Map(
     'Hook', 'id',
 
@@ -50,7 +36,7 @@ MANIFEST_HOOK_DICT = cfgv.Map(
     cfgv.Required('name', cfgv.check_string),
     cfgv.Required('entry', cfgv.check_string),
     cfgv.Required('language', cfgv.check_one_of(all_languages)),
-    cfgv.OptionalNoDefault('alias', cfgv.check_string),
+    cfgv.Optional('alias', cfgv.check_string, ''),
 
     cfgv.Optional(
         'files', cfgv.check_and(cfgv.check_string, cfgv.check_regex), '',
@@ -140,7 +126,6 @@ CONFIG_HOOK_DICT = cfgv.Map(
     'Hook', 'id',
 
     cfgv.Required('id', cfgv.check_string),
-    OptionalAlias(),
 
     # All keys in manifest hook dict are valid in a config hook dict, but
     # are optional.
@@ -149,7 +134,7 @@ CONFIG_HOOK_DICT = cfgv.Map(
     *[
         cfgv.OptionalNoDefault(item.key, item.check_fn)
         for item in MANIFEST_HOOK_DICT.items
-        if item.key not in ('id', 'alias')
+        if item.key != 'id'
     ]
 )
 CONFIG_REPO_DICT = cfgv.Map(
