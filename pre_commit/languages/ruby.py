@@ -118,7 +118,7 @@ def install_environment(
             )
             helpers.run_setup_cmd(
                 prefix,
-                ('gem', 'install', '--no-ri', '--no-rdoc') +
+                ('gem', 'install', '--no-document') +
                 prefix.star('.gem') + additional_dependencies,
             )
 
