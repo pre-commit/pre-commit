@@ -1,3 +1,41 @@
+1.13.0
+======
+
+### Features
+- Run hooks in parallel
+    - individual hooks may opt out of parallel exection with `parallel: false`
+    - #510 issue by @chriskuehl.
+    - #851 PR by @chriskuehl.
+
+### Fixes
+- Improve platform-specific `xargs` command length detection
+    - #691 issue by @antonbabenko.
+    - #839 PR by @georgeyk.
+- Fix `pre-commit autoupdate` when updating to a latest tag missing a
+  `.pre-commit-hooks.yaml`
+    - #856 issue by @asottile.
+    - #857 PR by @runz0rd.
+- Upgrade the `pre-commit-hooks` version in `pre-commit sample-config`
+    - #870 by @asottile.
+- Improve balancing of multiprocessing by deterministic shuffling of args
+    - #861 issue by @Dunedan.
+    - #874 PR by @chriskuehl.
+- `ruby` hooks work with latest `gem` by removing `--no-ri` / `--no-rdoc` and
+  instead using `--no-document`.
+    - #889 PR by @asottile.
+
+### Misc
+- Use `--no-gpg-sign` when running tests
+    - #885 PR by @s0undt3ch.
+
+### Updating
+- If a hook requires serial execution, set `parallel: false` to avoid the new
+  parallel execution.
+- `ruby` hooks now require `gem>=2.0.0`.  If your platform doesn't support this
+  by default, select a newer version using
+  [`language_version`](https://pre-commit.com/#overriding-language-version).
+
+
 1.12.0
 ======
 
