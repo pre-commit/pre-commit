@@ -8,6 +8,7 @@ import sys
 
 from pre_commit import git
 from pre_commit import output
+from pre_commit.languages import python
 from pre_commit.repository import repositories
 from pre_commit.util import cmd_output
 from pre_commit.util import make_executable
@@ -41,6 +42,16 @@ def is_our_script(filename):
     with io.open(filename) as f:
         contents = f.read()
     return any(h in contents for h in (CURRENT_HASH,) + PRIOR_HASHES)
+
+
+def shebang():
+    if sys.platform == 'win32':
+        py = 'python'
+    else:
+        py = python.get_default_version()
+        if py == 'default':
+            py = 'python'
+    return '#!/usr/bin/env {}'.format(py)
 
 
 def install(
@@ -83,6 +94,8 @@ def install(
         contents = resource_text('hook-tmpl')
         before, rest = contents.split(TEMPLATE_START)
         to_template, after = rest.split(TEMPLATE_END)
+
+        before = before.replace('#!/usr/bin/env python', shebang())
 
         hook_file.write(before + TEMPLATE_START)
         for line in to_template.splitlines():

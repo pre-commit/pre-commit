@@ -17,7 +17,9 @@ from pre_commit.commands.install_uninstall import install
 from pre_commit.commands.install_uninstall import install_hooks
 from pre_commit.commands.install_uninstall import is_our_script
 from pre_commit.commands.install_uninstall import PRIOR_HASHES
+from pre_commit.commands.install_uninstall import shebang
 from pre_commit.commands.install_uninstall import uninstall
+from pre_commit.languages import python
 from pre_commit.runner import Runner
 from pre_commit.util import cmd_output
 from pre_commit.util import make_executable
@@ -43,6 +45,24 @@ def test_is_previous_pre_commit(tmpdir):
     f = tmpdir.join('foo')
     f.write(PRIOR_HASHES[0] + '\n')
     assert is_our_script(f.strpath)
+
+
+def test_shebang_windows():
+    with mock.patch.object(sys, 'platform', 'win32'):
+        assert shebang() == '#!/usr/bin/env python'
+
+
+def test_shebang_otherwise():
+    with mock.patch.object(sys, 'platform', 'posix'):
+        assert 'default' not in shebang()
+
+
+def test_shebang_returns_default():
+    with mock.patch.object(sys, 'platform', 'posix'):
+        with mock.patch.object(
+            python, 'get_default_version', return_value='default',
+        ):
+            assert shebang() == '#!/usr/bin/env python'
 
 
 def test_install_pre_commit(tempdir_factory, store):
