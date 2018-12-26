@@ -86,6 +86,15 @@ def _run_single_hook(filenames, hook, repo, args, skips, cols):
             cols=cols,
         ))
         return 0
+    elif hook['alias'] and hook['alias'] in skips:
+        output.write(get_hook_message(
+            _hook_msg_start(hook, args.verbose),
+            end_msg=SKIPPED,
+            end_color=color.YELLOW,
+            use_color=args.color,
+            cols=cols,
+        ))
+        return 0
     elif not filenames and not hook['always_run']:
         output.write(get_hook_message(
             _hook_msg_start(hook, args.verbose),

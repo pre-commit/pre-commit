@@ -388,6 +388,38 @@ def test_skip_hook(cap_out, store, repo_with_passing_hook):
         assert msg in printed
 
 
+def test_skip_aliased_hook(cap_out, store, repo_with_passing_hook):
+    with cwd(repo_with_passing_hook):
+        # Add bash hook on there again, aliased
+        with modify_config() as config:
+            config['repos'][0]['hooks'].append(
+                {'id': 'bash_hook', 'alias': 'foo_bash'},
+            )
+        stage_a_file()
+
+    ret, printed = _do_run(
+        cap_out, store, repo_with_passing_hook,
+        run_opts(hook='bash_hook'),
+        {'SKIP': 'bash_hook'},
+    )
+    assert ret == 0
+    # Both hooks will run since they share the same ID
+    assert printed.count(b'Bash hook') == 2
+    for msg in (b'Bash hook', b'Skipped'):
+        assert msg in printed
+
+    ret, printed = _do_run(
+        cap_out, store, repo_with_passing_hook,
+        run_opts(hook='foo_bash'),
+        {'SKIP': 'foo_bash'},
+    )
+    assert ret == 0
+    # Only the aliased hook runs
+    assert printed.count(b'Bash hook') == 1
+    for msg in (b'Bash hook', b'Skipped'):
+        assert msg in printed, printed
+
+
 def test_hook_id_not_in_non_verbose_output(
         cap_out, store, repo_with_passing_hook,
 ):
