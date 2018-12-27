@@ -75,7 +75,7 @@ def _shuffled(seq):
     fixed_random = random.Random()
     if six.PY2:  # pragma: no cover (py2)
         fixed_random.seed(FIXED_RANDOM_SEED)
-    else:
+    else:  # pragma: no cover (py3)
         fixed_random.seed(FIXED_RANDOM_SEED, version=1)
 
     seq = list(seq)
