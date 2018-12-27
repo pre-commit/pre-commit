@@ -112,14 +112,14 @@ def _write_new_config_file(path, output):
         f.write(to_write)
 
 
-def autoupdate(runner, store, tags_only, repos=()):
+def autoupdate(config_file, store, tags_only, repos=()):
     """Auto-update the pre-commit config to the latest versions of repos."""
-    migrate_config(runner, quiet=True)
+    migrate_config(config_file, quiet=True)
     retv = 0
     output_repos = []
     changed = False
 
-    input_config = load_config(runner.config_file_path)
+    input_config = load_config(config_file)
 
     for repo_config in input_config['repos']:
         if (
@@ -152,6 +152,6 @@ def autoupdate(runner, store, tags_only, repos=()):
     if changed:
         output_config = input_config.copy()
         output_config['repos'] = output_repos
-        _write_new_config_file(runner.config_file_path, output_config)
+        _write_new_config_file(config_file, output_config)
 
     return retv

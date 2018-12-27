@@ -297,13 +297,6 @@ def test_non_utf8_conflicting_diff(foo_staged, patch_dir):
     _test_foo_state(foo_staged, contents, 'AM', encoding='latin-1')
 
 
-@pytest.fixture
-def in_git_dir(tmpdir):
-    with tmpdir.as_cwd():
-        cmd_output('git', 'init', '.')
-        yield tmpdir
-
-
 def _write(b):
     with open('foo', 'wb') as f:
         f.write(b)

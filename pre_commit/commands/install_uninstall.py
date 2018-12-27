@@ -8,6 +8,7 @@ import sys
 
 from pre_commit import git
 from pre_commit import output
+from pre_commit.clientlib import load_config
 from pre_commit.languages import python
 from pre_commit.repository import repositories
 from pre_commit.util import cmd_output
@@ -31,8 +32,8 @@ TEMPLATE_START = '# start templated\n'
 TEMPLATE_END = '# end templated\n'
 
 
-def _hook_paths(git_root, hook_type):
-    pth = os.path.join(git.get_git_dir(git_root), 'hooks', hook_type)
+def _hook_paths(hook_type):
+    pth = os.path.join(git.get_git_dir(), 'hooks', hook_type)
     return pth, '{}.legacy'.format(pth)
 
 
@@ -55,7 +56,8 @@ def shebang():
 
 
 def install(
-        runner, store, overwrite=False, hooks=False, hook_type='pre-commit',
+        config_file, store,
+        overwrite=False, hooks=False, hook_type='pre-commit',
         skip_on_missing_conf=False,
 ):
     """Install the pre-commit hooks."""
@@ -66,7 +68,7 @@ def install(
         )
         return 1
 
-    hook_path, legacy_path = _hook_paths(runner.git_root, hook_type)
+    hook_path, legacy_path = _hook_paths(hook_type)
 
     mkdirp(os.path.dirname(hook_path))
 
@@ -84,7 +86,7 @@ def install(
         )
 
     params = {
-        'CONFIG': runner.config_file,
+        'CONFIG': config_file,
         'HOOK_TYPE': hook_type,
         'INSTALL_PYTHON': sys.executable,
         'SKIP_ON_MISSING_CONFIG': skip_on_missing_conf,
@@ -108,19 +110,19 @@ def install(
 
     # If they requested we install all of the hooks, do so.
     if hooks:
-        install_hooks(runner, store)
+        install_hooks(config_file, store)
 
     return 0
 
 
-def install_hooks(runner, store):
-    for repository in repositories(runner.config, store):
+def install_hooks(config_file, store):
+    for repository in repositories(load_config(config_file), store):
         repository.require_installed()
 
 
-def uninstall(runner, hook_type='pre-commit'):
+def uninstall(hook_type='pre-commit'):
     """Uninstall the pre-commit hooks."""
-    hook_path, legacy_path = _hook_paths(runner.git_root, hook_type)
+    hook_path, legacy_path = _hook_paths(hook_type)
 
     # If our file doesn't exist or it isn't ours, gtfo.
     if not os.path.exists(hook_path) or not is_our_script(hook_path):

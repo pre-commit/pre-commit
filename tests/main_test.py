@@ -7,9 +7,44 @@ import os.path
 import mock
 import pytest
 
+import pre_commit.constants as C
 from pre_commit import main
 from testing.auto_namedtuple import auto_namedtuple
-from testing.util import cwd
+
+
+class Args(object):
+    def __init__(self, **kwargs):
+        kwargs.setdefault('command', 'help')
+        kwargs.setdefault('config', C.CONFIG_FILE)
+        self.__dict__.update(kwargs)
+
+
+def test_adjust_args_and_chdir_noop(in_git_dir):
+    args = Args(command='run', files=['f1', 'f2'])
+    main._adjust_args_and_chdir(args)
+    assert os.getcwd() == in_git_dir
+    assert args.config == C.CONFIG_FILE
+    assert args.files == ['f1', 'f2']
+
+
+def test_adjust_args_and_chdir_relative_things(in_git_dir):
+    in_git_dir.join('foo/cfg.yaml').ensure()
+    in_git_dir.join('foo').chdir()
+
+    args = Args(command='run', files=['f1', 'f2'], config='cfg.yaml')
+    main._adjust_args_and_chdir(args)
+    assert os.getcwd() == in_git_dir
+    assert args.config == os.path.join('foo', 'cfg.yaml')
+    assert args.files == [os.path.join('foo', 'f1'), os.path.join('foo', 'f2')]
+
+
+def test_adjust_args_and_chdir_non_relative_config(in_git_dir):
+    in_git_dir.join('foo').ensure_dir().chdir()
+
+    args = Args()
+    main._adjust_args_and_chdir(args)
+    assert os.getcwd() == in_git_dir
+    assert args.config == C.CONFIG_FILE
 
 
 FNS = (
@@ -26,18 +61,6 @@ def mock_commands():
     yield ret
     for mck in ret:
         mck.stop()
-
-
-class CalledExit(Exception):
-    pass
-
-
-@pytest.fixture
-def argparse_exit_mock():
-    with mock.patch.object(
-        argparse.ArgumentParser, 'exit', side_effect=CalledExit,
-    ) as exit_mock:
-        yield exit_mock
 
 
 @pytest.fixture
@@ -62,15 +85,13 @@ def assert_only_one_mock_called(mock_objs):
     assert total_call_count == 1
 
 
-def test_overall_help(mock_commands, argparse_exit_mock):
-    with pytest.raises(CalledExit):
+def test_overall_help(mock_commands):
+    with pytest.raises(SystemExit):
         main.main(['--help'])
 
 
-def test_help_command(
-        mock_commands, argparse_exit_mock, argparse_parse_args_spy,
-):
-    with pytest.raises(CalledExit):
+def test_help_command(mock_commands, argparse_parse_args_spy):
+    with pytest.raises(SystemExit):
         main.main(['help'])
 
     argparse_parse_args_spy.assert_has_calls([
@@ -79,10 +100,8 @@ def test_help_command(
     ])
 
 
-def test_help_other_command(
-        mock_commands, argparse_exit_mock, argparse_parse_args_spy,
-):
-    with pytest.raises(CalledExit):
+def test_help_other_command(mock_commands, argparse_parse_args_spy):
+    with pytest.raises(SystemExit):
         main.main(['help', 'run'])
 
     argparse_parse_args_spy.assert_has_calls([
@@ -105,16 +124,12 @@ def test_try_repo(mock_store_dir):
 
 
 def test_help_cmd_in_empty_directory(
+        in_tmpdir,
         mock_commands,
-        tempdir_factory,
-        argparse_exit_mock,
         argparse_parse_args_spy,
 ):
-    path = tempdir_factory.get()
-
-    with cwd(path):
-        with pytest.raises(CalledExit):
-            main.main(['help', 'run'])
+    with pytest.raises(SystemExit):
+        main.main(['help', 'run'])
 
     argparse_parse_args_spy.assert_has_calls([
         mock.call(['help', 'run']),
@@ -122,12 +137,9 @@ def test_help_cmd_in_empty_directory(
     ])
 
 
-def test_expected_fatal_error_no_git_repo(
-        tempdir_factory, cap_out, mock_store_dir,
-):
-    with cwd(tempdir_factory.get()):
-        with pytest.raises(SystemExit):
-            main.main([])
+def test_expected_fatal_error_no_git_repo(in_tmpdir, cap_out, mock_store_dir):
+    with pytest.raises(SystemExit):
+        main.main([])
     log_file = os.path.join(mock_store_dir, 'pre-commit.log')
     assert cap_out.get() == (
         'An error has occurred: FatalError: git failed. '

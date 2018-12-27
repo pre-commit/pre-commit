@@ -16,7 +16,6 @@ from pre_commit.commands.run import _filter_by_include_exclude
 from pre_commit.commands.run import _get_skips
 from pre_commit.commands.run import _has_unmerged_paths
 from pre_commit.commands.run import run
-from pre_commit.runner import Runner
 from pre_commit.util import cmd_output
 from pre_commit.util import make_executable
 from testing.fixtures import add_config_to_repo
@@ -49,9 +48,8 @@ def stage_a_file(filename='foo.py'):
 
 
 def _do_run(cap_out, store, repo, args, environ={}, config_file=C.CONFIG_FILE):
-    runner = Runner(repo, config_file)
-    with cwd(runner.git_root):  # replicates Runner.create behaviour
-        ret = run(runner, store, args, environ=environ)
+    with cwd(repo):  # replicates `main._adjust_args_and_chdir` behaviour
+        ret = run(config_file, store, args, environ=environ)
     printed = cap_out.get_bytes()
     return ret, printed
 
@@ -435,7 +433,7 @@ def test_stdout_write_bug_py26(repo_with_failing_hook, store, tempdir_factory):
             config['repos'][0]['hooks'][0]['args'] = ['☃']
         stage_a_file()
 
-        install(Runner(repo_with_failing_hook, C.CONFIG_FILE), store)
+        install(C.CONFIG_FILE, store)
 
         # Have to use subprocess because pytest monkeypatches sys.stdout
         _, stdout, _ = cmd_output_mocked_pre_commit_home(
@@ -465,7 +463,7 @@ def test_lots_of_files(store, tempdir_factory):
             open(filename, 'w').close()
 
         cmd_output('git', 'add', '.')
-        install(Runner(git_path, C.CONFIG_FILE), store)
+        install(C.CONFIG_FILE, store)
 
         cmd_output_mocked_pre_commit_home(
             'git', 'commit', '-m', 'Commit!',

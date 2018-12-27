@@ -11,7 +11,6 @@ from pre_commit import git
 from pre_commit import output
 from pre_commit.clientlib import load_manifest
 from pre_commit.commands.run import run
-from pre_commit.runner import Runner
 from pre_commit.store import Store
 from pre_commit.util import tmpdir
 
@@ -43,4 +42,4 @@ def try_repo(args):
         output.write(config_s)
         output.write_line('=' * 79)
 
-        return run(Runner('.', config_filename), store, args)
+        return run(config_filename, store, args)
