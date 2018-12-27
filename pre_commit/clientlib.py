@@ -36,6 +36,7 @@ MANIFEST_HOOK_DICT = cfgv.Map(
     cfgv.Required('name', cfgv.check_string),
     cfgv.Required('entry', cfgv.check_string),
     cfgv.Required('language', cfgv.check_one_of(all_languages)),
+    cfgv.Optional('alias', cfgv.check_string, ''),
 
     cfgv.Optional(
         'files', cfgv.check_and(cfgv.check_string, cfgv.check_regex), '',

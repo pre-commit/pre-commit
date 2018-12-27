@@ -77,7 +77,7 @@ def _run_single_hook(filenames, hook, repo, args, skips, cols):
             'replacement.'.format(hook['id'], repo.repo_config['repo']),
         )
 
-    if hook['id'] in skips:
+    if hook['id'] in skips or hook['alias'] in skips:
         output.write(get_hook_message(
             _hook_msg_start(hook, args.verbose),
             end_msg=SKIPPED,
@@ -257,8 +257,15 @@ def run(config_file, store, args, environ=os.environ):
         for repo in repositories(config, store):
             for _, hook in repo.hooks:
                 if (
-                    (not args.hook or hook['id'] == args.hook) and
-                    (not hook['stages'] or args.hook_stage in hook['stages'])
+                        (
+                            not args.hook or
+                            hook['id'] == args.hook or
+                            hook['alias'] == args.hook
+                        ) and
+                        (
+                            not hook['stages'] or
+                            args.hook_stage in hook['stages']
+                        )
                 ):
                     repo_hooks.append((repo, hook))
 
