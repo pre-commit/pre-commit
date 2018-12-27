@@ -403,25 +403,13 @@ def test_skip_hook(cap_out, store, repo_with_passing_hook):
 def test_skip_aliased_hook(cap_out, store, aliased_repo):
     ret, printed = _do_run(
         cap_out, store, aliased_repo,
-        run_opts(hook='bash_hook'),
-        {'SKIP': 'bash_hook'},
-    )
-    assert ret == 0
-    # Both hooks will run since they share the same ID
-    assert printed.count(b'Bash hook') == 2
-    for msg in (b'Bash hook', b'Skipped'):
-        assert msg in printed
-
-    ret, printed = _do_run(
-        cap_out, store, aliased_repo,
         run_opts(hook='foo_bash'),
         {'SKIP': 'foo_bash'},
     )
     assert ret == 0
-    # Only the aliased hook runs
-    assert printed.count(b'Bash hook') == 1
+    # Only the aliased hook runs and is skipped
     for msg in (b'Bash hook', b'Skipped'):
-        assert msg in printed, printed
+        assert printed.count(msg) == 1
 
 
 def test_hook_id_not_in_non_verbose_output(
