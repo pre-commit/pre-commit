@@ -11,6 +11,7 @@ from identify.identify import tags_from_path
 from pre_commit import color
 from pre_commit import git
 from pre_commit import output
+from pre_commit.clientlib import load_config
 from pre_commit.output import get_hook_message
 from pre_commit.repository import repositories
 from pre_commit.staged_files_only import staged_files_only
@@ -214,16 +215,16 @@ def _has_unmerged_paths():
     return bool(stdout.strip())
 
 
-def _has_unstaged_config(runner):
+def _has_unstaged_config(config_file):
     retcode, _, _ = cmd_output(
-        'git', 'diff', '--no-ext-diff', '--exit-code', runner.config_file_path,
+        'git', 'diff', '--no-ext-diff', '--exit-code', config_file,
         retcode=None,
     )
     # be explicit, other git errors don't mean it has an unstaged config.
     return retcode == 1
 
 
-def run(runner, store, args, environ=os.environ):
+def run(config_file, store, args, environ=os.environ):
     no_stash = args.all_files or bool(args.files)
 
     # Check if we have unresolved merge conflict files and fail fast.
@@ -233,10 +234,10 @@ def run(runner, store, args, environ=os.environ):
     if bool(args.source) != bool(args.origin):
         logger.error('Specify both --origin and --source.')
         return 1
-    if _has_unstaged_config(runner) and not no_stash:
+    if _has_unstaged_config(config_file) and not no_stash:
         logger.error(
             'Your pre-commit configuration is unstaged.\n'
-            '`git add {}` to fix this.'.format(runner.config_file),
+            '`git add {}` to fix this.'.format(config_file),
         )
         return 1
 
@@ -252,7 +253,8 @@ def run(runner, store, args, environ=os.environ):
 
     with ctx:
         repo_hooks = []
-        for repo in repositories(runner.config, store):
+        config = load_config(config_file)
+        for repo in repositories(config, store):
             for _, hook in repo.hooks:
                 if (
                     (not args.hook or hook['id'] == args.hook) and
@@ -267,4 +269,4 @@ def run(runner, store, args, environ=os.environ):
         for repo in {repo for repo, _ in repo_hooks}:
             repo.require_installed()
 
-        return _run_hooks(runner.config, repo_hooks, args, environ)
+        return _run_hooks(config, repo_hooks, args, environ)

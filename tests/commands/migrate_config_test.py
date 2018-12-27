@@ -6,7 +6,6 @@ import pytest
 import pre_commit.constants as C
 from pre_commit.commands.migrate_config import _indent
 from pre_commit.commands.migrate_config import migrate_config
-from pre_commit.runner import Runner
 
 
 @pytest.mark.parametrize(
@@ -33,7 +32,8 @@ def test_migrate_config_normal_format(tmpdir, capsys):
         '        entry: ./bin/foo.sh\n'
         '        language: script\n',
     )
-    assert not migrate_config(Runner(tmpdir.strpath, C.CONFIG_FILE))
+    with tmpdir.as_cwd():
+        assert not migrate_config(C.CONFIG_FILE)
     out, _ = capsys.readouterr()
     assert out == 'Configuration has been migrated.\n'
     contents = cfg.read()
@@ -61,7 +61,8 @@ def test_migrate_config_document_marker(tmpdir):
         '        entry: ./bin/foo.sh\n'
         '        language: script\n',
     )
-    assert not migrate_config(Runner(tmpdir.strpath, C.CONFIG_FILE))
+    with tmpdir.as_cwd():
+        assert not migrate_config(C.CONFIG_FILE)
     contents = cfg.read()
     assert contents == (
         '# comment\n'
@@ -88,7 +89,8 @@ def test_migrate_config_list_literal(tmpdir):
         '    }]\n'
         '}]',
     )
-    assert not migrate_config(Runner(tmpdir.strpath, C.CONFIG_FILE))
+    with tmpdir.as_cwd():
+        assert not migrate_config(C.CONFIG_FILE)
     contents = cfg.read()
     assert contents == (
         'repos:\n'
@@ -114,7 +116,8 @@ def test_already_migrated_configuration_noop(tmpdir, capsys):
     )
     cfg = tmpdir.join(C.CONFIG_FILE)
     cfg.write(contents)
-    assert not migrate_config(Runner(tmpdir.strpath, C.CONFIG_FILE))
+    with tmpdir.as_cwd():
+        assert not migrate_config(C.CONFIG_FILE)
     out, _ = capsys.readouterr()
     assert out == 'Configuration is already migrated.\n'
     assert cfg.read() == contents
@@ -133,7 +136,8 @@ def test_migrate_config_sha_to_rev(tmpdir):
     )
     cfg = tmpdir.join(C.CONFIG_FILE)
     cfg.write(contents)
-    assert not migrate_config(Runner(tmpdir.strpath, C.CONFIG_FILE))
+    with tmpdir.as_cwd():
+        assert not migrate_config(C.CONFIG_FILE)
     contents = cfg.read()
     assert contents == (
         'repos:\n'

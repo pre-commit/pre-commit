@@ -45,15 +45,15 @@ def _migrate_sha_to_rev(contents):
     return reg.sub(r'\1rev:', contents)
 
 
-def migrate_config(runner, quiet=False):
-    with io.open(runner.config_file_path) as f:
+def migrate_config(config_file, quiet=False):
+    with io.open(config_file) as f:
         orig_contents = contents = f.read()
 
     contents = _migrate_map(contents)
     contents = _migrate_sha_to_rev(contents)
 
     if contents != orig_contents:
-        with io.open(runner.config_file_path, 'w') as f:
+        with io.open(config_file, 'w') as f:
             f.write(contents)
 
         print('Configuration has been migrated.')

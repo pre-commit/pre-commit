@@ -88,12 +88,12 @@ def _install_rbenv(prefix, version='default'):  # pragma: windows no cover
             activate_file.write('export RBENV_VERSION="{}"\n'.format(version))
 
 
-def _install_ruby(runner, version):  # pragma: windows no cover
+def _install_ruby(prefix, version):  # pragma: windows no cover
     try:
-        helpers.run_setup_cmd(runner, ('rbenv', 'download', version))
+        helpers.run_setup_cmd(prefix, ('rbenv', 'download', version))
     except CalledProcessError:  # pragma: no cover (usually find with download)
         # Failed to download from mirror for some reason, build it instead
-        helpers.run_setup_cmd(runner, ('rbenv', 'install', version))
+        helpers.run_setup_cmd(prefix, ('rbenv', 'install', version))
 
 
 def install_environment(

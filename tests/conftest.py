@@ -63,6 +63,13 @@ def in_tmpdir(tempdir_factory):
         yield path
 
 
+@pytest.fixture
+def in_git_dir(tmpdir):
+    with tmpdir.as_cwd():
+        cmd_output('git', 'init')
+        yield tmpdir
+
+
 def _make_conflict():
     cmd_output('git', 'checkout', 'origin/master', '-b', 'foo')
     with io.open('conflict_file', 'w') as conflict_file:

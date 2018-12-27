@@ -20,7 +20,6 @@ from pre_commit.commands.sample_config import sample_config
 from pre_commit.commands.try_repo import try_repo
 from pre_commit.error_handler import error_handler
 from pre_commit.logging_handler import add_logging_handler
-from pre_commit.runner import Runner
 from pre_commit.store import Store
 
 
@@ -87,6 +86,20 @@ def _add_run_options(parser):
         '--files', nargs='*', default=[],
         help='Specific filenames to run hooks on.',
     )
+
+
+def _adjust_args_and_chdir(args):
+    # `--config` was specified relative to the non-root working directory
+    if os.path.exists(args.config):
+        args.config = os.path.abspath(args.config)
+    if args.command in {'run', 'try-repo'}:
+        args.files = [os.path.abspath(filename) for filename in args.files]
+
+    os.chdir(git.get_root())
+
+    args.config = os.path.relpath(args.config)
+    if args.command in {'run', 'try-repo'}:
+        args.files = [os.path.relpath(filename) for filename in args.files]
 
 
 def main(argv=None):
@@ -222,43 +235,40 @@ def main(argv=None):
         parser.parse_args([args.help_cmd, '--help'])
     elif args.command == 'help':
         parser.parse_args(['--help'])
-    elif args.command in {'run', 'try-repo'}:
-        args.files = [
-            os.path.relpath(os.path.abspath(filename), git.get_root())
-            for filename in args.files
-        ]
 
     with error_handler():
         add_logging_handler(args.color)
-        runner = Runner.create(args.config)
+
+        _adjust_args_and_chdir(args)
+
         store = Store()
         git.check_for_cygwin_mismatch()
 
         if args.command == 'install':
             return install(
-                runner, store,
+                args.config, store,
                 overwrite=args.overwrite, hooks=args.install_hooks,
                 hook_type=args.hook_type,
                 skip_on_missing_conf=args.allow_missing_config,
             )
         elif args.command == 'install-hooks':
-            return install_hooks(runner, store)
+            return install_hooks(args.config, store)
         elif args.command == 'uninstall':
-            return uninstall(runner, hook_type=args.hook_type)
+            return uninstall(hook_type=args.hook_type)
         elif args.command == 'clean':
             return clean(store)
         elif args.command == 'autoupdate':
             if args.tags_only:
                 logger.warning('--tags-only is the default')
             return autoupdate(
-                runner, store,
+                args.config, store,
                 tags_only=not args.bleeding_edge,
                 repos=args.repos,
             )
         elif args.command == 'migrate-config':
-            return migrate_config(runner)
+            return migrate_config(args.config)
         elif args.command == 'run':
-            return run(runner, store, args)
+            return run(args.config, store, args)
         elif args.command == 'sample-config':
             return sample_config()
         elif args.command == 'try-repo':

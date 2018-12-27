@@ -30,7 +30,7 @@ def get_root():
         )
 
 
-def get_git_dir(git_root):
+def get_git_dir(git_root='.'):
     opts = ('--git-common-dir', '--git-dir')
     _, out, _ = cmd_output('git', 'rev-parse', *opts, cwd=git_root)
     for line, opt in zip(out.splitlines(), opts):
