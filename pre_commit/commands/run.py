@@ -77,16 +77,7 @@ def _run_single_hook(filenames, hook, repo, args, skips, cols):
             'replacement.'.format(hook['id'], repo.repo_config['repo']),
         )
 
-    if hook['id'] in skips:
-        output.write(get_hook_message(
-            _hook_msg_start(hook, args.verbose),
-            end_msg=SKIPPED,
-            end_color=color.YELLOW,
-            use_color=args.color,
-            cols=cols,
-        ))
-        return 0
-    elif hook['alias'] and hook['alias'] in skips:
+    if hook['id'] in skips or hook['alias'] in skips:
         output.write(get_hook_message(
             _hook_msg_start(hook, args.verbose),
             end_msg=SKIPPED,

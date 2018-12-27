@@ -42,6 +42,18 @@ def repo_with_failing_hook(tempdir_factory):
         yield git_path
 
 
+@pytest.fixture
+def aliased_repo(tempdir_factory):
+    git_path = make_consuming_repo(tempdir_factory, 'script_hooks_repo')
+    with cwd(git_path):
+        with modify_config() as config:
+            config['repos'][0]['hooks'].append(
+                {'id': 'bash_hook', 'alias': 'foo_bash'},
+            )
+        stage_a_file()
+        yield git_path
+
+
 def stage_a_file(filename='foo.py'):
     open(filename, 'a').close()
     cmd_output('git', 'add', filename)
@@ -388,17 +400,9 @@ def test_skip_hook(cap_out, store, repo_with_passing_hook):
         assert msg in printed
 
 
-def test_skip_aliased_hook(cap_out, store, repo_with_passing_hook):
-    with cwd(repo_with_passing_hook):
-        # Add bash hook on there again, aliased
-        with modify_config() as config:
-            config['repos'][0]['hooks'].append(
-                {'id': 'bash_hook', 'alias': 'foo_bash'},
-            )
-        stage_a_file()
-
+def test_skip_aliased_hook(cap_out, store, aliased_repo):
     ret, printed = _do_run(
-        cap_out, store, repo_with_passing_hook,
+        cap_out, store, aliased_repo,
         run_opts(hook='bash_hook'),
         {'SKIP': 'bash_hook'},
     )
@@ -409,7 +413,7 @@ def test_skip_aliased_hook(cap_out, store, repo_with_passing_hook):
         assert msg in printed
 
     ret, printed = _do_run(
-        cap_out, store, repo_with_passing_hook,
+        cap_out, store, aliased_repo,
         run_opts(hook='foo_bash'),
         {'SKIP': 'foo_bash'},
     )
@@ -448,17 +452,9 @@ def test_multiple_hooks_same_id(cap_out, store, repo_with_passing_hook):
     assert output.count(b'Bash hook') == 2
 
 
-def test_aliased_hook_run(cap_out, store, repo_with_passing_hook):
-    with cwd(repo_with_passing_hook):
-        # Add bash hook on there again, aliased
-        with modify_config() as config:
-            config['repos'][0]['hooks'].append(
-                {'id': 'bash_hook', 'alias': 'foo_bash'},
-            )
-        stage_a_file()
-
+def test_aliased_hook_run(cap_out, store, aliased_repo):
     ret, output = _do_run(
-        cap_out, store, repo_with_passing_hook,
+        cap_out, store, aliased_repo,
         run_opts(verbose=True, hook='bash_hook'),
     )
     assert ret == 0
@@ -466,7 +462,7 @@ def test_aliased_hook_run(cap_out, store, repo_with_passing_hook):
     assert output.count(b'Bash hook') == 2
 
     ret, output = _do_run(
-        cap_out, store, repo_with_passing_hook,
+        cap_out, store, aliased_repo,
         run_opts(verbose=True, hook='foo_bash'),
     )
     assert ret == 0
