@@ -49,7 +49,7 @@ def make_repo(tempdir_factory, repo_source):
     path = git_dir(tempdir_factory)
     copy_tree_to_path(get_resource_path(repo_source), path)
     cmd_output('git', 'add', '.', cwd=path)
-    git_commit('Add hooks', cwd=path)
+    git_commit(msg=make_repo.__name__, cwd=path)
     return path
 
 
@@ -64,7 +64,7 @@ def modify_manifest(path):
     yield manifest
     with io.open(manifest_path, 'w') as manifest_file:
         manifest_file.write(ordered_dump(manifest, **C.YAML_DUMP_KWARGS))
-    git_commit('update {}'.format(C.MANIFEST_FILE), cwd=path)
+    git_commit(msg=modify_manifest.__name__, cwd=path)
 
 
 @contextlib.contextmanager
@@ -79,7 +79,7 @@ def modify_config(path='.', commit=True):
     with io.open(config_path, 'w', encoding='UTF-8') as config_file:
         config_file.write(ordered_dump(config, **C.YAML_DUMP_KWARGS))
     if commit:
-        git_commit('update config', cwd=path)
+        git_commit(msg=modify_config.__name__, cwd=path)
 
 
 def config_with_local_hooks():
@@ -135,13 +135,13 @@ def write_config(directory, config, config_file=C.CONFIG_FILE):
 def add_config_to_repo(git_path, config, config_file=C.CONFIG_FILE):
     write_config(git_path, config, config_file=config_file)
     cmd_output('git', 'add', config_file, cwd=git_path)
-    git_commit('Add hooks config', cwd=git_path)
+    git_commit(msg=add_config_to_repo.__name__, cwd=git_path)
     return git_path
 
 
 def remove_config_from_repo(git_path, config_file=C.CONFIG_FILE):
     cmd_output('git', 'rm', config_file, cwd=git_path)
-    git_commit('Remove hooks config', cwd=git_path)
+    git_commit(msg=remove_config_from_repo.__name__, cwd=git_path)
     return git_path
 
 

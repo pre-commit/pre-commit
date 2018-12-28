@@ -187,9 +187,9 @@ def test_img_conflict(img_staged, patch_dir):
 def submodule_with_commits(tempdir_factory):
     path = git_dir(tempdir_factory)
     with cwd(path):
-        git_commit('foo')
+        git_commit()
         rev1 = cmd_output('git', 'rev-parse', 'HEAD')[1].strip()
-        git_commit('bar')
+        git_commit()
         rev2 = cmd_output('git', 'rev-parse', 'HEAD')[1].strip()
         yield auto_namedtuple(path=path, rev1=rev1, rev2=rev2)
 
@@ -332,7 +332,7 @@ def test_autocrlf_commited_crlf(in_git_dir, patch_dir):
     cmd_output('git', 'config', '--local', 'core.autocrlf', 'false')
     _write(b'1\r\n2\r\n')
     cmd_output('git', 'add', 'foo')
-    git_commit('Check in crlf')
+    git_commit()
 
     cmd_output('git', 'config', '--local', 'core.autocrlf', 'true')
     _write(b'1\r\n2\r\n\r\n\r\n\r\n')

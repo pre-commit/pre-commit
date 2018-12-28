@@ -90,9 +90,9 @@ def test_does_not_recreate_if_directory_already_exists(store):
 def test_clone(store, tempdir_factory, log_info_mock):
     path = git_dir(tempdir_factory)
     with cwd(path):
-        git_commit('foo')
+        git_commit()
         rev = git.head_rev(path)
-        git_commit('bar')
+        git_commit()
 
     ret = store.clone(path, rev)
     # Should have printed some stuff

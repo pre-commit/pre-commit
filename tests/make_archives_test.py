@@ -1,49 +1,45 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-import os.path
 import tarfile
 
 from pre_commit import git
 from pre_commit import make_archives
 from pre_commit.util import cmd_output
-from testing.fixtures import git_dir
 from testing.util import git_commit
 
 
-def test_make_archive(tempdir_factory):
-    output_dir = tempdir_factory.get()
-    git_path = git_dir(tempdir_factory)
+def test_make_archive(in_git_dir, tmpdir):
+    output_dir = tmpdir.join('output').ensure_dir()
     # Add a files to the git directory
-    open(os.path.join(git_path, 'foo'), 'a').close()
-    cmd_output('git', 'add', '.', cwd=git_path)
-    git_commit('foo', cwd=git_path)
+    in_git_dir.join('foo').ensure()
+    cmd_output('git', 'add', '.')
+    git_commit()
     # We'll use this rev
-    head_rev = git.head_rev(git_path)
+    head_rev = git.head_rev('.')
     # And check that this file doesn't exist
-    open(os.path.join(git_path, 'bar'), 'a').close()
-    cmd_output('git', 'add', '.', cwd=git_path)
-    git_commit('bar', cwd=git_path)
+    in_git_dir.join('bar').ensure()
+    cmd_output('git', 'add', '.')
+    git_commit()
 
     # Do the thing
     archive_path = make_archives.make_archive(
-        'foo', git_path, head_rev, output_dir,
+        'foo', in_git_dir.strpath, head_rev, output_dir.strpath,
     )
 
-    assert archive_path == os.path.join(output_dir, 'foo.tar.gz')
-    assert os.path.exists(archive_path)
+    expected = output_dir.join('foo.tar.gz')
+    assert archive_path == expected.strpath
+    assert expected.exists()
 
-    extract_dir = tempdir_factory.get()
-
-    # Extract the tar
+    extract_dir = tmpdir.join('extract').ensure_dir()
     with tarfile.open(archive_path) as tf:
-        tf.extractall(extract_dir)
+        tf.extractall(extract_dir.strpath)
 
     # Verify the contents of the tar
-    assert os.path.exists(os.path.join(extract_dir, 'foo'))
-    assert os.path.exists(os.path.join(extract_dir, 'foo', 'foo'))
-    assert not os.path.exists(os.path.join(extract_dir, 'foo', '.git'))
-    assert not os.path.exists(os.path.join(extract_dir, 'foo', 'bar'))
+    assert extract_dir.join('foo').isdir()
+    assert extract_dir.join('foo/foo').exists()
+    assert not extract_dir.join('foo/.git').exists()
+    assert not extract_dir.join('foo/bar').exists()
 
 
 def test_main(tmpdir):

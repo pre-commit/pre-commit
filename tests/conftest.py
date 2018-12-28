@@ -80,7 +80,7 @@ def _make_conflict():
     with io.open('foo_only_file', 'w') as foo_only_file:
         foo_only_file.write('foo')
     cmd_output('git', 'add', 'foo_only_file')
-    git_commit('conflict_file')
+    git_commit(msg=_make_conflict.__name__)
     cmd_output('git', 'checkout', 'origin/master', '-b', 'bar')
     with io.open('conflict_file', 'w') as conflict_file:
         conflict_file.write('harp\nddrp\n')
@@ -88,7 +88,7 @@ def _make_conflict():
     with io.open('bar_only_file', 'w') as bar_only_file:
         bar_only_file.write('bar')
     cmd_output('git', 'add', 'bar_only_file')
-    git_commit('conflict_file')
+    git_commit(msg=_make_conflict.__name__)
     cmd_output('git', 'merge', 'foo', retcode=None)
 
 
@@ -97,7 +97,7 @@ def in_merge_conflict(tempdir_factory):
     path = make_consuming_repo(tempdir_factory, 'script_hooks_repo')
     open(os.path.join(path, 'dummy'), 'a').close()
     cmd_output('git', 'add', 'dummy', cwd=path)
-    git_commit('Add config.', cwd=path)
+    git_commit(msg=in_merge_conflict.__name__, cwd=path)
 
     conflict_path = tempdir_factory.get()
     cmd_output('git', 'clone', path, conflict_path)
@@ -110,7 +110,7 @@ def in_merge_conflict(tempdir_factory):
 def in_conflicting_submodule(tempdir_factory):
     git_dir_1 = git_dir(tempdir_factory)
     git_dir_2 = git_dir(tempdir_factory)
-    git_commit('init!', cwd=git_dir_2)
+    git_commit(msg=in_conflicting_submodule.__name__, cwd=git_dir_2)
     cmd_output('git', 'submodule', 'add', git_dir_2, 'sub', cwd=git_dir_1)
     with cwd(os.path.join(git_dir_1, 'sub')):
         _make_conflict()
@@ -136,7 +136,7 @@ def commit_msg_repo(tempdir_factory):
     write_config(path, config)
     with cwd(path):
         cmd_output('git', 'add', '.')
-        git_commit('add hooks')
+        git_commit(msg=commit_msg_repo.__name__)
         yield path
 
 

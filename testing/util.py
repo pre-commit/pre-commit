@@ -135,16 +135,11 @@ def cwd(path):
         os.chdir(original_cwd)
 
 
-def git_commit(msg, *_args, **kwargs):
-    args = ['git']
-    config = kwargs.pop('config', None)
-    if config is not None:
-        args.extend(['-C', config])
-    args.append('commit')
-    if msg is not None:
-        args.extend(['-m', msg])
-    if '--allow-empty' not in _args:
-        args.append('--allow-empty')
-    if '--no-gpg-sign' not in _args:
-        args.append('--no-gpg-sign')
-    return cmd_output(*(tuple(args) + tuple(_args)), **kwargs)
+def git_commit(*args, **kwargs):
+    fn = kwargs.pop('fn', cmd_output)
+    msg = kwargs.pop('msg', 'commit!')
+
+    cmd = ('git', 'commit', '--allow-empty', '--no-gpg-sign', '-a') + args
+    if msg is not None:  # allow skipping `-m` with `msg=None`
+        cmd += ('-m', msg)
+    return fn(*cmd, **kwargs)
