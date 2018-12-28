@@ -1,10 +1,8 @@
 from pre_commit.meta_hooks import check_hooks_apply
 from testing.fixtures import add_config_to_repo
-from testing.fixtures import git_dir
-from testing.util import cwd
 
 
-def test_hook_excludes_everything(capsys, tempdir_factory, mock_store_dir):
+def test_hook_excludes_everything(capsys, in_git_dir, mock_store_dir):
     config = {
         'repos': [
             {
@@ -19,17 +17,15 @@ def test_hook_excludes_everything(capsys, tempdir_factory, mock_store_dir):
         ],
     }
 
-    repo = git_dir(tempdir_factory)
-    add_config_to_repo(repo, config)
+    add_config_to_repo(in_git_dir.strpath, config)
 
-    with cwd(repo):
-        assert check_hooks_apply.main(()) == 1
+    assert check_hooks_apply.main(()) == 1
 
     out, _ = capsys.readouterr()
     assert 'check-useless-excludes does not apply to this repository' in out
 
 
-def test_hook_includes_nothing(capsys, tempdir_factory, mock_store_dir):
+def test_hook_includes_nothing(capsys, in_git_dir, mock_store_dir):
     config = {
         'repos': [
             {
@@ -44,17 +40,15 @@ def test_hook_includes_nothing(capsys, tempdir_factory, mock_store_dir):
         ],
     }
 
-    repo = git_dir(tempdir_factory)
-    add_config_to_repo(repo, config)
+    add_config_to_repo(in_git_dir.strpath, config)
 
-    with cwd(repo):
-        assert check_hooks_apply.main(()) == 1
+    assert check_hooks_apply.main(()) == 1
 
     out, _ = capsys.readouterr()
     assert 'check-useless-excludes does not apply to this repository' in out
 
 
-def test_hook_types_not_matched(capsys, tempdir_factory, mock_store_dir):
+def test_hook_types_not_matched(capsys, in_git_dir, mock_store_dir):
     config = {
         'repos': [
             {
@@ -69,19 +63,15 @@ def test_hook_types_not_matched(capsys, tempdir_factory, mock_store_dir):
         ],
     }
 
-    repo = git_dir(tempdir_factory)
-    add_config_to_repo(repo, config)
+    add_config_to_repo(in_git_dir.strpath, config)
 
-    with cwd(repo):
-        assert check_hooks_apply.main(()) == 1
+    assert check_hooks_apply.main(()) == 1
 
     out, _ = capsys.readouterr()
     assert 'check-useless-excludes does not apply to this repository' in out
 
 
-def test_hook_types_excludes_everything(
-        capsys, tempdir_factory, mock_store_dir,
-):
+def test_hook_types_excludes_everything(capsys, in_git_dir, mock_store_dir):
     config = {
         'repos': [
             {
@@ -96,17 +86,15 @@ def test_hook_types_excludes_everything(
         ],
     }
 
-    repo = git_dir(tempdir_factory)
-    add_config_to_repo(repo, config)
+    add_config_to_repo(in_git_dir.strpath, config)
 
-    with cwd(repo):
-        assert check_hooks_apply.main(()) == 1
+    assert check_hooks_apply.main(()) == 1
 
     out, _ = capsys.readouterr()
     assert 'check-useless-excludes does not apply to this repository' in out
 
 
-def test_valid_exceptions(capsys, tempdir_factory, mock_store_dir):
+def test_valid_exceptions(capsys, in_git_dir, mock_store_dir):
     config = {
         'repos': [
             {
@@ -142,11 +130,9 @@ def test_valid_exceptions(capsys, tempdir_factory, mock_store_dir):
         ],
     }
 
-    repo = git_dir(tempdir_factory)
-    add_config_to_repo(repo, config)
+    add_config_to_repo(in_git_dir.strpath, config)
 
-    with cwd(repo):
-        assert check_hooks_apply.main(()) == 0
+    assert check_hooks_apply.main(()) == 0
 
     out, _ = capsys.readouterr()
     assert out == ''

@@ -2,7 +2,6 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 import collections
-import io
 import os.path
 import re
 import shutil
@@ -24,7 +23,6 @@ from pre_commit.languages import rust
 from pre_commit.repository import Repository
 from pre_commit.util import cmd_output
 from testing.fixtures import config_with_local_hooks
-from testing.fixtures import git_dir
 from testing.fixtures import make_config_from_repo
 from testing.fixtures import make_repo
 from testing.fixtures import modify_manifest
@@ -96,17 +94,14 @@ def test_python_hook_args_with_spaces(tempdir_factory, store):
     )
 
 
-def test_python_hook_weird_setup_cfg(tempdir_factory, store):
-    path = git_dir(tempdir_factory)
-    with cwd(path):
-        with io.open('setup.cfg', 'w') as setup_cfg:
-            setup_cfg.write('[install]\ninstall_scripts=/usr/sbin\n')
+def test_python_hook_weird_setup_cfg(in_git_dir, tempdir_factory, store):
+    in_git_dir.join('setup.cfg').write('[install]\ninstall_scripts=/usr/sbin')
 
-        _test_hook_repo(
-            tempdir_factory, store, 'python_hooks_repo',
-            'foo', [os.devnull],
-            b"['" + five.to_bytes(os.devnull) + b"']\nHello World\n",
-        )
+    _test_hook_repo(
+        tempdir_factory, store, 'python_hooks_repo',
+        'foo', [os.devnull],
+        b"['" + five.to_bytes(os.devnull) + b"']\nHello World\n",
+    )
 
 
 @xfailif_no_venv
@@ -444,14 +439,12 @@ def _norm_pwd(path):
     )[1].strip()
 
 
-def test_cwd_of_hook(tempdir_factory, store):
+def test_cwd_of_hook(in_git_dir, tempdir_factory, store):
     # Note: this doubles as a test for `system` hooks
-    path = git_dir(tempdir_factory)
-    with cwd(path):
-        _test_hook_repo(
-            tempdir_factory, store, 'prints_cwd_repo',
-            'prints_cwd', ['-L'], _norm_pwd(path) + b'\n',
-        )
+    _test_hook_repo(
+        tempdir_factory, store, 'prints_cwd_repo',
+        'prints_cwd', ['-L'], _norm_pwd(in_git_dir.strpath) + b'\n',
+    )
 
 
 def test_lots_of_files(tempdir_factory, store):
@@ -502,10 +495,8 @@ def test_additional_dependencies_roll_forward(tempdir_factory, store):
         assert 'mccabe' not in cmd_output('pip', 'freeze', '-l')[1]
 
 
-@xfailif_windows_no_ruby
-def test_additional_ruby_dependencies_installed(
-        tempdir_factory, store,
-):  # pragma: no cover (non-windows)
+@xfailif_windows_no_ruby  # pragma: windows no cover
+def test_additional_ruby_dependencies_installed(tempdir_factory, store):
     path = make_repo(tempdir_factory, 'ruby_hooks_repo')
     config = make_config_from_repo(path)
     config['hooks'][0]['additional_dependencies'] = ['thread_safe', 'tins']
@@ -518,10 +509,8 @@ def test_additional_ruby_dependencies_installed(
         assert 'tins' in output
 
 
-@xfailif_broken_deep_listdir
-def test_additional_node_dependencies_installed(
-        tempdir_factory, store,
-):  # pragma: no cover (non-windows)
+@xfailif_broken_deep_listdir  # pragma: windows no cover
+def test_additional_node_dependencies_installed(tempdir_factory, store):
     path = make_repo(tempdir_factory, 'node_hooks_repo')
     config = make_config_from_repo(path)
     # Careful to choose a small package that's not depped by npm

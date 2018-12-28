@@ -84,7 +84,7 @@ def test_install_refuses_core_hookspath(in_git_dir, store):
     assert install(C.CONFIG_FILE, store)
 
 
-@xfailif_no_symlink  # pragma: no cover (non-windows)
+@xfailif_no_symlink  # pragma: windows no cover
 def test_install_hooks_dead_symlink(in_git_dir, store):
     hook = in_git_dir.join('.git/hooks').ensure_dir().join('pre-commit')
     os.symlink('/fake/baz', hook.strpath)
@@ -421,17 +421,14 @@ def test_replace_old_commit_script(tempdir_factory, store):
         assert NORMAL_PRE_COMMIT_RUN.match(output)
 
 
-def test_uninstall_doesnt_remove_not_our_hooks(tempdir_factory):
-    path = git_dir(tempdir_factory)
-    with cwd(path):
-        mkdirp(os.path.join(path, '.git/hooks'))
-        with io.open(os.path.join(path, '.git/hooks/pre-commit'), 'w') as f:
-            f.write('#!/usr/bin/env bash\necho 1\n')
-        make_executable(f.name)
+def test_uninstall_doesnt_remove_not_our_hooks(in_git_dir):
+    pre_commit = in_git_dir.join('.git/hooks').ensure_dir().join('pre-commit')
+    pre_commit.write('#!/usr/bin/env bash\necho 1\n')
+    make_executable(pre_commit.strpath)
 
-        assert uninstall() == 0
+    assert uninstall() == 0
 
-        assert os.path.exists(os.path.join(path, '.git/hooks/pre-commit'))
+    assert pre_commit.exists()
 
 
 PRE_INSTALLED = re.compile(

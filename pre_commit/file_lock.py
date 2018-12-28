@@ -41,14 +41,14 @@ try:  # pragma: no cover (windows)
             # "Regions should be locked only briefly and should be unlocked
             # before closing a file or exiting the program."
             msvcrt.locking(fileno, msvcrt.LK_UNLCK, _region)
-except ImportError:  # pragma: no cover (posix)
+except ImportError:  # pragma: windows no cover
     import fcntl
 
     @contextlib.contextmanager
     def _locked(fileno, blocked_cb):
         try:
             fcntl.flock(fileno, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        except IOError:
+        except IOError:  # pragma: no cover (tests are single-threaded)
             blocked_cb()
             fcntl.flock(fileno, fcntl.LOCK_EX)
         try:

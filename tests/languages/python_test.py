@@ -11,7 +11,7 @@ def test_norm_version_expanduser():
     if os.name == 'nt':  # pragma: no cover (nt)
         path = r'~\python343'
         expected_path = r'{}\python343'.format(home)
-    else:  # pragma: no cover (non-nt)
+    else:  # pragma: windows no cover
         path = '~/.pyenv/versions/3.4.3/bin/python'
         expected_path = home + '/.pyenv/versions/3.4.3/bin/python'
     result = python.norm_version(path)
