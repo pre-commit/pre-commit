@@ -502,10 +502,8 @@ def test_additional_dependencies_roll_forward(tempdir_factory, store):
         assert 'mccabe' not in cmd_output('pip', 'freeze', '-l')[1]
 
 
-@xfailif_windows_no_ruby
-def test_additional_ruby_dependencies_installed(
-        tempdir_factory, store,
-):  # pragma: no cover (non-windows)
+@xfailif_windows_no_ruby  # pragma: windows no cover
+def test_additional_ruby_dependencies_installed(tempdir_factory, store):
     path = make_repo(tempdir_factory, 'ruby_hooks_repo')
     config = make_config_from_repo(path)
     config['hooks'][0]['additional_dependencies'] = ['thread_safe', 'tins']
@@ -518,10 +516,8 @@ def test_additional_ruby_dependencies_installed(
         assert 'tins' in output
 
 
-@xfailif_broken_deep_listdir
-def test_additional_node_dependencies_installed(
-        tempdir_factory, store,
-):  # pragma: no cover (non-windows)
+@xfailif_broken_deep_listdir  # pragma: windows no cover
+def test_additional_node_dependencies_installed(tempdir_factory, store):
     path = make_repo(tempdir_factory, 'node_hooks_repo')
     config = make_config_from_repo(path)
     # Careful to choose a small package that's not depped by npm

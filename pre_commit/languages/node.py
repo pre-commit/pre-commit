@@ -28,7 +28,7 @@ def get_env_patch(venv):
         install_prefix = r'{}\bin'.format(win_venv.strip())
     elif sys.platform == 'win32':  # pragma: no cover
         install_prefix = bin_dir(venv)
-    else:
+    else:  # pragma: windows no cover
         install_prefix = venv
     return (
         ('NODE_VIRTUAL_ENV', venv),

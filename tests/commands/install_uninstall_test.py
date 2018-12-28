@@ -84,7 +84,7 @@ def test_install_refuses_core_hookspath(in_git_dir, store):
     assert install(C.CONFIG_FILE, store)
 
 
-@xfailif_no_symlink  # pragma: no cover (non-windows)
+@xfailif_no_symlink  # pragma: windows no cover
 def test_install_hooks_dead_symlink(in_git_dir, store):
     hook = in_git_dir.join('.git/hooks').ensure_dir().join('pre-commit')
     os.symlink('/fake/baz', hook.strpath)
