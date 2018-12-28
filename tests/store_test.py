@@ -12,10 +12,10 @@ import six
 from pre_commit import git
 from pre_commit.store import _get_default_directory
 from pre_commit.store import Store
-from pre_commit.util import cmd_output
 from pre_commit.util import rmtree
 from testing.fixtures import git_dir
 from testing.util import cwd
+from testing.util import git_commit
 
 
 def test_our_session_fixture_works():
@@ -90,9 +90,9 @@ def test_does_not_recreate_if_directory_already_exists(store):
 def test_clone(store, tempdir_factory, log_info_mock):
     path = git_dir(tempdir_factory)
     with cwd(path):
-        cmd_output('git', 'commit', '--allow-empty', '-m', 'foo')
+        git_commit('foo')
         rev = git.head_rev(path)
-        cmd_output('git', 'commit', '--allow-empty', '-m', 'bar')
+        git_commit('bar')
 
     ret = store.clone(path, rev)
     # Should have printed some stuff

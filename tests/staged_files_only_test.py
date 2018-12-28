@@ -15,6 +15,7 @@ from testing.auto_namedtuple import auto_namedtuple
 from testing.fixtures import git_dir
 from testing.util import cwd
 from testing.util import get_resource_path
+from testing.util import git_commit
 
 
 FOO_CONTENTS = '\n'.join(('1', '2', '3', '4', '5', '6', '7', '8', ''))
@@ -186,9 +187,9 @@ def test_img_conflict(img_staged, patch_dir):
 def submodule_with_commits(tempdir_factory):
     path = git_dir(tempdir_factory)
     with cwd(path):
-        cmd_output('git', 'commit', '--allow-empty', '-m', 'foo')
+        git_commit('foo')
         rev1 = cmd_output('git', 'rev-parse', 'HEAD')[1].strip()
-        cmd_output('git', 'commit', '--allow-empty', '-m', 'bar')
+        git_commit('bar')
         rev2 = cmd_output('git', 'rev-parse', 'HEAD')[1].strip()
         yield auto_namedtuple(path=path, rev1=rev1, rev2=rev2)
 
@@ -331,7 +332,7 @@ def test_autocrlf_commited_crlf(in_git_dir, patch_dir):
     cmd_output('git', 'config', '--local', 'core.autocrlf', 'false')
     _write(b'1\r\n2\r\n')
     cmd_output('git', 'add', 'foo')
-    cmd_output('git', 'commit', '-m', 'Check in crlf')
+    git_commit('Check in crlf')
 
     cmd_output('git', 'config', '--local', 'core.autocrlf', 'true')
     _write(b'1\r\n2\r\n\r\n\r\n\r\n')

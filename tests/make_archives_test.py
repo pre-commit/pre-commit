@@ -8,6 +8,7 @@ from pre_commit import git
 from pre_commit import make_archives
 from pre_commit.util import cmd_output
 from testing.fixtures import git_dir
+from testing.util import git_commit
 
 
 def test_make_archive(tempdir_factory):
@@ -16,13 +17,13 @@ def test_make_archive(tempdir_factory):
     # Add a files to the git directory
     open(os.path.join(git_path, 'foo'), 'a').close()
     cmd_output('git', 'add', '.', cwd=git_path)
-    cmd_output('git', 'commit', '-m', 'foo', cwd=git_path)
+    git_commit('foo', cwd=git_path)
     # We'll use this rev
     head_rev = git.head_rev(git_path)
     # And check that this file doesn't exist
     open(os.path.join(git_path, 'bar'), 'a').close()
     cmd_output('git', 'add', '.', cwd=git_path)
-    cmd_output('git', 'commit', '-m', 'bar', cwd=git_path)
+    git_commit('bar', cwd=git_path)
 
     # Do the thing
     archive_path = make_archives.make_archive(

@@ -28,6 +28,7 @@ from testing.fixtures import make_consuming_repo
 from testing.fixtures import remove_config_from_repo
 from testing.util import cmd_output_mocked_pre_commit_home
 from testing.util import cwd
+from testing.util import git_commit
 from testing.util import xfailif_no_symlink
 
 
@@ -109,7 +110,7 @@ def _get_commit_output(tempdir_factory, touch_file='foo', **kwargs):
     open(touch_file, 'a').close()
     cmd_output('git', 'add', touch_file)
     return cmd_output_mocked_pre_commit_home(
-        'git', 'commit', '-am', commit_msg, '--allow-empty',
+        'git', 'commit', '-am', commit_msg, '--allow-empty', '--no-gpg-sign',
         # git commit puts pre-commit to stderr
         stderr=subprocess.STDOUT,
         retcode=None,
@@ -151,7 +152,7 @@ def test_install_pre_commit_and_run_custom_path(tempdir_factory, store):
     path = make_consuming_repo(tempdir_factory, 'script_hooks_repo')
     with cwd(path):
         cmd_output('git', 'mv', C.CONFIG_FILE, 'custom-config.yaml')
-        cmd_output('git', 'commit', '-m', 'move pre-commit config')
+        git_commit('move pre-commit config')
         assert install('custom-config.yaml', store) == 0
 
         ret, output = _get_commit_output(tempdir_factory)
@@ -163,7 +164,7 @@ def test_install_in_submodule_and_run(tempdir_factory, store):
     src_path = make_consuming_repo(tempdir_factory, 'script_hooks_repo')
     parent_path = git_dir(tempdir_factory)
     cmd_output('git', 'submodule', 'add', src_path, 'sub', cwd=parent_path)
-    cmd_output('git', 'commit', '-m', 'foo', cwd=parent_path)
+    git_commit('foo', cwd=parent_path)
 
     sub_pth = os.path.join(parent_path, 'sub')
     with cwd(sub_pth):
@@ -193,7 +194,7 @@ def test_commit_am(tempdir_factory, store):
         # Make an unstaged change
         open('unstaged', 'w').close()
         cmd_output('git', 'add', '.')
-        cmd_output('git', 'commit', '-m', 'foo')
+        git_commit('foo')
         with io.open('unstaged', 'w') as foo_file:
             foo_file.write('Oh hai')
 
@@ -208,12 +209,12 @@ def test_unicode_merge_commit_message(tempdir_factory, store):
     with cwd(path):
         assert install(C.CONFIG_FILE, store) == 0
         cmd_output('git', 'checkout', 'master', '-b', 'foo')
-        cmd_output('git', 'commit', '--allow-empty', '-n', '-m', 'branch2')
+        git_commit('branch2', '-n')
         cmd_output('git', 'checkout', 'master')
         cmd_output('git', 'merge', 'foo', '--no-ff', '--no-commit', '-m', '☃')
         # Used to crash
         cmd_output_mocked_pre_commit_home(
-            'git', 'commit', '--no-edit',
+            'git', 'commit', '--no-edit', '--no-gpg-sign',
             tempdir_factory=tempdir_factory,
         )
 
@@ -246,8 +247,8 @@ def test_environment_not_sourced(tempdir_factory, store):
 
         # Use a specific homedir to ignore --user installs
         homedir = tempdir_factory.get()
-        ret, stdout, stderr = cmd_output(
-            'git', 'commit', '--allow-empty', '-m', 'foo',
+        ret, stdout, stderr = git_commit(
+            'foo',
             env={
                 'HOME': homedir,
                 'PATH': _path_without_us(),

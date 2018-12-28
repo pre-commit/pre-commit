@@ -21,6 +21,7 @@ from testing.fixtures import make_config_from_repo
 from testing.fixtures import make_repo
 from testing.fixtures import write_config
 from testing.util import get_resource_path
+from testing.util import git_commit
 
 
 @pytest.fixture
@@ -59,11 +60,11 @@ def test_autoupdate_old_revision_broken(tempdir_factory, in_tmpdir, store):
     config = make_config_from_repo(path, check=False)
 
     cmd_output('git', 'mv', C.MANIFEST_FILE, 'nope.yaml', cwd=path)
-    cmd_output('git', 'commit', '-m', 'simulate old repo', cwd=path)
+    git_commit('simulate old repo', cwd=path)
     # Assume this is the revision the user's old repository was at
     rev = git.head_rev(path)
     cmd_output('git', 'mv', 'nope.yaml', C.MANIFEST_FILE, cwd=path)
-    cmd_output('git', 'commit', '-m', 'move hooks file', cwd=path)
+    git_commit('move hooks file', cwd=path)
     update_rev = git.head_rev(path)
 
     config['rev'] = rev
@@ -84,7 +85,7 @@ def out_of_date_repo(tempdir_factory):
     original_rev = git.head_rev(path)
 
     # Make a commit
-    cmd_output('git', 'commit', '--allow-empty', '-m', 'foo', cwd=path)
+    git_commit('foo', cwd=path)
     head_rev = git.head_rev(path)
 
     yield auto_namedtuple(
@@ -239,7 +240,7 @@ def test_autoupdate_tagged_repo(tagged_repo, in_tmpdir, store):
 
 @pytest.fixture
 def tagged_repo_with_more_commits(tagged_repo):
-    cmd_output('git', 'commit', '--allow-empty', '-mfoo', cwd=tagged_repo.path)
+    git_commit('foo', cwd=tagged_repo.path)
     yield tagged_repo
 
 
@@ -263,7 +264,7 @@ def test_autoupdate_latest_no_config(out_of_date_repo, in_tmpdir, store):
     write_config('.', config)
 
     cmd_output('git', '-C', out_of_date_repo.path, 'rm', '-r', ':/')
-    cmd_output('git', '-C', out_of_date_repo.path, 'commit', '-m', 'rm')
+    git_commit('rm', config=out_of_date_repo.path)
 
     ret = autoupdate(C.CONFIG_FILE, store, tags_only=False)
     assert ret == 1
@@ -281,7 +282,7 @@ def hook_disappearing_repo(tempdir_factory):
         os.path.join(path, C.MANIFEST_FILE),
     )
     cmd_output('git', 'add', '.', cwd=path)
-    cmd_output('git', 'commit', '-m', 'Remove foo', cwd=path)
+    git_commit('Remove foo', cwd=path)
 
     yield auto_namedtuple(path=path, original_rev=original_rev)
 

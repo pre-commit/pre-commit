@@ -479,7 +479,7 @@ def test_stdout_write_bug_py26(repo_with_failing_hook, store, tempdir_factory):
 
         # Have to use subprocess because pytest monkeypatches sys.stdout
         _, stdout, _ = cmd_output_mocked_pre_commit_home(
-            'git', 'commit', '-m', 'Commit!',
+            'git', 'commit', '-m', 'Commit!', '--no-gpg-sign',
             # git commit puts pre-commit to stderr
             stderr=subprocess.STDOUT,
             retcode=None,
@@ -508,7 +508,7 @@ def test_lots_of_files(store, tempdir_factory):
         install(C.CONFIG_FILE, store)
 
         cmd_output_mocked_pre_commit_home(
-            'git', 'commit', '-m', 'Commit!',
+            'git', 'commit', '-m', 'Commit!', '--no-gpg-sign',
             # git commit puts pre-commit to stderr
             stderr=subprocess.STDOUT,
             tempdir_factory=tempdir_factory,
