@@ -65,9 +65,10 @@ def in_tmpdir(tempdir_factory):
 
 @pytest.fixture
 def in_git_dir(tmpdir):
-    with tmpdir.as_cwd():
+    repo = tmpdir.join('repo').ensure_dir()
+    with repo.as_cwd():
         cmd_output('git', 'init')
-        yield tmpdir
+        yield repo
 
 
 def _make_conflict():

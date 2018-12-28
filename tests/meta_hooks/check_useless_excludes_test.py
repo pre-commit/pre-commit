@@ -1,10 +1,8 @@
 from pre_commit.meta_hooks import check_useless_excludes
 from testing.fixtures import add_config_to_repo
-from testing.fixtures import git_dir
-from testing.util import cwd
 
 
-def test_useless_exclude_global(capsys, tempdir_factory):
+def test_useless_exclude_global(capsys, in_git_dir):
     config = {
         'exclude': 'foo',
         'repos': [
@@ -15,18 +13,16 @@ def test_useless_exclude_global(capsys, tempdir_factory):
         ],
     }
 
-    repo = git_dir(tempdir_factory)
-    add_config_to_repo(repo, config)
+    add_config_to_repo(in_git_dir.strpath, config)
 
-    with cwd(repo):
-        assert check_useless_excludes.main(()) == 1
+    assert check_useless_excludes.main(()) == 1
 
     out, _ = capsys.readouterr()
     out = out.strip()
     assert "The global exclude pattern 'foo' does not match any files" == out
 
 
-def test_useless_exclude_for_hook(capsys, tempdir_factory):
+def test_useless_exclude_for_hook(capsys, in_git_dir):
     config = {
         'repos': [
             {
@@ -36,11 +32,9 @@ def test_useless_exclude_for_hook(capsys, tempdir_factory):
         ],
     }
 
-    repo = git_dir(tempdir_factory)
-    add_config_to_repo(repo, config)
+    add_config_to_repo(in_git_dir.strpath, config)
 
-    with cwd(repo):
-        assert check_useless_excludes.main(()) == 1
+    assert check_useless_excludes.main(()) == 1
 
     out, _ = capsys.readouterr()
     out = out.strip()
@@ -51,7 +45,7 @@ def test_useless_exclude_for_hook(capsys, tempdir_factory):
     assert expected == out
 
 
-def test_useless_exclude_with_types_filter(capsys, tempdir_factory):
+def test_useless_exclude_with_types_filter(capsys, in_git_dir):
     config = {
         'repos': [
             {
@@ -67,11 +61,9 @@ def test_useless_exclude_with_types_filter(capsys, tempdir_factory):
         ],
     }
 
-    repo = git_dir(tempdir_factory)
-    add_config_to_repo(repo, config)
+    add_config_to_repo(in_git_dir.strpath, config)
 
-    with cwd(repo):
-        assert check_useless_excludes.main(()) == 1
+    assert check_useless_excludes.main(()) == 1
 
     out, _ = capsys.readouterr()
     out = out.strip()
@@ -82,7 +74,7 @@ def test_useless_exclude_with_types_filter(capsys, tempdir_factory):
     assert expected == out
 
 
-def test_no_excludes(capsys, tempdir_factory):
+def test_no_excludes(capsys, in_git_dir):
     config = {
         'repos': [
             {
@@ -92,17 +84,15 @@ def test_no_excludes(capsys, tempdir_factory):
         ],
     }
 
-    repo = git_dir(tempdir_factory)
-    add_config_to_repo(repo, config)
+    add_config_to_repo(in_git_dir.strpath, config)
 
-    with cwd(repo):
-        assert check_useless_excludes.main(()) == 0
+    assert check_useless_excludes.main(()) == 0
 
     out, _ = capsys.readouterr()
     assert out == ''
 
 
-def test_valid_exclude(capsys, tempdir_factory):
+def test_valid_exclude(capsys, in_git_dir):
     config = {
         'repos': [
             {
@@ -117,11 +107,9 @@ def test_valid_exclude(capsys, tempdir_factory):
         ],
     }
 
-    repo = git_dir(tempdir_factory)
-    add_config_to_repo(repo, config)
+    add_config_to_repo(in_git_dir.strpath, config)
 
-    with cwd(repo):
-        assert check_useless_excludes.main(()) == 0
+    assert check_useless_excludes.main(()) == 0
 
     out, _ = capsys.readouterr()
     assert out == ''

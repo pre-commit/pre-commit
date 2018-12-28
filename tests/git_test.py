@@ -9,45 +9,34 @@ import pytest
 from pre_commit import git
 from pre_commit.error_handler import FatalError
 from pre_commit.util import cmd_output
-from testing.fixtures import git_dir
-from testing.util import cwd
 
 
-def test_get_root_at_root(tempdir_factory):
-    path = git_dir(tempdir_factory)
-    with cwd(path):
-        assert os.path.normcase(git.get_root()) == os.path.normcase(path)
+def test_get_root_at_root(in_git_dir):
+    expected = os.path.normcase(in_git_dir.strpath)
+    assert os.path.normcase(git.get_root()) == expected
 
 
-def test_get_root_deeper(tempdir_factory):
-    path = git_dir(tempdir_factory)
-
-    foo_path = os.path.join(path, 'foo')
-    os.mkdir(foo_path)
-    with cwd(foo_path):
-        assert os.path.normcase(git.get_root()) == os.path.normcase(path)
+def test_get_root_deeper(in_git_dir):
+    expected = os.path.normcase(in_git_dir.strpath)
+    with in_git_dir.join('foo').ensure_dir().as_cwd():
+        assert os.path.normcase(git.get_root()) == expected
 
 
-def test_get_root_not_git_dir(tempdir_factory):
-    with cwd(tempdir_factory.get()):
-        with pytest.raises(FatalError):
-            git.get_root()
+def test_get_root_not_git_dir(in_tmpdir):
+    with pytest.raises(FatalError):
+        git.get_root()
 
 
-def test_get_staged_files_deleted(tempdir_factory):
-    path = git_dir(tempdir_factory)
-    with cwd(path):
-        open('test', 'a').close()
-        cmd_output('git', 'add', 'test')
-        cmd_output('git', 'commit', '-m', 'foo', '--allow-empty')
-        cmd_output('git', 'rm', '--cached', 'test')
-        assert git.get_staged_files() == []
+def test_get_staged_files_deleted(in_git_dir):
+    in_git_dir.join('test').ensure()
+    cmd_output('git', 'add', 'test')
+    cmd_output('git', 'commit', '-m', 'foo', '--allow-empty')
+    cmd_output('git', 'rm', '--cached', 'test')
+    assert git.get_staged_files() == []
 
 
-def test_is_not_in_merge_conflict(tempdir_factory):
-    path = git_dir(tempdir_factory)
-    with cwd(path):
-        assert git.is_in_merge_conflict() is False
+def test_is_not_in_merge_conflict(in_git_dir):
+    assert git.is_in_merge_conflict() is False
 
 
 def test_is_in_merge_conflict(in_merge_conflict):
@@ -114,11 +103,10 @@ def test_parse_merge_msg_for_conflicts(input, expected_output):
     assert ret == expected_output
 
 
-def test_get_changed_files(in_tmpdir):
-    cmd_output('git', 'init', '.')
+def test_get_changed_files(in_git_dir):
     cmd_output('git', 'commit', '--allow-empty', '-m', 'initial commit')
-    open('a.txt', 'a').close()
-    open('b.txt', 'a').close()
+    in_git_dir.join('a.txt').ensure()
+    in_git_dir.join('b.txt').ensure()
     cmd_output('git', 'add', '.')
     cmd_output('git', 'commit', '-m', 'add some files')
     files = git.get_changed_files('HEAD', 'HEAD^')
@@ -143,15 +131,12 @@ def test_zsplit(s, expected):
 
 
 @pytest.fixture
-def non_ascii_repo(tmpdir):
-    repo = tmpdir.join('repo').ensure_dir()
-    with repo.as_cwd():
-        cmd_output('git', 'init', '.')
-        cmd_output('git', 'commit', '--allow-empty', '-m', 'initial commit')
-        repo.join('интервью').ensure()
-        cmd_output('git', 'add', '.')
-        cmd_output('git', 'commit', '--allow-empty', '-m', 'initial commit')
-        yield repo
+def non_ascii_repo(in_git_dir):
+    cmd_output('git', 'commit', '--allow-empty', '-m', 'initial commit')
+    in_git_dir.join('интервью').ensure()
+    cmd_output('git', 'add', '.')
+    cmd_output('git', 'commit', '--allow-empty', '-m', 'initial commit')
+    yield in_git_dir
 
 
 def test_all_files_non_ascii(non_ascii_repo):

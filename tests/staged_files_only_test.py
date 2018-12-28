@@ -31,14 +31,11 @@ def get_short_git_status():
 
 
 @pytest.fixture
-def foo_staged(tempdir_factory):
-    path = git_dir(tempdir_factory)
-    with cwd(path):
-        with io.open('foo', 'w') as foo_file:
-            foo_file.write(FOO_CONTENTS)
-        cmd_output('git', 'add', 'foo')
-        foo_filename = os.path.join(path, 'foo')
-        yield auto_namedtuple(path=path, foo_filename=foo_filename)
+def foo_staged(in_git_dir):
+    foo = in_git_dir.join('foo')
+    foo.write(FOO_CONTENTS)
+    cmd_output('git', 'add', 'foo')
+    yield auto_namedtuple(path=in_git_dir.strpath, foo_filename=foo.strpath)
 
 
 def _test_foo_state(
@@ -134,13 +131,11 @@ def test_foo_both_modify_conflicting(foo_staged, patch_dir):
 
 
 @pytest.fixture
-def img_staged(tempdir_factory):
-    path = git_dir(tempdir_factory)
-    with cwd(path):
-        img_filename = os.path.join(path, 'img.jpg')
-        shutil.copy(get_resource_path('img1.jpg'), img_filename)
-        cmd_output('git', 'add', 'img.jpg')
-        yield auto_namedtuple(path=path, img_filename=img_filename)
+def img_staged(in_git_dir):
+    img = in_git_dir.join('img.jpg')
+    shutil.copy(get_resource_path('img1.jpg'), img.strpath)
+    cmd_output('git', 'add', 'img.jpg')
+    yield auto_namedtuple(path=in_git_dir.strpath, img_filename=img.strpath)
 
 
 def _test_img_state(path, expected_file='img1.jpg', status='A'):
