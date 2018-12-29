@@ -237,6 +237,7 @@ class MetaRepository(LocalRepository):
         # The hooks are imported here to prevent circular imports.
         from pre_commit.meta_hooks import check_hooks_apply
         from pre_commit.meta_hooks import check_useless_excludes
+        from pre_commit.meta_hooks import identity
 
         def _make_entry(mod):
             """the hook `entry` is passed through `shlex.split()` by the
@@ -259,6 +260,13 @@ class MetaRepository(LocalRepository):
                 'files': C.CONFIG_FILE,
                 'language': 'system',
                 'entry': _make_entry(check_useless_excludes),
+            },
+            {
+                'id': 'identity',
+                'name': 'identity',
+                'language': 'system',
+                'verbose': True,
+                'entry': _make_entry(identity),
             },
         ]
 
