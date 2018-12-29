@@ -28,6 +28,7 @@ from testing.fixtures import make_consuming_repo
 from testing.fixtures import remove_config_from_repo
 from testing.util import cmd_output_mocked_pre_commit_home
 from testing.util import cwd
+from testing.util import git_commit
 from testing.util import xfailif_no_symlink
 
 
@@ -105,11 +106,10 @@ def test_uninstall(in_git_dir, store):
 
 
 def _get_commit_output(tempdir_factory, touch_file='foo', **kwargs):
-    commit_msg = kwargs.pop('commit_msg', 'Commit!')
     open(touch_file, 'a').close()
     cmd_output('git', 'add', touch_file)
-    return cmd_output_mocked_pre_commit_home(
-        'git', 'commit', '-am', commit_msg, '--allow-empty',
+    return git_commit(
+        fn=cmd_output_mocked_pre_commit_home,
         # git commit puts pre-commit to stderr
         stderr=subprocess.STDOUT,
         retcode=None,
@@ -131,7 +131,7 @@ FILES_CHANGED = (
 NORMAL_PRE_COMMIT_RUN = re.compile(
     r'^\[INFO\] Initializing environment for .+\.\r?\n'
     r'Bash hook\.+Passed\r?\n'
-    r'\[master [a-f0-9]{7}\] Commit!\r?\n' +
+    r'\[master [a-f0-9]{7}\] commit!\r?\n' +
     FILES_CHANGED +
     r' create mode 100644 foo\r?\n$',
 )
@@ -151,7 +151,7 @@ def test_install_pre_commit_and_run_custom_path(tempdir_factory, store):
     path = make_consuming_repo(tempdir_factory, 'script_hooks_repo')
     with cwd(path):
         cmd_output('git', 'mv', C.CONFIG_FILE, 'custom-config.yaml')
-        cmd_output('git', 'commit', '-m', 'move pre-commit config')
+        git_commit(cwd=path)
         assert install('custom-config.yaml', store) == 0
 
         ret, output = _get_commit_output(tempdir_factory)
@@ -163,7 +163,7 @@ def test_install_in_submodule_and_run(tempdir_factory, store):
     src_path = make_consuming_repo(tempdir_factory, 'script_hooks_repo')
     parent_path = git_dir(tempdir_factory)
     cmd_output('git', 'submodule', 'add', src_path, 'sub', cwd=parent_path)
-    cmd_output('git', 'commit', '-m', 'foo', cwd=parent_path)
+    git_commit(cwd=parent_path)
 
     sub_pth = os.path.join(parent_path, 'sub')
     with cwd(sub_pth):
@@ -193,7 +193,7 @@ def test_commit_am(tempdir_factory, store):
         # Make an unstaged change
         open('unstaged', 'w').close()
         cmd_output('git', 'add', '.')
-        cmd_output('git', 'commit', '-m', 'foo')
+        git_commit(cwd=path)
         with io.open('unstaged', 'w') as foo_file:
             foo_file.write('Oh hai')
 
@@ -208,12 +208,14 @@ def test_unicode_merge_commit_message(tempdir_factory, store):
     with cwd(path):
         assert install(C.CONFIG_FILE, store) == 0
         cmd_output('git', 'checkout', 'master', '-b', 'foo')
-        cmd_output('git', 'commit', '--allow-empty', '-n', '-m', 'branch2')
+        git_commit('-n', cwd=path)
         cmd_output('git', 'checkout', 'master')
         cmd_output('git', 'merge', 'foo', '--no-ff', '--no-commit', '-m', '☃')
         # Used to crash
-        cmd_output_mocked_pre_commit_home(
-            'git', 'commit', '--no-edit',
+        git_commit(
+            '--no-edit',
+            msg=None,
+            fn=cmd_output_mocked_pre_commit_home,
             tempdir_factory=tempdir_factory,
         )
 
@@ -246,8 +248,7 @@ def test_environment_not_sourced(tempdir_factory, store):
 
         # Use a specific homedir to ignore --user installs
         homedir = tempdir_factory.get()
-        ret, stdout, stderr = cmd_output(
-            'git', 'commit', '--allow-empty', '-m', 'foo',
+        ret, stdout, stderr = git_commit(
             env={
                 'HOME': homedir,
                 'PATH': _path_without_us(),
@@ -290,7 +291,7 @@ def test_failing_hooks_returns_nonzero(tempdir_factory, store):
 
 EXISTING_COMMIT_RUN = re.compile(
     r'^legacy hook\r?\n'
-    r'\[master [a-f0-9]{7}\] Commit!\r?\n' +
+    r'\[master [a-f0-9]{7}\] commit!\r?\n' +
     FILES_CHANGED +
     r' create mode 100644 baz\r?\n$',
 )
@@ -433,7 +434,7 @@ def test_uninstall_doesnt_remove_not_our_hooks(in_git_dir):
 
 PRE_INSTALLED = re.compile(
     r'Bash hook\.+Passed\r?\n'
-    r'\[master [a-f0-9]{7}\] Commit!\r?\n' +
+    r'\[master [a-f0-9]{7}\] commit!\r?\n' +
     FILES_CHANGED +
     r' create mode 100644 foo\r?\n$',
 )
@@ -545,7 +546,7 @@ def test_pre_push_force_push_without_fetch(tempdir_factory, store):
 
     with cwd(path2):
         install(C.CONFIG_FILE, store, hook_type='pre-push')
-        assert _get_commit_output(tempdir_factory, commit_msg='force!')[0] == 0
+        assert _get_commit_output(tempdir_factory, msg='force!')[0] == 0
 
         retc, output = _get_push_output(tempdir_factory, opts=('--force',))
         assert retc == 0
@@ -624,7 +625,7 @@ def test_commit_msg_integration_passing(
 ):
     install(C.CONFIG_FILE, store, hook_type='commit-msg')
     msg = 'Hi\nSigned off by: me, lol'
-    retc, out = _get_commit_output(tempdir_factory, commit_msg=msg)
+    retc, out = _get_commit_output(tempdir_factory, msg=msg)
     assert retc == 0
     first_line = out.splitlines()[0]
     assert first_line.startswith('Must have "Signed off by:"...')
@@ -646,7 +647,7 @@ def test_commit_msg_legacy(commit_msg_repo, tempdir_factory, store):
     install(C.CONFIG_FILE, store, hook_type='commit-msg')
 
     msg = 'Hi\nSigned off by: asottile'
-    retc, out = _get_commit_output(tempdir_factory, commit_msg=msg)
+    retc, out = _get_commit_output(tempdir_factory, msg=msg)
     assert retc == 0
     first_line, second_line = out.splitlines()[:2]
     assert first_line == 'legacy'

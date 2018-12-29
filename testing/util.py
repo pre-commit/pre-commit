@@ -133,3 +133,13 @@ def cwd(path):
         yield
     finally:
         os.chdir(original_cwd)
+
+
+def git_commit(*args, **kwargs):
+    fn = kwargs.pop('fn', cmd_output)
+    msg = kwargs.pop('msg', 'commit!')
+
+    cmd = ('git', 'commit', '--allow-empty', '--no-gpg-sign', '-a') + args
+    if msg is not None:  # allow skipping `-m` with `msg=None`
+        cmd += ('-m', msg)
+    return fn(*cmd, **kwargs)

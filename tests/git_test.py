@@ -9,6 +9,7 @@ import pytest
 from pre_commit import git
 from pre_commit.error_handler import FatalError
 from pre_commit.util import cmd_output
+from testing.util import git_commit
 
 
 def test_get_root_at_root(in_git_dir):
@@ -30,7 +31,7 @@ def test_get_root_not_git_dir(in_tmpdir):
 def test_get_staged_files_deleted(in_git_dir):
     in_git_dir.join('test').ensure()
     cmd_output('git', 'add', 'test')
-    cmd_output('git', 'commit', '-m', 'foo', '--allow-empty')
+    git_commit()
     cmd_output('git', 'rm', '--cached', 'test')
     assert git.get_staged_files() == []
 
@@ -104,11 +105,11 @@ def test_parse_merge_msg_for_conflicts(input, expected_output):
 
 
 def test_get_changed_files(in_git_dir):
-    cmd_output('git', 'commit', '--allow-empty', '-m', 'initial commit')
+    git_commit()
     in_git_dir.join('a.txt').ensure()
     in_git_dir.join('b.txt').ensure()
     cmd_output('git', 'add', '.')
-    cmd_output('git', 'commit', '-m', 'add some files')
+    git_commit()
     files = git.get_changed_files('HEAD', 'HEAD^')
     assert files == ['a.txt', 'b.txt']
 
@@ -132,10 +133,10 @@ def test_zsplit(s, expected):
 
 @pytest.fixture
 def non_ascii_repo(in_git_dir):
-    cmd_output('git', 'commit', '--allow-empty', '-m', 'initial commit')
+    git_commit()
     in_git_dir.join('интервью').ensure()
     cmd_output('git', 'add', '.')
-    cmd_output('git', 'commit', '--allow-empty', '-m', 'initial commit')
+    git_commit()
     yield in_git_dir
 
 

@@ -24,6 +24,7 @@ from testing.fixtures import modify_config
 from testing.fixtures import read_config
 from testing.util import cmd_output_mocked_pre_commit_home
 from testing.util import cwd
+from testing.util import git_commit
 from testing.util import run_opts
 from testing.util import xfailif_no_symlink
 
@@ -478,8 +479,8 @@ def test_stdout_write_bug_py26(repo_with_failing_hook, store, tempdir_factory):
         install(C.CONFIG_FILE, store)
 
         # Have to use subprocess because pytest monkeypatches sys.stdout
-        _, stdout, _ = cmd_output_mocked_pre_commit_home(
-            'git', 'commit', '-m', 'Commit!',
+        _, stdout, _ = git_commit(
+            fn=cmd_output_mocked_pre_commit_home,
             # git commit puts pre-commit to stderr
             stderr=subprocess.STDOUT,
             retcode=None,
@@ -507,8 +508,8 @@ def test_lots_of_files(store, tempdir_factory):
         cmd_output('git', 'add', '.')
         install(C.CONFIG_FILE, store)
 
-        cmd_output_mocked_pre_commit_home(
-            'git', 'commit', '-m', 'Commit!',
+        git_commit(
+            fn=cmd_output_mocked_pre_commit_home,
             # git commit puts pre-commit to stderr
             stderr=subprocess.STDOUT,
             tempdir_factory=tempdir_factory,
