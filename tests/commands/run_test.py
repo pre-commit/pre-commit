@@ -5,7 +5,6 @@ import io
 import os.path
 import subprocess
 import sys
-from collections import OrderedDict
 
 import pytest
 
@@ -521,21 +520,19 @@ def test_lots_of_files(store, tempdir_factory):
 
 
 def test_stages(cap_out, store, repo_with_passing_hook):
-    config = OrderedDict((
-        ('repo', 'local'),
-        (
-            'hooks', tuple(
-                {
-                    'id': 'do-not-commit-{}'.format(i),
-                    'name': 'hook {}'.format(i),
-                    'entry': 'DO NOT COMMIT',
-                    'language': 'pygrep',
-                    'stages': [stage],
-                }
-                for i, stage in enumerate(('commit', 'push', 'manual'), 1)
-            ),
-        ),
-    ))
+    config = {
+        'repo': 'local',
+        'hooks': [
+            {
+                'id': 'do-not-commit-{}'.format(i),
+                'name': 'hook {}'.format(i),
+                'entry': 'DO NOT COMMIT',
+                'language': 'pygrep',
+                'stages': [stage],
+            }
+            for i, stage in enumerate(('commit', 'push', 'manual'), 1)
+        ],
+    }
     add_config_to_repo(repo_with_passing_hook, config)
 
     stage_a_file()
@@ -570,26 +567,24 @@ def test_commit_msg_hook(cap_out, store, commit_msg_repo):
 
 
 def test_local_hook_passes(cap_out, store, repo_with_passing_hook):
-    config = OrderedDict((
-        ('repo', 'local'),
-        (
-            'hooks', (
-                OrderedDict((
-                    ('id', 'flake8'),
-                    ('name', 'flake8'),
-                    ('entry', "'{}' -m flake8".format(sys.executable)),
-                    ('language', 'system'),
-                    ('files', r'\.py$'),
-                )), OrderedDict((
-                    ('id', 'do_not_commit'),
-                    ('name', 'Block if "DO NOT COMMIT" is found'),
-                    ('entry', 'DO NOT COMMIT'),
-                    ('language', 'pygrep'),
-                    ('files', '^(.*)$'),
-                )),
-            ),
-        ),
-    ))
+    config = {
+        'repo': 'local',
+        'hooks': [
+            {
+                'id': 'flake8',
+                'name': 'flake8',
+                'entry': "'{}' -m flake8".format(sys.executable),
+                'language': 'system',
+                'files': r'\.py$',
+            },
+            {
+                'id': 'do_not_commit',
+                'name': 'Block if "DO NOT COMMIT" is found',
+                'entry': 'DO NOT COMMIT',
+                'language': 'pygrep',
+            },
+        ],
+    }
     add_config_to_repo(repo_with_passing_hook, config)
 
     with io.open('dummy.py', 'w') as staged_file:
@@ -608,18 +603,15 @@ def test_local_hook_passes(cap_out, store, repo_with_passing_hook):
 
 
 def test_local_hook_fails(cap_out, store, repo_with_passing_hook):
-    config = OrderedDict((
-        ('repo', 'local'),
-        (
-            'hooks', [OrderedDict((
-                ('id', 'no-todo'),
-                ('name', 'No TODO'),
-                ('entry', 'sh -c "! grep -iI todo $@" --'),
-                ('language', 'system'),
-                ('files', ''),
-            ))],
-        ),
-    ))
+    config = {
+        'repo': 'local',
+        'hooks': [{
+            'id': 'no-todo',
+            'name': 'No TODO',
+            'entry': 'sh -c "! grep -iI todo $@" --',
+            'language': 'system',
+        }],
+    }
     add_config_to_repo(repo_with_passing_hook, config)
 
     with io.open('dummy.py', 'w') as staged_file:
@@ -638,17 +630,15 @@ def test_local_hook_fails(cap_out, store, repo_with_passing_hook):
 
 
 def test_pcre_deprecation_warning(cap_out, store, repo_with_passing_hook):
-    config = OrderedDict((
-        ('repo', 'local'),
-        (
-            'hooks', [OrderedDict((
-                ('id', 'pcre-hook'),
-                ('name', 'pcre-hook'),
-                ('language', 'pcre'),
-                ('entry', '.'),
-            ))],
-        ),
-    ))
+    config = {
+        'repo': 'local',
+        'hooks': [{
+            'id': 'pcre-hook',
+            'name': 'pcre-hook',
+            'language': 'pcre',
+            'entry': '.',
+        }],
+    }
     add_config_to_repo(repo_with_passing_hook, config)
 
     _test_run(
@@ -666,16 +656,10 @@ def test_pcre_deprecation_warning(cap_out, store, repo_with_passing_hook):
 
 
 def test_meta_hook_passes(cap_out, store, repo_with_passing_hook):
-    config = OrderedDict((
-        ('repo', 'meta'),
-        (
-            'hooks', (
-                OrderedDict((
-                    ('id', 'check-useless-excludes'),
-                )),
-            ),
-        ),
-    ))
+    config = {
+        'repo': 'meta',
+        'hooks': [{'id': 'check-useless-excludes'}],
+    }
     add_config_to_repo(repo_with_passing_hook, config)
 
     _test_run(
@@ -810,25 +794,24 @@ def test_include_exclude_exclude_removes_files(some_filenames):
 
 
 def test_args_hook_only(cap_out, store, repo_with_passing_hook):
-    config = OrderedDict((
-        ('repo', 'local'),
-        (
-            'hooks', (
-                OrderedDict((
-                    ('id', 'flake8'),
-                    ('name', 'flake8'),
-                    ('entry', "'{}' -m flake8".format(sys.executable)),
-                    ('language', 'system'),
-                    ('stages', ['commit']),
-                )), OrderedDict((
-                    ('id', 'do_not_commit'),
-                    ('name', 'Block if "DO NOT COMMIT" is found'),
-                    ('entry', 'DO NOT COMMIT'),
-                    ('language', 'pygrep'),
-                )),
-            ),
-        ),
-    ))
+    config = {
+        'repo': 'local',
+        'hooks': [
+            {
+                'id': 'flake8',
+                'name': 'flake8',
+                'entry': "'{}' -m flake8".format(sys.executable),
+                'language': 'system',
+                'stages': ['commit'],
+            },
+            {
+                'id': 'do_not_commit',
+                'name': 'Block if "DO NOT COMMIT" is found',
+                'entry': 'DO NOT COMMIT',
+                'language': 'pygrep',
+            },
+        ],
+    }
     add_config_to_repo(repo_with_passing_hook, config)
     stage_a_file()
     ret, printed = _do_run(
