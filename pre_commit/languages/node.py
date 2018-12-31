@@ -68,6 +68,6 @@ def install_environment(prefix, version, additional_dependencies):
             )
 
 
-def run_hook(prefix, hook, file_args):
-    with in_env(prefix, hook['language_version']):
+def run_hook(hook, file_args):
+    with in_env(hook.prefix, hook.language_version):
         return helpers.run_xargs(hook, helpers.to_cmd(hook), file_args)

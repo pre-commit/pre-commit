@@ -11,6 +11,7 @@ import pytest
 from pre_commit.languages import helpers
 from pre_commit.prefix import Prefix
 from pre_commit.util import CalledProcessError
+from testing.auto_namedtuple import auto_namedtuple
 
 
 def test_basic_get_default_version():
@@ -33,27 +34,31 @@ def test_failed_setup_command_does_not_unicode_error():
         helpers.run_setup_cmd(Prefix('.'), (sys.executable, '-c', script))
 
 
+SERIAL_FALSE = auto_namedtuple(require_serial=False)
+SERIAL_TRUE = auto_namedtuple(require_serial=True)
+
+
 def test_target_concurrency_normal():
     with mock.patch.object(multiprocessing, 'cpu_count', return_value=123):
         with mock.patch.dict(os.environ, {}, clear=True):
-            assert helpers.target_concurrency({'require_serial': False}) == 123
+            assert helpers.target_concurrency(SERIAL_FALSE) == 123
 
 
 def test_target_concurrency_cpu_count_require_serial_true():
     with mock.patch.dict(os.environ, {}, clear=True):
-        assert helpers.target_concurrency({'require_serial': True}) == 1
+        assert helpers.target_concurrency(SERIAL_TRUE) == 1
 
 
 def test_target_concurrency_testing_env_var():
     with mock.patch.dict(
             os.environ, {'PRE_COMMIT_NO_CONCURRENCY': '1'}, clear=True,
     ):
-        assert helpers.target_concurrency({'require_serial': False}) == 1
+        assert helpers.target_concurrency(SERIAL_FALSE) == 1
 
 
 def test_target_concurrency_on_travis():
     with mock.patch.dict(os.environ, {'TRAVIS': '1'}, clear=True):
-        assert helpers.target_concurrency({'require_serial': False}) == 2
+        assert helpers.target_concurrency(SERIAL_FALSE) == 2
 
 
 def test_target_concurrency_cpu_count_not_implemented():
@@ -61,7 +66,7 @@ def test_target_concurrency_cpu_count_not_implemented():
             multiprocessing, 'cpu_count', side_effect=NotImplementedError,
     ):
         with mock.patch.dict(os.environ, {}, clear=True):
-            assert helpers.target_concurrency({'require_serial': False}) == 1
+            assert helpers.target_concurrency(SERIAL_FALSE) == 1
 
 
 def test_shuffled_is_deterministic():

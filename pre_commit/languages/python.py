@@ -124,8 +124,8 @@ def py_interface(_dir, _make_venv):
             )
         return retcode == 0
 
-    def run_hook(prefix, hook, file_args):
-        with in_env(prefix, hook['language_version']):
+    def run_hook(hook, file_args):
+        with in_env(hook.prefix, hook.language_version):
             return helpers.run_xargs(hook, helpers.to_cmd(hook), file_args)
 
     def install_environment(prefix, version, additional_dependencies):
