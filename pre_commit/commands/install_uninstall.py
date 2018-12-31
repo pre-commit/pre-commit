@@ -10,7 +10,8 @@ from pre_commit import git
 from pre_commit import output
 from pre_commit.clientlib import load_config
 from pre_commit.languages import python
-from pre_commit.repository import repositories
+from pre_commit.repository import all_hooks
+from pre_commit.repository import install_hook_envs
 from pre_commit.util import cmd_output
 from pre_commit.util import make_executable
 from pre_commit.util import mkdirp
@@ -116,8 +117,7 @@ def install(
 
 
 def install_hooks(config_file, store):
-    for repository in repositories(load_config(config_file), store):
-        repository.require_installed()
+    install_hook_envs(all_hooks(load_config(config_file), store), store)
 
 
 def uninstall(hook_type='pre-commit'):

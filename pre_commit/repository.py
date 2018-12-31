@@ -1,20 +1,16 @@
 from __future__ import unicode_literals
 
+import collections
 import io
 import json
 import logging
 import os
-import pipes
-import shutil
-import sys
 
-from cached_property import cached_property
 from cfgv import apply_defaults
 from cfgv import validate
 
 import pre_commit.constants as C
 from pre_commit import five
-from pre_commit import git
 from pre_commit.clientlib import is_local_repo
 from pre_commit.clientlib import is_meta_repo
 from pre_commit.clientlib import load_manifest
@@ -23,6 +19,7 @@ from pre_commit.languages.all import languages
 from pre_commit.languages.helpers import environment_dir
 from pre_commit.prefix import Prefix
 from pre_commit.util import parse_version
+from pre_commit.util import rmtree
 
 
 logger = logging.getLogger('pre_commit')
@@ -33,9 +30,7 @@ def _state(additional_deps):
 
 
 def _state_filename(prefix, venv):
-    return prefix.path(
-        venv, '.install_state_v' + C.INSTALLED_STATE_VERSION,
-    )
+    return prefix.path(venv, '.install_state_v' + C.INSTALLED_STATE_VERSION)
 
 
 def _read_state(prefix, venv):
@@ -44,7 +39,7 @@ def _read_state(prefix, venv):
         return None
     else:
         with io.open(filename) as f:
-            return json.loads(f.read())
+            return json.load(f)
 
 
 def _write_state(prefix, venv, state):
@@ -56,53 +51,67 @@ def _write_state(prefix, venv, state):
     os.rename(staging, state_filename)
 
 
-def _installed(prefix, language_name, language_version, additional_deps):
-    language = languages[language_name]
-    venv = environment_dir(language.ENVIRONMENT_DIR, language_version)
-    return (
-        venv is None or (
-            _read_state(prefix, venv) == _state(additional_deps) and
-            language.healthy(prefix, language_version)
-        )
-    )
+_KEYS = tuple(item.key for item in MANIFEST_HOOK_DICT.items)
 
 
-def _install_all(venvs, repo_url, store):
-    """Tuple of (prefix, language, version, deps)"""
-    def _need_installed():
-        return tuple(
-            (prefix, language_name, version, deps)
-            for prefix, language_name, version, deps in venvs
-            if not _installed(prefix, language_name, version, deps)
+class Hook(collections.namedtuple('Hook', ('src', 'prefix') + _KEYS)):
+    __slots__ = ()
+
+    @property
+    def install_key(self):
+        return (
+            self.prefix,
+            self.language,
+            self.language_version,
+            tuple(self.additional_dependencies),
         )
 
-    if not _need_installed():
-        return
-    with store.exclusive_lock():
-        # Another process may have already completed this work
-        need_installed = _need_installed()
-        if not need_installed:  # pragma: no cover (race)
-            return
-
-        logger.info(
-            'Installing environment for {}.'.format(repo_url),
+    def installed(self):
+        lang = languages[self.language]
+        venv = environment_dir(lang.ENVIRONMENT_DIR, self.language_version)
+        return (
+            venv is None or (
+                (
+                    _read_state(self.prefix, venv) ==
+                    _state(self.additional_dependencies)
+                ) and
+                lang.healthy(self.prefix, self.language_version)
+            )
         )
+
+    def install(self):
+        logger.info('Installing environment for {}.'.format(self.src))
         logger.info('Once installed this environment will be reused.')
         logger.info('This may take a few minutes...')
 
-        for prefix, language_name, version, deps in need_installed:
-            language = languages[language_name]
-            venv = environment_dir(language.ENVIRONMENT_DIR, version)
+        lang = languages[self.language]
+        venv = environment_dir(lang.ENVIRONMENT_DIR, self.language_version)
 
-            # There's potentially incomplete cleanup from previous runs
-            # Clean it up!
-            if prefix.exists(venv):
-                shutil.rmtree(prefix.path(venv))
+        # There's potentially incomplete cleanup from previous runs
+        # Clean it up!
+        if self.prefix.exists(venv):
+            rmtree(self.prefix.path(venv))
 
-            language.install_environment(prefix, version, deps)
-            # Write our state to indicate we're installed
-            state = _state(deps)
-            _write_state(prefix, venv, state)
+        lang.install_environment(
+            self.prefix, self.language_version, self.additional_dependencies,
+        )
+        # Write our state to indicate we're installed
+        _write_state(self.prefix, venv, _state(self.additional_dependencies))
+
+    def run(self, file_args):
+        lang = languages[self.language]
+        return lang.run_hook(self.prefix, self._asdict(), file_args)
+
+    @classmethod
+    def create(cls, src, prefix, dct):
+        # TODO: have cfgv do this (?)
+        extra_keys = set(dct) - set(_KEYS)
+        if extra_keys:
+            logger.warning(
+                'Unexpected keys present on {} => {}: '
+                '{}'.format(src, dct['id'], ', '.join(sorted(extra_keys))),
+            )
+        return cls(src=src, prefix=prefix, **{k: dct[k] for k in _KEYS})
 
 
 def _hook(*hook_dicts):
@@ -129,169 +138,126 @@ def _hook(*hook_dicts):
 
 
 def _hook_from_manifest_dct(dct):
-    dct = validate(apply_defaults(dct, MANIFEST_HOOK_DICT), MANIFEST_HOOK_DICT)
+    dct = apply_defaults(dct, MANIFEST_HOOK_DICT)
+    dct = validate(dct, MANIFEST_HOOK_DICT)
     dct = _hook(dct)
     return dct
 
 
-class Repository(object):
-    def __init__(self, repo_config, store):
-        self.repo_config = repo_config
-        self.store = store
-        self.__installed = False
-
-    @classmethod
-    def create(cls, config, store):
-        if is_local_repo(config):
-            return LocalRepository(config, store)
-        elif is_meta_repo(config):
-            return MetaRepository(config, store)
-        else:
-            return cls(config, store)
-
-    @cached_property
-    def manifest_hooks(self):
-        repo, rev = self.repo_config['repo'], self.repo_config['rev']
-        repo_path = self.store.clone(repo, rev)
-        manifest_path = os.path.join(repo_path, C.MANIFEST_FILE)
-        return {hook['id']: hook for hook in load_manifest(manifest_path)}
-
-    @cached_property
-    def hooks(self):
-        for hook in self.repo_config['hooks']:
-            if hook['id'] not in self.manifest_hooks:
-                logger.error(
-                    '`{}` is not present in repository {}.  '
-                    'Typo? Perhaps it is introduced in a newer version?  '
-                    'Often `pre-commit autoupdate` fixes this.'.format(
-                        hook['id'], self.repo_config['repo'],
-                    ),
-                )
-                exit(1)
-
-        return tuple(
-            (hook['id'], _hook(self.manifest_hooks[hook['id']], hook))
-            for hook in self.repo_config['hooks']
-        )
-
-    def _prefix_from_deps(self, language_name, deps):
-        repo, rev = self.repo_config['repo'], self.repo_config['rev']
-        return Prefix(self.store.clone(repo, rev, deps))
-
-    def _venvs(self):
-        ret = set()
-        for _, hook in self.hooks:
-            language = hook['language']
-            version = hook['language_version']
-            deps = tuple(hook['additional_dependencies'])
-            ret.add((
-                self._prefix_from_deps(language, deps),
-                language, version, deps,
-            ))
-        return tuple(ret)
-
-    def require_installed(self):
-        if not self.__installed:
-            _install_all(self._venvs(), self.repo_config['repo'], self.store)
-            self.__installed = True
-
-    def run_hook(self, hook, file_args):
-        """Run a hook.
-
-        :param dict hook:
-        :param tuple file_args: all the files to run the hook on
-        """
-        self.require_installed()
-        language_name = hook['language']
-        deps = hook['additional_dependencies']
-        prefix = self._prefix_from_deps(language_name, deps)
-        return languages[language_name].run_hook(prefix, hook, file_args)
-
-
-class LocalRepository(Repository):
-    def _prefix_from_deps(self, language_name, deps):
-        """local repositories have a prefix per hook"""
+def _local_repository_hooks(repo_config, store):
+    def _local_prefix(language_name, deps):
         language = languages[language_name]
         # pcre / pygrep / script / system / docker_image do not have
         # environments so they work out of the current directory
         if language.ENVIRONMENT_DIR is None:
-            return Prefix(git.get_root())
+            return Prefix(os.getcwd())
         else:
-            return Prefix(self.store.make_local(deps))
+            return Prefix(store.make_local(deps))
 
-    @property
-    def manifest(self):
-        raise NotImplementedError
-
-    @cached_property
-    def hooks(self):
-        return tuple(
-            (hook['id'], _hook_from_manifest_dct(hook))
-            for hook in self.repo_config['hooks']
+    hook_dcts = [_hook_from_manifest_dct(h) for h in repo_config['hooks']]
+    return tuple(
+        Hook.create(
+            repo_config['repo'],
+            _local_prefix(hook['language'], hook['additional_dependencies']),
+            hook,
         )
+        for hook in hook_dcts
+    )
 
 
-class MetaRepository(LocalRepository):
-    @cached_property
-    def manifest_hooks(self):
-        # The hooks are imported here to prevent circular imports.
-        from pre_commit.meta_hooks import check_hooks_apply
-        from pre_commit.meta_hooks import check_useless_excludes
-        from pre_commit.meta_hooks import identity
+def _meta_repository_hooks(repo_config, store):
+    # imported here to prevent circular imports.
+    from pre_commit.meta_hooks import check_hooks_apply
+    from pre_commit.meta_hooks import check_useless_excludes
+    from pre_commit.meta_hooks import identity
 
-        def _make_entry(mod):
-            """the hook `entry` is passed through `shlex.split()` by the
-            command runner, so to prevent issues with spaces and backslashes
-            (on Windows) it must be quoted here.
-            """
-            return '{} -m {}'.format(pipes.quote(sys.executable), mod.__name__)
+    meta_hooks = [
+        _hook_from_manifest_dct(mod.HOOK_DICT)
+        for mod in (check_hooks_apply, check_useless_excludes, identity)
+    ]
+    by_id = {hook['id']: hook for hook in meta_hooks}
 
-        meta_hooks = [
-            {
-                'id': 'check-hooks-apply',
-                'name': 'Check hooks apply to the repository',
-                'files': C.CONFIG_FILE,
-                'language': 'system',
-                'entry': _make_entry(check_hooks_apply),
-            },
-            {
-                'id': 'check-useless-excludes',
-                'name': 'Check for useless excludes',
-                'files': C.CONFIG_FILE,
-                'language': 'system',
-                'entry': _make_entry(check_useless_excludes),
-            },
-            {
-                'id': 'identity',
-                'name': 'identity',
-                'language': 'system',
-                'verbose': True,
-                'entry': _make_entry(identity),
-            },
-        ]
+    for hook in repo_config['hooks']:
+        if hook['id'] not in by_id:
+            logger.error(
+                '`{}` is not a valid meta hook.  '
+                'Typo? Perhaps it is introduced in a newer version?  '
+                'Often `pip install --upgrade pre-commit` fixes this.'
+                .format(hook['id']),
+            )
+            exit(1)
 
-        return {
-            hook['id']: _hook_from_manifest_dct(hook)
-            for hook in meta_hooks
-        }
-
-    @cached_property
-    def hooks(self):
-        for hook in self.repo_config['hooks']:
-            if hook['id'] not in self.manifest_hooks:
-                logger.error(
-                    '`{}` is not a valid meta hook.  '
-                    'Typo? Perhaps it is introduced in a newer version?  '
-                    'Often `pip install --upgrade pre-commit` fixes this.'
-                    .format(hook['id']),
-                )
-                exit(1)
-
-        return tuple(
-            (hook['id'], _hook(self.manifest_hooks[hook['id']], hook))
-            for hook in self.repo_config['hooks']
+    prefix = Prefix(os.getcwd())
+    return tuple(
+        Hook.create(
+            repo_config['repo'],
+            prefix,
+            _hook(by_id[hook['id']], hook),
         )
+        for hook in repo_config['hooks']
+    )
 
 
-def repositories(config, store):
-    return tuple(Repository.create(x, store) for x in config['repos'])
+def _cloned_repository_hooks(repo_config, store):
+    repo, rev = repo_config['repo'], repo_config['rev']
+    manifest_path = os.path.join(store.clone(repo, rev), C.MANIFEST_FILE)
+    by_id = {hook['id']: hook for hook in load_manifest(manifest_path)}
+
+    for hook in repo_config['hooks']:
+        if hook['id'] not in by_id:
+            logger.error(
+                '`{}` is not present in repository {}.  '
+                'Typo? Perhaps it is introduced in a newer version?  '
+                'Often `pre-commit autoupdate` fixes this.'
+                .format(hook['id'], repo),
+            )
+            exit(1)
+
+    hook_dcts = [_hook(by_id[h['id']], h) for h in repo_config['hooks']]
+    return tuple(
+        Hook.create(
+            repo_config['repo'],
+            Prefix(store.clone(repo, rev, hook['additional_dependencies'])),
+            hook,
+        )
+        for hook in hook_dcts
+    )
+
+
+def repository_hooks(repo_config, store):
+    if is_local_repo(repo_config):
+        return _local_repository_hooks(repo_config, store)
+    elif is_meta_repo(repo_config):
+        return _meta_repository_hooks(repo_config, store)
+    else:
+        return _cloned_repository_hooks(repo_config, store)
+
+
+def install_hook_envs(hooks, store):
+    def _need_installed():
+        seen = set()
+        ret = []
+        for hook in hooks:
+            if hook.install_key not in seen and not hook.installed():
+                ret.append(hook)
+            seen.add(hook.install_key)
+        return ret
+
+    if not _need_installed():
+        return
+    with store.exclusive_lock():
+        # Another process may have already completed this work
+        need_installed = _need_installed()
+        if not need_installed:  # pragma: no cover (race)
+            return
+
+        for hook in need_installed:
+            hook.install()
+
+
+def all_hooks(config, store):
+    return tuple(
+        hook
+        for repo in config['repos']
+        for hook in repository_hooks(repo, store)
+    )

@@ -18,6 +18,7 @@ from pre_commit.commands.run import _has_unmerged_paths
 from pre_commit.commands.run import run
 from pre_commit.util import cmd_output
 from pre_commit.util import make_executable
+from testing.auto_namedtuple import auto_namedtuple
 from testing.fixtures import add_config_to_repo
 from testing.fixtures import make_consuming_repo
 from testing.fixtures import modify_config
@@ -362,10 +363,13 @@ def test_merge_conflict_resolved(cap_out, store, in_merge_conflict):
     ('hooks', 'verbose', 'expected'),
     (
         ([], True, 80),
-        ([{'id': 'a', 'name': 'a' * 51}], False, 81),
-        ([{'id': 'a', 'name': 'a' * 51}], True, 85),
+        ([auto_namedtuple(id='a', name='a' * 51)], False, 81),
+        ([auto_namedtuple(id='a', name='a' * 51)], True, 85),
         (
-            [{'id': 'a', 'name': 'a' * 51}, {'id': 'b', 'name': 'b' * 52}],
+            [
+                auto_namedtuple(id='a', name='a' * 51),
+                auto_namedtuple(id='b', name='b' * 52),
+            ],
             False,
             82,
         ),

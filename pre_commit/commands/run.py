@@ -13,7 +13,8 @@ from pre_commit import git
 from pre_commit import output
 from pre_commit.clientlib import load_config
 from pre_commit.output import get_hook_message
-from pre_commit.repository import repositories
+from pre_commit.repository import all_hooks
+from pre_commit.repository import install_hook_envs
 from pre_commit.staged_files_only import staged_files_only
 from pre_commit.util import cmd_output
 from pre_commit.util import memoize_by_cwd
@@ -32,9 +33,7 @@ def _get_skips(environ):
 
 
 def _hook_msg_start(hook, verbose):
-    return '{}{}'.format(
-        '[{}] '.format(hook['id']) if verbose else '', hook['name'],
-    )
+    return '{}{}'.format('[{}] '.format(hook.id) if verbose else '', hook.name)
 
 
 def _filter_by_include_exclude(filenames, include, exclude):
@@ -63,21 +62,21 @@ SKIPPED = 'Skipped'
 NO_FILES = '(no files to check)'
 
 
-def _run_single_hook(filenames, hook, repo, args, skips, cols):
-    include, exclude = hook['files'], hook['exclude']
+def _run_single_hook(filenames, hook, args, skips, cols):
+    include, exclude = hook.files, hook.exclude
     filenames = _filter_by_include_exclude(filenames, include, exclude)
-    types, exclude_types = hook['types'], hook['exclude_types']
+    types, exclude_types = hook.types, hook.exclude_types
     filenames = _filter_by_types(filenames, types, exclude_types)
 
-    if hook['language'] == 'pcre':
+    if hook.language == 'pcre':
         logger.warning(
             '`{}` (from {}) uses the deprecated pcre language.\n'
             'The pcre language is scheduled for removal in pre-commit 2.x.\n'
             'The pygrep language is a more portable (and usually drop-in) '
-            'replacement.'.format(hook['id'], repo.repo_config['repo']),
+            'replacement.'.format(hook.id, hook.src),
         )
 
-    if hook['id'] in skips or hook['alias'] in skips:
+    if hook.id in skips or hook.alias in skips:
         output.write(get_hook_message(
             _hook_msg_start(hook, args.verbose),
             end_msg=SKIPPED,
@@ -86,7 +85,7 @@ def _run_single_hook(filenames, hook, repo, args, skips, cols):
             cols=cols,
         ))
         return 0
-    elif not filenames and not hook['always_run']:
+    elif not filenames and not hook.always_run:
         output.write(get_hook_message(
             _hook_msg_start(hook, args.verbose),
             postfix=NO_FILES,
@@ -107,8 +106,8 @@ def _run_single_hook(filenames, hook, repo, args, skips, cols):
     diff_before = cmd_output(
         'git', 'diff', '--no-ext-diff', retcode=None, encoding=None,
     )
-    retcode, stdout, stderr = repo.run_hook(
-        hook, tuple(filenames) if hook['pass_filenames'] else (),
+    retcode, stdout, stderr = hook.run(
+        tuple(filenames) if hook.pass_filenames else (),
     )
     diff_after = cmd_output(
         'git', 'diff', '--no-ext-diff', retcode=None, encoding=None,
@@ -133,9 +132,9 @@ def _run_single_hook(filenames, hook, repo, args, skips, cols):
 
     if (
             (stdout or stderr or file_modifications) and
-            (retcode or args.verbose or hook['verbose'])
+            (retcode or args.verbose or hook.verbose)
     ):
-        output.write_line('hookid: {}\n'.format(hook['id']))
+        output.write_line('hookid: {}\n'.format(hook.id))
 
         # Print a message if failing due to file modifications
         if file_modifications:
@@ -149,7 +148,7 @@ def _run_single_hook(filenames, hook, repo, args, skips, cols):
         for out in (stdout, stderr):
             assert type(out) is bytes, type(out)
             if out.strip():
-                output.write_line(out.strip(), logfile_name=hook['log_file'])
+                output.write_line(out.strip(), logfile_name=hook.log_file)
         output.write_line()
 
     return retcode
@@ -189,15 +188,15 @@ def _all_filenames(args):
         return git.get_staged_files()
 
 
-def _run_hooks(config, repo_hooks, args, environ):
+def _run_hooks(config, hooks, args, environ):
     """Actually run the hooks."""
     skips = _get_skips(environ)
-    cols = _compute_cols([hook for _, hook in repo_hooks], args.verbose)
+    cols = _compute_cols(hooks, args.verbose)
     filenames = _all_filenames(args)
     filenames = _filter_by_include_exclude(filenames, '', config['exclude'])
     retval = 0
-    for repo, hook in repo_hooks:
-        retval |= _run_single_hook(filenames, hook, repo, args, skips, cols)
+    for hook in hooks:
+        retval |= _run_single_hook(filenames, hook, args, skips, cols)
         if retval and config['fail_fast']:
             break
     if (
@@ -252,28 +251,18 @@ def run(config_file, store, args, environ=os.environ):
         ctx = staged_files_only(store.directory)
 
     with ctx:
-        repo_hooks = []
         config = load_config(config_file)
-        for repo in repositories(config, store):
-            for _, hook in repo.hooks:
-                if (
-                        (
-                            not args.hook or
-                            hook['id'] == args.hook or
-                            hook['alias'] == args.hook
-                        ) and
-                        (
-                            not hook['stages'] or
-                            args.hook_stage in hook['stages']
-                        )
-                ):
-                    repo_hooks.append((repo, hook))
+        hooks = [
+            hook
+            for hook in all_hooks(config, store)
+            if not args.hook or hook.id == args.hook or hook.alias == args.hook
+            if not hook.stages or args.hook_stage in hook.stages
+        ]
 
-        if args.hook and not repo_hooks:
+        if args.hook and not hooks:
             output.write_line('No hook with id `{}`'.format(args.hook))
             return 1
 
-        for repo in {repo for repo, _ in repo_hooks}:
-            repo.require_installed()
+        install_hook_envs(hooks, store)
 
-        return _run_hooks(config, repo_hooks, args, environ)
+        return _run_hooks(config, hooks, args, environ)

@@ -36,7 +36,6 @@ setup(
     },
     install_requires=[
         'aspy.yaml',
-        'cached-property',
         'cfgv>=1.0.0',
         'identify>=1.0.0',
         # if this makes it into python3.8 move to extras_require

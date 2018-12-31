@@ -19,6 +19,10 @@ repos:
     rev: v1.11.2
     hooks:
     -   id: validate_manifest
+-   repo: https://github.com/asottile/pyupgrade
+    rev: v1.11.0
+    hooks:
+    -   id: pyupgrade
 -   repo: https://github.com/asottile/reorder_python_imports
     rev: v1.3.0
     hooks:

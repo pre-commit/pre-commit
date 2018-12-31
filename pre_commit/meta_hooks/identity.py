@@ -1,6 +1,15 @@
 import sys
 
 from pre_commit import output
+from pre_commit.meta_hooks.helpers import make_meta_entry
+
+HOOK_DICT = {
+    'id': 'identity',
+    'name': 'identity',
+    'language': 'system',
+    'verbose': True,
+    'entry': make_meta_entry(__name__),
+}
 
 
 def main(argv=None):
