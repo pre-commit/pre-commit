@@ -1,8 +1,8 @@
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import os.path
 import re
-from collections import OrderedDict
 
 import six
 from aspy.yaml import ordered_dump
@@ -16,8 +16,8 @@ from pre_commit.clientlib import InvalidManifestError
 from pre_commit.clientlib import is_local_repo
 from pre_commit.clientlib import is_meta_repo
 from pre_commit.clientlib import load_config
+from pre_commit.clientlib import load_manifest
 from pre_commit.commands.migrate_config import migrate_config
-from pre_commit.repository import Repository
 from pre_commit.util import CalledProcessError
 from pre_commit.util import cmd_output
 
@@ -52,24 +52,24 @@ def _update_repo(repo_config, store, tags_only):
     if rev == repo_config['rev']:
         return repo_config
 
-    # Construct a new config with the head rev
-    new_config = OrderedDict(repo_config)
-    new_config['rev'] = rev
-
     try:
-        new_hooks = Repository.create(new_config, store).manifest_hooks
+        path = store.clone(repo_config['repo'], rev)
+        manifest = load_manifest(os.path.join(path, C.MANIFEST_FILE))
     except InvalidManifestError as e:
         raise RepositoryCannotBeUpdatedError(six.text_type(e))
 
     # See if any of our hooks were deleted with the new commits
     hooks = {hook['id'] for hook in repo_config['hooks']}
-    hooks_missing = hooks - set(new_hooks)
+    hooks_missing = hooks - {hook['id'] for hook in manifest}
     if hooks_missing:
         raise RepositoryCannotBeUpdatedError(
             'Cannot update because the tip of master is missing these hooks:\n'
             '{}'.format(', '.join(sorted(hooks_missing))),
         )
 
+    # Construct a new config with the head rev
+    new_config = repo_config.copy()
+    new_config['rev'] = rev
     return new_config
 
 

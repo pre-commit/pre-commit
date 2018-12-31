@@ -20,9 +20,11 @@ from pre_commit.languages import pcre
 from pre_commit.languages import python
 from pre_commit.languages import ruby
 from pre_commit.languages import rust
-from pre_commit.repository import Repository
+from pre_commit.prefix import Prefix
+from pre_commit.repository import Hook
+from pre_commit.repository import install_hook_envs
+from pre_commit.repository import repository_hooks
 from pre_commit.util import cmd_output
-from testing.fixtures import config_with_local_hooks
 from testing.fixtures import make_config_from_repo
 from testing.fixtures import make_repo
 from testing.fixtures import modify_manifest
@@ -40,6 +42,13 @@ def _norm_out(b):
     return b.replace(b'\r\n', b'\n')
 
 
+def _get_hook(config, store, hook_id):
+    hooks = repository_hooks(config, store)
+    install_hook_envs(hooks, store)
+    hook, = [hook for hook in hooks if hook.id == hook_id]
+    return hook
+
+
 def _test_hook_repo(
         tempdir_factory,
         store,
@@ -52,11 +61,7 @@ def _test_hook_repo(
 ):
     path = make_repo(tempdir_factory, repo_path)
     config = make_config_from_repo(path, **(config_kwargs or {}))
-    repo = Repository.create(config, store)
-    hook_dict, = [
-        hook for repo_hook_id, hook in repo.hooks if repo_hook_id == hook_id
-    ]
-    ret = repo.run_hook(hook_dict, args)
+    ret = _get_hook(config, store, hook_id).run(args)
     assert ret[0] == expected_return_code
     assert _norm_out(ret[1]) == expected
 
@@ -118,16 +123,9 @@ def test_switch_language_versions_doesnt_clobber(tempdir_factory, store):
     path = make_repo(tempdir_factory, 'python3_hooks_repo')
 
     def run_on_version(version, expected_output):
-        config = make_config_from_repo(
-            path, hooks=[{'id': 'python3-hook', 'language_version': version}],
-        )
-        repo = Repository.create(config, store)
-        hook_dict, = [
-            hook
-            for repo_hook_id, hook in repo.hooks
-            if repo_hook_id == 'python3-hook'
-        ]
-        ret = repo.run_hook(hook_dict, [])
+        config = make_config_from_repo(path)
+        config['hooks'][0]['language_version'] = version
+        ret = _get_hook(config, store, 'python3-hook').run([])
         assert ret[0] == 0
         assert _norm_out(ret[1]) == expected_output
 
@@ -212,7 +210,7 @@ def test_run_versioned_ruby_hook(tempdir_factory, store):
         tempdir_factory, store, 'ruby_versioned_hooks_repo',
         'ruby_hook',
         [os.devnull],
-        b'2.1.5\nHello world from a ruby hook\n',
+        b'2.5.1\nHello world from a ruby hook\n',
     )
 
 
@@ -234,7 +232,7 @@ def test_run_ruby_hook_with_disable_shared_gems(
             tempdir_factory, store, 'ruby_versioned_hooks_repo',
             'ruby_hook',
             [os.devnull],
-            b'2.1.5\nHello world from a ruby hook\n',
+            b'2.5.1\nHello world from a ruby hook\n',
         )
 
 
@@ -275,10 +273,8 @@ def test_additional_rust_cli_dependencies_installed(
     config = make_config_from_repo(path)
     # A small rust package with no dependencies.
     config['hooks'][0]['additional_dependencies'] = [dep]
-    repo = Repository.create(config, store)
-    repo.require_installed()
-    (prefix, _, _, _), = repo._venvs()
-    binaries = os.listdir(prefix.path(
+    hook = _get_hook(config, store, 'rust-hook')
+    binaries = os.listdir(hook.prefix.path(
         helpers.environment_dir(rust.ENVIRONMENT_DIR, 'default'), 'bin',
     ))
     # normalize for windows
@@ -294,10 +290,8 @@ def test_additional_rust_lib_dependencies_installed(
     # A small rust package with no dependencies.
     deps = ['shellharden:3.1.0']
     config['hooks'][0]['additional_dependencies'] = deps
-    repo = Repository.create(config, store)
-    repo.require_installed()
-    (prefix, _, _, _), = repo._venvs()
-    binaries = os.listdir(prefix.path(
+    hook = _get_hook(config, store, 'rust-hook')
+    binaries = os.listdir(hook.prefix.path(
         helpers.environment_dir(rust.ENVIRONMENT_DIR, 'default'), 'bin',
     ))
     # normalize for windows
@@ -362,9 +356,7 @@ def _make_grep_repo(language, entry, store, args=()):
             ],
         ),
     ))
-    repo = Repository.create(config, store)
-    (_, hook), = repo.hooks
-    return repo, hook
+    return _get_hook(config, store, 'grep-hook')
 
 
 @pytest.fixture
@@ -381,21 +373,21 @@ class TestPygrep(object):
     language = 'pygrep'
 
     def test_grep_hook_matching(self, greppable_files, store):
-        repo, hook = _make_grep_repo(self.language, 'ello', store)
-        ret, out, _ = repo.run_hook(hook, ('f1', 'f2', 'f3'))
+        hook = _make_grep_repo(self.language, 'ello', store)
+        ret, out, _ = hook.run(('f1', 'f2', 'f3'))
         assert ret == 1
         assert _norm_out(out) == b"f1:1:hello'hi\n"
 
     def test_grep_hook_case_insensitive(self, greppable_files, store):
-        repo, hook = _make_grep_repo(self.language, 'ELLO', store, args=['-i'])
-        ret, out, _ = repo.run_hook(hook, ('f1', 'f2', 'f3'))
+        hook = _make_grep_repo(self.language, 'ELLO', store, args=['-i'])
+        ret, out, _ = hook.run(('f1', 'f2', 'f3'))
         assert ret == 1
         assert _norm_out(out) == b"f1:1:hello'hi\n"
 
     @pytest.mark.parametrize('regex', ('nope', "foo'bar", r'^\[INFO\]'))
     def test_grep_hook_not_matching(self, regex, greppable_files, store):
-        repo, hook = _make_grep_repo(self.language, regex, store)
-        ret, out, _ = repo.run_hook(hook, ('f1', 'f2', 'f3'))
+        hook = _make_grep_repo(self.language, regex, store)
+        ret, out, _ = hook.run(('f1', 'f2', 'f3'))
         assert (ret, out) == (0, b'')
 
 
@@ -408,23 +400,19 @@ class TestPCRE(TestPygrep):
         # This is intended to simulate lots of passing files and one failing
         # file to make sure it still fails.  This is not the case when naively
         # using a system hook with `grep -H -n '...'`
-        repo, hook = _make_grep_repo('pcre', 'ello', store)
-        ret, out, _ = repo.run_hook(hook, (os.devnull,) * 15000 + ('f1',))
+        hook = _make_grep_repo('pcre', 'ello', store)
+        ret, out, _ = hook.run((os.devnull,) * 15000 + ('f1',))
         assert ret == 1
         assert _norm_out(out) == b"f1:1:hello'hi\n"
 
     def test_missing_pcre_support(self, greppable_files, store):
-        orig_find_executable = parse_shebang.find_executable
-
         def no_grep(exe, **kwargs):
-            if exe == pcre.GREP:
-                return None
-            else:
-                return orig_find_executable(exe, **kwargs)
+            assert exe == pcre.GREP
+            return None
 
         with mock.patch.object(parse_shebang, 'find_executable', no_grep):
-            repo, hook = _make_grep_repo('pcre', 'ello', store)
-            ret, out, _ = repo.run_hook(hook, ('f1', 'f2', 'f3'))
+            hook = _make_grep_repo('pcre', 'ello', store)
+            ret, out, _ = hook.run(('f1', 'f2', 'f3'))
             assert ret == 1
             expected = 'Executable `{}` not found'.format(pcre.GREP).encode()
             assert out == expected
@@ -454,44 +442,23 @@ def test_lots_of_files(tempdir_factory, store):
     )
 
 
-def test_venvs(tempdir_factory, store):
-    path = make_repo(tempdir_factory, 'python_hooks_repo')
-    config = make_config_from_repo(path)
-    repo = Repository.create(config, store)
-    venv, = repo._venvs()
-    assert venv == (mock.ANY, 'python', python.get_default_version(), ())
-
-
-def test_additional_dependencies(tempdir_factory, store):
-    path = make_repo(tempdir_factory, 'python_hooks_repo')
-    config = make_config_from_repo(path)
-    config['hooks'][0]['additional_dependencies'] = ['pep8']
-    repo = Repository.create(config, store)
-    env, = repo._venvs()
-    assert env == (mock.ANY, 'python', python.get_default_version(), ('pep8',))
-
-
 def test_additional_dependencies_roll_forward(tempdir_factory, store):
     path = make_repo(tempdir_factory, 'python_hooks_repo')
 
     config1 = make_config_from_repo(path)
-    repo1 = Repository.create(config1, store)
-    repo1.require_installed()
-    (prefix1, _, version1, _), = repo1._venvs()
-    with python.in_env(prefix1, version1):
+    hook1 = _get_hook(config1, store, 'foo')
+    with python.in_env(hook1.prefix, hook1.language_version):
         assert 'mccabe' not in cmd_output('pip', 'freeze', '-l')[1]
 
     # Make another repo with additional dependencies
     config2 = make_config_from_repo(path)
     config2['hooks'][0]['additional_dependencies'] = ['mccabe']
-    repo2 = Repository.create(config2, store)
-    repo2.require_installed()
-    (prefix2, _, version2, _), = repo2._venvs()
-    with python.in_env(prefix2, version2):
+    hook2 = _get_hook(config2, store, 'foo')
+    with python.in_env(hook2.prefix, hook2.language_version):
         assert 'mccabe' in cmd_output('pip', 'freeze', '-l')[1]
 
     # should not have affected original
-    with python.in_env(prefix1, version1):
+    with python.in_env(hook1.prefix, hook1.language_version):
         assert 'mccabe' not in cmd_output('pip', 'freeze', '-l')[1]
 
 
@@ -499,13 +466,10 @@ def test_additional_dependencies_roll_forward(tempdir_factory, store):
 def test_additional_ruby_dependencies_installed(tempdir_factory, store):
     path = make_repo(tempdir_factory, 'ruby_hooks_repo')
     config = make_config_from_repo(path)
-    config['hooks'][0]['additional_dependencies'] = ['thread_safe', 'tins']
-    repo = Repository.create(config, store)
-    repo.require_installed()
-    (prefix, _, version, _), = repo._venvs()
-    with ruby.in_env(prefix, version):
+    config['hooks'][0]['additional_dependencies'] = ['tins']
+    hook = _get_hook(config, store, 'ruby_hook')
+    with ruby.in_env(hook.prefix, hook.language_version):
         output = cmd_output('gem', 'list', '--local')[1]
-        assert 'thread_safe' in output
         assert 'tins' in output
 
 
@@ -515,10 +479,8 @@ def test_additional_node_dependencies_installed(tempdir_factory, store):
     config = make_config_from_repo(path)
     # Careful to choose a small package that's not depped by npm
     config['hooks'][0]['additional_dependencies'] = ['lodash']
-    repo = Repository.create(config, store)
-    repo.require_installed()
-    (prefix, _, version, _), = repo._venvs()
-    with node.in_env(prefix, version):
+    hook = _get_hook(config, store, 'foo')
+    with node.in_env(hook.prefix, hook.language_version):
         output = cmd_output('npm', 'ls', '-g')[1]
         assert 'lodash' in output
 
@@ -531,10 +493,8 @@ def test_additional_golang_dependencies_installed(
     # A small go package
     deps = ['github.com/golang/example/hello']
     config['hooks'][0]['additional_dependencies'] = deps
-    repo = Repository.create(config, store)
-    repo.require_installed()
-    (prefix, _, _, _), = repo._venvs()
-    binaries = os.listdir(prefix.path(
+    hook = _get_hook(config, store, 'golang-hook')
+    binaries = os.listdir(hook.prefix.path(
         helpers.environment_dir(golang.ENVIRONMENT_DIR, 'default'), 'bin',
     ))
     # normalize for windows
@@ -553,9 +513,7 @@ def test_local_golang_additional_dependencies(store):
             'additional_dependencies': ['github.com/golang/example/hello'],
         }],
     }
-    repo = Repository.create(config, store)
-    (_, hook), = repo.hooks
-    ret = repo.run_hook(hook, ('filename',))
+    ret = _get_hook(config, store, 'hello').run(())
     assert ret[0] == 0
     assert _norm_out(ret[1]) == b"Hello, Go examples!\n"
 
@@ -571,9 +529,7 @@ def test_local_rust_additional_dependencies(store):
             'additional_dependencies': ['cli:hello-cli:0.2.2'],
         }],
     }
-    repo = Repository.create(config, store)
-    (_, hook), = repo.hooks
-    ret = repo.run_hook(hook, ())
+    ret = _get_hook(config, store, 'hello').run(())
     assert ret[0] == 0
     assert _norm_out(ret[1]) == b"Hello World!\n"
 
@@ -589,9 +545,8 @@ def test_fail_hooks(store):
             'files': r'changelog/.*(?<!\.rst)$',
         }],
     }
-    repo = Repository.create(config, store)
-    (_, hook), = repo.hooks
-    ret = repo.run_hook(hook, ('changelog/1234.bugfix', 'changelog/wat'))
+    hook = _get_hook(config, store, 'fail')
+    ret = hook.run(('changelog/1234.bugfix', 'changelog/wat'))
     assert ret[0] == 1
     assert ret[1] == (
         b'make sure to name changelogs as .rst!\n'
@@ -601,20 +556,32 @@ def test_fail_hooks(store):
     )
 
 
+def test_unknown_keys(store, fake_log_handler):
+    config = {
+        'repo': 'local',
+        'hooks': [{
+            'id': 'too-much',
+            'name': 'too much',
+            'hello': 'world',
+            'foo': 'bar',
+            'language': 'system',
+            'entry': 'true',
+        }],
+    }
+    _get_hook(config, store, 'too-much')
+    expected = 'Unexpected keys present on local => too-much: foo, hello'
+    assert fake_log_handler.handle.call_args[0][0].msg == expected
+
+
 def test_reinstall(tempdir_factory, store, log_info_mock):
     path = make_repo(tempdir_factory, 'python_hooks_repo')
     config = make_config_from_repo(path)
-    repo = Repository.create(config, store)
-    repo.require_installed()
+    _get_hook(config, store, 'foo')
     # We print some logging during clone (1) + install (3)
     assert log_info_mock.call_count == 4
     log_info_mock.reset_mock()
-    # Reinstall with same repo should not trigger another install
-    repo.require_installed()
-    assert log_info_mock.call_count == 0
     # Reinstall on another run should not trigger another install
-    repo = Repository.create(config, store)
-    repo.require_installed()
+    _get_hook(config, store, 'foo')
     assert log_info_mock.call_count == 0
 
 
@@ -622,8 +589,7 @@ def test_control_c_control_c_on_install(tempdir_factory, store):
     """Regression test for #186."""
     path = make_repo(tempdir_factory, 'python_hooks_repo')
     config = make_config_from_repo(path)
-    repo = Repository.create(config, store)
-    hook = repo.hooks[0][1]
+    hooks = repository_hooks(config, store)
 
     class MyKeyboardInterrupt(KeyboardInterrupt):
         pass
@@ -638,16 +604,18 @@ def test_control_c_control_c_on_install(tempdir_factory, store):
             with mock.patch.object(
                 shutil, 'rmtree', side_effect=MyKeyboardInterrupt,
             ):
-                repo.run_hook(hook, [])
+                install_hook_envs(hooks, store)
 
     # Should have made an environment, however this environment is broken!
-    (prefix, _, version, _), = repo._venvs()
-    envdir = 'py_env-{}'.format(version)
-    assert prefix.exists(envdir)
+    hook, = hooks
+    assert hook.prefix.exists(
+        helpers.environment_dir(python.ENVIRONMENT_DIR, hook.language_version),
+    )
 
     # However, it should be perfectly runnable (reinstall after botched
     # install)
-    retv, stdout, stderr = repo.run_hook(hook, [])
+    install_hook_envs(hooks, store)
+    retv, stdout, stderr = hook.run(())
     assert retv == 0
 
 
@@ -656,21 +624,20 @@ def test_invalidated_virtualenv(tempdir_factory, store):
     # This should not cause every hook in that virtualenv to fail.
     path = make_repo(tempdir_factory, 'python_hooks_repo')
     config = make_config_from_repo(path)
-    repo = Repository.create(config, store)
+    hook = _get_hook(config, store, 'foo')
 
     # Simulate breaking of the virtualenv
-    repo.require_installed()
-    (prefix, _, version, _), = repo._venvs()
-    libdir = prefix.path('py_env-{}'.format(version), 'lib', version)
+    libdir = hook.prefix.path(
+        helpers.environment_dir(python.ENVIRONMENT_DIR, hook.language_version),
+        'lib', hook.language_version,
+    )
     paths = [
         os.path.join(libdir, p) for p in ('site.py', 'site.pyc', '__pycache__')
     ]
     cmd_output('rm', '-rf', *paths)
 
     # pre-commit should rebuild the virtualenv and it should be runnable
-    repo = Repository.create(config, store)
-    hook = repo.hooks[0][1]
-    retv, stdout, stderr = repo.run_hook(hook, [])
+    retv, stdout, stderr = _get_hook(config, store, 'foo').run(())
     assert retv == 0
 
 
@@ -683,57 +650,41 @@ def test_really_long_file_paths(tempdir_factory, store):
     config = make_config_from_repo(path)
 
     with cwd(really_long_path):
-        repo = Repository.create(config, store)
-        repo.require_installed()
+        _get_hook(config, store, 'foo')
 
 
 def test_config_overrides_repo_specifics(tempdir_factory, store):
     path = make_repo(tempdir_factory, 'script_hooks_repo')
     config = make_config_from_repo(path)
 
-    repo = Repository.create(config, store)
-    assert repo.hooks[0][1]['files'] == ''
+    hook = _get_hook(config, store, 'bash_hook')
+    assert hook.files == ''
     # Set the file regex to something else
     config['hooks'][0]['files'] = '\\.sh$'
-    repo = Repository.create(config, store)
-    assert repo.hooks[0][1]['files'] == '\\.sh$'
+    hook = _get_hook(config, store, 'bash_hook')
+    assert hook.files == '\\.sh$'
 
 
 def _create_repo_with_tags(tempdir_factory, src, tag):
     path = make_repo(tempdir_factory, src)
-    with cwd(path):
-        cmd_output('git', 'tag', tag)
+    cmd_output('git', 'tag', tag, cwd=path)
     return path
 
 
 def test_tags_on_repositories(in_tmpdir, tempdir_factory, store):
     tag = 'v1.1'
-    git_dir_1 = _create_repo_with_tags(tempdir_factory, 'prints_cwd_repo', tag)
-    git_dir_2 = _create_repo_with_tags(
-        tempdir_factory, 'script_hooks_repo', tag,
-    )
+    git1 = _create_repo_with_tags(tempdir_factory, 'prints_cwd_repo', tag)
+    git2 = _create_repo_with_tags(tempdir_factory, 'script_hooks_repo', tag)
 
-    repo_1 = Repository.create(
-        make_config_from_repo(git_dir_1, rev=tag), store,
-    )
-    ret = repo_1.run_hook(repo_1.hooks[0][1], ['-L'])
-    assert ret[0] == 0
-    assert ret[1].strip() == _norm_pwd(in_tmpdir)
+    config1 = make_config_from_repo(git1, rev=tag)
+    ret1 = _get_hook(config1, store, 'prints_cwd').run(('-L',))
+    assert ret1[0] == 0
+    assert ret1[1].strip() == _norm_pwd(in_tmpdir)
 
-    repo_2 = Repository.create(
-        make_config_from_repo(git_dir_2, rev=tag), store,
-    )
-    ret = repo_2.run_hook(repo_2.hooks[0][1], ['bar'])
-    assert ret[0] == 0
-    assert ret[1] == b'bar\nHello World\n'
-
-
-def test_local_repository():
-    config = config_with_local_hooks()
-    local_repo = Repository.create(config, 'dummy')
-    with pytest.raises(NotImplementedError):
-        local_repo.manifest
-    assert len(local_repo.hooks) == 1
+    config2 = make_config_from_repo(git2, rev=tag)
+    ret2 = _get_hook(config2, store, 'bash_hook').run(('bar',))
+    assert ret2[0] == 0
+    assert ret2[1] == b'bar\nHello World\n'
 
 
 def test_local_python_repo(store):
@@ -744,11 +695,10 @@ def test_local_python_repo(store):
         dict(hook, additional_dependencies=[repo_path]) for hook in manifest
     ]
     config = {'repo': 'local', 'hooks': hooks}
-    repo = Repository.create(config, store)
-    (_, hook), = repo.hooks
+    hook = _get_hook(config, store, 'foo')
     # language_version should have been adjusted to the interpreter version
-    assert hook['language_version'] != 'default'
-    ret = repo.run_hook(hook, ('filename',))
+    assert hook.language_version != 'default'
+    ret = hook.run(('filename',))
     assert ret[0] == 0
     assert _norm_out(ret[1]) == b"['filename']\nHello World\n"
 
@@ -757,9 +707,8 @@ def test_hook_id_not_present(tempdir_factory, store, fake_log_handler):
     path = make_repo(tempdir_factory, 'script_hooks_repo')
     config = make_config_from_repo(path)
     config['hooks'][0]['id'] = 'i-dont-exist'
-    repo = Repository.create(config, store)
     with pytest.raises(SystemExit):
-        repo.require_installed()
+        _get_hook(config, store, 'i-dont-exist')
     assert fake_log_handler.handle.call_args[0][0].msg == (
         '`i-dont-exist` is not present in repository file://{}.  '
         'Typo? Perhaps it is introduced in a newer version?  '
@@ -769,9 +718,8 @@ def test_hook_id_not_present(tempdir_factory, store, fake_log_handler):
 
 def test_meta_hook_not_present(store, fake_log_handler):
     config = {'repo': 'meta', 'hooks': [{'id': 'i-dont-exist'}]}
-    repo = Repository.create(config, store)
     with pytest.raises(SystemExit):
-        repo.require_installed()
+        _get_hook(config, store, 'i-dont-exist')
     assert fake_log_handler.handle.call_args[0][0].msg == (
         '`i-dont-exist` is not a valid meta hook.  '
         'Typo? Perhaps it is introduced in a newer version?  '
@@ -784,9 +732,8 @@ def test_too_new_version(tempdir_factory, store, fake_log_handler):
     with modify_manifest(path) as manifest:
         manifest[0]['minimum_pre_commit_version'] = '999.0.0'
     config = make_config_from_repo(path)
-    repo = Repository.create(config, store)
     with pytest.raises(SystemExit):
-        repo.require_installed()
+        _get_hook(config, store, 'bash_hook')
     msg = fake_log_handler.handle.call_args[0][0].msg
     assert re.match(
         r'^The hook `bash_hook` requires pre-commit version 999\.0\.0 but '
@@ -803,33 +750,35 @@ def test_versions_ok(tempdir_factory, store, version):
         manifest[0]['minimum_pre_commit_version'] = version
     config = make_config_from_repo(path)
     # Should succeed
-    Repository.create(config, store).require_installed()
+    _get_hook(config, store, 'bash_hook')
 
 
 def test_manifest_hooks(tempdir_factory, store):
     path = make_repo(tempdir_factory, 'script_hooks_repo')
     config = make_config_from_repo(path)
-    repo = Repository.create(config, store)
+    hook = _get_hook(config, store, 'bash_hook')
 
-    assert repo.manifest_hooks['bash_hook'] == {
-        'always_run': False,
-        'additional_dependencies': [],
-        'args': [],
-        'description': '',
-        'entry': 'bin/hook.sh',
-        'exclude': '^$',
-        'files': '',
-        'id': 'bash_hook',
-        'alias': '',
-        'language': 'script',
-        'language_version': 'default',
-        'log_file': '',
-        'minimum_pre_commit_version': '0',
-        'name': 'Bash hook',
-        'pass_filenames': True,
-        'require_serial': False,
-        'stages': [],
-        'types': ['file'],
-        'exclude_types': [],
-        'verbose': False,
-    }
+    assert hook == Hook(
+        src='file://{}'.format(path),
+        prefix=Prefix(mock.ANY),
+        additional_dependencies=[],
+        alias='',
+        always_run=False,
+        args=[],
+        description='',
+        entry='bin/hook.sh',
+        exclude='^$',
+        exclude_types=[],
+        files='',
+        id='bash_hook',
+        language='script',
+        language_version='default',
+        log_file='',
+        minimum_pre_commit_version='0',
+        name='Bash hook',
+        pass_filenames=True,
+        require_serial=False,
+        stages=[],
+        types=['file'],
+        verbose=False,
+    )

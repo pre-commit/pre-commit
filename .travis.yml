@@ -1,6 +1,5 @@
 language: python
-dist: trusty
-sudo: required
+dist: xenial
 services:
     - docker
 matrix:
@@ -13,8 +12,6 @@ matrix:
             python: pypy2.7-5.10.0
         -   env: TOXENV=py37
             python: 3.7
-            sudo: required
-            dist: xenial
 install: pip install coveralls tox
 script: tox
 before_install:
