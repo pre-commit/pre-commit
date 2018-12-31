@@ -100,7 +100,7 @@ class Hook(collections.namedtuple('Hook', ('src', 'prefix') + _KEYS)):
 
     def run(self, file_args):
         lang = languages[self.language]
-        return lang.run_hook(self.prefix, self._asdict(), file_args)
+        return lang.run_hook(self, file_args)
 
     @classmethod
     def create(cls, src, prefix, dct):

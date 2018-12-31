@@ -39,13 +39,12 @@ from pre_commit.languages import system
 #             'default'.
 #     """
 #
-# def run_hook(prefix, hook, file_args):
+# def run_hook(hook, file_args):
 #     """Runs a hook and returns the returncode and output of running that
 #     hook.
 #
 #     Args:
-#         prefix - `Prefix` bound to the repository.
-#         hook - Hook dictionary
+#         hook - `Hook`
 #         file_args - The files to be run
 #
 #     Returns:

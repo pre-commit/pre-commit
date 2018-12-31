@@ -12,7 +12,7 @@ healthy = helpers.basic_healthy
 install_environment = helpers.no_install
 
 
-def run_hook(prefix, hook, file_args):  # pragma: windows no cover
+def run_hook(hook, file_args):  # pragma: windows no cover
     assert_docker_available()
     cmd = docker_cmd() + helpers.to_cmd(hook)
     return helpers.run_xargs(hook, cmd, file_args)
