@@ -39,7 +39,7 @@ def _hook_paths(hook_type):
 
 
 def is_our_script(filename):
-    if not os.path.exists(filename):
+    if not os.path.exists(filename):  # pragma: windows no cover (symlink)
         return False
     with io.open(filename) as f:
         contents = f.read()

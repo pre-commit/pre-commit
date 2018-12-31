@@ -141,7 +141,7 @@ def test_versioned_python_hook(tempdir_factory, store):
     )
 
 
-@skipif_cant_run_docker
+@skipif_cant_run_docker  # pragma: windows no cover
 def test_run_a_docker_hook(tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'docker_hooks_repo',
@@ -150,7 +150,7 @@ def test_run_a_docker_hook(tempdir_factory, store):
     )
 
 
-@skipif_cant_run_docker
+@skipif_cant_run_docker  # pragma: windows no cover
 def test_run_a_docker_hook_with_entry_args(tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'docker_hooks_repo',
@@ -159,7 +159,7 @@ def test_run_a_docker_hook_with_entry_args(tempdir_factory, store):
     )
 
 
-@skipif_cant_run_docker
+@skipif_cant_run_docker  # pragma: windows no cover
 def test_run_a_failing_docker_hook(tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'docker_hooks_repo',
@@ -169,7 +169,7 @@ def test_run_a_failing_docker_hook(tempdir_factory, store):
     )
 
 
-@skipif_cant_run_docker
+@skipif_cant_run_docker  # pragma: windows no cover
 @pytest.mark.parametrize('hook_id', ('echo-entrypoint', 'echo-cmd'))
 def test_run_a_docker_image_hook(tempdir_factory, store, hook_id):
     _test_hook_repo(
@@ -242,7 +242,7 @@ def test_system_hook_with_spaces(tempdir_factory, store):
     )
 
 
-@skipif_cant_run_swift
+@skipif_cant_run_swift  # pragma: windows no cover
 def test_swift_hook(tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'swift_hooks_repo',
@@ -386,7 +386,7 @@ class TestPygrep(object):
         assert (ret, out) == (0, b'')
 
 
-@xfailif_no_pcre_support
+@xfailif_no_pcre_support  # pragma: windows no cover
 class TestPCRE(TestPygrep):
     """organized as a class for xfailing pcre"""
     language = 'pcre'

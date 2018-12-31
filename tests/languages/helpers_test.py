@@ -34,6 +34,15 @@ def test_failed_setup_command_does_not_unicode_error():
         helpers.run_setup_cmd(Prefix('.'), (sys.executable, '-c', script))
 
 
+def test_assert_no_additional_deps():
+    with pytest.raises(AssertionError) as excinfo:
+        helpers.assert_no_additional_deps('lang', ['hmmm'])
+    msg, = excinfo.value.args
+    assert msg == (
+        'For now, pre-commit does not support additional_dependencies for lang'
+    )
+
+
 SERIAL_FALSE = auto_namedtuple(require_serial=False)
 SERIAL_TRUE = auto_namedtuple(require_serial=True)
 
