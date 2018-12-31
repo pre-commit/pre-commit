@@ -1,7 +1,6 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-import collections
 import functools
 import io
 import logging
@@ -120,19 +119,16 @@ def in_conflicting_submodule(tempdir_factory):
 @pytest.fixture
 def commit_msg_repo(tempdir_factory):
     path = git_dir(tempdir_factory)
-    config = collections.OrderedDict((
-        ('repo', 'local'),
-        (
-            'hooks',
-            [collections.OrderedDict((
-                ('id', 'must-have-signoff'),
-                ('name', 'Must have "Signed off by:"'),
-                ('entry', 'grep -q "Signed off by:"'),
-                ('language', 'system'),
-                ('stages', ['commit-msg']),
-            ))],
-        ),
-    ))
+    config = {
+        'repo': 'local',
+        'hooks': [{
+            'id': 'must-have-signoff',
+            'name': 'Must have "Signed off by:"',
+            'entry': 'grep -q "Signed off by:"',
+            'language': 'system',
+            'stages': ['commit-msg'],
+        }],
+    }
     write_config(path, config)
     with cwd(path):
         cmd_output('git', 'add', '.')

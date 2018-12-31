@@ -3,7 +3,6 @@ from __future__ import unicode_literals
 import os.path
 import pipes
 import shutil
-from collections import OrderedDict
 
 import pytest
 
@@ -290,7 +289,7 @@ def test_hook_disppearing_repo_raises(hook_disappearing_repo, store):
     config = make_config_from_repo(
         hook_disappearing_repo.path,
         rev=hook_disappearing_repo.original_rev,
-        hooks=[OrderedDict((('id', 'foo'),))],
+        hooks=[{'id': 'foo'}],
     )
     with pytest.raises(RepositoryCannotBeUpdatedError):
         _update_repo(config, store, tags_only=False)
@@ -302,7 +301,7 @@ def test_autoupdate_hook_disappearing_repo(
     config = make_config_from_repo(
         hook_disappearing_repo.path,
         rev=hook_disappearing_repo.original_rev,
-        hooks=[OrderedDict((('id', 'foo'),))],
+        hooks=[{'id': 'foo'}],
         check=False,
     )
     write_config('.', config)

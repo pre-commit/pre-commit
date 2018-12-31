@@ -2,7 +2,6 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 import argparse
-import collections
 import functools
 
 import cfgv
@@ -170,7 +169,7 @@ def ordered_load_normalize_legacy_config(contents):
     data = ordered_load(contents)
     if isinstance(data, list):
         # TODO: Once happy, issue a deprecation warning and instructions
-        return collections.OrderedDict([('repos', data)])
+        return {'repos': data}
     else:
         return data
 

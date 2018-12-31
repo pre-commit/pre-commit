@@ -5,7 +5,6 @@ import contextlib
 import io
 import os.path
 import shutil
-from collections import OrderedDict
 
 from aspy.yaml import ordered_dump
 from aspy.yaml import ordered_load
@@ -83,30 +82,24 @@ def modify_config(path='.', commit=True):
 
 
 def config_with_local_hooks():
-    return OrderedDict((
-        ('repo', 'local'),
-        (
-            'hooks', [OrderedDict((
-                ('id', 'do_not_commit'),
-                ('name', 'Block if "DO NOT COMMIT" is found'),
-                ('entry', 'DO NOT COMMIT'),
-                ('language', 'pygrep'),
-                ('files', '^(.*)$'),
-            ))],
-        ),
-    ))
+    return {
+        'repo': 'local',
+        'hooks': [{
+            'id': 'do_not_commit',
+            'name': 'Block if "DO NOT COMMIT" is found',
+            'entry': 'DO NOT COMMIT',
+            'language': 'pygrep',
+        }],
+    }
 
 
 def make_config_from_repo(repo_path, rev=None, hooks=None, check=True):
     manifest = load_manifest(os.path.join(repo_path, C.MANIFEST_FILE))
-    config = OrderedDict((
-        ('repo', 'file://{}'.format(repo_path)),
-        ('rev', rev or git.head_rev(repo_path)),
-        (
-            'hooks',
-            hooks or [OrderedDict((('id', hook['id']),)) for hook in manifest],
-        ),
-    ))
+    config = {
+        'repo': 'file://{}'.format(repo_path),
+        'rev': rev or git.head_rev(repo_path),
+        'hooks': hooks or [{'id': hook['id']} for hook in manifest],
+    }
 
     if check:
         wrapped = validate({'repos': [config]}, CONFIG_SCHEMA)
@@ -126,7 +119,7 @@ def read_config(directory, config_file=C.CONFIG_FILE):
 
 def write_config(directory, config, config_file=C.CONFIG_FILE):
     if type(config) is not list and 'repos' not in config:
-        assert type(config) is OrderedDict
+        assert isinstance(config, dict), config
         config = {'repos': [config]}
     with io.open(os.path.join(directory, config_file), 'w') as outfile:
         outfile.write(ordered_dump(config, **C.YAML_DUMP_KWARGS))

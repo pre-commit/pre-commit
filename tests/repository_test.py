@@ -1,7 +1,6 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-import collections
 import os.path
 import re
 import shutil
@@ -341,21 +340,17 @@ def test_run_hook_with_curly_braced_arguments(tempdir_factory, store):
 
 
 def _make_grep_repo(language, entry, store, args=()):
-    config = collections.OrderedDict((
-        ('repo', 'local'),
-        (
-            'hooks', [
-                collections.OrderedDict((
-                    ('id', 'grep-hook'),
-                    ('name', 'grep-hook'),
-                    ('language', language),
-                    ('entry', entry),
-                    ('args', args),
-                    ('types', ['text']),
-                )),
-            ],
-        ),
-    ))
+    config = {
+        'repo': 'local',
+        'hooks': [{
+            'id': 'grep-hook',
+            'name': 'grep-hook',
+            'language': language,
+            'entry': entry,
+            'args': args,
+            'types': ['text'],
+        }],
+    }
     return _get_hook(config, store, 'grep-hook')
 
 
