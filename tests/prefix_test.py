@@ -38,3 +38,9 @@ def test_exists(tmpdir):
     assert not Prefix(str(tmpdir)).exists('foo')
     tmpdir.ensure('foo')
     assert Prefix(str(tmpdir)).exists('foo')
+
+
+def test_star(tmpdir):
+    for f in ('a.txt', 'b.txt', 'c.py'):
+        tmpdir.join(f).ensure()
+    assert set(Prefix(str(tmpdir)).star('.txt')) == {'a.txt', 'b.txt'}

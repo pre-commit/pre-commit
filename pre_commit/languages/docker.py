@@ -72,7 +72,7 @@ def install_environment(
         os.mkdir(directory)
 
 
-def docker_cmd():
+def docker_cmd():  # pragma: windows no cover
     return (
         'docker', 'run',
         '--rm',
