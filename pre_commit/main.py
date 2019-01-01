@@ -94,12 +94,16 @@ def _adjust_args_and_chdir(args):
         args.config = os.path.abspath(args.config)
     if args.command in {'run', 'try-repo'}:
         args.files = [os.path.abspath(filename) for filename in args.files]
+    if args.command == 'try-repo' and os.path.exists(args.repo):
+        args.repo = os.path.abspath(args.repo)
 
     os.chdir(git.get_root())
 
     args.config = os.path.relpath(args.config)
     if args.command in {'run', 'try-repo'}:
         args.files = [os.path.relpath(filename) for filename in args.files]
+    if args.command == 'try-repo' and os.path.exists(args.repo):
+        args.repo = os.path.relpath(args.repo)
 
 
 def main(argv=None):

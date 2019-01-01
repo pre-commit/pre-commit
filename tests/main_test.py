@@ -47,6 +47,17 @@ def test_adjust_args_and_chdir_non_relative_config(in_git_dir):
     assert args.config == C.CONFIG_FILE
 
 
+def test_adjust_args_try_repo_repo_relative(in_git_dir):
+    in_git_dir.join('foo').ensure_dir().chdir()
+
+    args = Args(command='try-repo', repo='../foo', files=[])
+    assert os.path.exists(args.repo)
+    main._adjust_args_and_chdir(args)
+    assert os.getcwd() == in_git_dir
+    assert os.path.exists(args.repo)
+    assert args.repo == 'foo'
+
+
 FNS = (
     'autoupdate', 'clean', 'install', 'install_hooks', 'migrate_config', 'run',
     'sample_config', 'uninstall',
