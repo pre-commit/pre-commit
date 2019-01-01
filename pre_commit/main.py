@@ -20,7 +20,7 @@ from pre_commit.commands.sample_config import sample_config
 from pre_commit.commands.try_repo import try_repo
 from pre_commit.error_handler import error_handler
 from pre_commit.error_handler import FatalError
-from pre_commit.logging_handler import add_logging_handler
+from pre_commit.logging_handler import logging_handler
 from pre_commit.store import Store
 from pre_commit.util import CalledProcessError
 
@@ -248,9 +248,7 @@ def main(argv=None):
     elif args.command == 'help':
         parser.parse_args(['--help'])
 
-    with error_handler():
-        add_logging_handler(args.color)
-
+    with error_handler(), logging_handler(args.color):
         _adjust_args_and_chdir(args)
 
         store = Store()
