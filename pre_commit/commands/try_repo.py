@@ -2,6 +2,7 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 import collections
+import logging
 import os.path
 
 from aspy.yaml import ordered_dump
@@ -12,23 +13,50 @@ from pre_commit import output
 from pre_commit.clientlib import load_manifest
 from pre_commit.commands.run import run
 from pre_commit.store import Store
+from pre_commit.util import cmd_output
 from pre_commit.util import tmpdir
+
+logger = logging.getLogger(__name__)
+
+
+def _repo_ref(tmpdir, repo, ref):
+    # if `ref` is explicitly passed, use it
+    if ref:
+        return repo, ref
+
+    ref = git.head_rev(repo)
+    # if it exists on disk, we'll try and clone it with the local changes
+    if os.path.exists(repo) and git.has_diff('HEAD', repo=repo):
+        logger.warning('Creating temporary repo with uncommitted changes...')
+
+        shadow = os.path.join(tmpdir, 'shadow-repo')
+        cmd_output('git', 'clone', repo, shadow)
+        cmd_output('git', 'checkout', ref, '-b', '_pc_tmp', cwd=shadow)
+        idx = git.git_path('index', repo=shadow)
+        objs = git.git_path('objects', repo=shadow)
+        env = dict(os.environ, GIT_INDEX_FILE=idx, GIT_OBJECT_DIRECTORY=objs)
+        cmd_output('git', 'add', '-u', cwd=repo, env=env)
+        git.commit(repo=shadow)
+
+        return shadow, git.head_rev(shadow)
+    else:
+        return repo, ref
 
 
 def try_repo(args):
-    ref = args.ref or git.head_rev(args.repo)
-
     with tmpdir() as tempdir:
+        repo, ref = _repo_ref(tempdir, args.repo, args.ref)
+
         store = Store(tempdir)
         if args.hook:
             hooks = [{'id': args.hook}]
         else:
-            repo_path = store.clone(args.repo, ref)
+            repo_path = store.clone(repo, ref)
             manifest = load_manifest(os.path.join(repo_path, C.MANIFEST_FILE))
             manifest = sorted(manifest, key=lambda hook: hook['id'])
             hooks = [{'id': hook['id']} for hook in manifest]
 
-        items = (('repo', args.repo), ('rev', ref), ('hooks', hooks))
+        items = (('repo', repo), ('rev', ref), ('hooks', hooks))
         config = {'repos': [collections.OrderedDict(items)]}
         config_s = ordered_dump(config, **C.YAML_DUMP_KWARGS)
 

@@ -64,21 +64,6 @@ def noop_context():
     yield
 
 
-def no_git_env():
-    # Too many bugs dealing with environment variables and GIT:
-    # https://github.com/pre-commit/pre-commit/issues/300
-    # In git 2.6.3 (maybe others), git exports GIT_WORK_TREE while running
-    # pre-commit hooks
-    # In git 1.9.1 (maybe others), git exports GIT_DIR and GIT_INDEX_FILE
-    # while running pre-commit hooks in submodules.
-    # GIT_DIR: Causes git clone to clone wrong thing
-    # GIT_INDEX_FILE: Causes 'error invalid object ...' during commit
-    return {
-        k: v for k, v in os.environ.items()
-        if not k.startswith('GIT_') or k in {'GIT_SSH'}
-    }
-
-
 @contextlib.contextmanager
 def tmpdir():
     """Contextmanager to create a temporary directory.  It will be cleaned up

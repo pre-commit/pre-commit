@@ -4,12 +4,15 @@ from __future__ import unicode_literals
 import os.path
 import re
 
+from pre_commit import git
 from pre_commit.commands.try_repo import try_repo
 from pre_commit.util import cmd_output
 from testing.auto_namedtuple import auto_namedtuple
 from testing.fixtures import git_dir
 from testing.fixtures import make_repo
+from testing.fixtures import modify_manifest
 from testing.util import cwd
+from testing.util import git_commit
 from testing.util import run_opts
 
 
@@ -21,22 +24,26 @@ def _get_out(cap_out):
     out = cap_out.get().replace('\r\n', '\n')
     out = re.sub(r'\[INFO\].+\n', '', out)
     start, using_config, config, rest = out.split('=' * 79 + '\n')
-    assert start == ''
     assert using_config == 'Using config:\n'
-    return config, rest
+    return start, config, rest
+
+
+def _add_test_file():
+    open('test-file', 'a').close()
+    cmd_output('git', 'add', '.')
 
 
 def _run_try_repo(tempdir_factory, **kwargs):
     repo = make_repo(tempdir_factory, 'modified_file_returns_zero_repo')
     with cwd(git_dir(tempdir_factory)):
-        open('test-file', 'a').close()
-        cmd_output('git', 'add', '.')
+        _add_test_file()
         assert not try_repo(try_repo_opts(repo, **kwargs))
 
 
 def test_try_repo_repo_only(cap_out, tempdir_factory):
     _run_try_repo(tempdir_factory, verbose=True)
-    config, rest = _get_out(cap_out)
+    start, config, rest = _get_out(cap_out)
+    assert start == ''
     assert re.match(
         '^repos:\n'
         '-   repo: .+\n'
@@ -48,19 +55,20 @@ def test_try_repo_repo_only(cap_out, tempdir_factory):
         config,
     )
     assert rest == (
-        '[bash_hook] Bash hook................................(no files to check)Skipped\n'  # noqa
-        '[bash_hook2] Bash hook...................................................Passed\n'  # noqa
+        '[bash_hook] Bash hook................................(no files to check)Skipped\n'  # noqa: E501
+        '[bash_hook2] Bash hook...................................................Passed\n'  # noqa: E501
         'hookid: bash_hook2\n'
         '\n'
         'test-file\n'
         '\n'
-        '[bash_hook3] Bash hook...............................(no files to check)Skipped\n'  # noqa
+        '[bash_hook3] Bash hook...............................(no files to check)Skipped\n'  # noqa: E501
     )
 
 
 def test_try_repo_with_specific_hook(cap_out, tempdir_factory):
     _run_try_repo(tempdir_factory, hook='bash_hook', verbose=True)
-    config, rest = _get_out(cap_out)
+    start, config, rest = _get_out(cap_out)
+    assert start == ''
     assert re.match(
         '^repos:\n'
         '-   repo: .+\n'
@@ -69,14 +77,49 @@ def test_try_repo_with_specific_hook(cap_out, tempdir_factory):
         '    -   id: bash_hook\n$',
         config,
     )
-    assert rest == '[bash_hook] Bash hook................................(no files to check)Skipped\n'  # noqa
+    assert rest == '[bash_hook] Bash hook................................(no files to check)Skipped\n'  # noqa: E501
 
 
 def test_try_repo_relative_path(cap_out, tempdir_factory):
     repo = make_repo(tempdir_factory, 'modified_file_returns_zero_repo')
     with cwd(git_dir(tempdir_factory)):
-        open('test-file', 'a').close()
-        cmd_output('git', 'add', '.')
+        _add_test_file()
         relative_repo = os.path.relpath(repo, '.')
         # previously crashed on cloning a relative path
         assert not try_repo(try_repo_opts(relative_repo, hook='bash_hook'))
+
+
+def test_try_repo_specific_revision(cap_out, tempdir_factory):
+    repo = make_repo(tempdir_factory, 'script_hooks_repo')
+    ref = git.head_rev(repo)
+    git_commit(cwd=repo)
+    with cwd(git_dir(tempdir_factory)):
+        _add_test_file()
+        assert not try_repo(try_repo_opts(repo, ref=ref))
+
+    _, config, _ = _get_out(cap_out)
+    assert ref in config
+
+
+def test_try_repo_uncommitted_changes(cap_out, tempdir_factory):
+    repo = make_repo(tempdir_factory, 'script_hooks_repo')
+    # make an uncommitted change
+    with modify_manifest(repo, commit=False) as manifest:
+        manifest[0]['name'] = 'modified name!'
+
+    with cwd(git_dir(tempdir_factory)):
+        open('test-fie', 'a').close()
+        cmd_output('git', 'add', '.')
+        assert not try_repo(try_repo_opts(repo))
+
+    start, config, rest = _get_out(cap_out)
+    assert start == '[WARNING] Creating temporary repo with uncommitted changes...\n'  # noqa: E501
+    assert re.match(
+        '^repos:\n'
+        '-   repo: .+shadow-repo\n'
+        '    rev: .+\n'
+        '    hooks:\n'
+        '    -   id: bash_hook\n$',
+        config,
+    )
+    assert rest == 'modified name!...........................................................Passed\n'  # noqa: E501

@@ -19,8 +19,10 @@ from pre_commit.commands.run import run
 from pre_commit.commands.sample_config import sample_config
 from pre_commit.commands.try_repo import try_repo
 from pre_commit.error_handler import error_handler
+from pre_commit.error_handler import FatalError
 from pre_commit.logging_handler import add_logging_handler
 from pre_commit.store import Store
+from pre_commit.util import CalledProcessError
 
 
 logger = logging.getLogger('pre_commit')
@@ -97,7 +99,13 @@ def _adjust_args_and_chdir(args):
     if args.command == 'try-repo' and os.path.exists(args.repo):
         args.repo = os.path.abspath(args.repo)
 
-    os.chdir(git.get_root())
+    try:
+        os.chdir(git.get_root())
+    except CalledProcessError:
+        raise FatalError(
+            'git failed. Is it installed, and are you in a Git repository '
+            'directory?',
+        )
 
     args.config = os.path.relpath(args.config)
     if args.command in {'run', 'try-repo'}:
