@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 
+import contextlib
 import logging
 
 from pre_commit import color
@@ -34,6 +35,12 @@ class LoggingHandler(logging.Handler):
         )
 
 
-def add_logging_handler(*args, **kwargs):
-    logger.addHandler(LoggingHandler(*args, **kwargs))
+@contextlib.contextmanager
+def logging_handler(*args, **kwargs):
+    handler = LoggingHandler(*args, **kwargs)
+    logger.addHandler(handler)
     logger.setLevel(logging.INFO)
+    try:
+        yield
+    finally:
+        logger.removeHandler(handler)

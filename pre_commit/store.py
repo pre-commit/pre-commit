@@ -9,9 +9,9 @@ import tempfile
 
 import pre_commit.constants as C
 from pre_commit import file_lock
+from pre_commit import git
 from pre_commit.util import clean_path_on_failure
 from pre_commit.util import cmd_output
-from pre_commit.util import no_git_env
 from pre_commit.util import resource_text
 
 
@@ -135,7 +135,7 @@ class Store(object):
     def clone(self, repo, ref, deps=()):
         """Clone the given url and checkout the specific ref."""
         def clone_strategy(directory):
-            env = no_git_env()
+            env = git.no_git_env()
 
             cmd = ('git', 'clone', '--no-checkout', repo, directory)
             cmd_output(*cmd, env=env)
@@ -160,10 +160,7 @@ class Store(object):
                 with io.open(os.path.join(directory, resource), 'w') as f:
                     f.write(contents)
 
-            env = no_git_env()
-            name, email = 'pre-commit', 'asottile+pre-commit@umich.edu'
-            env['GIT_AUTHOR_NAME'] = env['GIT_COMMITTER_NAME'] = name
-            env['GIT_AUTHOR_EMAIL'] = env['GIT_COMMITTER_EMAIL'] = email
+            env = git.no_git_env()
 
             # initialize the git repository so it looks more like cloned repos
             def _git_cmd(*args):
@@ -172,7 +169,7 @@ class Store(object):
             _git_cmd('init', '.')
             _git_cmd('config', 'remote.origin.url', '<<unknown>>')
             _git_cmd('add', '.')
-            _git_cmd('commit', '--no-edit', '--no-gpg-sign', '-n', '-minit')
+            git.commit(repo=directory)
 
         return self._new_repo(
             'local', C.LOCAL_REPO_VERSION, deps, make_local_strategy,

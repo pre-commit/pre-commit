@@ -199,11 +199,7 @@ def _run_hooks(config, hooks, args, environ):
         retval |= _run_single_hook(filenames, hook, args, skips, cols)
         if retval and config['fail_fast']:
             break
-    if (
-            retval and
-            args.show_diff_on_failure and
-            subprocess.call(('git', 'diff', '--quiet', '--no-ext-diff')) != 0
-    ):
+    if retval and args.show_diff_on_failure and git.has_diff():
         output.write_line('All changes made by hooks:')
         subprocess.call(('git', '--no-pager', 'diff', '--no-ext-diff'))
     return retval

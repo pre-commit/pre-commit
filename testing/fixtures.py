@@ -53,7 +53,7 @@ def make_repo(tempdir_factory, repo_source):
 
 
 @contextlib.contextmanager
-def modify_manifest(path):
+def modify_manifest(path, commit=True):
     """Modify the manifest yielded by this context to write to
     .pre-commit-hooks.yaml.
     """
@@ -63,7 +63,8 @@ def modify_manifest(path):
     yield manifest
     with io.open(manifest_path, 'w') as manifest_file:
         manifest_file.write(ordered_dump(manifest, **C.YAML_DUMP_KWARGS))
-    git_commit(msg=modify_manifest.__name__, cwd=path)
+    if commit:
+        git_commit(msg=modify_manifest.__name__, cwd=path)
 
 
 @contextlib.contextmanager

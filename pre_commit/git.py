@@ -4,12 +4,10 @@ import logging
 import os.path
 import sys
 
-from pre_commit.error_handler import FatalError
-from pre_commit.util import CalledProcessError
 from pre_commit.util import cmd_output
 
 
-logger = logging.getLogger('pre_commit')
+logger = logging.getLogger(__name__)
 
 
 def zsplit(s):
@@ -20,14 +18,23 @@ def zsplit(s):
         return []
 
 
+def no_git_env():
+    # Too many bugs dealing with environment variables and GIT:
+    # https://github.com/pre-commit/pre-commit/issues/300
+    # In git 2.6.3 (maybe others), git exports GIT_WORK_TREE while running
+    # pre-commit hooks
+    # In git 1.9.1 (maybe others), git exports GIT_DIR and GIT_INDEX_FILE
+    # while running pre-commit hooks in submodules.
+    # GIT_DIR: Causes git clone to clone wrong thing
+    # GIT_INDEX_FILE: Causes 'error invalid object ...' during commit
+    return {
+        k: v for k, v in os.environ.items()
+        if not k.startswith('GIT_') or k in {'GIT_SSH'}
+    }
+
+
 def get_root():
-    try:
-        return cmd_output('git', 'rev-parse', '--show-toplevel')[1].strip()
-    except CalledProcessError:
-        raise FatalError(
-            'git failed. Is it installed, and are you in a Git repository '
-            'directory?',
-        )
+    return cmd_output('git', 'rev-parse', '--show-toplevel')[1].strip()
 
 
 def get_git_dir(git_root='.'):
@@ -104,6 +111,27 @@ def get_changed_files(new, old):
 def head_rev(remote):
     _, out, _ = cmd_output('git', 'ls-remote', '--exit-code', remote, 'HEAD')
     return out.split()[0]
+
+
+def has_diff(*args, **kwargs):
+    repo = kwargs.pop('repo', '.')
+    assert not kwargs, kwargs
+    cmd = ('git', 'diff', '--quiet', '--no-ext-diff') + args
+    return cmd_output(*cmd, cwd=repo, retcode=None)[0]
+
+
+def commit(repo='.'):
+    env = no_git_env()
+    name, email = 'pre-commit', 'asottile+pre-commit@umich.edu'
+    env['GIT_AUTHOR_NAME'] = env['GIT_COMMITTER_NAME'] = name
+    env['GIT_AUTHOR_EMAIL'] = env['GIT_COMMITTER_EMAIL'] = email
+    cmd = ('git', 'commit', '--no-edit', '--no-gpg-sign', '-n', '-minit')
+    cmd_output(*cmd, cwd=repo, env=env)
+
+
+def git_path(name, repo='.'):
+    _, out, _ = cmd_output('git', 'rev-parse', '--git-path', name, cwd=repo)
+    return os.path.join(repo, out.strip())
 
 
 def check_for_cygwin_mismatch():

@@ -9,6 +9,7 @@ import pytest
 
 import pre_commit.constants as C
 from pre_commit import main
+from pre_commit.error_handler import FatalError
 from testing.auto_namedtuple import auto_namedtuple
 
 
@@ -17,6 +18,11 @@ class Args(object):
         kwargs.setdefault('command', 'help')
         kwargs.setdefault('config', C.CONFIG_FILE)
         self.__dict__.update(kwargs)
+
+
+def test_adjust_args_and_chdir_not_in_git_dir(in_tmpdir):
+    with pytest.raises(FatalError):
+        main._adjust_args_and_chdir(Args())
 
 
 def test_adjust_args_and_chdir_noop(in_git_dir):

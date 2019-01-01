@@ -7,7 +7,6 @@ import os.path
 import pytest
 
 from pre_commit import git
-from pre_commit.error_handler import FatalError
 from pre_commit.util import cmd_output
 from testing.util import git_commit
 
@@ -21,11 +20,6 @@ def test_get_root_deeper(in_git_dir):
     expected = os.path.normcase(in_git_dir.strpath)
     with in_git_dir.join('foo').ensure_dir().as_cwd():
         assert os.path.normcase(git.get_root()) == expected
-
-
-def test_get_root_not_git_dir(in_tmpdir):
-    with pytest.raises(FatalError):
-        git.get_root()
 
 
 def test_get_staged_files_deleted(in_git_dir):
