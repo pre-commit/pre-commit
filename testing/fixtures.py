@@ -82,7 +82,7 @@ def modify_config(path='.', commit=True):
         git_commit(msg=modify_config.__name__, cwd=path)
 
 
-def config_with_local_hooks():
+def sample_local_config():
     return {
         'repo': 'local',
         'hooks': [{
@@ -92,6 +92,10 @@ def config_with_local_hooks():
             'language': 'pygrep',
         }],
     }
+
+
+def sample_meta_config():
+    return {'repo': 'meta', 'hooks': [{'id': 'check-useless-excludes'}]}
 
 
 def make_config_from_repo(repo_path, rev=None, hooks=None, check=True):

@@ -11,6 +11,7 @@ from pre_commit import five
 from pre_commit import git
 from pre_commit.commands.autoupdate import autoupdate
 from pre_commit.commands.clean import clean
+from pre_commit.commands.gc import gc
 from pre_commit.commands.install_uninstall import install
 from pre_commit.commands.install_uninstall import install_hooks
 from pre_commit.commands.install_uninstall import uninstall
@@ -176,6 +177,11 @@ def main(argv=None):
     )
     _add_color_option(clean_parser)
     _add_config_option(clean_parser)
+
+    gc_parser = subparsers.add_parser('gc', help='Clean unused cached repos.')
+    _add_color_option(gc_parser)
+    _add_config_option(gc_parser)
+
     autoupdate_parser = subparsers.add_parser(
         'autoupdate',
         help="Auto-update pre-commit config to the latest repos' versions.",
@@ -251,8 +257,10 @@ def main(argv=None):
     with error_handler(), logging_handler(args.color):
         _adjust_args_and_chdir(args)
 
-        store = Store()
         git.check_for_cygwin_mismatch()
+
+        store = Store()
+        store.mark_config_used(args.config)
 
         if args.command == 'install':
             return install(
@@ -267,6 +275,8 @@ def main(argv=None):
             return uninstall(hook_type=args.hook_type)
         elif args.command == 'clean':
             return clean(store)
+        elif args.command == 'gc':
+            return gc(store)
         elif args.command == 'autoupdate':
             if args.tags_only:
                 logger.warning('--tags-only is the default')

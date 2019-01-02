@@ -15,9 +15,9 @@ from pre_commit.commands.autoupdate import RepositoryCannotBeUpdatedError
 from pre_commit.util import cmd_output
 from testing.auto_namedtuple import auto_namedtuple
 from testing.fixtures import add_config_to_repo
-from testing.fixtures import config_with_local_hooks
 from testing.fixtures import make_config_from_repo
 from testing.fixtures import make_repo
+from testing.fixtures import sample_local_config
 from testing.fixtures import write_config
 from testing.util import get_resource_path
 from testing.util import git_commit
@@ -125,7 +125,7 @@ def test_autoupdate_out_of_date_repo_with_correct_repo_name(
     stale_config = make_config_from_repo(
         out_of_date_repo.path, rev=out_of_date_repo.original_rev, check=False,
     )
-    local_config = config_with_local_hooks()
+    local_config = sample_local_config()
     config = {'repos': [stale_config, local_config]}
     # Write out the config
     write_config('.', config)
@@ -139,7 +139,7 @@ def test_autoupdate_out_of_date_repo_with_correct_repo_name(
     assert ret == 0
     assert before != after
     assert out_of_date_repo.head_rev in after
-    assert local_config['repo'] in after
+    assert 'local' in after
 
 
 def test_autoupdate_out_of_date_repo_with_wrong_repo_name(
@@ -316,7 +316,7 @@ def test_autoupdate_hook_disappearing_repo(
 
 
 def test_autoupdate_local_hooks(in_git_dir, store):
-    config = config_with_local_hooks()
+    config = sample_local_config()
     add_config_to_repo('.', config)
     assert autoupdate(C.CONFIG_FILE, store, tags_only=False) == 0
     new_config_writen = load_config(C.CONFIG_FILE)
@@ -330,7 +330,7 @@ def test_autoupdate_local_hooks_with_out_of_date_repo(
     stale_config = make_config_from_repo(
         out_of_date_repo.path, rev=out_of_date_repo.original_rev, check=False,
     )
-    local_config = config_with_local_hooks()
+    local_config = sample_local_config()
     config = {'repos': [local_config, stale_config]}
     write_config('.', config)
     assert autoupdate(C.CONFIG_FILE, store, tags_only=False) == 0

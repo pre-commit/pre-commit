@@ -13,6 +13,7 @@ from pre_commit import git
 from pre_commit.util import clean_path_on_failure
 from pre_commit.util import cmd_output
 from pre_commit.util import resource_text
+from pre_commit.util import rmtree
 
 
 logger = logging.getLogger('pre_commit')
@@ -33,10 +34,43 @@ def _get_default_directory():
 
 class Store(object):
     get_default_directory = staticmethod(_get_default_directory)
-    __created = False
 
     def __init__(self, directory=None):
         self.directory = directory or Store.get_default_directory()
+        self.db_path = os.path.join(self.directory, 'db.db')
+
+        if not os.path.exists(self.directory):
+            os.makedirs(self.directory)
+            with io.open(os.path.join(self.directory, 'README'), 'w') as f:
+                f.write(
+                    'This directory is maintained by the pre-commit project.\n'
+                    'Learn more: https://github.com/pre-commit/pre-commit\n',
+                )
+
+        if os.path.exists(self.db_path):
+            return
+        with self.exclusive_lock():
+            # Another process may have already completed this work
+            if os.path.exists(self.db_path):  # pragma: no cover (race)
+                return
+            # To avoid a race where someone ^Cs between db creation and
+            # execution of the CREATE TABLE statement
+            fd, tmpfile = tempfile.mkstemp(dir=self.directory)
+            # We'll be managing this file ourselves
+            os.close(fd)
+            with self.connect(db_path=tmpfile) as db:
+                db.executescript(
+                    'CREATE TABLE repos ('
+                    '    repo TEXT NOT NULL,'
+                    '    ref TEXT NOT NULL,'
+                    '    path TEXT NOT NULL,'
+                    '    PRIMARY KEY (repo, ref)'
+                    ');',
+                )
+                self._create_config_table_if_not_exists(db)
+
+            # Atomic file move
+            os.rename(tmpfile, self.db_path)
 
     @contextlib.contextmanager
     def exclusive_lock(self):
@@ -46,62 +80,30 @@ class Store(object):
         with file_lock.lock(os.path.join(self.directory, '.lock'), blocked_cb):
             yield
 
-    def _write_readme(self):
-        with io.open(os.path.join(self.directory, 'README'), 'w') as readme:
-            readme.write(
-                'This directory is maintained by the pre-commit project.\n'
-                'Learn more: https://github.com/pre-commit/pre-commit\n',
-            )
-
-    def _write_sqlite_db(self):
-        # To avoid a race where someone ^Cs between db creation and execution
-        # of the CREATE TABLE statement
-        fd, tmpfile = tempfile.mkstemp(dir=self.directory)
-        # We'll be managing this file ourselves
-        os.close(fd)
+    @contextlib.contextmanager
+    def connect(self, db_path=None):
+        db_path = db_path or self.db_path
         # sqlite doesn't close its fd with its contextmanager >.<
         # contextlib.closing fixes this.
         # See: https://stackoverflow.com/a/28032829/812183
-        with contextlib.closing(sqlite3.connect(tmpfile)) as db:
-            db.executescript(
-                'CREATE TABLE repos ('
-                '    repo TEXT NOT NULL,'
-                '    ref TEXT NOT NULL,'
-                '    path TEXT NOT NULL,'
-                '    PRIMARY KEY (repo, ref)'
-                ');',
-            )
+        with contextlib.closing(sqlite3.connect(db_path)) as db:
+            # this creates a transaction
+            with db:
+                yield db
 
-        # Atomic file move
-        os.rename(tmpfile, self.db_path)
-
-    def _create(self):
-        if not os.path.exists(self.directory):
-            os.makedirs(self.directory)
-            self._write_readme()
-
-        if os.path.exists(self.db_path):
-            return
-        with self.exclusive_lock():
-            # Another process may have already completed this work
-            if os.path.exists(self.db_path):  # pragma: no cover (race)
-                return
-            self._write_sqlite_db()
-
-    def require_created(self):
-        """Require the pre-commit file store to be created."""
-        if not self.__created:
-            self._create()
-            self.__created = True
+    @classmethod
+    def db_repo_name(cls, repo, deps):
+        if deps:
+            return '{}:{}'.format(repo, ','.join(sorted(deps)))
+        else:
+            return repo
 
     def _new_repo(self, repo, ref, deps, make_strategy):
-        self.require_created()
-        if deps:
-            repo = '{}:{}'.format(repo, ','.join(sorted(deps)))
+        repo = self.db_repo_name(repo, deps)
 
         def _get_result():
             # Check if we already exist
-            with sqlite3.connect(self.db_path) as db:
+            with self.connect() as db:
                 result = db.execute(
                     'SELECT path FROM repos WHERE repo = ? AND ref = ?',
                     (repo, ref),
@@ -125,7 +127,7 @@ class Store(object):
                 make_strategy(directory)
 
             # Update our db with the created repo
-            with sqlite3.connect(self.db_path) as db:
+            with self.connect() as db:
                 db.execute(
                     'INSERT INTO repos (repo, ref, path) VALUES (?, ?, ?)',
                     [repo, ref, directory],
@@ -175,6 +177,43 @@ class Store(object):
             'local', C.LOCAL_REPO_VERSION, deps, make_local_strategy,
         )
 
-    @property
-    def db_path(self):
-        return os.path.join(self.directory, 'db.db')
+    def _create_config_table_if_not_exists(self, db):
+        db.executescript(
+            'CREATE TABLE IF NOT EXISTS configs ('
+            '   path TEXT NOT NULL,'
+            '   PRIMARY KEY (path)'
+            ');',
+        )
+
+    def mark_config_used(self, path):
+        path = os.path.realpath(path)
+        # don't insert config files that do not exist
+        if not os.path.exists(path):
+            return
+        with self.connect() as db:
+            # TODO: eventually remove this and only create in _create
+            self._create_config_table_if_not_exists(db)
+            db.execute('INSERT OR IGNORE INTO configs VALUES (?)', (path,))
+
+    def select_all_configs(self):
+        with self.connect() as db:
+            self._create_config_table_if_not_exists(db)
+            rows = db.execute('SELECT path FROM configs').fetchall()
+            return [path for path, in rows]
+
+    def delete_configs(self, configs):
+        with self.connect() as db:
+            rows = [(path,) for path in configs]
+            db.executemany('DELETE FROM configs WHERE path = ?', rows)
+
+    def select_all_repos(self):
+        with self.connect() as db:
+            return db.execute('SELECT repo, ref, path from repos').fetchall()
+
+    def delete_repo(self, db_repo_name, ref, path):
+        with self.connect() as db:
+            db.execute(
+                'DELETE FROM repos WHERE repo = ? and ref = ?',
+                (db_repo_name, ref),
+            )
+        rmtree(path)

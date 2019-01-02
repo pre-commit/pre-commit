@@ -21,7 +21,6 @@ def fake_old_dir(tempdir_factory):
 
 
 def test_clean(store, fake_old_dir):
-    store.require_created()
     assert os.path.exists(fake_old_dir)
     assert os.path.exists(store.directory)
     clean(store)
@@ -30,6 +29,7 @@ def test_clean(store, fake_old_dir):
 
 
 def test_clean_idempotent(store):
+    clean(store)
     assert not os.path.exists(store.directory)
     clean(store)
     assert not os.path.exists(store.directory)

@@ -11,7 +11,7 @@ from pre_commit.clientlib import MANIFEST_SCHEMA
 from pre_commit.clientlib import MigrateShaToRev
 from pre_commit.clientlib import validate_config_main
 from pre_commit.clientlib import validate_manifest_main
-from testing.fixtures import config_with_local_hooks
+from testing.fixtures import sample_local_config
 from testing.util import get_resource_path
 
 
@@ -94,7 +94,7 @@ def test_config_valid(config_obj, expected):
 
 
 def test_local_hooks_with_rev_fails():
-    config_obj = {'repos': [config_with_local_hooks()]}
+    config_obj = {'repos': [sample_local_config()]}
     config_obj['repos'][0]['rev'] = 'foo'
     with pytest.raises(cfgv.ValidationError):
         cfgv.validate(config_obj, CONFIG_SCHEMA)
