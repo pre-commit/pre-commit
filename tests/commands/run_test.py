@@ -22,6 +22,7 @@ from testing.fixtures import add_config_to_repo
 from testing.fixtures import make_consuming_repo
 from testing.fixtures import modify_config
 from testing.fixtures import read_config
+from testing.fixtures import sample_meta_config
 from testing.util import cmd_output_mocked_pre_commit_home
 from testing.util import cwd
 from testing.util import git_commit
@@ -656,11 +657,7 @@ def test_pcre_deprecation_warning(cap_out, store, repo_with_passing_hook):
 
 
 def test_meta_hook_passes(cap_out, store, repo_with_passing_hook):
-    config = {
-        'repo': 'meta',
-        'hooks': [{'id': 'check-useless-excludes'}],
-    }
-    add_config_to_repo(repo_with_passing_hook, config)
+    add_config_to_repo(repo_with_passing_hook, sample_meta_config())
 
     _test_run(
         cap_out,

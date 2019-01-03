@@ -12,7 +12,6 @@ import six
 from pre_commit import git
 from pre_commit.store import _get_default_directory
 from pre_commit.store import Store
-from pre_commit.util import rmtree
 from testing.fixtures import git_dir
 from testing.util import cwd
 from testing.util import git_commit
@@ -48,9 +47,7 @@ def test_uses_environment_variable_when_present():
         assert ret == '/tmp/pre_commit_home'
 
 
-def test_store_require_created(store):
-    assert not os.path.exists(store.directory)
-    store.require_created()
+def test_store_init(store):
     # Should create the store directory
     assert os.path.exists(store.directory)
     # Should create a README file indicating what the directory is about
@@ -61,30 +58,6 @@ def test_store_require_created(store):
             'Learn more: https://github.com/pre-commit/pre-commit',
         ):
             assert text_line in readme_contents
-
-
-def test_store_require_created_does_not_create_twice(store):
-    assert not os.path.exists(store.directory)
-    store.require_created()
-    # We intentionally delete the directory here so we can figure out if it
-    # calls it again.
-    rmtree(store.directory)
-    assert not os.path.exists(store.directory)
-    # Call require_created, this should not trigger a call to create
-    store.require_created()
-    assert not os.path.exists(store.directory)
-
-
-def test_does_not_recreate_if_directory_already_exists(store):
-    assert not os.path.exists(store.directory)
-    # We manually create the directory.
-    # Note: we're intentionally leaving out the README file.  This is so we can
-    # know that `Store` didn't call create
-    os.mkdir(store.directory)
-    open(store.db_path, 'a').close()
-    # Call require_created, this should not call create
-    store.require_created()
-    assert not os.path.exists(os.path.join(store.directory, 'README'))
 
 
 def test_clone(store, tempdir_factory, log_info_mock):
@@ -110,34 +83,25 @@ def test_clone(store, tempdir_factory, log_info_mock):
     assert git.head_rev(ret) == rev
 
     # Assert there's an entry in the sqlite db for this
-    with sqlite3.connect(store.db_path) as db:
-        path, = db.execute(
-            'SELECT path from repos WHERE repo = ? and ref = ?',
-            (path, rev),
-        ).fetchone()
-        assert path == ret
+    assert store.select_all_repos() == [(path, rev, ret)]
 
 
 def test_clone_cleans_up_on_checkout_failure(store):
-    try:
+    with pytest.raises(Exception) as excinfo:
         # This raises an exception because you can't clone something that
         # doesn't exist!
         store.clone('/i_dont_exist_lol', 'fake_rev')
-    except Exception as e:
-        assert '/i_dont_exist_lol' in six.text_type(e)
+    assert '/i_dont_exist_lol' in six.text_type(excinfo.value)
 
-    things_starting_with_repo = [
-        thing for thing in os.listdir(store.directory)
-        if thing.startswith('repo')
+    repo_dirs = [
+        d for d in os.listdir(store.directory) if d.startswith('repo')
     ]
-    assert things_starting_with_repo == []
+    assert repo_dirs == []
 
 
 def test_clone_when_repo_already_exists(store):
     # Create an entry in the sqlite db that makes it look like the repo has
     # been cloned.
-    store.require_created()
-
     with sqlite3.connect(store.db_path) as db:
         db.execute(
             'INSERT INTO repos (repo, ref, path) '
@@ -147,12 +111,22 @@ def test_clone_when_repo_already_exists(store):
     assert store.clone('fake_repo', 'fake_ref') == 'fake_path'
 
 
-def test_require_created_when_directory_exists_but_not_db(store):
+def test_create_when_directory_exists_but_not_db(store):
     # In versions <= 0.3.5, there was no sqlite db causing a need for
     # backward compatibility
-    os.makedirs(store.directory)
-    store.require_created()
+    os.remove(store.db_path)
+    store = Store(store.directory)
     assert os.path.exists(store.db_path)
+
+
+def test_create_when_store_already_exists(store):
+    # an assertion that this is idempotent and does not crash
+    Store(store.directory)
+
+
+def test_db_repo_name(store):
+    assert store.db_repo_name('repo', ()) == 'repo'
+    assert store.db_repo_name('repo', ('b', 'a', 'c')) == 'repo:a,b,c'
 
 
 def test_local_resources_reflects_reality():
@@ -162,3 +136,35 @@ def test_local_resources_reflects_reality():
         if res.startswith('empty_template_')
     }
     assert on_disk == set(Store.LOCAL_RESOURCES)
+
+
+def test_mark_config_as_used(store, tmpdir):
+    with tmpdir.as_cwd():
+        f = tmpdir.join('f').ensure()
+        store.mark_config_used('f')
+        assert store.select_all_configs() == [f.strpath]
+
+
+def test_mark_config_as_used_idempotent(store, tmpdir):
+    test_mark_config_as_used(store, tmpdir)
+    test_mark_config_as_used(store, tmpdir)
+
+
+def test_mark_config_as_used_does_not_exist(store):
+    store.mark_config_used('f')
+    assert store.select_all_configs() == []
+
+
+def _simulate_pre_1_14_0(store):
+    with store.connect() as db:
+        db.executescript('DROP TABLE configs')
+
+
+def test_select_all_configs_roll_forward(store):
+    _simulate_pre_1_14_0(store)
+    assert store.select_all_configs() == []
+
+
+def test_mark_config_as_used_roll_forward(store, tmpdir):
+    _simulate_pre_1_14_0(store)
+    test_mark_config_as_used(store, tmpdir)

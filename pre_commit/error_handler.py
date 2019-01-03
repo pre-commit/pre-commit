@@ -32,7 +32,6 @@ def _log_and_exit(msg, exc, formatted):
     ))
     output.write(error_msg)
     store = Store()
-    store.require_created()
     log_path = os.path.join(store.directory, 'pre-commit.log')
     output.write_line('Check the log at {}'.format(log_path))
     with open(log_path, 'wb') as log:
