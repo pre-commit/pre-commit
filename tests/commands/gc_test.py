@@ -2,6 +2,7 @@ import os
 
 import pre_commit.constants as C
 from pre_commit import git
+from pre_commit.clientlib import load_config
 from pre_commit.commands.autoupdate import autoupdate
 from pre_commit.commands.gc import gc
 from pre_commit.repository import all_hooks
@@ -91,7 +92,7 @@ def test_gc_unused_local_repo_with_env(store, in_git_dir, cap_out):
     store.mark_config_used(C.CONFIG_FILE)
 
     # this causes the repositories to be created
-    all_hooks({'repos': [config]}, store)
+    all_hooks(load_config(C.CONFIG_FILE), store)
 
     assert _config_count(store) == 1
     assert _repo_count(store) == 1

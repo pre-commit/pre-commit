@@ -5,6 +5,7 @@ import pytest
 
 from pre_commit.clientlib import check_type_tag
 from pre_commit.clientlib import CONFIG_HOOK_DICT
+from pre_commit.clientlib import CONFIG_REPO_DICT
 from pre_commit.clientlib import CONFIG_SCHEMA
 from pre_commit.clientlib import is_local_repo
 from pre_commit.clientlib import MANIFEST_SCHEMA
@@ -236,3 +237,19 @@ def test_migrate_to_sha_ok():
     dct = {'repo': 'a', 'rev': 'b'}
     MigrateShaToRev().apply_default(dct)
     assert dct == {'repo': 'a', 'rev': 'b'}
+
+
+@pytest.mark.parametrize(
+    'config_repo',
+    (
+        # i-dont-exist isn't a valid hook
+        {'repo': 'meta', 'hooks': [{'id': 'i-dont-exist'}]},
+        # invalid to set a language for a meta hook
+        {'repo': 'meta', 'hooks': [{'id': 'identity', 'language': 'python'}]},
+        # name override must be string
+        {'repo': 'meta', 'hooks': [{'id': 'identity', 'name': False}]},
+    ),
+)
+def test_meta_hook_invalid_id(config_repo):
+    with pytest.raises(cfgv.ValidationError):
+        cfgv.validate(config_repo, CONFIG_REPO_DICT)

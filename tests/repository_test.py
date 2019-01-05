@@ -5,12 +5,14 @@ import os.path
 import re
 import shutil
 
+import cfgv
 import mock
 import pytest
 
 import pre_commit.constants as C
 from pre_commit import five
 from pre_commit import parse_shebang
+from pre_commit.clientlib import CONFIG_REPO_DICT
 from pre_commit.clientlib import load_manifest
 from pre_commit.languages import golang
 from pre_commit.languages import helpers
@@ -42,6 +44,8 @@ def _norm_out(b):
 
 
 def _get_hook(config, store, hook_id):
+    config = cfgv.validate(config, CONFIG_REPO_DICT)
+    config = cfgv.apply_defaults(config, CONFIG_REPO_DICT)
     hooks = repository_hooks(config, store)
     install_hook_envs(hooks, store)
     hook, = [hook for hook in hooks if hook.id == hook_id]
@@ -708,17 +712,6 @@ def test_hook_id_not_present(tempdir_factory, store, fake_log_handler):
         '`i-dont-exist` is not present in repository file://{}.  '
         'Typo? Perhaps it is introduced in a newer version?  '
         'Often `pre-commit autoupdate` fixes this.'.format(path)
-    )
-
-
-def test_meta_hook_not_present(store, fake_log_handler):
-    config = {'repo': 'meta', 'hooks': [{'id': 'i-dont-exist'}]}
-    with pytest.raises(SystemExit):
-        _get_hook(config, store, 'i-dont-exist')
-    assert fake_log_handler.handle.call_args[0][0].msg == (
-        '`i-dont-exist` is not a valid meta hook.  '
-        'Typo? Perhaps it is introduced in a newer version?  '
-        'Often `pip install --upgrade pre-commit` fixes this.'
     )
 
 

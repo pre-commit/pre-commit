@@ -36,7 +36,7 @@ setup(
     },
     install_requires=[
         'aspy.yaml',
-        'cfgv>=1.0.0',
+        'cfgv>=1.3.0',
         'identify>=1.0.0',
         # if this makes it into python3.8 move to extras_require
         'importlib-metadata',
