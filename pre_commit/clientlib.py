@@ -55,7 +55,7 @@ MANIFEST_HOOK_DICT = cfgv.Map(
     cfgv.Optional('always_run', cfgv.check_bool, False),
     cfgv.Optional('pass_filenames', cfgv.check_bool, True),
     cfgv.Optional('description', cfgv.check_string, ''),
-    cfgv.Optional('language_version', cfgv.check_string, 'default'),
+    cfgv.Optional('language_version', cfgv.check_string, C.DEFAULT),
     cfgv.Optional('log_file', cfgv.check_string, ''),
     cfgv.Optional('minimum_pre_commit_version', cfgv.check_string, '0'),
     cfgv.Optional('require_serial', cfgv.check_bool, False),
@@ -90,8 +90,8 @@ def validate_manifest_main(argv=None):
     return ret
 
 
-_LOCAL = 'local'
-_META = 'meta'
+LOCAL = 'local'
+META = 'meta'
 
 
 class MigrateShaToRev(object):
@@ -100,12 +100,12 @@ class MigrateShaToRev(object):
         return cfgv.Conditional(
             key, cfgv.check_string,
             condition_key='repo',
-            condition_value=cfgv.NotIn(_LOCAL, _META),
+            condition_value=cfgv.NotIn(LOCAL, META),
             ensure_absent=True,
         )
 
     def check(self, dct):
-        if dct.get('repo') in {_LOCAL, _META}:
+        if dct.get('repo') in {LOCAL, META}:
             self._cond('rev').check(dct)
             self._cond('sha').check(dct)
         elif 'sha' in dct and 'rev' in dct:
@@ -159,12 +159,11 @@ _meta = (
 
 META_HOOK_DICT = cfgv.Map(
     'Hook', 'id',
+    cfgv.Required('id', cfgv.check_string),
+    cfgv.Required('id', cfgv.check_one_of(tuple(k for k, _ in _meta))),
+    # language must be system
+    cfgv.Optional('language', cfgv.check_one_of({'system'}), 'system'),
     *([
-        cfgv.Required('id', cfgv.check_string),
-        cfgv.Required('id', cfgv.check_one_of(tuple(k for k, _ in _meta))),
-        # language must be system
-        cfgv.Optional('language', cfgv.check_one_of({'system'}), 'system'),
-    ] + [
         # default to the hook definition for the meta hooks
         cfgv.ConditionalOptional(key, cfgv.check_any, value, 'id', hook_id)
         for hook_id, values in _meta
@@ -200,34 +199,34 @@ CONFIG_REPO_DICT = cfgv.Map(
 
     cfgv.ConditionalRecurse(
         'hooks', cfgv.Array(CONFIG_HOOK_DICT),
-        'repo', cfgv.NotIn(_LOCAL, _META),
+        'repo', cfgv.NotIn(LOCAL, META),
     ),
     cfgv.ConditionalRecurse(
         'hooks', cfgv.Array(MANIFEST_HOOK_DICT),
-        'repo', _LOCAL,
+        'repo', LOCAL,
     ),
     cfgv.ConditionalRecurse(
         'hooks', cfgv.Array(META_HOOK_DICT),
-        'repo', _META,
+        'repo', META,
     ),
 
     MigrateShaToRev(),
+)
+DEFAULT_LANGUAGE_VERSION = cfgv.Map(
+    'DefaultLanguageVersion', None,
+    cfgv.NoAdditionalKeys(all_languages),
+    *[cfgv.Optional(x, cfgv.check_string, C.DEFAULT) for x in all_languages]
 )
 CONFIG_SCHEMA = cfgv.Map(
     'Config', None,
 
     cfgv.RequiredRecurse('repos', cfgv.Array(CONFIG_REPO_DICT)),
+    cfgv.OptionalRecurse(
+        'default_language_version', DEFAULT_LANGUAGE_VERSION, {},
+    ),
     cfgv.Optional('exclude', cfgv.check_regex, '^$'),
     cfgv.Optional('fail_fast', cfgv.check_bool, False),
 )
-
-
-def is_local_repo(repo_entry):
-    return repo_entry['repo'] == _LOCAL
-
-
-def is_meta_repo(repo_entry):
-    return repo_entry['repo'] == _META
 
 
 class InvalidConfigError(FatalError):

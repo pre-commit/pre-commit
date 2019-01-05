@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import hashlib
 import os
 
+import pre_commit.constants as C
 from pre_commit import five
 from pre_commit.languages import helpers
 from pre_commit.util import CalledProcessError
@@ -62,7 +63,7 @@ def install_environment(
     assert_docker_available()
 
     directory = prefix.path(
-        helpers.environment_dir(ENVIRONMENT_DIR, 'default'),
+        helpers.environment_dir(ENVIRONMENT_DIR, C.DEFAULT),
     )
 
     # Docker doesn't really have relevant disk environment, but pre-commit

@@ -7,7 +7,7 @@ from pre_commit.clientlib import check_type_tag
 from pre_commit.clientlib import CONFIG_HOOK_DICT
 from pre_commit.clientlib import CONFIG_REPO_DICT
 from pre_commit.clientlib import CONFIG_SCHEMA
-from pre_commit.clientlib import is_local_repo
+from pre_commit.clientlib import DEFAULT_LANGUAGE_VERSION
 from pre_commit.clientlib import MANIFEST_SCHEMA
 from pre_commit.clientlib import MigrateShaToRev
 from pre_commit.clientlib import validate_config_main
@@ -28,10 +28,6 @@ def is_valid_according_to_schema(obj, obj_schema):
 def test_check_type_tag_failures(value):
     with pytest.raises(cfgv.ValidationError):
         check_type_tag(value)
-
-
-def test_is_local_repo():
-    assert is_local_repo({'repo': 'local'})
 
 
 @pytest.mark.parametrize(
@@ -250,6 +246,20 @@ def test_migrate_to_sha_ok():
         {'repo': 'meta', 'hooks': [{'id': 'identity', 'name': False}]},
     ),
 )
-def test_meta_hook_invalid_id(config_repo):
+def test_meta_hook_invalid(config_repo):
     with pytest.raises(cfgv.ValidationError):
         cfgv.validate(config_repo, CONFIG_REPO_DICT)
+
+
+@pytest.mark.parametrize(
+    'mapping',
+    (
+        # invalid language key
+        {'pony': '1.0'},
+        # not a string for version
+        {'python': 3},
+    ),
+)
+def test_default_language_version_invalid(mapping):
+    with pytest.raises(cfgv.ValidationError):
+        cfgv.validate(mapping, DEFAULT_LANGUAGE_VERSION)

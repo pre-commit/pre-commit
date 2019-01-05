@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 import contextlib
 import os
 
+import pre_commit.constants as C
 from pre_commit.envcontext import envcontext
 from pre_commit.envcontext import Var
 from pre_commit.languages import helpers
@@ -24,7 +25,7 @@ def get_env_patch(venv):  # pragma: windows no cover
 @contextlib.contextmanager
 def in_env(prefix):  # pragma: windows no cover
     envdir = prefix.path(
-        helpers.environment_dir(ENVIRONMENT_DIR, 'default'),
+        helpers.environment_dir(ENVIRONMENT_DIR, C.DEFAULT),
     )
     with envcontext(get_env_patch(envdir)):
         yield
@@ -36,7 +37,7 @@ def install_environment(
     helpers.assert_version_default('swift', version)
     helpers.assert_no_additional_deps('swift', additional_dependencies)
     directory = prefix.path(
-        helpers.environment_dir(ENVIRONMENT_DIR, 'default'),
+        helpers.environment_dir(ENVIRONMENT_DIR, C.DEFAULT),
     )
 
     # Build the swift package

@@ -53,13 +53,13 @@ def test_shebang_windows():
 
 def test_shebang_otherwise():
     with mock.patch.object(sys, 'platform', 'posix'):
-        assert 'default' not in shebang()
+        assert C.DEFAULT not in shebang()
 
 
 def test_shebang_returns_default():
     with mock.patch.object(sys, 'platform', 'posix'):
         with mock.patch.object(
-            python, 'get_default_version', return_value='default',
+            python, 'get_default_version', return_value=C.DEFAULT,
         ):
             assert shebang() == '#!/usr/bin/env python'
 

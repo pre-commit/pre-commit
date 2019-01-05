@@ -35,8 +35,7 @@ from pre_commit.languages import system
 #
 #     Args:
 #         prefix - `Prefix` bound to the repository.
-#         version - A version specified in the hook configuration or
-#             'default'.
+#         version - A version specified in the hook configuration or 'default'.
 #     """
 #
 # def run_hook(hook, file_args):

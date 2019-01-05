@@ -7,16 +7,16 @@ import pre_commit.constants as C
 from pre_commit import output
 from pre_commit.clientlib import InvalidConfigError
 from pre_commit.clientlib import InvalidManifestError
-from pre_commit.clientlib import is_local_repo
-from pre_commit.clientlib import is_meta_repo
 from pre_commit.clientlib import load_config
 from pre_commit.clientlib import load_manifest
+from pre_commit.clientlib import LOCAL
+from pre_commit.clientlib import META
 
 
 def _mark_used_repos(store, all_repos, unused_repos, repo):
-    if is_meta_repo(repo):
+    if repo['repo'] == META:
         return
-    elif is_local_repo(repo):
+    elif repo['repo'] == LOCAL:
         for hook in repo['hooks']:
             deps = hook.get('additional_dependencies')
             unused_repos.discard((

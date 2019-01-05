@@ -6,6 +6,7 @@ import os.path
 import shutil
 import tarfile
 
+import pre_commit.constants as C
 from pre_commit.envcontext import envcontext
 from pre_commit.envcontext import Var
 from pre_commit.languages import helpers
@@ -32,7 +33,7 @@ def get_env_patch(venv, language_version):  # pragma: windows no cover
             ),
         ),
     )
-    if language_version != 'default':
+    if language_version != C.DEFAULT:
         patches += (('RBENV_VERSION', language_version),)
     return patches
 
@@ -52,14 +53,14 @@ def _extract_resource(filename, dest):
             tf.extractall(dest)
 
 
-def _install_rbenv(prefix, version='default'):  # pragma: windows no cover
+def _install_rbenv(prefix, version=C.DEFAULT):  # pragma: windows no cover
     directory = helpers.environment_dir(ENVIRONMENT_DIR, version)
 
     _extract_resource('rbenv.tar.gz', prefix.path('.'))
     shutil.move(prefix.path('rbenv'), prefix.path(directory))
 
     # Only install ruby-build if the version is specified
-    if version != 'default':
+    if version != C.DEFAULT:
         plugins_dir = prefix.path(directory, 'plugins')
         _extract_resource('ruby-download.tar.gz', plugins_dir)
         _extract_resource('ruby-build.tar.gz', plugins_dir)
@@ -84,7 +85,7 @@ def _install_rbenv(prefix, version='default'):  # pragma: windows no cover
         )
 
         # If we aren't using the system ruby, add a version here
-        if version != 'default':
+        if version != C.DEFAULT:
             activate_file.write('export RBENV_VERSION="{}"\n'.format(version))
 
 
@@ -109,7 +110,7 @@ def install_environment(
             # Need to call this before installing so rbenv's directories are
             # set up
             helpers.run_setup_cmd(prefix, ('rbenv', 'init', '-'))
-            if version != 'default':
+            if version != C.DEFAULT:
                 _install_ruby(prefix, version)
             # Need to call this after installing to set up the shims
             helpers.run_setup_cmd(prefix, ('rbenv', 'rehash'))

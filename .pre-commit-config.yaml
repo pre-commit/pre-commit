@@ -27,7 +27,7 @@ repos:
     rev: v1.3.0
     hooks:
     -   id: reorder-python-imports
-        language_version: python2.7
+        language_version: python3
 -   repo: https://github.com/asottile/add-trailing-comma
     rev: v0.7.1
     hooks:

@@ -4,6 +4,7 @@ import contextlib
 import os
 import sys
 
+import pre_commit.constants as C
 from pre_commit.envcontext import envcontext
 from pre_commit.envcontext import UNSET
 from pre_commit.envcontext import Var
@@ -76,7 +77,7 @@ def _get_default_version():  # pragma: no cover (platform dependent)
         return exe
 
     # We tried!
-    return 'default'
+    return C.DEFAULT
 
 
 def get_default_version():
@@ -134,7 +135,7 @@ def py_interface(_dir, _make_venv):
 
         env_dir = prefix.path(directory)
         with clean_path_on_failure(env_dir):
-            if version != 'default':
+            if version != C.DEFAULT:
                 python = norm_version(version)
             else:
                 python = os.path.realpath(sys.executable)

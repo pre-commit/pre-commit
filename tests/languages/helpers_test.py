@@ -8,6 +8,7 @@ import sys
 import mock
 import pytest
 
+import pre_commit.constants as C
 from pre_commit.languages import helpers
 from pre_commit.prefix import Prefix
 from pre_commit.util import CalledProcessError
@@ -15,7 +16,7 @@ from testing.auto_namedtuple import auto_namedtuple
 
 
 def test_basic_get_default_version():
-    assert helpers.basic_get_default_version() == 'default'
+    assert helpers.basic_get_default_version() == C.DEFAULT
 
 
 def test_basic_healthy():

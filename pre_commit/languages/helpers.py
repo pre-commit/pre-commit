@@ -7,9 +7,9 @@ import shlex
 
 import six
 
+import pre_commit.constants as C
 from pre_commit.util import cmd_output
 from pre_commit.xargs import xargs
-
 
 FIXED_RANDOM_SEED = 1542676186
 
@@ -30,7 +30,7 @@ def to_cmd(hook):
 
 
 def assert_version_default(binary, version):
-    if version != 'default':
+    if version != C.DEFAULT:
         raise AssertionError(
             'For now, pre-commit requires system-installed {}'.format(binary),
         )
@@ -45,7 +45,7 @@ def assert_no_additional_deps(lang, additional_deps):
 
 
 def basic_get_default_version():
-    return 'default'
+    return C.DEFAULT
 
 
 def basic_healthy(prefix, language_version):
