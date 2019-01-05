@@ -13,10 +13,10 @@ import pre_commit.constants as C
 from pre_commit import output
 from pre_commit.clientlib import CONFIG_SCHEMA
 from pre_commit.clientlib import InvalidManifestError
-from pre_commit.clientlib import is_local_repo
-from pre_commit.clientlib import is_meta_repo
 from pre_commit.clientlib import load_config
 from pre_commit.clientlib import load_manifest
+from pre_commit.clientlib import LOCAL
+from pre_commit.clientlib import META
 from pre_commit.commands.migrate_config import migrate_config
 from pre_commit.util import CalledProcessError
 from pre_commit.util import cmd_output
@@ -123,8 +123,7 @@ def autoupdate(config_file, store, tags_only, repos=()):
 
     for repo_config in input_config['repos']:
         if (
-            is_local_repo(repo_config) or
-            is_meta_repo(repo_config) or
+            repo_config['repo'] in {LOCAL, META} or
             # Skip updating any repo_configs that aren't for the specified repo
             repos and repo_config['repo'] not in repos
         ):

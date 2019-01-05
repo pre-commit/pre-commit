@@ -5,6 +5,7 @@ import os.path
 
 import toml
 
+import pre_commit.constants as C
 from pre_commit.envcontext import envcontext
 from pre_commit.envcontext import Var
 from pre_commit.languages import helpers
@@ -29,7 +30,7 @@ def get_env_patch(target_dir):
 @contextlib.contextmanager
 def in_env(prefix):
     target_dir = prefix.path(
-        helpers.environment_dir(ENVIRONMENT_DIR, 'default'),
+        helpers.environment_dir(ENVIRONMENT_DIR, C.DEFAULT),
     )
     with envcontext(get_env_patch(target_dir)):
         yield
@@ -50,7 +51,7 @@ def _add_dependencies(cargo_toml_path, additional_dependencies):
 def install_environment(prefix, version, additional_dependencies):
     helpers.assert_version_default('rust', version)
     directory = prefix.path(
-        helpers.environment_dir(ENVIRONMENT_DIR, 'default'),
+        helpers.environment_dir(ENVIRONMENT_DIR, C.DEFAULT),
     )
 
     # There are two cases where we might want to specify more dependencies:

@@ -6,6 +6,7 @@ import logging
 import os.path
 import sys
 
+import pre_commit.constants as C
 from pre_commit import git
 from pre_commit import output
 from pre_commit.clientlib import load_config
@@ -51,7 +52,7 @@ def shebang():
         py = 'python'
     else:
         py = python.get_default_version()
-        if py == 'default':
+        if py == C.DEFAULT:
             py = 'python'
     return '#!/usr/bin/env {}'.format(py)
 

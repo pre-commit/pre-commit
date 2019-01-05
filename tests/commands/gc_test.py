@@ -110,10 +110,10 @@ def test_gc_config_with_missing_hook(
     path = make_repo(tempdir_factory, 'script_hooks_repo')
     write_config('.', make_config_from_repo(path))
     store.mark_config_used(C.CONFIG_FILE)
+    # to trigger a clone
+    all_hooks(load_config(C.CONFIG_FILE), store)
 
     with modify_config() as config:
-        # just to trigger a clone
-        all_hooks(config, store)
         # add a hook which does not exist, make sure we don't crash
         config['repos'][0]['hooks'].append({'id': 'does-not-exist'})
 

@@ -2,11 +2,11 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import unicode_literals
 
+import concurrent.futures
 import contextlib
 import math
 import sys
 
-import concurrent.futures
 import six
 
 from pre_commit import parse_shebang

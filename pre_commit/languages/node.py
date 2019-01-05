@@ -4,6 +4,7 @@ import contextlib
 import os
 import sys
 
+import pre_commit.constants as C
 from pre_commit.envcontext import envcontext
 from pre_commit.envcontext import Var
 from pre_commit.languages import helpers
@@ -57,7 +58,7 @@ def install_environment(prefix, version, additional_dependencies):
         cmd = [
             sys.executable, '-mnodeenv', '--prebuilt', '--clean-src', envdir,
         ]
-        if version != 'default':
+        if version != C.DEFAULT:
             cmd.extend(['-n', version])
         cmd_output(*cmd)
 

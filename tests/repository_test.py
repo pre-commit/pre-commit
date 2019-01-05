@@ -12,7 +12,7 @@ import pytest
 import pre_commit.constants as C
 from pre_commit import five
 from pre_commit import parse_shebang
-from pre_commit.clientlib import CONFIG_REPO_DICT
+from pre_commit.clientlib import CONFIG_SCHEMA
 from pre_commit.clientlib import load_manifest
 from pre_commit.languages import golang
 from pre_commit.languages import helpers
@@ -22,9 +22,9 @@ from pre_commit.languages import python
 from pre_commit.languages import ruby
 from pre_commit.languages import rust
 from pre_commit.prefix import Prefix
+from pre_commit.repository import all_hooks
 from pre_commit.repository import Hook
 from pre_commit.repository import install_hook_envs
-from pre_commit.repository import repository_hooks
 from pre_commit.util import cmd_output
 from testing.fixtures import make_config_from_repo
 from testing.fixtures import make_repo
@@ -43,12 +43,18 @@ def _norm_out(b):
     return b.replace(b'\r\n', b'\n')
 
 
-def _get_hook(config, store, hook_id):
-    config = cfgv.validate(config, CONFIG_REPO_DICT)
-    config = cfgv.apply_defaults(config, CONFIG_REPO_DICT)
-    hooks = repository_hooks(config, store)
-    install_hook_envs(hooks, store)
+def _get_hook_no_install(repo_config, store, hook_id):
+    config = {'repos': [repo_config]}
+    config = cfgv.validate(config, CONFIG_SCHEMA)
+    config = cfgv.apply_defaults(config, CONFIG_SCHEMA)
+    hooks = all_hooks(config, store)
     hook, = [hook for hook in hooks if hook.id == hook_id]
+    return hook
+
+
+def _get_hook(repo_config, store, hook_id):
+    hook = _get_hook_no_install(repo_config, store, hook_id)
+    install_hook_envs([hook], store)
     return hook
 
 
@@ -81,7 +87,7 @@ def test_python_hook_default_version(tempdir_factory, store):
     # make sure that this continues to work for platforms where default
     # language detection does not work
     with mock.patch.object(
-            python, 'get_default_version', return_value='default',
+            python, 'get_default_version', return_value=C.DEFAULT,
     ):
         test_python_hook(tempdir_factory, store)
 
@@ -278,7 +284,7 @@ def test_additional_rust_cli_dependencies_installed(
     config['hooks'][0]['additional_dependencies'] = [dep]
     hook = _get_hook(config, store, 'rust-hook')
     binaries = os.listdir(hook.prefix.path(
-        helpers.environment_dir(rust.ENVIRONMENT_DIR, 'default'), 'bin',
+        helpers.environment_dir(rust.ENVIRONMENT_DIR, C.DEFAULT), 'bin',
     ))
     # normalize for windows
     binaries = [os.path.splitext(binary)[0] for binary in binaries]
@@ -295,7 +301,7 @@ def test_additional_rust_lib_dependencies_installed(
     config['hooks'][0]['additional_dependencies'] = deps
     hook = _get_hook(config, store, 'rust-hook')
     binaries = os.listdir(hook.prefix.path(
-        helpers.environment_dir(rust.ENVIRONMENT_DIR, 'default'), 'bin',
+        helpers.environment_dir(rust.ENVIRONMENT_DIR, C.DEFAULT), 'bin',
     ))
     # normalize for windows
     binaries = [os.path.splitext(binary)[0] for binary in binaries]
@@ -494,7 +500,7 @@ def test_additional_golang_dependencies_installed(
     config['hooks'][0]['additional_dependencies'] = deps
     hook = _get_hook(config, store, 'golang-hook')
     binaries = os.listdir(hook.prefix.path(
-        helpers.environment_dir(golang.ENVIRONMENT_DIR, 'default'), 'bin',
+        helpers.environment_dir(golang.ENVIRONMENT_DIR, C.DEFAULT), 'bin',
     ))
     # normalize for windows
     binaries = [os.path.splitext(binary)[0] for binary in binaries]
@@ -588,7 +594,7 @@ def test_control_c_control_c_on_install(tempdir_factory, store):
     """Regression test for #186."""
     path = make_repo(tempdir_factory, 'python_hooks_repo')
     config = make_config_from_repo(path)
-    hooks = repository_hooks(config, store)
+    hooks = [_get_hook_no_install(config, store, 'foo')]
 
     class MyKeyboardInterrupt(KeyboardInterrupt):
         pass
@@ -686,20 +692,40 @@ def test_tags_on_repositories(in_tmpdir, tempdir_factory, store):
     assert ret2[1] == b'bar\nHello World\n'
 
 
-def test_local_python_repo(store):
+@pytest.fixture
+def local_python_config():
     # Make a "local" hooks repo that just installs our other hooks repo
     repo_path = get_resource_path('python_hooks_repo')
     manifest = load_manifest(os.path.join(repo_path, C.MANIFEST_FILE))
     hooks = [
         dict(hook, additional_dependencies=[repo_path]) for hook in manifest
     ]
-    config = {'repo': 'local', 'hooks': hooks}
-    hook = _get_hook(config, store, 'foo')
+    return {'repo': 'local', 'hooks': hooks}
+
+
+def test_local_python_repo(store, local_python_config):
+    hook = _get_hook(local_python_config, store, 'foo')
     # language_version should have been adjusted to the interpreter version
-    assert hook.language_version != 'default'
+    assert hook.language_version != C.DEFAULT
     ret = hook.run(('filename',))
     assert ret[0] == 0
     assert _norm_out(ret[1]) == b"['filename']\nHello World\n"
+
+
+def test_default_language_version(store, local_python_config):
+    config = {
+        'default_language_version': {'python': 'fake'},
+        'repos': [local_python_config],
+    }
+
+    # `language_version` was not set, should default
+    hook, = all_hooks(config, store)
+    assert hook.language_version == 'fake'
+
+    # `language_version` is set, should not default
+    config['repos'][0]['hooks'][0]['language_version'] = 'fake2'
+    hook, = all_hooks(config, store)
+    assert hook.language_version == 'fake2'
 
 
 def test_hook_id_not_present(tempdir_factory, store, fake_log_handler):
@@ -760,7 +786,7 @@ def test_manifest_hooks(tempdir_factory, store):
         files='',
         id='bash_hook',
         language='script',
-        language_version='default',
+        language_version=C.DEFAULT,
         log_file='',
         minimum_pre_commit_version='0',
         name='Bash hook',

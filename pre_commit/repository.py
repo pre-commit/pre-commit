@@ -8,10 +8,10 @@ import os
 
 import pre_commit.constants as C
 from pre_commit import five
-from pre_commit.clientlib import is_local_repo
-from pre_commit.clientlib import is_meta_repo
 from pre_commit.clientlib import load_manifest
+from pre_commit.clientlib import LOCAL
 from pre_commit.clientlib import MANIFEST_HOOK_DICT
+from pre_commit.clientlib import META
 from pre_commit.languages.all import languages
 from pre_commit.languages.helpers import environment_dir
 from pre_commit.prefix import Prefix
@@ -111,7 +111,9 @@ class Hook(collections.namedtuple('Hook', ('src', 'prefix') + _KEYS)):
         return cls(src=src, prefix=prefix, **{k: dct[k] for k in _KEYS})
 
 
-def _hook(*hook_dicts):
+def _hook(*hook_dicts, **kwargs):
+    root_config = kwargs.pop('root_config')
+    assert not kwargs, kwargs
     ret, rest = dict(hook_dicts[0]), hook_dicts[1:]
     for dct in rest:
         ret.update(dct)
@@ -127,14 +129,16 @@ def _hook(*hook_dicts):
         )
         exit(1)
 
-    if ret['language_version'] == 'default':
-        language = languages[ret['language']]
-        ret['language_version'] = language.get_default_version()
+    lang = ret['language']
+    if ret['language_version'] == C.DEFAULT:
+        ret['language_version'] = root_config['default_language_version'][lang]
+    if ret['language_version'] == C.DEFAULT:
+        ret['language_version'] = languages[lang].get_default_version()
 
     return ret
 
 
-def _non_cloned_repository_hooks(repo_config, store):
+def _non_cloned_repository_hooks(repo_config, store, root_config):
     def _prefix(language_name, deps):
         language = languages[language_name]
         # pcre / pygrep / script / system / docker_image do not have
@@ -148,13 +152,13 @@ def _non_cloned_repository_hooks(repo_config, store):
         Hook.create(
             repo_config['repo'],
             _prefix(hook['language'], hook['additional_dependencies']),
-            _hook(hook),
+            _hook(hook, root_config=root_config),
         )
         for hook in repo_config['hooks']
     )
 
 
-def _cloned_repository_hooks(repo_config, store):
+def _cloned_repository_hooks(repo_config, store, root_config):
     repo, rev = repo_config['repo'], repo_config['rev']
     manifest_path = os.path.join(store.clone(repo, rev), C.MANIFEST_FILE)
     by_id = {hook['id']: hook for hook in load_manifest(manifest_path)}
@@ -169,7 +173,10 @@ def _cloned_repository_hooks(repo_config, store):
             )
             exit(1)
 
-    hook_dcts = [_hook(by_id[h['id']], h) for h in repo_config['hooks']]
+    hook_dcts = [
+        _hook(by_id[hook['id']], hook, root_config=root_config)
+        for hook in repo_config['hooks']
+    ]
     return tuple(
         Hook.create(
             repo_config['repo'],
@@ -180,11 +187,11 @@ def _cloned_repository_hooks(repo_config, store):
     )
 
 
-def repository_hooks(repo_config, store):
-    if is_local_repo(repo_config) or is_meta_repo(repo_config):
-        return _non_cloned_repository_hooks(repo_config, store)
+def _repository_hooks(repo_config, store, root_config):
+    if repo_config['repo'] in {LOCAL, META}:
+        return _non_cloned_repository_hooks(repo_config, store, root_config)
     else:
-        return _cloned_repository_hooks(repo_config, store)
+        return _cloned_repository_hooks(repo_config, store, root_config)
 
 
 def install_hook_envs(hooks, store):
@@ -201,17 +208,13 @@ def install_hook_envs(hooks, store):
         return
     with store.exclusive_lock():
         # Another process may have already completed this work
-        need_installed = _need_installed()
-        if not need_installed:  # pragma: no cover (race)
-            return
-
-        for hook in need_installed:
+        for hook in _need_installed():
             hook.install()
 
 
-def all_hooks(config, store):
+def all_hooks(root_config, store):
     return tuple(
         hook
-        for repo in config['repos']
-        for hook in repository_hooks(repo, store)
+        for repo in root_config['repos']
+        for hook in _repository_hooks(repo, store, root_config)
     )

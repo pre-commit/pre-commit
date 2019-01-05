@@ -2,10 +2,10 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
+import concurrent.futures
 import sys
 import time
 
-import concurrent.futures
 import mock
 import pytest
 import six

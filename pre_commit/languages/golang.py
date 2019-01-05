@@ -4,6 +4,7 @@ import contextlib
 import os.path
 import sys
 
+import pre_commit.constants as C
 from pre_commit import git
 from pre_commit.envcontext import envcontext
 from pre_commit.envcontext import Var
@@ -27,7 +28,7 @@ def get_env_patch(venv):
 @contextlib.contextmanager
 def in_env(prefix):
     envdir = prefix.path(
-        helpers.environment_dir(ENVIRONMENT_DIR, 'default'),
+        helpers.environment_dir(ENVIRONMENT_DIR, C.DEFAULT),
     )
     with envcontext(get_env_patch(envdir)):
         yield
@@ -52,7 +53,7 @@ def guess_go_dir(remote_url):
 def install_environment(prefix, version, additional_dependencies):
     helpers.assert_version_default('golang', version)
     directory = prefix.path(
-        helpers.environment_dir(ENVIRONMENT_DIR, 'default'),
+        helpers.environment_dir(ENVIRONMENT_DIR, C.DEFAULT),
     )
 
     with clean_path_on_failure(directory):
