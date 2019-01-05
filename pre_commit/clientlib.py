@@ -3,6 +3,8 @@ from __future__ import unicode_literals
 
 import argparse
 import functools
+import pipes
+import sys
 
 import cfgv
 from aspy.yaml import ordered_load
@@ -88,8 +90,8 @@ def validate_manifest_main(argv=None):
     return ret
 
 
-_LOCAL_SENTINEL = 'local'
-_META_SENTINEL = 'meta'
+_LOCAL = 'local'
+_META = 'meta'
 
 
 class MigrateShaToRev(object):
@@ -98,12 +100,12 @@ class MigrateShaToRev(object):
         return cfgv.Conditional(
             key, cfgv.check_string,
             condition_key='repo',
-            condition_value=cfgv.NotIn(_LOCAL_SENTINEL, _META_SENTINEL),
+            condition_value=cfgv.NotIn(_LOCAL, _META),
             ensure_absent=True,
         )
 
     def check(self, dct):
-        if dct.get('repo') in {_LOCAL_SENTINEL, _META_SENTINEL}:
+        if dct.get('repo') in {_LOCAL, _META}:
             self._cond('rev').check(dct)
             self._cond('sha').check(dct)
         elif 'sha' in dct and 'rev' in dct:
@@ -121,6 +123,61 @@ class MigrateShaToRev(object):
         pass
 
 
+def _entry(modname):
+    """the hook `entry` is passed through `shlex.split()` by the command
+    runner, so to prevent issues with spaces and backslashes (on Windows)
+    it must be quoted here.
+    """
+    return '{} -m pre_commit.meta_hooks.{}'.format(
+        pipes.quote(sys.executable), modname,
+    )
+
+
+_meta = (
+    (
+        'check-hooks-apply', (
+            ('name', 'Check hooks apply to the repository'),
+            ('files', C.CONFIG_FILE),
+            ('entry', _entry('check_hooks_apply')),
+        ),
+    ),
+    (
+        'check-useless-excludes', (
+            ('name', 'Check for useless excludes'),
+            ('files', C.CONFIG_FILE),
+            ('entry', _entry('check_useless_excludes')),
+        ),
+    ),
+    (
+        'identity', (
+            ('name', 'identity'),
+            ('verbose', True),
+            ('entry', _entry('identity')),
+        ),
+    ),
+)
+
+META_HOOK_DICT = cfgv.Map(
+    'Hook', 'id',
+    *([
+        cfgv.Required('id', cfgv.check_string),
+        cfgv.Required('id', cfgv.check_one_of(tuple(k for k, _ in _meta))),
+        # language must be system
+        cfgv.Optional('language', cfgv.check_one_of({'system'}), 'system'),
+    ] + [
+        # default to the hook definition for the meta hooks
+        cfgv.ConditionalOptional(key, cfgv.check_any, value, 'id', hook_id)
+        for hook_id, values in _meta
+        for key, value in values
+    ] + [
+        # default to the "manifest" parsing
+        cfgv.OptionalNoDefault(item.key, item.check_fn)
+        # these will always be defaulted above
+        if item.key in {'name', 'language', 'entry'} else
+        item
+        for item in MANIFEST_HOOK_DICT.items
+    ])
+)
 CONFIG_HOOK_DICT = cfgv.Map(
     'Hook', 'id',
 
@@ -140,7 +197,19 @@ CONFIG_REPO_DICT = cfgv.Map(
     'Repository', 'repo',
 
     cfgv.Required('repo', cfgv.check_string),
-    cfgv.RequiredRecurse('hooks', cfgv.Array(CONFIG_HOOK_DICT)),
+
+    cfgv.ConditionalRecurse(
+        'hooks', cfgv.Array(CONFIG_HOOK_DICT),
+        'repo', cfgv.NotIn(_LOCAL, _META),
+    ),
+    cfgv.ConditionalRecurse(
+        'hooks', cfgv.Array(MANIFEST_HOOK_DICT),
+        'repo', _LOCAL,
+    ),
+    cfgv.ConditionalRecurse(
+        'hooks', cfgv.Array(META_HOOK_DICT),
+        'repo', _META,
+    ),
 
     MigrateShaToRev(),
 )
@@ -154,11 +223,11 @@ CONFIG_SCHEMA = cfgv.Map(
 
 
 def is_local_repo(repo_entry):
-    return repo_entry['repo'] == _LOCAL_SENTINEL
+    return repo_entry['repo'] == _LOCAL
 
 
 def is_meta_repo(repo_entry):
-    return repo_entry['repo'] == _META_SENTINEL
+    return repo_entry['repo'] == _META
 
 
 class InvalidConfigError(FatalError):

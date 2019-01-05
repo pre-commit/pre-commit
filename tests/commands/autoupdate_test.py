@@ -8,7 +8,6 @@ import pytest
 
 import pre_commit.constants as C
 from pre_commit import git
-from pre_commit.clientlib import load_config
 from pre_commit.commands.autoupdate import _update_repo
 from pre_commit.commands.autoupdate import autoupdate
 from pre_commit.commands.autoupdate import RepositoryCannotBeUpdatedError
@@ -17,6 +16,7 @@ from testing.auto_namedtuple import auto_namedtuple
 from testing.fixtures import add_config_to_repo
 from testing.fixtures import make_config_from_repo
 from testing.fixtures import make_repo
+from testing.fixtures import read_config
 from testing.fixtures import sample_local_config
 from testing.fixtures import write_config
 from testing.util import get_resource_path
@@ -319,7 +319,7 @@ def test_autoupdate_local_hooks(in_git_dir, store):
     config = sample_local_config()
     add_config_to_repo('.', config)
     assert autoupdate(C.CONFIG_FILE, store, tags_only=False) == 0
-    new_config_writen = load_config(C.CONFIG_FILE)
+    new_config_writen = read_config('.')
     assert len(new_config_writen['repos']) == 1
     assert new_config_writen['repos'][0] == config
 
@@ -334,7 +334,7 @@ def test_autoupdate_local_hooks_with_out_of_date_repo(
     config = {'repos': [local_config, stale_config]}
     write_config('.', config)
     assert autoupdate(C.CONFIG_FILE, store, tags_only=False) == 0
-    new_config_writen = load_config(C.CONFIG_FILE)
+    new_config_writen = read_config('.')
     assert len(new_config_writen['repos']) == 2
     assert new_config_writen['repos'][0] == local_config
 

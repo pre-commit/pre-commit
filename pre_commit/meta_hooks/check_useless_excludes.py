@@ -10,15 +10,6 @@ from pre_commit import git
 from pre_commit.clientlib import load_config
 from pre_commit.clientlib import MANIFEST_HOOK_DICT
 from pre_commit.commands.run import _filter_by_types
-from pre_commit.meta_hooks.helpers import make_meta_entry
-
-HOOK_DICT = {
-    'id': 'check-useless-excludes',
-    'name': 'Check for useless excludes',
-    'files': C.CONFIG_FILE,
-    'language': 'system',
-    'entry': make_meta_entry(__name__),
-}
 
 
 def exclude_matches_any(filenames, include, exclude):

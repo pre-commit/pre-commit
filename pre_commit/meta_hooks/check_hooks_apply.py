@@ -5,17 +5,8 @@ from pre_commit import git
 from pre_commit.clientlib import load_config
 from pre_commit.commands.run import _filter_by_include_exclude
 from pre_commit.commands.run import _filter_by_types
-from pre_commit.meta_hooks.helpers import make_meta_entry
 from pre_commit.repository import all_hooks
 from pre_commit.store import Store
-
-HOOK_DICT = {
-    'id': 'check-hooks-apply',
-    'name': 'Check hooks apply to the repository',
-    'files': C.CONFIG_FILE,
-    'language': 'system',
-    'entry': make_meta_entry(__name__),
-}
 
 
 def check_all_hooks_match_files(config_file):

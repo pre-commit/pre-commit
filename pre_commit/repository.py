@@ -6,9 +6,6 @@ import json
 import logging
 import os
 
-from cfgv import apply_defaults
-from cfgv import validate
-
 import pre_commit.constants as C
 from pre_commit import five
 from pre_commit.clientlib import is_local_repo
@@ -137,15 +134,8 @@ def _hook(*hook_dicts):
     return ret
 
 
-def _hook_from_manifest_dct(dct):
-    dct = apply_defaults(dct, MANIFEST_HOOK_DICT)
-    dct = validate(dct, MANIFEST_HOOK_DICT)
-    dct = _hook(dct)
-    return dct
-
-
-def _local_repository_hooks(repo_config, store):
-    def _local_prefix(language_name, deps):
+def _non_cloned_repository_hooks(repo_config, store):
+    def _prefix(language_name, deps):
         language = languages[language_name]
         # pcre / pygrep / script / system / docker_image do not have
         # environments so they work out of the current directory
@@ -154,45 +144,11 @@ def _local_repository_hooks(repo_config, store):
         else:
             return Prefix(store.make_local(deps))
 
-    hook_dcts = [_hook_from_manifest_dct(h) for h in repo_config['hooks']]
     return tuple(
         Hook.create(
             repo_config['repo'],
-            _local_prefix(hook['language'], hook['additional_dependencies']),
-            hook,
-        )
-        for hook in hook_dcts
-    )
-
-
-def _meta_repository_hooks(repo_config, store):
-    # imported here to prevent circular imports.
-    from pre_commit.meta_hooks import check_hooks_apply
-    from pre_commit.meta_hooks import check_useless_excludes
-    from pre_commit.meta_hooks import identity
-
-    meta_hooks = [
-        _hook_from_manifest_dct(mod.HOOK_DICT)
-        for mod in (check_hooks_apply, check_useless_excludes, identity)
-    ]
-    by_id = {hook['id']: hook for hook in meta_hooks}
-
-    for hook in repo_config['hooks']:
-        if hook['id'] not in by_id:
-            logger.error(
-                '`{}` is not a valid meta hook.  '
-                'Typo? Perhaps it is introduced in a newer version?  '
-                'Often `pip install --upgrade pre-commit` fixes this.'
-                .format(hook['id']),
-            )
-            exit(1)
-
-    prefix = Prefix(os.getcwd())
-    return tuple(
-        Hook.create(
-            repo_config['repo'],
-            prefix,
-            _hook(by_id[hook['id']], hook),
+            _prefix(hook['language'], hook['additional_dependencies']),
+            _hook(hook),
         )
         for hook in repo_config['hooks']
     )
@@ -225,10 +181,8 @@ def _cloned_repository_hooks(repo_config, store):
 
 
 def repository_hooks(repo_config, store):
-    if is_local_repo(repo_config):
-        return _local_repository_hooks(repo_config, store)
-    elif is_meta_repo(repo_config):
-        return _meta_repository_hooks(repo_config, store)
+    if is_local_repo(repo_config) or is_meta_repo(repo_config):
+        return _non_cloned_repository_hooks(repo_config, store)
     else:
         return _cloned_repository_hooks(repo_config, store)
 
