@@ -252,7 +252,7 @@ def run(config_file, store, args, environ=os.environ):
             hook
             for hook in all_hooks(config, store)
             if not args.hook or hook.id == args.hook or hook.alias == args.hook
-            if not hook.stages or args.hook_stage in hook.stages
+            if args.hook_stage in hook.stages
         ]
 
         if args.hook and not hooks:

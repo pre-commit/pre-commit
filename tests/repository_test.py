@@ -715,6 +715,7 @@ def test_local_python_repo(store, local_python_config):
 def test_default_language_version(store, local_python_config):
     config = {
         'default_language_version': {'python': 'fake'},
+        'default_stages': ['commit'],
         'repos': [local_python_config],
     }
 
@@ -726,6 +727,23 @@ def test_default_language_version(store, local_python_config):
     config['repos'][0]['hooks'][0]['language_version'] = 'fake2'
     hook, = all_hooks(config, store)
     assert hook.language_version == 'fake2'
+
+
+def test_default_stages(store, local_python_config):
+    config = {
+        'default_language_version': {'python': C.DEFAULT},
+        'default_stages': ['commit'],
+        'repos': [local_python_config],
+    }
+
+    # `stages` was not set, should default
+    hook, = all_hooks(config, store)
+    assert hook.stages == ['commit']
+
+    # `stages` is set, should not default
+    config['repos'][0]['hooks'][0]['stages'] = ['push']
+    hook, = all_hooks(config, store)
+    assert hook.stages == ['push']
 
 
 def test_hook_id_not_present(tempdir_factory, store, fake_log_handler):
@@ -786,13 +804,13 @@ def test_manifest_hooks(tempdir_factory, store):
         files='',
         id='bash_hook',
         language='script',
-        language_version=C.DEFAULT,
+        language_version='default',
         log_file='',
         minimum_pre_commit_version='0',
         name='Bash hook',
         pass_filenames=True,
         require_serial=False,
-        stages=[],
+        stages=('commit', 'commit-msg', 'manual', 'push'),
         types=['file'],
         verbose=False,
     )

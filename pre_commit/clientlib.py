@@ -224,6 +224,11 @@ CONFIG_SCHEMA = cfgv.Map(
     cfgv.OptionalRecurse(
         'default_language_version', DEFAULT_LANGUAGE_VERSION, {},
     ),
+    cfgv.Optional(
+        'default_stages',
+        cfgv.check_array(cfgv.check_one_of(C.STAGES)),
+        C.STAGES,
+    ),
     cfgv.Optional('exclude', cfgv.check_regex, '^$'),
     cfgv.Optional('fail_fast', cfgv.check_bool, False),
 )
