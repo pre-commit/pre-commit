@@ -135,6 +135,9 @@ def _hook(*hook_dicts, **kwargs):
     if ret['language_version'] == C.DEFAULT:
         ret['language_version'] = languages[lang].get_default_version()
 
+    if not ret['stages']:
+        ret['stages'] = root_config['default_stages']
+
     return ret
 
 
