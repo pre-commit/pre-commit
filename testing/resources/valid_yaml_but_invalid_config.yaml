@@ -1,5 +1,0 @@
--   repo: git@github.com:pre-commit/pre-commit-hooks
-    hooks:
-        -   id: pyflakes
-        -   id: jslint
-        -   id: trim_trailing_whitespace

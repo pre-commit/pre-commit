@@ -13,7 +13,6 @@ from pre_commit.clientlib import MigrateShaToRev
 from pre_commit.clientlib import validate_config_main
 from pre_commit.clientlib import validate_manifest_main
 from testing.fixtures import sample_local_config
-from testing.util import get_resource_path
 
 
 def is_valid_according_to_schema(obj, obj_schema):
@@ -28,19 +27,6 @@ def is_valid_according_to_schema(obj, obj_schema):
 def test_check_type_tag_failures(value):
     with pytest.raises(cfgv.ValidationError):
         check_type_tag(value)
-
-
-@pytest.mark.parametrize(
-    ('args', 'expected_output'),
-    (
-        (['.pre-commit-config.yaml'], 0),
-        (['non_existent_file.yaml'], 1),
-        ([get_resource_path('valid_yaml_but_invalid_config.yaml')], 1),
-        ([get_resource_path('non_parseable_yaml_file.notyaml')], 1),
-    ),
-)
-def test_validate_config_main(args, expected_output):
-    assert validate_config_main(args) == expected_output
 
 
 @pytest.mark.parametrize(
@@ -91,39 +77,13 @@ def test_config_valid(config_obj, expected):
 
 
 def test_local_hooks_with_rev_fails():
-    config_obj = {'repos': [sample_local_config()]}
-    config_obj['repos'][0]['rev'] = 'foo'
+    config_obj = {'repos': [dict(sample_local_config(), rev='foo')]}
     with pytest.raises(cfgv.ValidationError):
         cfgv.validate(config_obj, CONFIG_SCHEMA)
 
 
-@pytest.mark.parametrize(
-    'config_obj', (
-        {'repos': [{
-            'repo': 'local',
-            'hooks': [{
-                'id': 'arg-per-line',
-                'name': 'Args per line hook',
-                'entry': 'bin/hook.sh',
-                'language': 'script',
-                'files': '',
-                'args': ['hello', 'world'],
-            }],
-        }]},
-        {'repos': [{
-            'repo': 'local',
-            'hooks': [{
-                'id': 'arg-per-line',
-                'name': 'Args per line hook',
-                'entry': 'bin/hook.sh',
-                'language': 'script',
-                'files': '',
-                'args': ['hello', 'world'],
-            }],
-        }]},
-    ),
-)
-def test_config_with_local_hooks_definition_passes(config_obj):
+def test_config_with_local_hooks_definition_passes():
+    config_obj = {'repos': [sample_local_config()]}
     cfgv.validate(config_obj, CONFIG_SCHEMA)
 
 
@@ -135,17 +95,30 @@ def test_config_schema_does_not_contain_defaults():
         assert not isinstance(item, cfgv.Optional)
 
 
-@pytest.mark.parametrize(
-    ('args', 'expected_output'),
-    (
-        (['.pre-commit-hooks.yaml'], 0),
-        (['non_existent_file.yaml'], 1),
-        ([get_resource_path('valid_yaml_but_invalid_manifest.yaml')], 1),
-        ([get_resource_path('non_parseable_yaml_file.notyaml')], 1),
-    ),
-)
-def test_validate_manifest_main(args, expected_output):
-    assert validate_manifest_main(args) == expected_output
+def test_validate_manifest_main_ok():
+    assert not validate_manifest_main(('.pre-commit-hooks.yaml',))
+
+
+def test_validate_config_main_ok():
+    assert not validate_config_main(('.pre-commit-config.yaml',))
+
+
+def test_validate_config_old_list_format_ok(tmpdir):
+    f = tmpdir.join('cfg.yaml')
+    f.write('-  {repo: meta, hooks: [{id: identity}]}')
+    assert not validate_config_main((f.strpath,))
+
+
+@pytest.mark.parametrize('fn', (validate_config_main, validate_manifest_main))
+def test_mains_not_ok(tmpdir, fn):
+    not_yaml = tmpdir.join('f.notyaml')
+    not_yaml.write('{')
+    not_schema = tmpdir.join('notconfig.yaml')
+    not_schema.write('{}')
+
+    assert fn(('does-not-exist',))
+    assert fn((not_yaml.strpath,))
+    assert fn((not_schema.strpath,))
 
 
 @pytest.mark.parametrize(
@@ -174,8 +147,6 @@ def test_validate_manifest_main(args, expected_output):
         ),
         (
             # A regression in 0.13.5: always_run and files are permissible
-            # together (but meaningless).  In a future version upgrade this to
-            # an error
             [{
                 'id': 'a',
                 'name': 'b',

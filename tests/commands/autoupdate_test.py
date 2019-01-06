@@ -1,8 +1,6 @@
 from __future__ import unicode_literals
 
-import os.path
 import pipes
-import shutil
 
 import pytest
 
@@ -16,10 +14,10 @@ from testing.auto_namedtuple import auto_namedtuple
 from testing.fixtures import add_config_to_repo
 from testing.fixtures import make_config_from_repo
 from testing.fixtures import make_repo
+from testing.fixtures import modify_manifest
 from testing.fixtures import read_config
 from testing.fixtures import sample_local_config
 from testing.fixtures import write_config
-from testing.util import get_resource_path
 from testing.util import git_commit
 
 
@@ -275,12 +273,8 @@ def hook_disappearing_repo(tempdir_factory):
     path = make_repo(tempdir_factory, 'python_hooks_repo')
     original_rev = git.head_rev(path)
 
-    shutil.copy(
-        get_resource_path('manifest_without_foo.yaml'),
-        os.path.join(path, C.MANIFEST_FILE),
-    )
-    cmd_output('git', 'add', '.', cwd=path)
-    git_commit(cwd=path)
+    with modify_manifest(path) as manifest:
+        manifest[0]['id'] = 'bar'
 
     yield auto_namedtuple(path=path, original_rev=original_rev)
 
