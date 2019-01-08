@@ -6,9 +6,11 @@ import logging
 import os.path
 import time
 
+from pre_commit import git
 from pre_commit.util import CalledProcessError
 from pre_commit.util import cmd_output
 from pre_commit.util import mkdirp
+from pre_commit.xargs import xargs
 
 
 logger = logging.getLogger('pre_commit')
@@ -24,11 +26,22 @@ def _git_apply(patch):
 
 
 @contextlib.contextmanager
-def staged_files_only(patch_dir):
-    """Clear any unstaged changes from the git working directory inside this
-    context.
-    """
-    # Determine if there are unstaged files
+def _intent_to_add_cleared():
+    intent_to_add = git.intent_to_add_files()
+    if intent_to_add:
+        logger.warning('Unstaged intent-to-add files detected.')
+
+        xargs(('git', 'rm', '--cached', '--'), intent_to_add)
+        try:
+            yield
+        finally:
+            xargs(('git', 'add', '--intent-to-add', '--'), intent_to_add)
+    else:
+        yield
+
+
+@contextlib.contextmanager
+def _unstaged_changes_cleared(patch_dir):
     tree = cmd_output('git', 'write-tree')[1].strip()
     retcode, diff_stdout_binary, _ = cmd_output(
         'git', 'diff-index', '--ignore-submodules', '--binary',
@@ -70,4 +83,13 @@ def staged_files_only(patch_dir):
     else:
         # There weren't any staged files so we don't need to do anything
         # special
+        yield
+
+
+@contextlib.contextmanager
+def staged_files_only(patch_dir):
+    """Clear any unstaged changes from the git working directory inside this
+    context.
+    """
+    with _intent_to_add_cleared(), _unstaged_changes_cleared(patch_dir):
         yield

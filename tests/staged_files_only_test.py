@@ -9,6 +9,7 @@ import shutil
 
 import pytest
 
+from pre_commit import git
 from pre_commit.staged_files_only import staged_files_only
 from pre_commit.util import cmd_output
 from testing.auto_namedtuple import auto_namedtuple
@@ -339,3 +340,14 @@ def test_autocrlf_commited_crlf(in_git_dir, patch_dir):
 
     with staged_files_only(patch_dir):
         assert_no_diff()
+
+
+def test_intent_to_add(in_git_dir, patch_dir):
+    """Regression test for #881"""
+    _write(b'hello\nworld\n')
+    cmd_output('git', 'add', '--intent-to-add', 'foo')
+
+    assert git.intent_to_add_files() == ['foo']
+    with staged_files_only(patch_dir):
+        assert_no_diff()
+    assert git.intent_to_add_files() == ['foo']
