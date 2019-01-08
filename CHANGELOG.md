@@ -1,3 +1,61 @@
+1.14.0
+======
+
+### Features
+- Add an `alias` configuration value to allow repeated hooks to be
+  differentiated
+    - #882 issue by @s0undt3ch.
+    - #886 PR by @s0undt3ch.
+- Add `identity` meta hook which just prints filenames
+    - #865 issue by @asottile.
+    - #898 PR by @asottile.
+- Factor out `cached-property` and improve startup performance by ~10%
+    - #899 PR by @asottile.
+- Add a warning on unexpected keys in configuration
+    - #899 PR by @asottile.
+- Teach `pre-commit try-repo` to clone uncommitted changes on disk.
+    - #589 issue by @sverhagen.
+    - #703 issue by @asottile.
+    - #904 PR by @asottile.
+- Implement `pre-commit gc` which will clean up no-longer-referenced cache
+  repos.
+    - #283 issue by @jtwang.
+    - #906 PR by @asottile.
+- Add top level config `default_language_version` to streamline overriding the
+  `language_version` configuration in many places
+    - #647 issue by @asottile.
+    - #908 PR by @asottile.
+- Add top level config `default_stages` to streamline overriding the `stages`
+  configuration in many places
+    - #768 issue by @mattlqx.
+    - #909 PR by @asottile.
+
+### Fixes
+- More intelligently pick hook shebang (`#!/usr/bin/env python3`)
+    - #878 issue by @fristedt.
+    - #893 PR by @asottile.
+- Several fixes related to `--files` / `--config`:
+    - `pre-commit run --files x` outside of a git dir no longer stacktraces
+    - `pre-commit run --config ./relative` while in a sub directory of the git
+      repo is now able to find the configuration
+    - `pre-commit run --files ...` no longer runs a subprocess per file
+      (performance)
+    - #895 PR by @asottile.
+- `pre-commit try-repo ./relative` while in a sub directory of the git repo is
+  now able to clone properly
+    - #903 PR by @asottile.
+- Ensure `meta` repos cannot have a language other than `system`
+    - #905 issue by @asottile.
+    - #907 PR by @asottile.
+- Fix committing with unstaged files that were `git add --intent-to-add` added
+    - #881 issue by @henniss.
+    - #912 PR by @asottile.
+
+### Misc
+- Use `--no-gpg-sign` when running tests
+    - #894 PR by @s0undt3ch.
+
+
 1.13.0
 ======
 
