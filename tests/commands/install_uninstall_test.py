@@ -18,7 +18,6 @@ from pre_commit.commands.install_uninstall import is_our_script
 from pre_commit.commands.install_uninstall import PRIOR_HASHES
 from pre_commit.commands.install_uninstall import shebang
 from pre_commit.commands.install_uninstall import uninstall
-from pre_commit.languages import python
 from pre_commit.util import cmd_output
 from pre_commit.util import make_executable
 from pre_commit.util import mkdirp
@@ -51,17 +50,19 @@ def test_shebang_windows():
         assert shebang() == '#!/usr/bin/env python'
 
 
-def test_shebang_otherwise():
+def test_shebang_posix_not_on_path():
     with mock.patch.object(sys, 'platform', 'posix'):
-        assert C.DEFAULT not in shebang()
-
-
-def test_shebang_returns_default():
-    with mock.patch.object(sys, 'platform', 'posix'):
-        with mock.patch.object(
-            python, 'get_default_version', return_value=C.DEFAULT,
-        ):
+        with mock.patch.object(os, 'defpath', ''):
             assert shebang() == '#!/usr/bin/env python'
+
+
+def test_shebang_posix_on_path(tmpdir):
+    tmpdir.join('python{}'.format(sys.version_info[0])).ensure()
+
+    with mock.patch.object(sys, 'platform', 'posix'):
+        with mock.patch.object(os, 'defpath', tmpdir.strpath):
+            expected = '#!/usr/bin/env python{}'.format(sys.version_info[0])
+            assert shebang() == expected
 
 
 def test_install_pre_commit(in_git_dir, store):
