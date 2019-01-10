@@ -1,3 +1,11 @@
+1.14.1
+======
+
+### Fixes
+- Fix python executable lookup on windows when using conda
+    - #913 issue by @dawelter2.
+    - #914 PR by @asottile.
+
 1.14.0
 ======
 
