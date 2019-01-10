@@ -2,15 +2,14 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import io
+import itertools
 import logging
 import os.path
 import sys
 
-import pre_commit.constants as C
 from pre_commit import git
 from pre_commit import output
 from pre_commit.clientlib import load_config
-from pre_commit.languages import python
 from pre_commit.repository import all_hooks
 from pre_commit.repository import install_hook_envs
 from pre_commit.util import cmd_output
@@ -51,8 +50,19 @@ def shebang():
     if sys.platform == 'win32':
         py = 'python'
     else:
-        py = python.get_default_version()
-        if py == C.DEFAULT:
+        # Homebrew/homebrew-core#35825: be more timid about appropriate `PATH`
+        path_choices = [p for p in os.defpath.split(os.pathsep) if p]
+        exe_choices = [
+            'python{}'.format('.'.join(
+                str(v) for v in sys.version_info[:i]
+            ))
+            for i in range(3)
+        ]
+        for path, exe in itertools.product(path_choices, exe_choices):
+            if os.path.exists(os.path.join(path, exe)):
+                py = exe
+                break
+        else:
             py = 'python'
     return '#!/usr/bin/env {}'.format(py)
 
