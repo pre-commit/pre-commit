@@ -89,8 +89,26 @@ def get_default_version():
         return get_default_version()
 
 
+def _sys_executable_matches(version):
+    if version == 'python':
+        return True
+    elif not version.startswith('python'):
+        return False
+
+    try:
+        info = tuple(int(p) for p in version[len('python'):].split('.'))
+    except ValueError:
+        return False
+
+    return sys.version_info[:len(info)] == info
+
+
 def norm_version(version):
     if os.name == 'nt':  # pragma: no cover (windows)
+        # first see if our current executable is appropriate
+        if _sys_executable_matches(version):
+            return sys.executable
+
         # Try looking up by name
         version_exec = find_executable(version)
         if version_exec and version_exec != version:
