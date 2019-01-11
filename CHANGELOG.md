@@ -1,3 +1,11 @@
+1.14.2
+======
+
+### Fixes
+- Make the hook shebang detection more timid (1.14.0 regression)
+    - Homebrew/homebrew-core#35825.
+    - #915 PR by @asottile.
+
 1.14.1
 ======
 
