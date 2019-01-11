@@ -77,7 +77,7 @@
 
 ### Features
 - Run hooks in parallel
-    - individual hooks may opt out of parallel exection with `parallel: false`
+    - individual hooks may opt out of parallel exection with `require_serial: true`
     - #510 issue by @chriskuehl.
     - #851 PR by @chriskuehl.
 
@@ -103,7 +103,7 @@
     - #885 PR by @s0undt3ch.
 
 ### Updating
-- If a hook requires serial execution, set `parallel: false` to avoid the new
+- If a hook requires serial execution, set `require_serial: true` to avoid the new
   parallel execution.
 - `ruby` hooks now require `gem>=2.0.0`.  If your platform doesn't support this
   by default, select a newer version using
