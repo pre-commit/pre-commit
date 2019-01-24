@@ -3,24 +3,19 @@ import argparse
 import pre_commit.constants as C
 from pre_commit import git
 from pre_commit.clientlib import load_config
-from pre_commit.commands.run import _filter_by_include_exclude
-from pre_commit.commands.run import _filter_by_types
+from pre_commit.commands.run import Classifier
 from pre_commit.repository import all_hooks
 from pre_commit.store import Store
 
 
 def check_all_hooks_match_files(config_file):
-    files = git.get_all_files()
+    classifier = Classifier(git.get_all_files())
     retv = 0
 
     for hook in all_hooks(load_config(config_file), Store()):
         if hook.always_run or hook.language == 'fail':
             continue
-        include, exclude = hook.files, hook.exclude
-        filtered = _filter_by_include_exclude(files, include, exclude)
-        types, exclude_types = hook.types, hook.exclude_types
-        filtered = _filter_by_types(filtered, types, exclude_types)
-        if not filtered:
+        elif not classifier.filenames_for_hook(hook):
             print('{} does not apply to this repository'.format(hook.id))
             retv = 1
 

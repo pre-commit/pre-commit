@@ -17,14 +17,47 @@ from pre_commit.repository import all_hooks
 from pre_commit.repository import install_hook_envs
 from pre_commit.staged_files_only import staged_files_only
 from pre_commit.util import cmd_output
-from pre_commit.util import memoize_by_cwd
 from pre_commit.util import noop_context
 
 
 logger = logging.getLogger('pre_commit')
 
 
-tags_from_path = memoize_by_cwd(tags_from_path)
+def filter_by_include_exclude(names, include, exclude):
+    include_re, exclude_re = re.compile(include), re.compile(exclude)
+    return [
+        filename for filename in names
+        if include_re.search(filename)
+        if not exclude_re.search(filename)
+    ]
+
+
+class Classifier(object):
+    def __init__(self, filenames):
+        self.filenames = [f for f in filenames if os.path.lexists(f)]
+        self._types_cache = {}
+
+    def _types_for_file(self, filename):
+        try:
+            return self._types_cache[filename]
+        except KeyError:
+            ret = self._types_cache[filename] = tags_from_path(filename)
+            return ret
+
+    def by_types(self, names, types, exclude_types):
+        types, exclude_types = frozenset(types), frozenset(exclude_types)
+        ret = []
+        for filename in names:
+            tags = self._types_for_file(filename)
+            if tags >= types and not tags & exclude_types:
+                ret.append(filename)
+        return ret
+
+    def filenames_for_hook(self, hook):
+        names = self.filenames
+        names = filter_by_include_exclude(names, hook.files, hook.exclude)
+        names = self.by_types(names, hook.types, hook.exclude_types)
+        return names
 
 
 def _get_skips(environ):
@@ -36,37 +69,12 @@ def _hook_msg_start(hook, verbose):
     return '{}{}'.format('[{}] '.format(hook.id) if verbose else '', hook.name)
 
 
-def _filter_by_include_exclude(filenames, include, exclude):
-    include_re, exclude_re = re.compile(include), re.compile(exclude)
-    return [
-        filename for filename in filenames
-        if (
-            include_re.search(filename) and
-            not exclude_re.search(filename) and
-            os.path.lexists(filename)
-        )
-    ]
-
-
-def _filter_by_types(filenames, types, exclude_types):
-    types, exclude_types = frozenset(types), frozenset(exclude_types)
-    ret = []
-    for filename in filenames:
-        tags = tags_from_path(filename)
-        if tags >= types and not tags & exclude_types:
-            ret.append(filename)
-    return tuple(ret)
-
-
 SKIPPED = 'Skipped'
 NO_FILES = '(no files to check)'
 
 
-def _run_single_hook(filenames, hook, args, skips, cols):
-    include, exclude = hook.files, hook.exclude
-    filenames = _filter_by_include_exclude(filenames, include, exclude)
-    types, exclude_types = hook.types, hook.exclude_types
-    filenames = _filter_by_types(filenames, types, exclude_types)
+def _run_single_hook(classifier, hook, args, skips, cols):
+    filenames = classifier.filenames_for_hook(hook)
 
     if hook.language == 'pcre':
         logger.warning(
@@ -193,10 +201,11 @@ def _run_hooks(config, hooks, args, environ):
     skips = _get_skips(environ)
     cols = _compute_cols(hooks, args.verbose)
     filenames = _all_filenames(args)
-    filenames = _filter_by_include_exclude(filenames, '', config['exclude'])
+    filenames = filter_by_include_exclude(filenames, '', config['exclude'])
+    classifier = Classifier(filenames)
     retval = 0
     for hook in hooks:
-        retval |= _run_single_hook(filenames, hook, args, skips, cols)
+        retval |= _run_single_hook(classifier, hook, args, skips, cols)
         if retval and config['fail_fast']:
             break
     if retval and args.show_diff_on_failure and git.has_diff():

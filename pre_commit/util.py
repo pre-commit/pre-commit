@@ -2,7 +2,6 @@ from __future__ import unicode_literals
 
 import contextlib
 import errno
-import functools
 import os.path
 import shutil
 import stat
@@ -29,23 +28,6 @@ def mkdirp(path):
     except OSError:
         if not os.path.exists(path):
             raise
-
-
-def memoize_by_cwd(func):
-    """Memoize a function call based on os.getcwd()."""
-    @functools.wraps(func)
-    def wrapper(*args):
-        cwd = os.getcwd()
-        key = (cwd,) + args
-        try:
-            return wrapper._cache[key]
-        except KeyError:
-            ret = wrapper._cache[key] = func(*args)
-            return ret
-
-    wrapper._cache = {}
-
-    return wrapper
 
 
 @contextlib.contextmanager

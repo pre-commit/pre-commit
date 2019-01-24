@@ -1,17 +1,14 @@
 from __future__ import unicode_literals
 
 import os.path
-import random
 
 import pytest
 
 from pre_commit.util import CalledProcessError
 from pre_commit.util import clean_path_on_failure
 from pre_commit.util import cmd_output
-from pre_commit.util import memoize_by_cwd
 from pre_commit.util import parse_version
 from pre_commit.util import tmpdir
-from testing.util import cwd
 
 
 def test_CalledProcessError_str():
@@ -40,37 +37,6 @@ def test_CalledProcessError_str_nooutput():
         "Output: (none)\n"
         "Errors: (none)\n"
     )
-
-
-@pytest.fixture
-def memoized_by_cwd():
-    @memoize_by_cwd
-    def func(arg):
-        return arg + str(random.getrandbits(64))
-
-    return func
-
-
-def test_memoized_by_cwd_returns_same_twice_in_a_row(memoized_by_cwd):
-    ret = memoized_by_cwd('baz')
-    ret2 = memoized_by_cwd('baz')
-    assert ret is ret2
-
-
-def test_memoized_by_cwd_returns_different_for_different_args(memoized_by_cwd):
-    ret = memoized_by_cwd('baz')
-    ret2 = memoized_by_cwd('bar')
-    assert ret.startswith('baz')
-    assert ret2.startswith('bar')
-    assert ret != ret2
-
-
-def test_memoized_by_cwd_changes_with_different_cwd(memoized_by_cwd):
-    ret = memoized_by_cwd('baz')
-    with cwd('.git'):
-        ret2 = memoized_by_cwd('baz')
-
-    assert ret != ret2
 
 
 def test_clean_on_failure_noop(in_tmpdir):
