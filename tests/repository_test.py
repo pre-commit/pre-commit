@@ -14,6 +14,7 @@ from pre_commit import five
 from pre_commit import parse_shebang
 from pre_commit.clientlib import CONFIG_SCHEMA
 from pre_commit.clientlib import load_manifest
+from pre_commit.envcontext import envcontext
 from pre_commit.languages import golang
 from pre_commit.languages import helpers
 from pre_commit.languages import node
@@ -71,7 +72,7 @@ def _test_hook_repo(
     path = make_repo(tempdir_factory, repo_path)
     config = make_config_from_repo(path, **(config_kwargs or {}))
     ret = _get_hook(config, store, hook_id).run(args)
-    assert ret[0] == expected_return_code
+    assert ret[0] == expected_return_code, "output was: {}".format(ret[1])
     assert _norm_out(ret[1]) == expected
 
 
@@ -265,6 +266,16 @@ def test_golang_hook(tempdir_factory, store):
         tempdir_factory, store, 'golang_hooks_repo',
         'golang-hook', [], b'hello world\n',
     )
+
+
+def test_golang_hook_still_works_when_gobin_is_set(tempdir_factory, store):
+    gobin_dir = tempdir_factory.get()
+    with envcontext([('GOBIN', gobin_dir)]):
+        _test_hook_repo(
+            tempdir_factory, store, 'golang_hooks_repo',
+            'golang-hook', [], b'hello world\n',
+        )
+    assert os.listdir(gobin_dir) == [], "hook should not be installed in $GOBIN"
 
 
 def test_rust_hook(tempdir_factory, store):
