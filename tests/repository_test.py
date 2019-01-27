@@ -275,7 +275,7 @@ def test_golang_hook_still_works_when_gobin_is_set(tempdir_factory, store):
             tempdir_factory, store, 'golang_hooks_repo',
             'golang-hook', [], b'hello world\n',
         )
-    assert os.listdir(gobin_dir) == [], "hook should not be installed in $GOBIN"
+    assert os.listdir(gobin_dir) == [], "hook must not be installed in $GOBIN"
 
 
 def test_rust_hook(tempdir_factory, store):
