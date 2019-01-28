@@ -14,6 +14,7 @@ from pre_commit import five
 from pre_commit import parse_shebang
 from pre_commit.clientlib import CONFIG_SCHEMA
 from pre_commit.clientlib import load_manifest
+from pre_commit.envcontext import envcontext
 from pre_commit.languages import golang
 from pre_commit.languages import helpers
 from pre_commit.languages import node
@@ -265,6 +266,13 @@ def test_golang_hook(tempdir_factory, store):
         tempdir_factory, store, 'golang_hooks_repo',
         'golang-hook', [], b'hello world\n',
     )
+
+
+def test_golang_hook_still_works_when_gobin_is_set(tempdir_factory, store):
+    gobin_dir = tempdir_factory.get()
+    with envcontext([('GOBIN', gobin_dir)]):
+        test_golang_hook(tempdir_factory, store)
+    assert os.listdir(gobin_dir) == []
 
 
 def test_rust_hook(tempdir_factory, store):

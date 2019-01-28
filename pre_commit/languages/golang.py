@@ -69,6 +69,7 @@ def install_environment(prefix, version, additional_dependencies):
         else:
             gopath = directory
         env = dict(os.environ, GOPATH=gopath)
+        env.pop('GOBIN', None)
         cmd_output('go', 'get', './...', cwd=repo_src_dir, env=env)
         for dependency in additional_dependencies:
             cmd_output('go', 'get', dependency, cwd=repo_src_dir, env=env)
