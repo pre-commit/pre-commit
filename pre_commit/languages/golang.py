@@ -7,7 +7,6 @@ import sys
 import pre_commit.constants as C
 from pre_commit import git
 from pre_commit.envcontext import envcontext
-from pre_commit.envcontext import UNSET
 from pre_commit.envcontext import Var
 from pre_commit.languages import helpers
 from pre_commit.util import clean_path_on_failure
@@ -22,7 +21,6 @@ healthy = helpers.basic_healthy
 
 def get_env_patch(venv):
     return (
-        ('GOBIN', UNSET),
         ('PATH', (os.path.join(venv, 'bin'), os.pathsep, Var('PATH'))),
     )
 
