@@ -58,8 +58,8 @@ def partition(cmd, varargs, target_concurrency, _max_length=None):
 
         arg_length = _command_length(arg) + 1
         if (
-                total_length + arg_length <= _max_length
-                and len(ret_cmd) < max_args
+                total_length + arg_length <= _max_length and
+                len(ret_cmd) < max_args
         ):
             ret_cmd.append(arg)
             total_length += arg_length

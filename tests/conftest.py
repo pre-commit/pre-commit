@@ -29,9 +29,9 @@ def no_warnings(recwarn):
         message = str(warning.message)
         # ImportWarning: Not importing directory '...' missing __init__(.py)
         if not (
-            isinstance(warning.message, ImportWarning)
-            and message.startswith('Not importing directory ')
-            and ' missing __init__' in message
+            isinstance(warning.message, ImportWarning) and
+            message.startswith('Not importing directory ') and
+            ' missing __init__' in message
         ):
             warnings.append('{}:{} {}'.format(
                 warning.filename,
