@@ -22,9 +22,8 @@ def _migrate_map(contents):
     lines = contents.splitlines(True)
     i = 0
     # Only loop on non empty configuration file
-    if i < len(lines):
-        while _is_header_line(lines[i]):
-            i += 1
+    while i < len(lines) and _is_header_line(lines[i]):
+        i += 1
 
     header = ''.join(lines[:i])
     rest = ''.join(lines[i:])
