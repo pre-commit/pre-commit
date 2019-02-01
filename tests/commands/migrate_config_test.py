@@ -147,3 +147,12 @@ def test_migrate_config_sha_to_rev(tmpdir):
         '    rev: v1.2.0\n'
         '    hooks: []\n'
     )
+
+@pytest.mark.parametrize('contents', ('', '\n'))
+def test_empty_configuration_file_user_error(tmpdir, contents):
+    cfg = tmpdir.join(C.CONFIG_FILE)
+    cfg.write(contents)
+    with tmpdir.as_cwd():
+        assert not migrate_config(C.CONFIG_FILE)
+    # even though the config is invalid, this should be a noop
+    assert cfg.read() == contents
