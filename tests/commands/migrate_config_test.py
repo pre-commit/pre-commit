@@ -148,6 +148,7 @@ def test_migrate_config_sha_to_rev(tmpdir):
         '    hooks: []\n'
     )
 
+    
 @pytest.mark.parametrize('contents', ('', '\n'))
 def test_empty_configuration_file_user_error(tmpdir, contents):
     cfg = tmpdir.join(C.CONFIG_FILE)
