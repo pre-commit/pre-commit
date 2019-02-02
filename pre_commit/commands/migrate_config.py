@@ -21,7 +21,8 @@ def _migrate_map(contents):
     # Find the first non-header line
     lines = contents.splitlines(True)
     i = 0
-    while _is_header_line(lines[i]):
+    # Only loop on non empty configuration file
+    while i < len(lines) and _is_header_line(lines[i]):
         i += 1
 
     header = ''.join(lines[:i])
