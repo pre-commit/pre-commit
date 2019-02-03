@@ -38,8 +38,6 @@ setup(
         'aspy.yaml',
         'cfgv>=1.4.0',
         'identify>=1.0.0',
-        # if this makes it into python3.8 move to extras_require
-        'importlib-metadata',
         'nodeenv>=0.11.1',
         'pyyaml',
         'six',

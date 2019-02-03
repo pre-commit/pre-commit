@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-import importlib_metadata  # TODO: importlib.metadata py38?
+import pkg_resources
 
 CONFIG_FILE = '.pre-commit-config.yaml'
 MANIFEST_FILE = '.pre-commit-hooks.yaml'
@@ -18,7 +18,7 @@ INSTALLED_STATE_VERSION = '1'
 # Bump when modifying `empty_template`
 LOCAL_REPO_VERSION = '1'
 
-VERSION = importlib_metadata.version('pre_commit')
+VERSION = str(pkg_resources.get_distribution('pre-commit').parsed_version)
 
 # `manual` is not invoked by any installed git hook.  See #719
 STAGES = ('commit', 'commit-msg', 'manual', 'push')
