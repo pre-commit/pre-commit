@@ -44,7 +44,7 @@ setup(
         'pyyaml',
         'six',
         'toml',
-        'virtualenv',
+        'virtualenv>=15.2',
     ],
     extras_require={
         ':python_version<"3.2"': ['futures'],
