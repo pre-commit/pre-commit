@@ -1,3 +1,18 @@
+1.14.3
+======
+
+### Fixes
+- Improve performance of filename classification by 45% - 55%.
+    - #921 PR by @asottile.
+- Fix installing `go` hooks while `GOBIN` environment variable is set.
+    - #924 PR by @ashanbrown.
+- Fix crash while running `pre-commit migrate-config` / `pre-commit autoupdate`
+  with an empty configuration file.
+    - #929 issue by @ardakuyumcu.
+    - #933 PR by @jessebona.
+- Require a newer virtualenv to fix metadata-based setup.cfg installs.
+    - #936 PR by @asottile.
+
 1.14.2
 ======
 
