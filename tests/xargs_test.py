@@ -36,6 +36,13 @@ def linux_mock():
             yield
 
 
+@pytest.fixture
+def osx_mock():
+    with mock.patch.object(sys, 'getfilesystemencoding', return_value='utf-8'):
+        with mock.patch.object(sys, 'platform', 'darwin'):
+            yield
+
+
 def test_partition_trivial():
     assert xargs.partition(('cmd',), (), 1) == (('cmd',),)
 
@@ -86,6 +93,13 @@ def test_partition_limit_linux(linux_mock):
     varargs = ('😑' * 5,)
     ret = xargs.partition(cmd, varargs, 1, _max_length=30)
     assert ret == (cmd + varargs,)
+
+
+def test_partition_limit_osx(osx_mock):
+    cmd = ('ninechars',)
+    varargs = (('x' * 9,) * 26214)
+    ret = xargs.partition(cmd, varargs, 1)
+    assert ret == (cmd + varargs[0:26213], (cmd + varargs[26213:]))
 
 
 def test_argument_too_long_with_large_unicode(linux_mock):

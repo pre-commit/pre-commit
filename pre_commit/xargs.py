@@ -15,6 +15,8 @@ from pre_commit.util import cmd_output
 
 # TODO: properly compute max_length value
 def _get_platform_max_length():
+    if sys.platform == "darwin":
+        return 262144
     # posix minimum
     return 4 * 1024
 
