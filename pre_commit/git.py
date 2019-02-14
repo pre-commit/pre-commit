@@ -29,7 +29,8 @@ def no_git_env():
     # GIT_INDEX_FILE: Causes 'error invalid object ...' during commit
     return {
         k: v for k, v in os.environ.items()
-        if not k.startswith('GIT_') or k in {'GIT_SSH', 'GIT_SSH_COMMAND'}
+        if not k.startswith('GIT_') or
+        k in {'GIT_EXEC_PATH', 'GIT_SSH', 'GIT_SSH_COMMAND'}
     }
 
 
