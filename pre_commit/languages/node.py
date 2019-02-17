@@ -62,10 +62,11 @@ def install_environment(prefix, version, additional_dependencies):
             cmd.extend(['-n', version])
         cmd_output(*cmd)
 
+        dep = 'git+file://{}'.format(prefix.prefix_dir)
         with in_env(prefix, version):
             helpers.run_setup_cmd(
                 prefix,
-                ('npm', 'install', '-g', '.') + additional_dependencies,
+                ('npm', 'install', '-g', dep) + additional_dependencies,
             )
 
 
