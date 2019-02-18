@@ -1,3 +1,17 @@
+1.14.4
+======
+
+### Fixes
+- Don't filter `GIT_SSH_COMMAND` env variable from `git` commands
+    - #947 issue by @firba1.
+    - #948 PR by @firba1.
+- Install npm packages as if they were installed from `git`
+    - #943 issue by @ssbarnea.
+    - #949 PR by @asottile.
+- Don't filter `GIT_EXEC_PREFIX` env variable from `git` commands
+    - #664 issue by @revolter.
+    - #944 PR by @minrk.
+
 1.14.3
 ======
 
