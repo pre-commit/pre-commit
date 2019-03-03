@@ -10,6 +10,7 @@ import tempfile
 import pre_commit.constants as C
 from pre_commit import file_lock
 from pre_commit import git
+from pre_commit.util import CalledProcessError
 from pre_commit.util import clean_path_on_failure
 from pre_commit.util import cmd_output
 from pre_commit.util import resource_text
@@ -121,10 +122,7 @@ class Store(object):
                 return result
 
             logger.info('Initializing environment for {}.'.format(repo))
-
-            directory = tempfile.mkdtemp(prefix='repo', dir=self.directory)
-            with clean_path_on_failure(directory):
-                make_strategy(directory)
+            directory = make_strategy()
 
             # Update our db with the created repo
             with self.connect() as db:
@@ -134,19 +132,50 @@ class Store(object):
                 )
         return directory
 
+    def _perform_safe_clone(self, clone_strategy):
+        directory = tempfile.mkdtemp(prefix='repo', dir=self.directory)
+        with clean_path_on_failure(directory):
+            clone_strategy(directory)
+        return directory
+
+    def _complete_clone(self, repo, ref, directory):
+        """Perform a complete clone of a repository and its submodules """
+        env = git.no_git_env()
+
+        cmd = ('git', 'clone', '--no-checkout', repo, directory)
+        cmd_output(*cmd, env=env)
+
+        def _git_cmd(*args):
+            return cmd_output('git', *args, cwd=directory, env=env)
+
+        _git_cmd('reset', ref, '--hard')
+        _git_cmd('submodule', 'update', '--init', '--recursive')
+
+    def _shallow_clone(self, repo, ref, directory):
+        """Perform a shallow clone of a repository and its submodules """
+        env = git.no_git_env()
+
+        def _git_cmd(*args):
+            return cmd_output('git', *args, cwd=directory, env=env)
+
+        _git_cmd('init', '.')
+        _git_cmd('remote', 'add', 'origin', repo)
+        _git_cmd('fetch', 'origin', ref, '--depth=1')
+        _git_cmd('checkout', ref)
+        _git_cmd('submodule', 'update', '--init', '--recursive', '--depth=1')
+
     def clone(self, repo, ref, deps=()):
         """Clone the given url and checkout the specific ref."""
-        def clone_strategy(directory):
-            env = git.no_git_env()
 
-            cmd = ('git', 'clone', '--no-checkout', repo, directory)
-            cmd_output(*cmd, env=env)
-
-            def _git_cmd(*args):
-                return cmd_output('git', *args, cwd=directory, env=env)
-
-            _git_cmd('reset', ref, '--hard')
-            _git_cmd('submodule', 'update', '--init', '--recursive')
+        def clone_strategy():
+            try:
+                def shallow_clone(directory):
+                    self._shallow_clone(repo, ref, directory)
+                return self._perform_safe_clone(shallow_clone)
+            except CalledProcessError:
+                def complete_clone(directory):
+                    self._complete_clone(repo, ref, directory)
+                return self._perform_safe_clone(complete_clone)
 
         return self._new_repo(repo, ref, deps, clone_strategy)
 
@@ -173,8 +202,11 @@ class Store(object):
             _git_cmd('add', '.')
             git.commit(repo=directory)
 
+        def make_strategy():
+            return self._perform_safe_clone(make_local_strategy)
+
         return self._new_repo(
-            'local', C.LOCAL_REPO_VERSION, deps, make_local_strategy,
+            'local', C.LOCAL_REPO_VERSION, deps, make_strategy,
         )
 
     def _create_config_table_if_not_exists(self, db):

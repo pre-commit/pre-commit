@@ -142,3 +142,8 @@ def git_commit(*args, **kwargs):
     if msg is not None:  # allow skipping `-m` with `msg=None`
         cmd += ('-m', msg)
     return fn(*cmd, **kwargs)
+
+
+def git_ref_count(repo):
+    _, out, _ = cmd_output('git', 'rev-list', '--all', '--count', cwd=repo)
+    return int(out.split()[0])
