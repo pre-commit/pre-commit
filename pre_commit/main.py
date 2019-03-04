@@ -255,7 +255,8 @@ def main(argv=None):
         parser.parse_args(['--help'])
 
     with error_handler(), logging_handler(args.color):
-        _adjust_args_and_chdir(args)
+        if args.command not in {'clean', 'gc', 'sample-config'}:
+            _adjust_args_and_chdir(args)
 
         git.check_for_cygwin_mismatch()
 
