@@ -154,6 +154,9 @@ class Store(object):
     def clone(self, repo, ref, deps=()):
         """Clone the given url and checkout the specific ref."""
 
+        if os.path.isdir(repo):
+            repo = os.path.abspath(repo)
+
         def clone_strategy(directory):
             env = git.no_git_env()
 
