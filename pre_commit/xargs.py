@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 import concurrent.futures
 import contextlib
 import math
+import os
 import sys
 
 import six
@@ -13,10 +14,24 @@ from pre_commit import parse_shebang
 from pre_commit.util import cmd_output
 
 
-# TODO: properly compute max_length value
-def _get_platform_max_length():
-    # posix minimum
-    return 4 * 1024
+def _environ_size(_env=None):
+    environ = _env if _env is not None else getattr(os, 'environb', os.environ)
+    size = 8 * len(environ)  # number of pointers in `envp`
+    for k, v in environ.items():
+        size += len(k) + len(v) + 2  # c strings in `envp`
+    return size
+
+
+def _get_platform_max_length():  # pragma: no cover (platform specific)
+    if os.name == 'posix':
+        maximum = os.sysconf(str('SC_ARG_MAX')) - 2048 - _environ_size()
+        maximum = min(maximum, 2 ** 17)
+        return maximum
+    elif os.name == 'nt':
+        return 2 ** 15 - 2048  # UNICODE_STRING max - headroom
+    else:
+        # posix minimum
+        return 2 ** 12
 
 
 def _command_length(*cmd):
@@ -52,7 +67,7 @@ def partition(cmd, varargs, target_concurrency, _max_length=None):
     # Reversed so arguments are in order
     varargs = list(reversed(varargs))
 
-    total_length = _command_length(*cmd)
+    total_length = _command_length(*cmd) + 1
     while varargs:
         arg = varargs.pop()
 
@@ -69,7 +84,7 @@ def partition(cmd, varargs, target_concurrency, _max_length=None):
             # We've exceeded the length, yield a command
             ret.append(cmd + tuple(ret_cmd))
             ret_cmd = []
-            total_length = _command_length(*cmd)
+            total_length = _command_length(*cmd) + 1
             varargs.append(arg)
 
     ret.append(cmd + tuple(ret_cmd))
@@ -99,7 +114,7 @@ def xargs(cmd, varargs, **kwargs):
     stderr = b''
 
     try:
-        parse_shebang.normexe(cmd[0])
+        cmd = parse_shebang.normalize_cmd(cmd)
     except parse_shebang.ExecutableNotFoundError as e:
         return e.to_output()
 
