@@ -499,7 +499,7 @@ def test_stdout_write_bug_py26(repo_with_failing_hook, store, tempdir_factory):
 def test_lots_of_files(store, tempdir_factory):
     # windows xargs seems to have a bug, here's a regression test for
     # our workaround
-    git_path = make_consuming_repo(tempdir_factory, 'python_hooks_repo')
+    git_path = make_consuming_repo(tempdir_factory, 'script_hooks_repo')
     with cwd(git_path):
         # Override files so we run against them
         with modify_config() as config:
