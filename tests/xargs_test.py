@@ -10,7 +10,22 @@ import mock
 import pytest
 import six
 
+from pre_commit import parse_shebang
 from pre_commit import xargs
+
+
+@pytest.mark.parametrize(
+    ('env', 'expected'),
+    (
+        ({}, 0),
+        ({b'x': b'1'}, 12),
+        ({b'x': b'12'}, 13),
+        ({b'x': b'1', b'y': b'2'}, 24),
+    ),
+)
+def test_environ_size(env, expected):
+    # normalize integer sizing
+    assert xargs._environ_size(_env=env) == expected
 
 
 @pytest.fixture
@@ -56,7 +71,7 @@ def test_partition_limits():
             '.' * 6,
         ),
         1,
-        _max_length=20,
+        _max_length=21,
     )
     assert ret == (
         ('ninechars', '.' * 5, '.' * 4),
@@ -70,21 +85,21 @@ def test_partition_limit_win32_py3(win32_py3_mock):
     cmd = ('ninechars',)
     # counted as half because of utf-16 encode
     varargs = ('😑' * 5,)
-    ret = xargs.partition(cmd, varargs, 1, _max_length=20)
+    ret = xargs.partition(cmd, varargs, 1, _max_length=21)
     assert ret == (cmd + varargs,)
 
 
 def test_partition_limit_win32_py2(win32_py2_mock):
     cmd = ('ninechars',)
     varargs = ('😑' * 5,)  # 4 bytes * 5
-    ret = xargs.partition(cmd, varargs, 1, _max_length=30)
+    ret = xargs.partition(cmd, varargs, 1, _max_length=31)
     assert ret == (cmd + varargs,)
 
 
 def test_partition_limit_linux(linux_mock):
     cmd = ('ninechars',)
     varargs = ('😑' * 5,)
-    ret = xargs.partition(cmd, varargs, 1, _max_length=30)
+    ret = xargs.partition(cmd, varargs, 1, _max_length=31)
     assert ret == (cmd + varargs,)
 
 
@@ -134,9 +149,9 @@ def test_xargs_smoke():
     assert err == b''
 
 
-exit_cmd = ('bash', '-c', 'exit $1', '--')
+exit_cmd = parse_shebang.normalize_cmd(('bash', '-c', 'exit $1', '--'))
 # Abuse max_length to control the exit code
-max_length = len(' '.join(exit_cmd)) + 2
+max_length = len(' '.join(exit_cmd)) + 3
 
 
 def test_xargs_negate():
@@ -165,14 +180,14 @@ def test_xargs_retcode_normal():
 
 
 def test_xargs_concurrency():
-    bash_cmd = ('bash', '-c')
+    bash_cmd = parse_shebang.normalize_cmd(('bash', '-c'))
     print_pid = ('sleep 0.5 && echo $$',)
 
     start = time.time()
     ret, stdout, _ = xargs.xargs(
         bash_cmd, print_pid * 5,
         target_concurrency=5,
-        _max_length=len(' '.join(bash_cmd + print_pid)),
+        _max_length=len(' '.join(bash_cmd + print_pid)) + 1,
     )
     elapsed = time.time() - start
     assert ret == 0
