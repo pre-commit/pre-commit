@@ -16,7 +16,6 @@ from pre_commit.util import CalledProcessError
 from testing.fixtures import git_dir
 from testing.util import cwd
 from testing.util import git_commit
-from testing.util import git_ref_count
 
 
 def test_our_session_fixture_works():
@@ -83,7 +82,6 @@ def test_clone(store, tempdir_factory, log_info_mock):
     assert dirname.startswith('repo')
     # Should be checked out to the rev we specified
     assert git.head_rev(ret) == rev
-    assert git_ref_count(ret) == 1
 
     # Assert there's an entry in the sqlite db for this
     assert store.select_all_repos() == [(path, rev, ret)]
