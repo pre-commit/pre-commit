@@ -142,7 +142,7 @@ class Store(object):
         git_cmd('checkout', ref)
         git_cmd('submodule', 'update', '--init', '--recursive')
 
-    def _shallow_clone(self, ref, git_cmd):
+    def _shallow_clone(self, ref, git_cmd):  # pragma: windows no cover
         """Perform a shallow clone of a repository and its submodules """
 
         git_config = 'protocol.version=2'
