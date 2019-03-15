@@ -148,8 +148,10 @@ class Store(object):
         git_config = 'protocol.version={}'.format(protocol_version)
         git_cmd('-c', git_config, 'fetch', 'origin', ref, '--depth=1')
         git_cmd('checkout', ref)
-        git_cmd('-c', git_config, 'submodule', 'update', '--init',
-                '--recursive', '--depth=1')
+        git_cmd(
+            '-c', git_config, 'submodule', 'update', '--init',
+            '--recursive', '--depth=1',
+        )
 
     def clone(self, repo, ref, deps=()):
         """Clone the given url and checkout the specific ref."""
