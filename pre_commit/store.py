@@ -142,10 +142,10 @@ class Store(object):
         git_cmd('checkout', ref)
         git_cmd('submodule', 'update', '--init', '--recursive')
 
-    def _shallow_clone(self, ref, protocol_version, git_cmd):
+    def _shallow_clone(self, ref, git_cmd):
         """Perform a shallow clone of a repository and its submodules """
 
-        git_config = 'protocol.version={}'.format(protocol_version)
+        git_config = 'protocol.version=2'
         git_cmd('-c', git_config, 'fetch', 'origin', ref, '--depth=1')
         git_cmd('checkout', ref)
         git_cmd(
@@ -169,12 +169,9 @@ class Store(object):
             _git_cmd('remote', 'add', 'origin', repo)
 
             try:
-                self._shallow_clone(ref, 2, _git_cmd)
+                self._shallow_clone(ref, _git_cmd)
             except CalledProcessError:
-                try:
-                    self._shallow_clone(ref, 1, _git_cmd)
-                except CalledProcessError:
-                    self._complete_clone(ref, _git_cmd)
+                self._complete_clone(ref, _git_cmd)
 
         return self._new_repo(repo, ref, deps, clone_strategy)
 
