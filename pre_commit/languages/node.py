@@ -62,11 +62,13 @@ def install_environment(prefix, version, additional_dependencies):
             cmd.extend(['-n', version])
         cmd_output(*cmd)
 
-        dep = 'git+file:///{}'.format(prefix.prefix_dir)
         with in_env(prefix, version):
+            # https://npm.community/t/npm-install-g-git-vs-git-clone-cd-npm-install-g/5449
+            # install as if we installed from git
+            helpers.run_setup_cmd(prefix, ('npm', 'install'))
             helpers.run_setup_cmd(
                 prefix,
-                ('npm', 'install', '-g', dep) + additional_dependencies,
+                ('npm', 'install', '-g', '.') + additional_dependencies,
             )
 
 

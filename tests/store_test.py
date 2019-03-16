@@ -12,6 +12,7 @@ import six
 from pre_commit import git
 from pre_commit.store import _get_default_directory
 from pre_commit.store import Store
+from pre_commit.util import CalledProcessError
 from testing.fixtures import git_dir
 from testing.util import cwd
 from testing.util import git_commit
@@ -109,6 +110,41 @@ def test_clone_when_repo_already_exists(store):
         )
 
     assert store.clone('fake_repo', 'fake_ref') == 'fake_path'
+
+
+def test_clone_shallow_failure_fallback_to_complete(
+    store, tempdir_factory,
+    log_info_mock,
+):
+    path = git_dir(tempdir_factory)
+    with cwd(path):
+        git_commit()
+        rev = git.head_rev(path)
+        git_commit()
+
+    # Force shallow clone failure
+    def fake_shallow_clone(self, *args, **kwargs):
+        raise CalledProcessError(None, None, None)
+    store._shallow_clone = fake_shallow_clone
+
+    ret = store.clone(path, rev)
+
+    # Should have printed some stuff
+    assert log_info_mock.call_args_list[0][0][0].startswith(
+        'Initializing environment for ',
+    )
+
+    # Should return a directory inside of the store
+    assert os.path.exists(ret)
+    assert ret.startswith(store.directory)
+    # Directory should start with `repo`
+    _, dirname = os.path.split(ret)
+    assert dirname.startswith('repo')
+    # Should be checked out to the rev we specified
+    assert git.head_rev(ret) == rev
+
+    # Assert there's an entry in the sqlite db for this
+    assert store.select_all_repos() == [(path, rev, ret)]
 
 
 def test_create_when_directory_exists_but_not_db(store):

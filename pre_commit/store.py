@@ -10,6 +10,7 @@ import tempfile
 import pre_commit.constants as C
 from pre_commit import file_lock
 from pre_commit import git
+from pre_commit.util import CalledProcessError
 from pre_commit.util import clean_path_on_failure
 from pre_commit.util import cmd_output
 from pre_commit.util import resource_text
@@ -134,19 +135,43 @@ class Store(object):
                 )
         return directory
 
+    def _complete_clone(self, ref, git_cmd):
+        """Perform a complete clone of a repository and its submodules """
+
+        git_cmd('fetch', 'origin')
+        git_cmd('checkout', ref)
+        git_cmd('submodule', 'update', '--init', '--recursive')
+
+    def _shallow_clone(self, ref, git_cmd):  # pragma: windows no cover
+        """Perform a shallow clone of a repository and its submodules """
+
+        git_config = 'protocol.version=2'
+        git_cmd('-c', git_config, 'fetch', 'origin', ref, '--depth=1')
+        git_cmd('checkout', ref)
+        git_cmd(
+            '-c', git_config, 'submodule', 'update', '--init',
+            '--recursive', '--depth=1',
+        )
+
     def clone(self, repo, ref, deps=()):
         """Clone the given url and checkout the specific ref."""
+
+        if os.path.isdir(repo):
+            repo = os.path.abspath(repo)
+
         def clone_strategy(directory):
             env = git.no_git_env()
 
-            cmd = ('git', 'clone', '--no-checkout', repo, directory)
-            cmd_output(*cmd, env=env)
-
             def _git_cmd(*args):
-                return cmd_output('git', *args, cwd=directory, env=env)
+                cmd_output('git', *args, cwd=directory, env=env)
 
-            _git_cmd('reset', ref, '--hard')
-            _git_cmd('submodule', 'update', '--init', '--recursive')
+            _git_cmd('init', '.')
+            _git_cmd('remote', 'add', 'origin', repo)
+
+            try:
+                self._shallow_clone(ref, _git_cmd)
+            except CalledProcessError:
+                self._complete_clone(ref, _git_cmd)
 
         return self._new_repo(repo, ref, deps, clone_strategy)
 
