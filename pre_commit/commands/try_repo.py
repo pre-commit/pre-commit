@@ -32,9 +32,15 @@ def _repo_ref(tmpdir, repo, ref):
         shadow = os.path.join(tmpdir, 'shadow-repo')
         cmd_output('git', 'clone', repo, shadow)
         cmd_output('git', 'checkout', ref, '-b', '_pc_tmp', cwd=shadow)
+
         idx = git.git_path('index', repo=shadow)
         objs = git.git_path('objects', repo=shadow)
         env = dict(os.environ, GIT_INDEX_FILE=idx, GIT_OBJECT_DIRECTORY=objs)
+
+        staged_files = git.get_staged_files(cwd=repo)
+        if (len(staged_files) > 0):
+            cmd_output('git', 'add', *staged_files, cwd=repo, env=env)
+
         cmd_output('git', 'add', '-u', cwd=repo, env=env)
         git.commit(repo=shadow)
 
