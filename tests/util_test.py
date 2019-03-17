@@ -17,12 +17,12 @@ def test_CalledProcessError_str():
     )
     assert str(error) == (
         "Command: ['git', 'status']\n"
-        "Return code: 1\n"
-        "Expected return code: 0\n"
-        "Output: \n"
-        "    stdout\n"
-        "Errors: \n"
-        "    stderr\n"
+        'Return code: 1\n'
+        'Expected return code: 0\n'
+        'Output: \n'
+        '    stdout\n'
+        'Errors: \n'
+        '    stderr\n'
     )
 
 
@@ -32,10 +32,10 @@ def test_CalledProcessError_str_nooutput():
     )
     assert str(error) == (
         "Command: ['git', 'status']\n"
-        "Return code: 1\n"
-        "Expected return code: 0\n"
-        "Output: (none)\n"
-        "Errors: (none)\n"
+        'Return code: 1\n'
+        'Expected return code: 0\n'
+        'Output: (none)\n'
+        'Errors: (none)\n'
     )
 
 

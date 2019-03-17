@@ -40,7 +40,7 @@ def test_useless_exclude_for_hook(capsys, in_git_dir):
     out = out.strip()
     expected = (
         "The exclude pattern 'foo' for check-useless-excludes "
-        "does not match any files"
+        'does not match any files'
     )
     assert expected == out
 
@@ -69,7 +69,7 @@ def test_useless_exclude_with_types_filter(capsys, in_git_dir):
     out = out.strip()
     expected = (
         "The exclude pattern '.pre-commit-config.yaml' for "
-        "check-useless-excludes does not match any files"
+        'check-useless-excludes does not match any files'
     )
     assert expected == out
 
