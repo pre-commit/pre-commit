@@ -528,7 +528,7 @@ def test_local_golang_additional_dependencies(store):
     }
     ret = _get_hook(config, store, 'hello').run(())
     assert ret[0] == 0
-    assert _norm_out(ret[1]) == b"Hello, Go examples!\n"
+    assert _norm_out(ret[1]) == b'Hello, Go examples!\n'
 
 
 def test_local_rust_additional_dependencies(store):
@@ -544,7 +544,7 @@ def test_local_rust_additional_dependencies(store):
     }
     ret = _get_hook(config, store, 'hello').run(())
     assert ret[0] == 0
-    assert _norm_out(ret[1]) == b"Hello World!\n"
+    assert _norm_out(ret[1]) == b'Hello World!\n'
 
 
 def test_fail_hooks(store):

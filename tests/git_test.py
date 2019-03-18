@@ -173,3 +173,20 @@ def test_status_output_with_rename(in_git_dir):
     cmd_output('git', 'add', '--intent-to-add', 'c')
 
     assert git.intent_to_add_files() == ['c']
+
+
+def test_no_git_env():
+    env = {
+        'http_proxy': 'http://myproxy:80',
+        'GIT_EXEC_PATH': '/some/git/exec/path',
+        'GIT_SSH': '/usr/bin/ssh',
+        'GIT_SSH_COMMAND': 'ssh -o',
+        'GIT_DIR': '/none/shall/pass',
+    }
+    no_git_env = git.no_git_env(env)
+    assert no_git_env == {
+        'http_proxy': 'http://myproxy:80',
+        'GIT_EXEC_PATH': '/some/git/exec/path',
+        'GIT_SSH': '/usr/bin/ssh',
+        'GIT_SSH_COMMAND': 'ssh -o',
+    }

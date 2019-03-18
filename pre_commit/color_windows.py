@@ -20,18 +20,18 @@ def bool_errcheck(result, func, args):
 
 
 GetStdHandle = WINFUNCTYPE(HANDLE, DWORD)(
-    ("GetStdHandle", windll.kernel32), ((1, "nStdHandle"),),
+    ('GetStdHandle', windll.kernel32), ((1, 'nStdHandle'),),
 )
 
 GetConsoleMode = WINFUNCTYPE(BOOL, HANDLE, POINTER(DWORD))(
-    ("GetConsoleMode", windll.kernel32),
-    ((1, "hConsoleHandle"), (2, "lpMode")),
+    ('GetConsoleMode', windll.kernel32),
+    ((1, 'hConsoleHandle'), (2, 'lpMode')),
 )
 GetConsoleMode.errcheck = bool_errcheck
 
 SetConsoleMode = WINFUNCTYPE(BOOL, HANDLE, DWORD)(
-    ("SetConsoleMode", windll.kernel32),
-    ((1, "hConsoleHandle"), (1, "dwMode")),
+    ('SetConsoleMode', windll.kernel32),
+    ((1, 'hConsoleHandle'), (1, 'dwMode')),
 )
 SetConsoleMode.errcheck = bool_errcheck
 
