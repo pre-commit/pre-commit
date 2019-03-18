@@ -38,7 +38,7 @@ def _repo_ref(tmpdir, repo, ref):
         env = dict(os.environ, GIT_INDEX_FILE=idx, GIT_OBJECT_DIRECTORY=objs)
 
         staged_files = git.get_staged_files(cwd=repo)
-        if (len(staged_files) > 0):
+        if staged_files:
             cmd_output('git', 'add', *staged_files, cwd=repo, env=env)
 
         cmd_output('git', 'add', '-u', cwd=repo, env=env)
