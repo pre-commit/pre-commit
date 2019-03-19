@@ -109,6 +109,7 @@ def xargs(cmd, varargs, **kwargs):
     """
     negate = kwargs.pop('negate', False)
     target_concurrency = kwargs.pop('target_concurrency', 1)
+    max_length = kwargs.pop('_max_length', _get_platform_max_length())
     retcode = 0
     stdout = b''
     stderr = b''
@@ -118,10 +119,10 @@ def xargs(cmd, varargs, **kwargs):
     except parse_shebang.ExecutableNotFoundError as e:
         return e.to_output()
 
-    partitions = partition(cmd, varargs, target_concurrency, **kwargs)
+    partitions = partition(cmd, varargs, target_concurrency, max_length)
 
     def run_cmd_partition(run_cmd):
-        return cmd_output(*run_cmd, encoding=None, retcode=None)
+        return cmd_output(*run_cmd, encoding=None, retcode=None, **kwargs)
 
     threads = min(len(partitions), target_concurrency)
     with _thread_mapper(threads) as thread_map:

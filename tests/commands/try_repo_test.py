@@ -123,3 +123,15 @@ def test_try_repo_uncommitted_changes(cap_out, tempdir_factory):
         config,
     )
     assert rest == 'modified name!...........................................................Passed\n'  # noqa: E501
+
+
+def test_try_repo_staged_changes(tempdir_factory):
+    repo = make_repo(tempdir_factory, 'modified_file_returns_zero_repo')
+
+    with cwd(repo):
+        open('staged-file', 'a').close()
+        open('second-staged-file', 'a').close()
+        cmd_output('git', 'add', '.')
+
+    with cwd(git_dir(tempdir_factory)):
+        assert not try_repo(try_repo_opts(repo, hook='bash_hook'))

@@ -91,11 +91,12 @@ def get_conflicted_files():
     return set(merge_conflict_filenames) | set(merge_diff_filenames)
 
 
-def get_staged_files():
+def get_staged_files(cwd=None):
     return zsplit(cmd_output(
         'git', 'diff', '--staged', '--name-only', '--no-ext-diff', '-z',
         # Everything except for D
         '--diff-filter=ACMRTUXB',
+        cwd=cwd,
     )[1])
 
 
