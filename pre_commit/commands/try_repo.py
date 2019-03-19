@@ -15,6 +15,7 @@ from pre_commit.commands.run import run
 from pre_commit.store import Store
 from pre_commit.util import cmd_output
 from pre_commit.util import tmpdir
+from pre_commit.xargs import xargs
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +40,7 @@ def _repo_ref(tmpdir, repo, ref):
 
         staged_files = git.get_staged_files(cwd=repo)
         if staged_files:
-            cmd_output('git', 'add', *staged_files, cwd=repo, env=env)
+            xargs(('git', 'add', '--'), staged_files, cwd=repo, env=env)
 
         cmd_output('git', 'add', '-u', cwd=repo, env=env)
         git.commit(repo=shadow)
