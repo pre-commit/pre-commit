@@ -208,3 +208,13 @@ def test_thread_mapper_concurrency_uses_threadpoolexecutor_map():
 def test_thread_mapper_concurrency_uses_regular_map():
     with xargs._thread_mapper(1) as thread_map:
         assert thread_map is map
+
+
+def test_xargs_propagate_kwargs_to_cmd():
+    env = {'PRE_COMMIT_TEST_VAR': 'Pre commit is awesome'}
+    cmd = ('bash', '-c', 'echo $PRE_COMMIT_TEST_VAR', '--')
+    cmd = parse_shebang.normalize_cmd(cmd)
+
+    ret, stdout, _ = xargs.xargs(cmd, ('1',), env=env)
+    assert ret == 0
+    assert b'Pre commit is awesome' in stdout
