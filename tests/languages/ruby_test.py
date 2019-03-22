@@ -22,9 +22,9 @@ def test_install_rbenv(tempdir_factory):
     # Should be able to activate using our script and access rbenv
     cmd_output(
         'bash', '-c',
-        '. {} && rbenv --help'.format(pipes.quote(prefix.path(
-            'rbenv-default', 'bin', 'activate',
-        ))),
+        '. {} && rbenv --help'.format(
+            pipes.quote(prefix.path('rbenv-default', 'bin', 'activate')),
+        ),
     )
 
 
@@ -36,7 +36,7 @@ def test_install_rbenv_with_version(tempdir_factory):
     # Should be able to activate and use rbenv install
     cmd_output(
         'bash', '-c',
-        '. {} && rbenv install --help'.format(pipes.quote(prefix.path(
-            'rbenv-1.9.3p547', 'bin', 'activate',
-        ))),
+        '. {} && rbenv install --help'.format(
+            pipes.quote(prefix.path('rbenv-1.9.3p547', 'bin', 'activate')),
+        ),
     )

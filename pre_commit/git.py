@@ -84,20 +84,24 @@ def get_conflicted_files():
     # If they resolved the merge conflict by choosing a mesh of both sides
     # this will also include the conflicted files
     tree_hash = cmd_output('git', 'write-tree')[1].strip()
-    merge_diff_filenames = zsplit(cmd_output(
-        'git', 'diff', '--name-only', '--no-ext-diff', '-z',
-        '-m', tree_hash, 'HEAD', 'MERGE_HEAD',
-    )[1])
+    merge_diff_filenames = zsplit(
+        cmd_output(
+            'git', 'diff', '--name-only', '--no-ext-diff', '-z',
+            '-m', tree_hash, 'HEAD', 'MERGE_HEAD',
+        )[1],
+    )
     return set(merge_conflict_filenames) | set(merge_diff_filenames)
 
 
 def get_staged_files(cwd=None):
-    return zsplit(cmd_output(
-        'git', 'diff', '--staged', '--name-only', '--no-ext-diff', '-z',
-        # Everything except for D
-        '--diff-filter=ACMRTUXB',
-        cwd=cwd,
-    )[1])
+    return zsplit(
+        cmd_output(
+            'git', 'diff', '--staged', '--name-only', '--no-ext-diff', '-z',
+            # Everything except for D
+            '--diff-filter=ACMRTUXB',
+            cwd=cwd,
+        )[1],
+    )
 
 
 def intent_to_add_files():
@@ -119,10 +123,12 @@ def get_all_files():
 
 
 def get_changed_files(new, old):
-    return zsplit(cmd_output(
-        'git', 'diff', '--name-only', '--no-ext-diff', '-z',
-        '{}...{}'.format(old, new),
-    )[1])
+    return zsplit(
+        cmd_output(
+            'git', 'diff', '--name-only', '--no-ext-diff', '-z',
+            '{}...{}'.format(old, new),
+        )[1],
+    )
 
 
 def head_rev(remote):

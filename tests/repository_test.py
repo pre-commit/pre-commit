@@ -291,9 +291,11 @@ def test_additional_rust_cli_dependencies_installed(
     # A small rust package with no dependencies.
     config['hooks'][0]['additional_dependencies'] = [dep]
     hook = _get_hook(config, store, 'rust-hook')
-    binaries = os.listdir(hook.prefix.path(
-        helpers.environment_dir(rust.ENVIRONMENT_DIR, C.DEFAULT), 'bin',
-    ))
+    binaries = os.listdir(
+        hook.prefix.path(
+            helpers.environment_dir(rust.ENVIRONMENT_DIR, C.DEFAULT), 'bin',
+        ),
+    )
     # normalize for windows
     binaries = [os.path.splitext(binary)[0] for binary in binaries]
     assert 'shellharden' in binaries
@@ -308,9 +310,11 @@ def test_additional_rust_lib_dependencies_installed(
     deps = ['shellharden:3.1.0']
     config['hooks'][0]['additional_dependencies'] = deps
     hook = _get_hook(config, store, 'rust-hook')
-    binaries = os.listdir(hook.prefix.path(
-        helpers.environment_dir(rust.ENVIRONMENT_DIR, C.DEFAULT), 'bin',
-    ))
+    binaries = os.listdir(
+        hook.prefix.path(
+            helpers.environment_dir(rust.ENVIRONMENT_DIR, C.DEFAULT), 'bin',
+        ),
+    )
     # normalize for windows
     binaries = [os.path.splitext(binary)[0] for binary in binaries]
     assert 'rust-hello-world' in binaries
@@ -507,9 +511,11 @@ def test_additional_golang_dependencies_installed(
     deps = ['github.com/golang/example/hello']
     config['hooks'][0]['additional_dependencies'] = deps
     hook = _get_hook(config, store, 'golang-hook')
-    binaries = os.listdir(hook.prefix.path(
-        helpers.environment_dir(golang.ENVIRONMENT_DIR, C.DEFAULT), 'bin',
-    ))
+    binaries = os.listdir(
+        hook.prefix.path(
+            helpers.environment_dir(golang.ENVIRONMENT_DIR, C.DEFAULT), 'bin',
+        ),
+    )
     # normalize for windows
     binaries = [os.path.splitext(binary)[0] for binary in binaries]
     assert 'hello' in binaries
