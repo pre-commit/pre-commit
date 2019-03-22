@@ -66,9 +66,9 @@ def test_find_executable_path_ext(in_tmpdir):
     """Windows exports PATHEXT as a list of extensions to automatically add
     to executables when doing PATH searching.
     """
-    exe_path = os.path.abspath(write_executable(
-        '/usr/bin/env sh', filename='run.myext',
-    ))
+    exe_path = os.path.abspath(
+        write_executable('/usr/bin/env sh', filename='run.myext'),
+    )
     env_path = {'PATH': os.path.dirname(exe_path)}
     env_path_ext = dict(env_path, PATHEXT=os.pathsep.join(('.exe', '.myext')))
     assert parse_shebang.find_executable('run') is None

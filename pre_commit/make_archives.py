@@ -58,9 +58,9 @@ def main(argv=None):
     parser.add_argument('--dest', default='pre_commit/resources')
     args = parser.parse_args(argv)
     for archive_name, repo, ref in REPOS:
-        output.write_line('Making {}.tar.gz for {}@{}'.format(
-            archive_name, repo, ref,
-        ))
+        output.write_line(
+            'Making {}.tar.gz for {}@{}'.format(archive_name, repo, ref),
+        )
         make_archive(archive_name, repo, ref, args.dest)
 
 

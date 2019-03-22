@@ -53,9 +53,7 @@ def shebang():
         # Homebrew/homebrew-core#35825: be more timid about appropriate `PATH`
         path_choices = [p for p in os.defpath.split(os.pathsep) if p]
         exe_choices = [
-            'python{}'.format('.'.join(
-                str(v) for v in sys.version_info[:i]
-            ))
+            'python{}'.format('.'.join(str(v) for v in sys.version_info[:i]))
             for i in range(3)
         ]
         for path, exe in itertools.product(path_choices, exe_choices):

@@ -84,9 +84,11 @@ def _write_new_config_file(path, output):
     new_contents = ordered_dump(output, **C.YAML_DUMP_KWARGS)
 
     lines = original_contents.splitlines(True)
-    rev_line_indices_reversed = list(reversed([
-        i for i, line in enumerate(lines) if REV_LINE_RE.match(line)
-    ]))
+    rev_line_indices_reversed = list(
+        reversed([
+            i for i, line in enumerate(lines) if REV_LINE_RE.match(line)
+        ]),
+    )
 
     for line in new_contents.splitlines(True):
         if REV_LINE_RE.match(line):
@@ -140,9 +142,11 @@ def autoupdate(config_file, store, tags_only, repos=()):
 
         if new_repo_config['rev'] != repo_config['rev']:
             changed = True
-            output.write_line('updating {} -> {}.'.format(
-                repo_config['rev'], new_repo_config['rev'],
-            ))
+            output.write_line(
+                'updating {} -> {}.'.format(
+                    repo_config['rev'], new_repo_config['rev'],
+                ),
+            )
             output_repos.append(new_repo_config)
         else:
             output.write_line('already up to date.')

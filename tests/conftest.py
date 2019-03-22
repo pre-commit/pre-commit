@@ -33,11 +33,9 @@ def no_warnings(recwarn):
             message.startswith('Not importing directory ') and
             ' missing __init__' in message
         ):
-            warnings.append('{}:{} {}'.format(
-                warning.filename,
-                warning.lineno,
-                message,
-            ))
+            warnings.append(
+                '{}:{} {}'.format(warning.filename, warning.lineno, message),
+            )
     assert not warnings
 
 

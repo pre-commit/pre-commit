@@ -85,30 +85,36 @@ def _run_single_hook(classifier, hook, args, skips, cols):
         )
 
     if hook.id in skips or hook.alias in skips:
-        output.write(get_hook_message(
-            _hook_msg_start(hook, args.verbose),
-            end_msg=SKIPPED,
-            end_color=color.YELLOW,
-            use_color=args.color,
-            cols=cols,
-        ))
+        output.write(
+            get_hook_message(
+                _hook_msg_start(hook, args.verbose),
+                end_msg=SKIPPED,
+                end_color=color.YELLOW,
+                use_color=args.color,
+                cols=cols,
+            ),
+        )
         return 0
     elif not filenames and not hook.always_run:
-        output.write(get_hook_message(
-            _hook_msg_start(hook, args.verbose),
-            postfix=NO_FILES,
-            end_msg=SKIPPED,
-            end_color=color.TURQUOISE,
-            use_color=args.color,
-            cols=cols,
-        ))
+        output.write(
+            get_hook_message(
+                _hook_msg_start(hook, args.verbose),
+                postfix=NO_FILES,
+                end_msg=SKIPPED,
+                end_color=color.TURQUOISE,
+                use_color=args.color,
+                cols=cols,
+            ),
+        )
         return 0
 
     # Print the hook and the dots first in case the hook takes hella long to
     # run.
-    output.write(get_hook_message(
-        _hook_msg_start(hook, args.verbose), end_len=6, cols=cols,
-    ))
+    output.write(
+        get_hook_message(
+            _hook_msg_start(hook, args.verbose), end_len=6, cols=cols,
+        ),
+    )
     sys.stdout.flush()
 
     diff_before = cmd_output(

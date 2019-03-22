@@ -33,41 +33,47 @@ def test_check_type_tag_failures(value):
 @pytest.mark.parametrize(
     ('config_obj', 'expected'), (
         (
-            {'repos': [{
-                'repo': 'git@github.com:pre-commit/pre-commit-hooks',
-                'rev': 'cd74dc150c142c3be70b24eaf0b02cae9d235f37',
-                'hooks': [{'id': 'pyflakes', 'files': '\\.py$'}],
-            }]},
+            {
+                'repos': [{
+                    'repo': 'git@github.com:pre-commit/pre-commit-hooks',
+                    'rev': 'cd74dc150c142c3be70b24eaf0b02cae9d235f37',
+                    'hooks': [{'id': 'pyflakes', 'files': '\\.py$'}],
+                }],
+            },
             True,
         ),
         (
-            {'repos': [{
-                'repo': 'git@github.com:pre-commit/pre-commit-hooks',
-                'rev': 'cd74dc150c142c3be70b24eaf0b02cae9d235f37',
-                'hooks': [
-                    {
-                        'id': 'pyflakes',
-                        'files': '\\.py$',
-                        'args': ['foo', 'bar', 'baz'],
-                    },
-                ],
-            }]},
+            {
+                'repos': [{
+                    'repo': 'git@github.com:pre-commit/pre-commit-hooks',
+                    'rev': 'cd74dc150c142c3be70b24eaf0b02cae9d235f37',
+                    'hooks': [
+                        {
+                            'id': 'pyflakes',
+                            'files': '\\.py$',
+                            'args': ['foo', 'bar', 'baz'],
+                        },
+                    ],
+                }],
+            },
             True,
         ),
         (
-            {'repos': [{
-                'repo': 'git@github.com:pre-commit/pre-commit-hooks',
-                'rev': 'cd74dc150c142c3be70b24eaf0b02cae9d235f37',
-                'hooks': [
-                    {
-                        'id': 'pyflakes',
-                        'files': '\\.py$',
-                        # Exclude pattern must be a string
-                        'exclude': 0,
-                        'args': ['foo', 'bar', 'baz'],
-                    },
-                ],
-            }]},
+            {
+                'repos': [{
+                    'repo': 'git@github.com:pre-commit/pre-commit-hooks',
+                    'rev': 'cd74dc150c142c3be70b24eaf0b02cae9d235f37',
+                    'hooks': [
+                        {
+                            'id': 'pyflakes',
+                            'files': '\\.py$',
+                            # Exclude pattern must be a string
+                            'exclude': 0,
+                            'args': ['foo', 'bar', 'baz'],
+                        },
+                    ],
+                }],
+            },
             False,
         ),
     ),
