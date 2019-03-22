@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 import cfgv
 import pytest
 
+import pre_commit.constants as C
 from pre_commit.clientlib import check_type_tag
 from pre_commit.clientlib import CONFIG_HOOK_DICT
 from pre_commit.clientlib import CONFIG_REPO_DICT
@@ -234,3 +235,23 @@ def test_meta_hook_invalid(config_repo):
 def test_default_language_version_invalid(mapping):
     with pytest.raises(cfgv.ValidationError):
         cfgv.validate(mapping, DEFAULT_LANGUAGE_VERSION)
+
+
+def test_minimum_pre_commit_version_failing():
+    with pytest.raises(cfgv.ValidationError) as excinfo:
+        cfg = {'repos': [], 'minimum_pre_commit_version': '999'}
+        cfgv.validate(cfg, CONFIG_SCHEMA)
+    assert str(excinfo.value) == (
+        '\n'
+        '==> At Config()\n'
+        '==> At key: minimum_pre_commit_version\n'
+        '=====> pre-commit version 999 is required but version {} is '
+        'installed.  Perhaps run `pip install --upgrade pre-commit`.'.format(
+            C.VERSION,
+        )
+    )
+
+
+def test_minimum_pre_commit_version_passing():
+    cfg = {'repos': [], 'minimum_pre_commit_version': '0'}
+    cfgv.validate(cfg, CONFIG_SCHEMA)

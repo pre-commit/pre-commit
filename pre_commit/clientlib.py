@@ -13,6 +13,7 @@ from identify.identify import ALL_TAGS
 import pre_commit.constants as C
 from pre_commit.error_handler import FatalError
 from pre_commit.languages.all import all_languages
+from pre_commit.util import parse_version
 
 
 def check_type_tag(tag):
@@ -20,6 +21,16 @@ def check_type_tag(tag):
         raise cfgv.ValidationError(
             'Type tag {!r} is not recognized.  '
             'Try upgrading identify and pre-commit?'.format(tag),
+        )
+
+
+def check_min_version(version):
+    if parse_version(version) > parse_version(C.VERSION):
+        raise cfgv.ValidationError(
+            'pre-commit version {} is required but version {} is installed.  '
+            'Perhaps run `pip install --upgrade pre-commit`.'.format(
+                version, C.VERSION,
+            ),
         )
 
 
@@ -231,6 +242,11 @@ CONFIG_SCHEMA = cfgv.Map(
     ),
     cfgv.Optional('exclude', cfgv.check_regex, '^$'),
     cfgv.Optional('fail_fast', cfgv.check_bool, False),
+    cfgv.Optional(
+        'minimum_pre_commit_version',
+        cfgv.check_and(cfgv.check_string, check_min_version),
+        '0',
+    ),
 )
 
 
