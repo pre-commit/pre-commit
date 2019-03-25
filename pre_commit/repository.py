@@ -162,6 +162,7 @@ def _non_cloned_repository_hooks(repo_config, store, root_config):
 
 
 def _cloned_repository_hooks(repo_config, store, root_config):
+    _check_extra_top_level_keys(repo_config)
     repo, rev = repo_config['repo'], repo_config['rev']
     manifest_path = os.path.join(store.clone(repo, rev), C.MANIFEST_FILE)
     by_id = {hook['id']: hook for hook in load_manifest(manifest_path)}
@@ -188,6 +189,21 @@ def _cloned_repository_hooks(repo_config, store, root_config):
         )
         for hook in hook_dcts
     )
+
+
+_TOP_LEVEL_KEYS = ('repo', 'rev', 'hooks')
+
+
+def _check_extra_top_level_keys(repo_config):
+    extra_top_level_keys = set(dict(repo_config).keys()) - set(_TOP_LEVEL_KEYS)
+    if extra_top_level_keys:
+        logger.warning(
+            'Unexpected top level keys present: {}, only supported'
+            'top level keys: {}'.format(
+                extra_top_level_keys,
+                _TOP_LEVEL_KEYS,
+            ),
+        )
 
 
 def _repository_hooks(repo_config, store, root_config):
