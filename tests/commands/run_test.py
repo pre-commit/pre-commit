@@ -178,16 +178,41 @@ def test_global_exclude(cap_out, store, tempdir_factory):
         assert printed.endswith(expected)
 
 
-def test_show_diff_on_failure(capfd, cap_out, store, tempdir_factory):
+@pytest.mark.parametrize(
+    ('args', 'expected_out'),
+    [
+        (
+            {
+                'show_diff_on_failure': True,
+            },
+            b'All changes made by hooks:',
+        ),
+        (
+            {
+                'show_diff_on_failure': True,
+                'all_files': True,
+            },
+            b'reproduce locally with: pre-commit run --all-files',
+        ),
+    ],
+)
+def test_show_diff_on_failure(
+        args,
+        expected_out,
+        capfd,
+        cap_out,
+        store,
+        tempdir_factory,
+):
     git_path = make_consuming_repo(
         tempdir_factory, 'modified_file_returns_zero_repo',
     )
     with cwd(git_path):
         stage_a_file('bar.py')
         _test_run(
-            cap_out, store, git_path, {'show_diff_on_failure': True},
+            cap_out, store, git_path, args,
             # we're only testing the output after running
-            (), 1, True,
+            expected_out, 1, True,
         )
     out, _ = capfd.readouterr()
     assert 'diff --git' in out

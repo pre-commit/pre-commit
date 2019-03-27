@@ -215,7 +215,14 @@ def _run_hooks(config, hooks, args, environ):
         if retval and config['fail_fast']:
             break
     if retval and args.show_diff_on_failure and git.has_diff():
-        output.write_line('All changes made by hooks:')
+        if args.all_files:
+            output.write_line(
+                'Pre-commit hook(s) made changes. '
+                'If you are seeing this message on CI,'
+                ' reproduce locally with: pre-commit run --all-files',
+            )
+        else:
+            output.write_line('All changes made by hooks:')
         subprocess.call(('git', '--no-pager', 'diff', '--no-ext-diff'))
     return retval
 
