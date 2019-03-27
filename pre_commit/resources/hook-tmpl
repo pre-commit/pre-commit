@@ -54,8 +54,10 @@ def _run_legacy():
     else:
         stdin = None
 
-    legacy_hook = os.path.join(HERE, '{}.legacy'.format(HOOK_TYPE))
-    if os.access(legacy_hook, os.X_OK):
+    legacy_script = HOOK_TYPE + '.legacy'
+    is_legacy_executed = os.path.basename(__file__) == legacy_script
+    legacy_hook = os.path.join(HERE, legacy_script)
+    if not is_legacy_executed and os.access(legacy_hook, os.X_OK):
         cmd = _norm_exe(legacy_hook) + (legacy_hook,) + tuple(sys.argv[1:])
         proc = subprocess.Popen(cmd, stdin=subprocess.PIPE if stdin else None)
         proc.communicate(stdin)
