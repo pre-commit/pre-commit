@@ -49,15 +49,22 @@ def _norm_exe(exe):
 
 
 def _run_legacy():
+    if __file__.endswith('.legacy'):
+        raise SystemExit(
+            "bug: pre-commit's script is installed in migration mode\n"
+            'run `pre-commit install -f --hook-type {}` to fix this\n\n'
+            'Please report this bug at '
+            'https://github.com/pre-commit/pre-commit/issues'.format(
+                HOOK_TYPE,
+            ),
+        )
+
     if HOOK_TYPE == 'pre-push':
         stdin = getattr(sys.stdin, 'buffer', sys.stdin).read()
     else:
         stdin = None
 
-    legacy_script = HOOK_TYPE + '.legacy'
-    is_legacy_executed = os.path.basename(__file__) == legacy_script
-    legacy_hook = os.path.join(HERE, legacy_script)
-    assert not is_legacy_executed, __file__
+    legacy_hook = os.path.join(HERE, '{}.legacy'.format(HOOK_TYPE))
     if os.access(legacy_hook, os.X_OK):
         cmd = _norm_exe(legacy_hook) + (legacy_hook,) + tuple(sys.argv[1:])
         proc = subprocess.Popen(cmd, stdin=subprocess.PIPE if stdin else None)
