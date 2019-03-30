@@ -107,7 +107,7 @@ def install(
         before, rest = contents.split(TEMPLATE_START)
         to_template, after = rest.split(TEMPLATE_END)
 
-        before = before.replace('#!/usr/bin/env python', shebang())
+        before = before.replace('#!/usr/bin/env python3', shebang())
 
         hook_file.write(before + TEMPLATE_START)
         for line in to_template.splitlines():
