@@ -217,12 +217,13 @@ def _run_hooks(config, hooks, args, environ):
     if retval and args.show_diff_on_failure and git.has_diff():
         if args.all_files:
             output.write_line(
-                'Pre-commit hook(s) made changes. '
-                'If you are seeing this message on CI,'
-                ' reproduce locally with: pre-commit run --all-files',
+                'pre-commit hook(s) made changes.\n'
+                'If you are seeing this message in CI, '
+                'reproduce locally with: `pre-commit run --all-files`.\n'
+                'To run `pre-commit` as part of git workflow, use '
+                '`pre-commit install`.',
             )
-        else:
-            output.write_line('All changes made by hooks:')
+        output.write_line('All changes made by hooks:')
         subprocess.call(('git', '--no-pager', 'diff', '--no-ext-diff'))
     return retval
 
