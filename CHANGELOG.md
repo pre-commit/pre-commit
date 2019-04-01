@@ -1,3 +1,11 @@
+1.15.1
+======
+
+### Fixes
+- Fix command length calculation on posix when `SC_ARG_MAX` is not defined.
+    - #691 issue by @ushuz.
+    - #987 PR by @asottile.
+
 1.15.0
 ======
 
