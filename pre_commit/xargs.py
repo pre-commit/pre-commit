@@ -25,7 +25,7 @@ def _environ_size(_env=None):
 def _get_platform_max_length():  # pragma: no cover (platform specific)
     if os.name == 'posix':
         maximum = os.sysconf(str('SC_ARG_MAX')) - 2048 - _environ_size()
-        maximum = min(maximum, 2 ** 17)
+        maximum = max(min(maximum, 2 ** 17), 2 ** 12)
         return maximum
     elif os.name == 'nt':
         return 2 ** 15 - 2048  # UNICODE_STRING max - headroom
