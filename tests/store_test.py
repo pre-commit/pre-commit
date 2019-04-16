@@ -13,6 +13,7 @@ from pre_commit import git
 from pre_commit.store import _get_default_directory
 from pre_commit.store import Store
 from pre_commit.util import CalledProcessError
+from pre_commit.util import cmd_output
 from testing.fixtures import git_dir
 from testing.util import cwd
 from testing.util import git_commit
@@ -145,6 +146,20 @@ def test_clone_shallow_failure_fallback_to_complete(
 
     # Assert there's an entry in the sqlite db for this
     assert store.select_all_repos() == [(path, rev, ret)]
+
+
+def test_clone_tag_not_on_mainline(store, tempdir_factory):
+    path = git_dir(tempdir_factory)
+    with cwd(path):
+        git_commit()
+        cmd_output('git', 'checkout', 'master', '-b', 'branch')
+        git_commit()
+        cmd_output('git', 'tag', 'v1')
+        cmd_output('git', 'checkout', 'master')
+        cmd_output('git', 'branch', '-D', 'branch')
+
+    # previously crashed on unreachable refs
+    store.clone(path, 'v1')
 
 
 def test_create_when_directory_exists_but_not_db(store):

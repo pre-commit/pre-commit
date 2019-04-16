@@ -138,7 +138,7 @@ class Store(object):
     def _complete_clone(self, ref, git_cmd):
         """Perform a complete clone of a repository and its submodules """
 
-        git_cmd('fetch', 'origin')
+        git_cmd('fetch', 'origin', '--tags')
         git_cmd('checkout', ref)
         git_cmd('submodule', 'update', '--init', '--recursive')
 
