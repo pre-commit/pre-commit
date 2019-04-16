@@ -1,3 +1,11 @@
+1.15.2
+======
+
+### Fixes
+- Fix cloning non-branch tag while in the fallback slow-clone strategy.
+    - #997 issue by @jpinner.
+    - #998 PR by @asottile.
+
 1.15.1
 ======
 
