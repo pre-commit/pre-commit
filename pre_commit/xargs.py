@@ -53,11 +53,37 @@ class ArgumentTooLongError(RuntimeError):
     pass
 
 
-def partition(cmd, varargs, target_concurrency, _max_length=None):
-    _max_length = _max_length or _get_platform_max_length()
+def infix_vararg(cmd, vararg):
+    """Insert vararg before --, if it is not the last elem of the command
 
-    # Generally, we try to partition evenly into at least `target_concurrency`
-    # partitions, but we don't want a bunch of tiny partitions.
+    This is required because if vararg comes after --, then the command will
+    skip vararg as an option, which is undesired behavior.
+
+    Args:
+        cmd (tuple): Contents of `entry:` + `args:`
+        vararg (list): A file that meets criteria for analysis for `entry:`
+    Returns (tuple):
+        current partition using vararg
+    """
+    if '--' in cmd[:-1]:
+        opts_end = cmd.index('--')
+        cmds = cmd[:opts_end] + tuple(vararg) + cmd[opts_end:]
+    else:
+        cmds = cmd + tuple(vararg)
+
+    return tuple(cmds)
+
+
+def partition(cmd, varargs, target_concurrency, _max_length=None):
+    """Create partitions with cmd and vararg.
+
+    Generally, we try to partition evenly into at least `target_concurrency`
+    partitions, but we don't want a bunch of tiny partitions.
+
+    Returns (list):
+        List of partitions like [($cmd $vararg <options>...), ...]
+    """
+    _max_length = _max_length or _get_platform_max_length()
     max_args = max(4, math.ceil(len(varargs) / target_concurrency))
 
     cmd = tuple(cmd)
@@ -82,12 +108,12 @@ def partition(cmd, varargs, target_concurrency, _max_length=None):
             raise ArgumentTooLongError(arg)
         else:
             # We've exceeded the length, yield a command
-            ret.append(cmd + tuple(ret_cmd))
+            ret.append(infix_vararg(cmd, ret_cmd))
             ret_cmd = []
             total_length = _command_length(*cmd) + 1
             varargs.append(arg)
 
-    ret.append(cmd + tuple(ret_cmd))
+    ret.append(infix_vararg(cmd, ret_cmd))
 
     return tuple(ret)
 
