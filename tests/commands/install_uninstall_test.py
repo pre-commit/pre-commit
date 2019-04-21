@@ -655,7 +655,65 @@ def test_commit_msg_legacy(commit_msg_repo, tempdir_factory, store):
     assert second_line.startswith('Must have "Signed off by:"...')
 
 
-def test_install_disallow_mising_config(tempdir_factory, store):
+def test_prepare_commit_msg_integration_failing(
+        failing_prepare_commit_msg_repo, tempdir_factory, store,
+):
+    install(C.CONFIG_FILE, store, hook_type='prepare-commit-msg')
+    retc, out = _get_commit_output(tempdir_factory)
+    assert retc == 1
+    assert out.startswith('Add "Signed off by:"...')
+    assert out.strip().endswith('...Failed')
+
+
+def test_prepare_commit_msg_integration_passing(
+        prepare_commit_msg_repo, tempdir_factory, store,
+):
+    install(C.CONFIG_FILE, store, hook_type='prepare-commit-msg')
+    msg = 'Hi'
+    retc, out = _get_commit_output(tempdir_factory, msg=msg)
+    assert retc == 0
+    first_line = out.splitlines()[0]
+    assert first_line.startswith('Add "Signed off by:"...')
+    assert first_line.endswith('...Passed')
+    commit_msg_path = os.path.join(
+        prepare_commit_msg_repo, '.git/COMMIT_EDITMSG',
+    )
+    with io.open(commit_msg_path, 'rt') as f:
+        assert 'Signed off by: ' in f.read()
+
+
+def test_prepare_commit_msg_legacy(
+    prepare_commit_msg_repo, tempdir_factory, store,
+):
+    hook_path = os.path.join(
+        prepare_commit_msg_repo, '.git/hooks/prepare-commit-msg',
+    )
+    mkdirp(os.path.dirname(hook_path))
+    with io.open(hook_path, 'w') as hook_file:
+        hook_file.write(
+            '#!/usr/bin/env bash\n'
+            'set -eu\n'
+            'test -e "$1"\n'
+            'echo legacy\n',
+        )
+    make_executable(hook_path)
+
+    install(C.CONFIG_FILE, store, hook_type='prepare-commit-msg')
+
+    msg = 'Hi'
+    retc, out = _get_commit_output(tempdir_factory, msg=msg)
+    assert retc == 0
+    first_line, second_line = out.splitlines()[:2]
+    assert first_line == 'legacy'
+    assert second_line.startswith('Add "Signed off by:"...')
+    commit_msg_path = os.path.join(
+        prepare_commit_msg_repo, '.git/COMMIT_EDITMSG',
+    )
+    with io.open(commit_msg_path, 'rt') as f:
+        assert 'Signed off by: ' in f.read()
+
+
+def test_install_disallow_missing_config(tempdir_factory, store):
     path = make_consuming_repo(tempdir_factory, 'script_hooks_repo')
     with cwd(path):
         remove_config_from_repo(path)
@@ -668,7 +726,7 @@ def test_install_disallow_mising_config(tempdir_factory, store):
         assert ret == 1
 
 
-def test_install_allow_mising_config(tempdir_factory, store):
+def test_install_allow_missing_config(tempdir_factory, store):
     path = make_consuming_repo(tempdir_factory, 'script_hooks_repo')
     with cwd(path):
         remove_config_from_repo(path)

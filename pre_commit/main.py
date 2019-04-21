@@ -52,7 +52,9 @@ def _add_config_option(parser):
 
 def _add_hook_type_option(parser):
     parser.add_argument(
-        '-t', '--hook-type', choices=('pre-commit', 'pre-push', 'commit-msg'),
+        '-t', '--hook-type', choices=(
+            'pre-commit', 'pre-push', 'prepare-commit-msg', 'commit-msg',
+        ),
         default='pre-commit',
     )
 
