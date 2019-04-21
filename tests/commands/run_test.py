@@ -615,7 +615,7 @@ def test_prepare_commit_msg_hook(cap_out, store, prepare_commit_msg_repo):
         stage=False,
     )
 
-    with io.open(filename, 'rt') as f:
+    with io.open(filename) as f:
         assert 'Signed off by: ' in f.read()
 
 

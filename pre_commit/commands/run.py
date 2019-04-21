@@ -190,7 +190,7 @@ def _compute_cols(hooks, verbose):
 def _all_filenames(args):
     if args.origin and args.source:
         return git.get_changed_files(args.origin, args.source)
-    elif args.hook_stage in ['prepare-commit-msg', 'commit-msg']:
+    elif args.hook_stage in {'prepare-commit-msg', 'commit-msg'}:
         return (args.commit_msg_filename,)
     elif args.files:
         return args.files

@@ -171,7 +171,7 @@ def failing_prepare_commit_msg_repo(tempdir_factory):
         'hooks': [{
             'id': 'add-signoff',
             'name': 'Add "Signed off by:"',
-            'entry': '/usr/bin/env bash -c "exit 1"',
+            'entry': 'bash -c "exit 1"',
             'language': 'system',
             'stages': ['prepare-commit-msg'],
         }],

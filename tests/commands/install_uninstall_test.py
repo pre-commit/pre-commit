@@ -678,7 +678,7 @@ def test_prepare_commit_msg_integration_passing(
     commit_msg_path = os.path.join(
         prepare_commit_msg_repo, '.git/COMMIT_EDITMSG',
     )
-    with io.open(commit_msg_path, 'rt') as f:
+    with io.open(commit_msg_path) as f:
         assert 'Signed off by: ' in f.read()
 
 
@@ -709,7 +709,7 @@ def test_prepare_commit_msg_legacy(
     commit_msg_path = os.path.join(
         prepare_commit_msg_repo, '.git/COMMIT_EDITMSG',
     )
-    with io.open(commit_msg_path, 'rt') as f:
+    with io.open(commit_msg_path) as f:
         assert 'Signed off by: ' in f.read()
 
 
