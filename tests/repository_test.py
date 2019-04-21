@@ -824,7 +824,9 @@ def test_manifest_hooks(tempdir_factory, store):
         name='Bash hook',
         pass_filenames=True,
         require_serial=False,
-        stages=('commit', 'commit-msg', 'manual', 'push'),
+        stages=(
+            'commit', 'prepare-commit-msg', 'commit-msg', 'manual', 'push',
+        ),
         types=['file'],
         verbose=False,
     )
