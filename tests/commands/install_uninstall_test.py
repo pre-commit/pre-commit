@@ -325,6 +325,16 @@ def test_install_existing_hooks_no_overwrite(tempdir_factory, store):
         assert NORMAL_PRE_COMMIT_RUN.match(output[len('legacy hook\n'):])
 
 
+def test_legacy_overwriting_legacy_hook(tempdir_factory, store):
+    path = make_consuming_repo(tempdir_factory, 'script_hooks_repo')
+    with cwd(path):
+        _write_legacy_hook(path)
+        assert install(C.CONFIG_FILE, store) == 0
+        _write_legacy_hook(path)
+        # this previously crashed on windows.  See #1010
+        assert install(C.CONFIG_FILE, store) == 0
+
+
 def test_install_existing_hook_no_overwrite_idempotent(tempdir_factory, store):
     path = make_consuming_repo(tempdir_factory, 'script_hooks_repo')
     with cwd(path):
