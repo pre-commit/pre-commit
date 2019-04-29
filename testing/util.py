@@ -68,7 +68,7 @@ xfailif_broken_deep_listdir = pytest.mark.xfail(
 
 def platform_supports_pcre():
     output = cmd_output(GREP, '-P', "Don't", 'CHANGELOG.md', retcode=None)
-    return output[0] == 0 and "name='pre_commit'," in output[1]
+    return output[0] == 0 and "Don't use readlink -f" in output[1]
 
 
 xfailif_no_pcre_support = pytest.mark.xfail(
