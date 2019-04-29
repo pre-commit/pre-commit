@@ -67,7 +67,7 @@ xfailif_broken_deep_listdir = pytest.mark.xfail(
 
 
 def platform_supports_pcre():
-    output = cmd_output(GREP, '-P', "name='pre", 'setup.py', retcode=None)
+    output = cmd_output(GREP, '-P', "name='pre'", 'setup.py', retcode=None)
     return output[0] == 0 and "name='pre_commit'," in output[1]
 
 
