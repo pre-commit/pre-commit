@@ -145,7 +145,7 @@ def test_argument_too_long():
 def test_xargs_smoke():
     ret, out, err = xargs.xargs(('echo',), ('hello', 'world'))
     assert ret == 0
-    assert out == b'hello world\n'
+    assert out.replace(b'\r\n', b'\n') == b'hello world\n'
     assert err == b''
 
 
