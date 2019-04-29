@@ -31,7 +31,7 @@ def cmd_output_mocked_pre_commit_home(*args, **kwargs):
 
 skipif_cant_run_docker = pytest.mark.skipif(
     os.name == 'nt' or not docker_is_running(),
-    reason="Docker isn't running or can't  be accessed",
+    reason="Docker isn't running or can't be accessed",
 )
 
 skipif_cant_run_swift = pytest.mark.skipif(
