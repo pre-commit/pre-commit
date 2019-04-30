@@ -1,3 +1,51 @@
+1.15.2
+======
+
+### Fixes
+- Fix cloning non-branch tag while in the fallback slow-clone strategy.
+    - #997 issue by @jpinner.
+    - #998 PR by @asottile.
+
+1.15.1
+======
+
+### Fixes
+- Fix command length calculation on posix when `SC_ARG_MAX` is not defined.
+    - #691 issue by @ushuz.
+    - #987 PR by @asottile.
+
+1.15.0
+======
+
+### Features
+- No longer require being in a `git` repo to run `pre-commit` `clean` / `gc` /
+  `sample-config`.
+    - #959 PR by @asottile.
+- Improve command line length limit detection.
+    - #691 issue by @antonbabenko.
+    - #966 PR by @asottile.
+- Use shallow cloning when possible.
+    - #958 PR by @DanielChabrowski.
+- Add `minimum_pre_commit_version` top level key to require a new-enough
+  version of `pre-commit`.
+    - #977 PR by @asottile.
+- Add helpful CI-friendly message when running
+  `pre-commit run --all-files --show-diff-on-failure`.
+  - #982 PR by @bnorquist.
+
+### Fixes
+- Fix `try-repo` for staged untracked changes.
+    - #973 PR by @DanielChabrowski.
+- Fix rpm build by explicitly using `#!/usr/bin/env python3` in hook template.
+    - #985 issue by @tim77.
+    - #986 PR by @tim77.
+- Guard against infinite recursion when executing legacy hook script.
+    - #981 PR by @tristan0x.
+
+### Misc
+- Add test for `git.no_git_env()`
+    - #972 PR by @javabrett.
+
 1.14.4
 ======
 

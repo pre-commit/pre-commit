@@ -14,6 +14,7 @@ from pre_commit import output
 from pre_commit.logging_handler import logging_handler
 from pre_commit.store import Store
 from pre_commit.util import cmd_output
+from pre_commit.util import make_executable
 from testing.fixtures import git_dir
 from testing.fixtures import make_consuming_repo
 from testing.fixtures import write_config
@@ -131,6 +132,54 @@ def commit_msg_repo(tempdir_factory):
     with cwd(path):
         cmd_output('git', 'add', '.')
         git_commit(msg=commit_msg_repo.__name__)
+        yield path
+
+
+@pytest.fixture
+def prepare_commit_msg_repo(tempdir_factory):
+    path = git_dir(tempdir_factory)
+    script_name = 'add_sign_off.sh'
+    config = {
+        'repo': 'local',
+        'hooks': [{
+            'id': 'add-signoff',
+            'name': 'Add "Signed off by:"',
+            'entry': './{}'.format(script_name),
+            'language': 'script',
+            'stages': ['prepare-commit-msg'],
+        }],
+    }
+    write_config(path, config)
+    with cwd(path):
+        with io.open(script_name, 'w') as script_file:
+            script_file.write(
+                '#!/usr/bin/env bash\n'
+                'set -eu\n'
+                'echo "\nSigned off by: " >> "$1"\n',
+            )
+            make_executable(script_name)
+        cmd_output('git', 'add', '.')
+        git_commit(msg=prepare_commit_msg_repo.__name__)
+        yield path
+
+
+@pytest.fixture
+def failing_prepare_commit_msg_repo(tempdir_factory):
+    path = git_dir(tempdir_factory)
+    config = {
+        'repo': 'local',
+        'hooks': [{
+            'id': 'add-signoff',
+            'name': 'Add "Signed off by:"',
+            'entry': 'bash -c "exit 1"',
+            'language': 'system',
+            'stages': ['prepare-commit-msg'],
+        }],
+    }
+    write_config(path, config)
+    with cwd(path):
+        cmd_output('git', 'add', '.')
+        git_commit(msg=failing_prepare_commit_msg_repo.__name__)
         yield path
 
 

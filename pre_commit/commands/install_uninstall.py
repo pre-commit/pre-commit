@@ -5,6 +5,7 @@ import io
 import itertools
 import logging
 import os.path
+import shutil
 import sys
 
 from pre_commit import git
@@ -84,7 +85,7 @@ def install(
 
     # If we have an existing hook, move it to pre-commit.legacy
     if os.path.lexists(hook_path) and not is_our_script(hook_path):
-        os.rename(hook_path, legacy_path)
+        shutil.move(hook_path, legacy_path)
 
     # If we specify overwrite, we simply delete the legacy file
     if overwrite and os.path.exists(legacy_path):

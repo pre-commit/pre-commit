@@ -23,7 +23,7 @@ def _envdir(prefix, version):
     return prefix.path(directory)
 
 
-def get_env_patch(venv):
+def get_env_patch(venv):  # pragma: windows no cover
     if sys.platform == 'cygwin':  # pragma: no cover
         _, win_venv, _ = cmd_output('cygpath', '-w', venv)
         install_prefix = r'{}\bin'.format(win_venv.strip())
@@ -41,12 +41,14 @@ def get_env_patch(venv):
 
 
 @contextlib.contextmanager
-def in_env(prefix, language_version):
+def in_env(prefix, language_version):  # pragma: windows no cover
     with envcontext(get_env_patch(_envdir(prefix, language_version))):
         yield
 
 
-def install_environment(prefix, version, additional_dependencies):
+def install_environment(
+        prefix, version, additional_dependencies,
+):  # pragma: windows no cover
     additional_dependencies = tuple(additional_dependencies)
     assert prefix.exists('package.json')
     envdir = _envdir(prefix, version)
@@ -72,6 +74,6 @@ def install_environment(prefix, version, additional_dependencies):
             )
 
 
-def run_hook(hook, file_args):
+def run_hook(hook, file_args):  # pragma: windows no cover
     with in_env(hook.prefix, hook.language_version):
         return helpers.run_xargs(hook, helpers.to_cmd(hook), file_args)

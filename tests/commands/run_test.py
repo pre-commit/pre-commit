@@ -557,7 +557,12 @@ def test_stages(cap_out, store, repo_with_passing_hook):
                 'language': 'pygrep',
                 'stages': [stage],
             }
-            for i, stage in enumerate(('commit', 'push', 'manual'), 1)
+            for i, stage in enumerate(
+                (
+                    'commit', 'push', 'manual', 'prepare-commit-msg',
+                    'commit-msg',
+                ), 1,
+            )
         ],
     }
     add_config_to_repo(repo_with_passing_hook, config)
@@ -575,6 +580,8 @@ def test_stages(cap_out, store, repo_with_passing_hook):
     assert _run_for_stage('commit').startswith(b'hook 1...')
     assert _run_for_stage('push').startswith(b'hook 2...')
     assert _run_for_stage('manual').startswith(b'hook 3...')
+    assert _run_for_stage('prepare-commit-msg').startswith(b'hook 4...')
+    assert _run_for_stage('commit-msg').startswith(b'hook 5...')
 
 
 def test_commit_msg_hook(cap_out, store, commit_msg_repo):
@@ -591,6 +598,25 @@ def test_commit_msg_hook(cap_out, store, commit_msg_repo):
         expected_ret=1,
         stage=False,
     )
+
+
+def test_prepare_commit_msg_hook(cap_out, store, prepare_commit_msg_repo):
+    filename = '.git/COMMIT_EDITMSG'
+    with io.open(filename, 'w') as f:
+        f.write('This is the commit message')
+
+    _test_run(
+        cap_out,
+        store,
+        prepare_commit_msg_repo,
+        {'hook_stage': 'prepare-commit-msg', 'commit_msg_filename': filename},
+        expected_outputs=[b'Add "Signed off by:"', b'Passed'],
+        expected_ret=0,
+        stage=False,
+    )
+
+    with io.open(filename) as f:
+        assert 'Signed off by: ' in f.read()
 
 
 def test_local_hook_passes(cap_out, store, repo_with_passing_hook):

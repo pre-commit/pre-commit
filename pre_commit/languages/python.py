@@ -109,13 +109,13 @@ def norm_version(version):
         if _sys_executable_matches(version):
             return sys.executable
 
+        version_exec = _find_by_py_launcher(version)
+        if version_exec:
+            return version_exec
+
         # Try looking up by name
         version_exec = find_executable(version)
         if version_exec and version_exec != version:
-            return version_exec
-
-        version_exec = _find_by_py_launcher(version)
-        if version_exec:
             return version_exec
 
         # If it is in the form pythonx.x search in the default

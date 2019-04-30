@@ -1,6 +1,5 @@
-[![Build Status](https://travis-ci.org/pre-commit/pre-commit.svg?branch=master)](https://travis-ci.org/pre-commit/pre-commit)
-[![Coverage Status](https://coveralls.io/repos/github/pre-commit/pre-commit/badge.svg?branch=master)](https://coveralls.io/github/pre-commit/pre-commit?branch=master)
-[![Build status](https://ci.appveyor.com/api/projects/status/mmcwdlfgba4esaii/branch/master?svg=true)](https://ci.appveyor.com/project/asottile/pre-commit/branch/master)
+[![Build Status](https://dev.azure.com/asottile/asottile/_apis/build/status/pre-commit.pre-commit?branchName=master)](https://dev.azure.com/asottile/asottile/_build/latest?definitionId=21&branchName=master)
+[![Azure DevOps coverage](https://img.shields.io/azure-devops/coverage/asottile/asottile/21/master.svg)](https://dev.azure.com/asottile/asottile/_build/latest?definitionId=21&branchName=master)
 
 ## pre-commit
 

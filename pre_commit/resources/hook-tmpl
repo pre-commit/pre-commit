@@ -161,6 +161,7 @@ def _pre_push(stdin):
 
 def _opts(stdin):
     fns = {
+        'prepare-commit-msg': lambda _: ('--commit-msg-filename', sys.argv[1]),
         'commit-msg': lambda _: ('--commit-msg-filename', sys.argv[1]),
         'pre-commit': lambda _: (),
         'pre-push': _pre_push,

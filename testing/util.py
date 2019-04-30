@@ -30,8 +30,8 @@ def cmd_output_mocked_pre_commit_home(*args, **kwargs):
 
 
 skipif_cant_run_docker = pytest.mark.skipif(
-    docker_is_running() is False,
-    reason='Docker isn\'t running or can\'t  be accessed',
+    os.name == 'nt' or not docker_is_running(),
+    reason="Docker isn't running or can't be accessed",
 )
 
 skipif_cant_run_swift = pytest.mark.skipif(
@@ -67,8 +67,8 @@ xfailif_broken_deep_listdir = pytest.mark.xfail(
 
 
 def platform_supports_pcre():
-    output = cmd_output(GREP, '-P', "name='pre", 'setup.py', retcode=None)
-    return output[0] == 0 and "name='pre_commit'," in output[1]
+    output = cmd_output(GREP, '-P', "Don't", 'CHANGELOG.md', retcode=None)
+    return output[0] == 0 and "Don't use readlink -f" in output[1]
 
 
 xfailif_no_pcre_support = pytest.mark.xfail(
