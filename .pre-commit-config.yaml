@@ -36,7 +36,9 @@ repos:
     rev: v1.0.0
     hooks:
     -   id: add-trailing-comma
--   repo: meta
-    hooks:
-    -   id: check-hooks-apply
-    -   id: check-useless-excludes
+- repo: meta
+  hooks:
+      - id: check-hooks-apply
+      - id: check-useless-excludes
+      - id: identity
+      - id: sign-commit

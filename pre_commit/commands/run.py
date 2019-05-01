@@ -73,7 +73,7 @@ SKIPPED = 'Skipped'
 NO_FILES = '(no files to check)'
 
 
-def _run_single_hook(classifier, hook, args, skips, cols):
+def _run_single_hook(classifier, hook, args, skips, cols, retval):
     filenames = classifier.filenames_for_hook(hook)
 
     if hook.language == 'pcre':
@@ -211,7 +211,8 @@ def _run_hooks(config, hooks, args, environ):
     classifier = Classifier(filenames)
     retval = 0
     for hook in hooks:
-        retval |= _run_single_hook(classifier, hook, args, skips, cols)
+        args
+        retval |= _run_single_hook(classifier, hook, args, skips, cols, retval)
         if retval and config['fail_fast']:
             break
     if retval and args.show_diff_on_failure and git.has_diff():

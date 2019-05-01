@@ -166,6 +166,13 @@ _meta = (
             ('entry', _entry('identity')),
         ),
     ),
+    (
+        'sign-commit', (
+            ('name', 'identity'),
+            ('verbose', True),
+            ('entry', _entry('identity')),
+        ),
+    ),
 )
 
 META_HOOK_DICT = cfgv.Map(
