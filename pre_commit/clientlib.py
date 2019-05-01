@@ -168,9 +168,9 @@ _meta = (
     ),
     (
         'sign-commit', (
-            ('name', 'identity'),
+            ('name', 'Signs commit after all hooks pass'),
             ('verbose', True),
-            ('entry', _entry('identity')),
+            ('entry', _entry('sign_commit')),
         ),
     ),
 )

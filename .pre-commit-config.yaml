@@ -40,5 +40,4 @@ repos:
   hooks:
       - id: check-hooks-apply
       - id: check-useless-excludes
-      - id: identity
       - id: sign-commit
