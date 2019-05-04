@@ -1,5 +1,5 @@
-1.16.0
-======
+1.16.0 - 2019-05-04
+===================
 
 ### Features
 - Add support for `prepare-commit-msg` hook
@@ -18,24 +18,24 @@
 - Switch CI from travis / appveyor to azure pipelines
     - #1012 PR by @asottile.
 
-1.15.2
-======
+1.15.2 - 2019-04-16
+===================
 
 ### Fixes
 - Fix cloning non-branch tag while in the fallback slow-clone strategy.
     - #997 issue by @jpinner.
     - #998 PR by @asottile.
 
-1.15.1
-======
+1.15.1 - 2019-04-01
+===================
 
 ### Fixes
 - Fix command length calculation on posix when `SC_ARG_MAX` is not defined.
     - #691 issue by @ushuz.
     - #987 PR by @asottile.
 
-1.15.0
-======
+1.15.0 - 2019-03-30
+===================
 
 ### Features
 - No longer require being in a `git` repo to run `pre-commit` `clean` / `gc` /
@@ -66,8 +66,8 @@
 - Add test for `git.no_git_env()`
     - #972 PR by @javabrett.
 
-1.14.4
-======
+1.14.4 - 2019-02-18
+===================
 
 ### Fixes
 - Don't filter `GIT_SSH_COMMAND` env variable from `git` commands
@@ -80,8 +80,8 @@
     - #664 issue by @revolter.
     - #944 PR by @minrk.
 
-1.14.3
-======
+1.14.3 - 2019-02-04
+===================
 
 ### Fixes
 - Improve performance of filename classification by 45% - 55%.
@@ -95,24 +95,24 @@
 - Require a newer virtualenv to fix metadata-based setup.cfg installs.
     - #936 PR by @asottile.
 
-1.14.2
-======
+1.14.2 - 2019-01-10
+===================
 
 ### Fixes
 - Make the hook shebang detection more timid (1.14.0 regression)
     - Homebrew/homebrew-core#35825.
     - #915 PR by @asottile.
 
-1.14.1
-======
+1.14.1 - 2019-01-10
+===================
 
 ### Fixes
 - Fix python executable lookup on windows when using conda
     - #913 issue by @dawelter2.
     - #914 PR by @asottile.
 
-1.14.0
-======
+1.14.0 - 2019-01-08
+===================
 
 ### Features
 - Add an `alias` configuration value to allow repeated hooks to be
@@ -169,8 +169,8 @@
     - #894 PR by @s0undt3ch.
 
 
-1.13.0
-======
+1.13.0 - 2018-12-20
+===================
 
 ### Features
 - Run hooks in parallel
@@ -207,8 +207,8 @@
   [`language_version`](https://pre-commit.com/#overriding-language-version).
 
 
-1.12.0
-======
+1.12.0 - 2018-10-23
+===================
 
 ### Fixes
 - Install multi-hook repositories only once (performance)
@@ -218,8 +218,8 @@
     - #840 issue by @RonnyPfannschmidt.
     - #846 PR by @asottile.
 
-1.11.2
-======
+1.11.2 - 2018-10-10
+===================
 
 ### Fixes
 - `check-useless-exclude` now considers `types`
@@ -229,8 +229,8 @@
     - #843 issue by @prem-nuro.
     - #844 PR by @asottile.
 
-1.11.1
-======
+1.11.1 - 2018-09-22
+===================
 
 ### Fixes
 - Fix `.git` dir detection in `git<2.5` (regression introduced in
@@ -238,8 +238,8 @@
     - #831 issue by @mmacpherson.
     - #832 PR by @asottile.
 
-1.11.0
-======
+1.11.0 - 2018-09-02
+===================
 
 ### Features
 - Add new `fail` language which always fails
@@ -252,8 +252,8 @@
 - Don't write ANSI colors on windows when color enabling fails
     - #819 PR by @jeffreyrack.
 
-1.10.5
-======
+1.10.5 - 2018-08-06
+===================
 
 ### Fixes
 - Work around `PATH` issue with `brew` `python` on `macos`
@@ -263,8 +263,8 @@
     - #808 issue by @s0undt3ch.
     - #809 PR by @asottile.
 
-1.10.4
-======
+1.10.4 - 2018-07-22
+===================
 
 ### Fixes
 - Replace `yaml.load` with safe alternative
@@ -290,39 +290,39 @@
 - Test against python3.7
     - #789 PR by @expobrain.
 
-1.10.3
-======
+1.10.3 - 2018-07-02
+===================
 
 ### Fixes
 - Fix `pre-push` during a force push without a fetch
     - #777 issue by @domenkozar.
     - #778 PR by @asottile.
 
-1.10.2
-======
+1.10.2 - 2018-06-11
+===================
 
 ### Fixes
 - pre-commit now invokes hooks with a consistent ordering of filenames
     - issue by @mxr.
     - #767 PR by @asottile.
 
-1.10.1
-======
+1.10.1 - 2018-05-28
+===================
 
 ### Fixes
 - `python_venv` language would leak dependencies when pre-commit was installed
   in a `-mvirtualenv` virtualenv
     - #755 #756 issue and PR by @asottile.
 
-1.10.0
-======
+1.10.0 - 2018-05-26
+===================
 
 ### Features
 - Add support for hooks written in `rust`
     - #751 PR by @chriskuehl.
 
-1.9.0
-=====
+1.9.0 - 2018-05-21
+==================
 
 ### Features
 - Add new `python_venv` language which uses the `venv` module instead of
@@ -338,8 +338,8 @@
     - #750 PR by @asottile.
 
 
-1.8.2
-=====
+1.8.2 - 2018-03-17
+==================
 
 ### Fixes
 - Fix cloning relative paths (regression in 1.7.0)
@@ -347,8 +347,8 @@
     - #729 PR by @asottile.
 
 
-1.8.1
-=====
+1.8.1 - 2018-03-12
+==================
 
 ### Fixes
 - Fix integration with go 1.10 and `pkg` directory
@@ -358,8 +358,8 @@
     - #724 PR by @asottile.
 
 
-1.8.0
-=====
+1.8.0 - 2018-03-11
+==================
 
 ### Features
 - Add a `manual` stage for cli-only interaction
@@ -369,8 +369,8 @@
     - #716 PR by @tdeo.
 
 
-1.7.0
-=====
+1.7.0 - 2018-03-03
+==================
 
 ### Features
 - pre-commit config validation was split to a separate `cfgv` library
@@ -403,8 +403,8 @@
   `.pre-commit-config.yaml` file.
 
 
-1.6.0
-=====
+1.6.0 - 2018-02-04
+==================
 
 ### Features
 - Hooks now may have a `verbose` option to produce output even without failure
@@ -419,16 +419,16 @@
     - #694 PR by @asottile.
     - #699 PR by @asottile.
 
-1.5.1
-=====
+1.5.1 - 2018-01-24
+==================
 
 ### Fixes
 - proper detection for root commit during pre-push
     - #503 PR by @philipgian.
     - #692 PR by @samskiter.
 
-1.5.0
-=====
+1.5.0 - 2018-01-13
+==================
 
 ### Features
 - pre-commit now supports node hooks on windows.
@@ -445,8 +445,8 @@
     - #688 PR by @asottile.
 
 
-1.4.5
-=====
+1.4.5 - 2018-01-09
+==================
 
 ### Fixes
 - Fix `local` golang repositories with `additional_dependencies`.
@@ -456,37 +456,37 @@
 - Replace some string literals with constants
     - #678 PR by @revolter.
 
-1.4.4
-=====
+1.4.4 - 2018-01-07
+==================
 
 ### Fixes
 - Invoke `git diff` without a pager during `--show-diff-on-failure`.
     - #676 PR by @asottile.
 
-1.4.3
-=====
+1.4.3 - 2018-01-02
+==================
 
 ### Fixes
 - `pre-commit` on windows can find pythons at non-hardcoded paths.
     - #674 PR by @asottile.
 
-1.4.2
-=====
+1.4.2 - 2018-01-02
+==================
 
 ### Fixes
 - `pre-commit` no longer clears `GIT_SSH` environment variable when cloning.
     - #671 PR by @rp-tanium.
 
-1.4.1
-=====
+1.4.1 - 2017-11-09
+==================
 
 ### Fixes
 - `pre-commit autoupdate --repo ...` no longer deletes other repos.
     - #660 issue by @KevinHock.
     - #661 PR by @KevinHock.
 
-1.4.0
-=====
+1.4.0 - 2017-11-08
+==================
 
 ### Features
 - Lazily install repositories.
@@ -518,8 +518,8 @@
     - #642 PR by @jimmidyson.
 
 
-1.3.0
-=====
+1.3.0 - 2017-10-08
+==================
 
 ### Features
 - Add `pre-commit try-repo` commands
@@ -534,8 +534,8 @@
     - #589 issue by @sverhagen.
     - #633 PR by @asottile.
 
-1.2.0
-=====
+1.2.0 - 2017-10-03
+==================
 
 ### Features
 - Add `pygrep` language
@@ -557,8 +557,8 @@
     - Fixes python3.6.2 <=> python3.6.3 virtualenv invalidation
     - e70825ab by @asottile.
 
-1.1.2
-=====
+1.1.2 - 2017-09-20
+==================
 
 ### Fixes
 - pre-commit can successfully install commit-msg hooks
@@ -566,8 +566,8 @@
     - #623 issue by @sobolevn.
     - #624 PR by @asottile.
 
-1.1.1
-=====
+1.1.1 - 2017-09-17
+==================
 
 ### Features
 - pre-commit also checks the `ssl` module for virtualenv health
@@ -578,8 +578,8 @@
     - #620 #621 issue by @Lucas-C.
     - #622 PR by @asottile.
 
-1.1.0
-=====
+1.1.0 - 2017-09-11
+==================
 
 ### Features
 - pre-commit configuration gains a `fail_fast` option.
@@ -594,8 +594,8 @@
     - #281 issue by @asieira.
     - #617 PR by @asottile.
 
-1.0.1
-=====
+1.0.1 - 2017-09-07
+==================
 
 ### Fixes
 - Fix a regression in the return code of `pre-commit autoupdate`
@@ -603,8 +603,8 @@
       successful.
     - #614 PR by @asottile.
 
-1.0.0
-=====
+1.0.0 - 2017-09-07
+==================
 pre-commit will now be following [semver](https://semver.org/).  Thanks to all
 of the [contributors](https://github.com/pre-commit/pre-commit/graphs/contributors)
 that have helped us get this far!
@@ -645,32 +645,32 @@ that have helped us get this far!
   new map format.
 - Update any references from `~/.pre-commit` to `~/.cache/pre-commit`.
 
-0.18.3
-======
+0.18.3 - 2017-09-06
+===================
 - Allow --config to affect `pre-commit install`
 - Tweak not found error message during `pre-push` / `commit-msg`
 - Improve node support when running under cygwin.
 
-0.18.2
-======
+0.18.2 - 2017-09-05
+===================
 - Fix `--all-files`, detection of staged files, detection of manually edited
   files during merge conflict, and detection of files to push for non-ascii
   filenames.
 
-0.18.1
-======
+0.18.1 - 2017-09-04
+===================
 - Only mention locking when waiting for a lock.
 - Fix `IOError` during locking in timeout situtation on windows under python 2.
 
-0.18.0
-======
+0.18.0 - 2017-09-02
+===================
 - Add a new `docker_image` language type.  `docker_image` is intended to be a
   lightweight hook type similar to `system` / `script` which allows one to use
   an existing docker image that provides a hook.  `docker_image` hooks can
   also be used as repository `local` hooks.
 
-0.17.0
-======
+0.17.0 - 2017-08-24
+===================
 - Fix typos in help
 - Allow `commit-msg` hook to be uninstalled
 - Upgrade the `sample-config`
@@ -679,20 +679,20 @@ that have helped us get this far!
 - Fix installation race condition when multiple `pre-commit` processes would
   attempt to install the same repository.
 
-0.16.3
-======
+0.16.3 - 2017-08-10
+===================
 - autoupdate attempts to maintain config formatting.
 
-0.16.2
-======
+0.16.2 - 2017-08-06
+===================
 - Initialize submodules in hook repositories.
 
-0.16.1
-======
+0.16.1 - 2017-08-04
+===================
 - Improve node support when running under cygwin.
 
-0.16.0
-======
+0.16.0 - 2017-08-01
+===================
 - Remove backward compatibility with repositories providing metadata via
   `hooks.yaml`.  New repositories should provide `.pre-commit-hooks.yaml`.
   Run `pre-commit autoupdate` to upgrade to the latest repositories.
@@ -702,26 +702,26 @@ that have helped us get this far!
 - Fix crash with unstaged end-of-file crlf additions and the file's lines
   ended with crlf while git was configured with `core-autocrlf = true`.
 
-0.15.4
-======
+0.15.4 - 2017-07-23
+===================
 - Add support for the `commit-msg` git hook
 
-0.15.3
-======
+0.15.3 - 2017-07-20
+===================
 - Recover from invalid python virtualenvs
 
 
-0.15.2
-======
+0.15.2 - 2017-07-09
+===================
 - Work around a windows-specific virtualenv bug pypa/virtualenv#1062
   This failure mode was introduced in 0.15.1
 
-0.15.1
-======
+0.15.1 - 2017-07-09
+===================
 - Use a more intelligent default language version for python
 
-0.15.0
-======
+0.15.0 - 2017-07-02
+===================
 - Add `types` and `exclude_types` for filtering files.  These options take
   an array of "tags" identified for each file.  The tags are sourced from
   [identify](https://github.com/chriskuehl/identify).  One can list the tags
@@ -730,22 +730,22 @@ that have helped us get this far!
 - `always_run` + missing `files` also defaults to `files: ''` (previously it
   defaulted to `'^$'` (this reverses e150921c).
 
-0.14.3
-======
+0.14.3 - 2017-06-28
+===================
 - Expose `--origin` and `--source` as `PRE_COMMIT_ORIGIN` and
   `PRE_COMMIT_SOURCE` environment variables when running as `pre-push`.
 
-0.14.2
-======
+0.14.2 - 2017-06-09
+===================
 - Use `--no-ext-diff` when running `git diff`
 
-0.14.1
-======
+0.14.1 - 2017-06-02
+===================
 - Don't crash when `always_run` is `True` and `files` is not provided.
 - Set `VIRTUALENV_NO_DOWNLOAD` when making python virtualenvs.
 
-0.14.0
-======
+0.14.0 - 2017-05-16
+===================
 - Add a `pre-commit sample-config` command
 - Enable ansi color escapes on modern windows
 - `autoupdate` now defaults to `--tags-only`, use `--bleeding-edge` for the
@@ -756,99 +756,99 @@ that have helped us get this far!
 - Add a `pass_filenames` option to allow disabling automatic filename
   positional arguments to hooks.
 
-0.13.6
-======
+0.13.6 - 2017-03-27
+===================
 - Fix regression in 0.13.5: allow `always_run` and `files` together despite
   doing nothing.
 
-0.13.5
-======
+0.13.5 - 2017-03-26
+===================
 - 0.13.4 contained incorrect files
 
-0.13.4
-======
+0.13.4 - 2017-03-26
+===================
 - Add `--show-diff-on-failure` option to `pre-commit run`
 - Replace `jsonschema` with better error messages
 
-0.13.3
-======
+0.13.3 - 2017-02-23
+===================
 - Add `--allow-missing-config` to install: allows `git commit` without a
   configuration.
 
-0.13.2
-======
+0.13.2 - 2017-02-17
+===================
 - Version the local hooks repo
 - Allow `minimum_pre_commit_version` for local hooks
 
-0.13.1
-======
+0.13.1 - 2017-02-16
+===================
 - Fix dummy gem for ruby local hooks
 
-0.13.0
-======
+0.13.0 - 2017-02-16
+===================
 - Autoupdate now works even when the current state is broken.
 - Improve pre-push fileset on new branches
 - Allow "language local" hooks, hooks which install dependencies using
   `additional_dependencies` and `language` are now allowed in `repo: local`.
 
-0.12.2
-======
+0.12.2 - 2017-01-27
+===================
 - Fix docker hooks on older (<1.12) docker
 
-0.12.1
-======
+0.12.1 - 2017-01-25
+===================
 - golang hooks now support additional_dependencies
 - Added a --tags-only option to pre-commit autoupdate
 
-0.12.0
-======
+0.12.0 - 2017-01-24
+===================
 - The new default file for implementing hooks in remote repositories is now
   .pre-commit-hooks.yaml to encourage repositories to add the metadata.  As
   such, the previous hooks.yaml is now deprecated and generates a warning.
 - Fix bug with local configuration interfering with ruby hooks
 - Added support for hooks written in golang.
 
-0.11.0
-======
+0.11.0 - 2017-01-20
+===================
 - SwiftPM support.
 
-0.10.1
-======
+0.10.1 - 2017-01-05
+===================
 - shlex entry of docker based hooks.
 - Make shlex behaviour of entry more consistent.
 
-0.10.0
-======
+0.10.0 - 2017-01-04
+===================
 - Add an `install-hooks` command similar to `install --install-hooks` but
   without the `install` side-effects.
 - Adds support for docker based hooks.
 
-0.9.4
-=====
+0.9.4 - 2016-12-05
+==================
 - Warn when cygwin / python mismatch
 - Add --config for customizing configuration during run
 - Update rbenv + plugins to latest versions
 - pcre hooks now fail when grep / ggrep are not present
 
-0.9.3
-=====
+0.9.3 - 2016-11-07
+==================
 - Fix python hook installation when a strange setup.cfg exists
 
-0.9.2
-=====
+0.9.2 - 2016-10-25
+==================
 - Remove some python2.6 compatibility
 - UI is no longer sized to terminal width, instead 80 characters or longest
   necessary width.
 - Fix inability to create python hook environments when using venv / pyvenv on
   osx
 
-0.9.1
-=====
+0.9.1 - 2016-09-10
+==================
 - Remove some python2.6 compatibility
 - Fix staged-files-only with external diff tools
 
-0.9.0
-=====
+0.9.0 - 2016-08-31
+==================
 - Only consider forward diff in changed files
 - Don't run on staged deleted files that still exist
 - Autoupdate to tags when available
@@ -856,95 +856,95 @@ that have helped us get this far!
 - Fix crash with staged files containing unstaged lines which have non-utf8
   bytes and trailing whitespace
 
-0.8.2
-=====
+0.8.2 - 2016-05-20
+==================
 - Fix a crash introduced in 0.8.0 when an executable was not found
 
-0.8.1
-=====
+0.8.1 - 2016-05-17
+==================
 - Fix regression introduced in 0.8.0 when already using rbenv with no
   configured ruby hook version
 
-0.8.0
-=====
+0.8.0 - 2016-04-11
+==================
 - Fix --files when running in a subdir
 - Improve --help a bit
 - Switch to pyterminalsize for determining terminal size
 
-0.7.6
-=====
+0.7.6 - 2016-01-19
+==================
 - Work under latest virtualenv
 - No longer create empty directories on windows with latest virtualenv
 
-0.7.5
-=====
+0.7.5 - 2016-01-15
+==================
 - Consider dead symlinks as files when committing
 
-0.7.4
-=====
+0.7.4 - 2016-01-12
+==================
 - Produce error message instead of crashing on non-utf8 installation failure
 
-0.7.3
-=====
+0.7.3 - 2015-12-22
+==================
 - Fix regression introduced in 0.7.1 breaking `git commit -a`
 
-0.7.2
-=====
+0.7.2 - 2015-12-22
+==================
 - Add `always_run` setting for hooks to run even without file changes.
 
-0.7.1
-=====
+0.7.1 - 2015-12-19
+==================
 - Support running pre-commit inside submodules
 
-0.7.0
-=====
+0.7.0 - 2015-12-13
+==================
 - Store state about additional_dependencies for rollforward/rollback compatibility
 
-0.6.8
-=====
+0.6.8 - 2015-12-07
+==================
 - Build as a universal wheel
 - Allow '.format('-like strings in arguments
 - Add an option to require a minimum pre-commit version
 
-0.6.7
-=====
+0.6.7 - 2015-12-02
+==================
 - Print a useful message when a hook id is not present
 - Fix printing of non-ascii with unexpected errors
 - Print a message when a hook modifies files but produces no output
 
-0.6.6
-=====
+0.6.6 - 2015-11-25
+==================
 - Add `additional_dependencies` to hook configuration.
 - Fix pre-commit cloning under git 2.6
 - Small improvements for windows
 
-0.6.5
-=====
+0.6.5 - 2015-11-19
+==================
 - Allow args for pcre hooks
 
-0.6.4
-=====
+0.6.4 - 2015-11-13
+==================
 - Fix regression introduced in 0.6.3 regarding hooks which make non-utf8 diffs
 
-0.6.3
-=====
+0.6.3 - 2015-11-12
+==================
 - Remove `expected_return_code`
 - Fail a hook if it makes modifications to the working directory
 
-0.6.2
-=====
+0.6.2 - 2015-10-14
+==================
 - Use --no-ri --no-rdoc instead of --no-document for gem to fix old gem
 
-0.6.1
-=====
+0.6.1 - 2015-10-08
+==================
 - Fix pre-push when pushing something that's already up to date
 
-0.6.0
-=====
+0.6.0 - 2015-10-05
+==================
 - Filter hooks by stage (commit, push).
 
-0.5.5
-=====
+0.5.5 - 2015-09-04
+==================
 - Change permissions a few files
 - Rename the validate entrypoints
 - Add --version to some entrypoints
@@ -953,152 +953,151 @@ that have helped us get this far!
 - Suppress complaint about $TERM when no tty is attached
 - Support pcre hooks on osx through ggrep
 
-0.5.4
-=====
+0.5.4 - 2015-07-24
+==================
 - Allow hooks to produce outputs with arbitrary bytes
 - Fix pre-commit install when .git/hooks/pre-commit is a dead symlink
 - Allow an unstaged config when using --files or --all-files
 
-0.5.3
-=====
+0.5.3 - 2015-06-15
+==================
 - Fix autoupdate with "local" hooks - don't purge local hooks.
 
-0.5.2
-=====
+0.5.2 - 2015-06-02
+==================
 - Fix autoupdate with "local" hooks
 
-0.5.1
-=====
+0.5.1 - 2015-05-23
+==================
 - Fix bug with unknown non-ascii hook-id
 - Avoid crash when .git/hooks is not present in some git clients
 
-0.5.0
-=====
+0.5.0 - 2015-05-19
+==================
 - Add a new "local" hook type for running hooks without remote configuration.
 - Complain loudly when .pre-commit-config.yaml is unstaged.
 - Better support for multiple language versions when running hooks.
 - Allow exclude to be defaulted in repository configuration.
 
-0.4.4
-=====
+0.4.4 - 2015-03-29
+==================
 - Use sys.executable when executing virtualenv
 
-0.4.3
-=====
+0.4.3 - 2015-03-25
+==================
 - Use reset instead of checkout when checkout out hook repo
 
-0.4.2
-=====
+0.4.2 - 2015-02-27
+==================
 - Limit length of xargs arguments to workaround windows xargs bug
 
-0.4.1
-=====
+0.4.1 - 2015-02-27
+==================
 - Don't rename across devices when creating sqlite database
 
-0.4.0
-=====
+0.4.0 - 2015-02-27
+==================
 - Make ^C^C During installation not cause all subsequent runs to fail
 - Print while installing (instead of while cloning)
 - Use sqlite to manage repositories (instead of symlinks)
 - MVP Windows support
 
-0.3.6
-=====
+0.3.6 - 2015-02-05
+==================
 - `args` in venv'd languages are now property quoted.
 
-0.3.5
-=====
+0.3.5 - 2015-01-15
+==================
 - Support running during `pre-push`.  See https://pre-commit.com/#advanced 'pre-commit during push'.
 
-0.3.4
-=====
+0.3.4 - 2015-01-13
+==================
 - Allow hook providers to default `args` in `hooks.yaml`
 
-0.3.3
-=====
+0.3.3 - 2015-01-06
+==================
 - Improve message for `CalledProcessError`
 
-0.3.2
-=====
+0.3.2 - 2014-10-07
+==================
 - Fix for `staged_files_only` with color.diff = always #176.
 
-0.3.1
-=====
+0.3.1 - 2014-10-03
+==================
 - Fix error clobbering #174.
 - Remove dependency on `plumbum`.
 - Allow pre-commit to be run from anywhere in a repository #175.
 
-0.3.0
-=====
+0.3.0 - 2014-09-18
+==================
 - Add `--files` option to `pre-commit run`
 
-0.2.11
-======
+0.2.11 - 2014-09-05
+===================
 - Fix terminal width detection (broken in 0.2.10)
 
-0.2.10
-======
+0.2.10 - 2014-09-04
+===================
 - Bump version of nodeenv to fix bug with ~/.npmrc
 - Choose `python` more intelligently when running.
 
-0.2.9
-=====
+0.2.9 - 2014-09-02
+==================
 - Fix bug where sys.stdout.write must take `bytes` in python 2.6
 
-0.2.8
-=====
+0.2.8 - 2014-08-13
+==================
 - Allow a client to have duplicates of hooks.
 - Use --prebuilt instead of system for node.
 - Improve some fatal error messages
 
-0.2.7
-=====
+0.2.7 - 2014-07-28
+==================
 - Produce output when running pre-commit install --install-hooks
 
-0.2.6
-=====
+0.2.6 - 2014-07-28
+==================
 - Print hookid on failure
 - Use sys.executable for running nodeenv
 - Allow running as `python -m pre_commit`
 
-0.2.5
-=====
+0.2.5 - 2014-07-17
+==================
 - Default columns to 80 (for non-terminal execution).
 
-0.2.4
-=====
+0.2.4 - 2014-07-07
+==================
 - Support --install-hooks as an argument to `pre-commit install`
 - Install hooks before attempting to run anything
 - Use `python -m nodeenv` instead of `nodeenv`
 
-0.2.3
-=====
+0.2.3 - 2014-06-25
+==================
 - Freeze ruby building infrastructure
 - Fix bug that assumed diffs were utf-8
 
-0.2.2
-=====
+0.2.2 - 2014-06-22
+==================
 - Fix filenames with spaces
 
-0.2.1
-=====
+0.2.1 - 2014-06-18
+==================
 - Use either `pre-commit` or `python -m pre_commit.main` depending on which is
   available
 - Don't use readlink -f
 
-0.2.0
-=====
+0.2.0 - 2014-06-17
+==================
 - Fix for merge-conflict during cherry-picking.
 - Add -V / --version
 - Add migration install mode / install -f / --overwrite
 - Add `pcre` "language" for perl compatible regexes
 - Reorganize packages.
 
-0.1.1
-=====
+0.1.1 - 2014-06-11
+==================
 - Fixed bug with autoupdate setting defaults on un-updated repos.
 
-
-0.1
-===
+0.1.0 - 2014-06-07
+==================
 - Initial Release
