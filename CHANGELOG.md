@@ -1098,7 +1098,6 @@ that have helped us get this far!
 =====
 - Fixed bug with autoupdate setting defaults on un-updated repos.
 
-
-0.1
-===
+0.1.0
+=====
 - Initial Release
