@@ -1,3 +1,23 @@
+1.16.0
+======
+
+### Features
+- Add support for `prepare-commit-msg` hook
+    - #1004 PR by @marcjay.
+
+### Fixes
+- Fix repeated legacy `pre-commit install` on windows
+    - #1010 issue by @AbhimanyuHK.
+    - #1011 PR by @asottile.
+- Whitespace fixup
+    - #1014 PR by @mxr.
+- Fix CI check for working pcre support
+    - #1015 PR by @Myrheimb.
+
+### Misc.
+- Switch CI from travis / appveyor to azure pipelines
+    - #1012 PR by @asottile.
+
 1.15.2
 ======
 
