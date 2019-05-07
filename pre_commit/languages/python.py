@@ -140,6 +140,7 @@ def py_interface(_dir, _make_venv):
                 'python', '-c',
                 'import ctypes, datetime, io, os, ssl, weakref',
                 retcode=None,
+                encoding=None,
             )
         return retcode == 0
 
