@@ -39,6 +39,14 @@ def get_root():
     return cmd_output('git', 'rev-parse', '--show-toplevel')[1].strip()
 
 
+def get_superproject_root():
+    stdout = cmd_output('git',
+                        'rev-parse',
+                        '--show-superproject-working-tree',
+                        '--show-toplevel')
+    return stdout[1].splitlines()[0].strip()
+
+
 def get_git_dir(git_root='.'):
     opts = ('--git-common-dir', '--git-dir')
     _, out, _ = cmd_output('git', 'rev-parse', *opts, cwd=git_root)

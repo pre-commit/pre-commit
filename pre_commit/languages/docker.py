@@ -5,7 +5,7 @@ import hashlib
 import os
 
 import pre_commit.constants as C
-from pre_commit import five
+from pre_commit import five, git
 from pre_commit.languages import helpers
 from pre_commit.util import CalledProcessError
 from pre_commit.util import clean_path_on_failure
@@ -74,6 +74,9 @@ def install_environment(
 
 
 def docker_cmd():  # pragma: windows no cover
+    superproject_dir = git.get_superproject_root()
+    project_dir = git.get_root()
+    project_relpath = os.path.relpath(project_dir, superproject_dir)
     return (
         'docker', 'run',
         '--rm',
@@ -81,8 +84,8 @@ def docker_cmd():  # pragma: windows no cover
         # https://docs.docker.com/engine/reference/commandline/run/#mount-volumes-from-container-volumes-from
         # The `Z` option tells Docker to label the content with a private
         # unshared label. Only the current container can use a private volume.
-        '-v', '{}:/src:rw,Z'.format(os.getcwd()),
-        '--workdir', '/src',
+        '-v', '{}:/src:rw,Z'.format(superproject_dir),
+        '--workdir', os.path.abspath(os.path.join('/src', project_relpath)),
     )
 
 
