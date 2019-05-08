@@ -1,3 +1,12 @@
+1.16.1 - 2019-05-08
+===================
+
+### Fixes
+- Don't ``UnicodeDecodeError`` on unexpected non-UTF8 output in python health
+  check on windows.
+    - #1021 issue by @nicoddemus.
+    - #1022 PR by @asottile.
+
 1.16.0 - 2019-05-04
 ===================
 
