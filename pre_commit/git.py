@@ -40,10 +40,12 @@ def get_root():
 
 
 def get_superproject_root():
-    stdout = cmd_output('git',
-                        'rev-parse',
-                        '--show-superproject-working-tree',
-                        '--show-toplevel')
+    stdout = cmd_output(
+        'git',
+        'rev-parse',
+        '--show-superproject-working-tree',
+        '--show-toplevel',
+    )
     return stdout[1].splitlines()[0].strip()
 
 

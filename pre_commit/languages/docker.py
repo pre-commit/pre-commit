@@ -5,7 +5,8 @@ import hashlib
 import os
 
 import pre_commit.constants as C
-from pre_commit import five, git
+from pre_commit import five
+from pre_commit import git
 from pre_commit.languages import helpers
 from pre_commit.util import CalledProcessError
 from pre_commit.util import clean_path_on_failure
