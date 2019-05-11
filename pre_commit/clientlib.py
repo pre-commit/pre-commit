@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 import argparse
 import functools
+import logging
 import pipes
 import sys
 
@@ -14,6 +15,8 @@ import pre_commit.constants as C
 from pre_commit.error_handler import FatalError
 from pre_commit.languages.all import all_languages
 from pre_commit.util import parse_version
+
+logger = logging.getLogger('pre_commit')
 
 
 def check_type_tag(tag):
@@ -144,6 +147,16 @@ def _entry(modname):
     )
 
 
+def warn_on_unknown_keys_at_top_level(extra, orig_keys):
+    logger.warning(
+        'Your pre-commit-config contain these extra keys: {}. '
+        'while the only valid keys are: {}.'.format(
+            ', '.join(extra),
+            ', '.join(sorted(orig_keys)),
+        ),
+    ),
+
+
 _meta = (
     (
         'check-hooks-apply', (
@@ -222,6 +235,10 @@ CONFIG_REPO_DICT = cfgv.Map(
     ),
 
     MigrateShaToRev(),
+    cfgv.WarnAdditionalKeys(
+        {'repo', 'rev', 'hooks'},
+        warn_on_unknown_keys_at_top_level,
+    ),
 )
 DEFAULT_LANGUAGE_VERSION = cfgv.Map(
     'DefaultLanguageVersion', None,

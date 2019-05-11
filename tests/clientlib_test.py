@@ -1,5 +1,7 @@
 from __future__ import unicode_literals
 
+import logging
+
 import cfgv
 import pytest
 
@@ -114,6 +116,27 @@ def test_validate_config_old_list_format_ok(tmpdir):
     f = tmpdir.join('cfg.yaml')
     f.write('-  {repo: meta, hooks: [{id: identity}]}')
     assert not validate_config_main((f.strpath,))
+
+
+def test_validate_warn_on_unknown_keys_at_top_level(tmpdir, caplog):
+    f = tmpdir.join('cfg.yaml')
+    f.write(
+        '-   repo: https://gitlab.com/pycqa/flake8\n'
+        '    rev: 3.7.7\n'
+        '    hooks:\n'
+        '    -   id: flake8\n'
+        '    args: [--some-args]\n',
+    )
+    ret_val = validate_config_main((f.strpath,))
+    assert not ret_val
+    assert caplog.record_tuples == [
+        (
+            'pre_commit',
+            logging.WARNING,
+            'Your pre-commit-config contain these extra keys: args. '
+            'while the only valid keys are: hooks, repo, rev.',
+        ),
+    ]
 
 
 @pytest.mark.parametrize('fn', (validate_config_main, validate_manifest_main))
