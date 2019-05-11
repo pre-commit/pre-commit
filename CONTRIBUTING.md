@@ -11,7 +11,7 @@
   - ruby + gem
   - docker
 
-### Setting up an environemnt
+### Setting up an environment
 
 This is useful for running specific tests.  The easiest way to set this up
 is to run:
