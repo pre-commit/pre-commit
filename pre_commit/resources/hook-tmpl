@@ -170,15 +170,24 @@ def _opts(stdin):
     return ('--config', CONFIG, '--hook-stage', stage) + fns[HOOK_TYPE](stdin)
 
 
+if sys.version_info < (3, 7):  # https://bugs.python.org/issue25942
+    def _subprocess_call(cmd):  # this is the python 2.7 implementation
+        return subprocess.Popen(cmd).wait()
+else:
+    _subprocess_call = subprocess.call
+
+
 def main():
     retv, stdin = _run_legacy()
     try:
         _validate_config()
-        return retv | subprocess.call(_exe() + _opts(stdin))
+        return retv | _subprocess_call(_exe() + _opts(stdin))
     except EarlyExit:
         return retv
     except FatalError as e:
         print(e.args[0])
+        return 1
+    except KeyboardInterrupt:
         return 1
 
 
