@@ -149,12 +149,10 @@ def _entry(modname):
 
 def warn_on_unknown_keys_at_top_level(extra, orig_keys):
     logger.warning(
-        'Your pre-commit-config contain these extra keys: {}. '
-        'while the only valid keys are: {}.'.format(
-            ', '.join(extra),
-            ', '.join(sorted(orig_keys)),
+        'Unexpected config key(s): {}'.format(
+            ', '.join(sorted(extra)),
         ),
-    ),
+    )
 
 
 _meta = (
@@ -236,7 +234,7 @@ CONFIG_REPO_DICT = cfgv.Map(
 
     MigrateShaToRev(),
     cfgv.WarnAdditionalKeys(
-        {'repo', 'rev', 'hooks'},
+        ('repo', 'rev', 'hooks'),
         warn_on_unknown_keys_at_top_level,
     ),
 )
@@ -263,6 +261,10 @@ CONFIG_SCHEMA = cfgv.Map(
         'minimum_pre_commit_version',
         cfgv.check_and(cfgv.check_string, check_min_version),
         '0',
+    ),
+    cfgv.WarnAdditionalKeys(
+        ('repos',),
+        warn_on_unknown_keys_at_top_level,
     ),
 )
 

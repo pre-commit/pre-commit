@@ -118,7 +118,7 @@ def test_validate_config_old_list_format_ok(tmpdir):
     assert not validate_config_main((f.strpath,))
 
 
-def test_validate_warn_on_unknown_keys_at_top_level(tmpdir, caplog):
+def test_validate_warn_on_unknown_keys_at_repo_level(tmpdir, caplog):
     f = tmpdir.join('cfg.yaml')
     f.write(
         '-   repo: https://gitlab.com/pycqa/flake8\n'
@@ -133,8 +133,29 @@ def test_validate_warn_on_unknown_keys_at_top_level(tmpdir, caplog):
         (
             'pre_commit',
             logging.WARNING,
-            'Your pre-commit-config contain these extra keys: args. '
-            'while the only valid keys are: hooks, repo, rev.',
+            'Unexpected config key(s): args',
+        ),
+    ]
+
+
+def test_validate_warn_on_unknown_keys_at_top_level(tmpdir, caplog):
+    f = tmpdir.join('cfg.yaml')
+    f.write(
+        'repos:\n'
+        '-   repo: https://gitlab.com/pycqa/flake8\n'
+        '    rev: 3.7.7\n'
+        '    hooks:\n'
+        '    -   id: flake8\n'
+        'foo:\n'
+        '    id: 1.0.0\n',
+    )
+    ret_val = validate_config_main((f.strpath,))
+    assert not ret_val
+    assert caplog.record_tuples == [
+        (
+            'pre_commit',
+            logging.WARNING,
+            'Unexpected config key(s): foo',
         ),
     ]
 
