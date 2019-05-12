@@ -149,7 +149,7 @@ def _entry(modname):
     )
 
 
-def warn_on_unknown_keys_at_top_level(extra, orig_keys):
+def warn_unknown_keys(extra, orig_keys):
     logger.warning(
         'Unexpected config key(s): {}'.format(
             ', '.join(sorted(extra)),
@@ -237,7 +237,7 @@ CONFIG_REPO_DICT = cfgv.Map(
     MigrateShaToRev(),
     cfgv.WarnAdditionalKeys(
         ('repo', 'rev', 'hooks'),
-        warn_on_unknown_keys_at_top_level,
+        warn_unknown_keys,
     ),
 )
 DEFAULT_LANGUAGE_VERSION = cfgv.Map(
@@ -273,7 +273,7 @@ CONFIG_SCHEMA = cfgv.Map(
             'fail_fast',
             'minimum_pre_commit_version',
         ),
-        warn_on_unknown_keys_at_top_level,
+        warn_unknown_keys,
     ),
 )
 
