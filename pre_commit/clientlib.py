@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 import argparse
 import functools
+import logging
 import pipes
 import sys
 
@@ -14,6 +15,8 @@ import pre_commit.constants as C
 from pre_commit.error_handler import FatalError
 from pre_commit.languages.all import all_languages
 from pre_commit.util import parse_version
+
+logger = logging.getLogger('pre_commit')
 
 
 def check_type_tag(tag):
@@ -106,6 +109,8 @@ META = 'meta'
 
 
 class MigrateShaToRev(object):
+    key = 'rev'
+
     @staticmethod
     def _cond(key):
         return cfgv.Conditional(
@@ -141,6 +146,14 @@ def _entry(modname):
     """
     return '{} -m pre_commit.meta_hooks.{}'.format(
         pipes.quote(sys.executable), modname,
+    )
+
+
+def warn_unknown_keys(extra, orig_keys):
+    logger.warning(
+        'Unexpected config key(s): {}'.format(
+            ', '.join(sorted(extra)),
+        ),
     )
 
 
@@ -222,6 +235,10 @@ CONFIG_REPO_DICT = cfgv.Map(
     ),
 
     MigrateShaToRev(),
+    cfgv.WarnAdditionalKeys(
+        ('repo', 'rev', 'hooks'),
+        warn_unknown_keys,
+    ),
 )
 DEFAULT_LANGUAGE_VERSION = cfgv.Map(
     'DefaultLanguageVersion', None,
@@ -246,6 +263,17 @@ CONFIG_SCHEMA = cfgv.Map(
         'minimum_pre_commit_version',
         cfgv.check_and(cfgv.check_string, check_min_version),
         '0',
+    ),
+    cfgv.WarnAdditionalKeys(
+        (
+            'repos',
+            'default_language_version',
+            'default_stages',
+            'exclude',
+            'fail_fast',
+            'minimum_pre_commit_version',
+        ),
+        warn_unknown_keys,
     ),
 )
 

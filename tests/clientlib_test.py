@@ -1,5 +1,7 @@
 from __future__ import unicode_literals
 
+import logging
+
 import cfgv
 import pytest
 
@@ -114,6 +116,48 @@ def test_validate_config_old_list_format_ok(tmpdir):
     f = tmpdir.join('cfg.yaml')
     f.write('-  {repo: meta, hooks: [{id: identity}]}')
     assert not validate_config_main((f.strpath,))
+
+
+def test_validate_warn_on_unknown_keys_at_repo_level(tmpdir, caplog):
+    f = tmpdir.join('cfg.yaml')
+    f.write(
+        '-   repo: https://gitlab.com/pycqa/flake8\n'
+        '    rev: 3.7.7\n'
+        '    hooks:\n'
+        '    -   id: flake8\n'
+        '    args: [--some-args]\n',
+    )
+    ret_val = validate_config_main((f.strpath,))
+    assert not ret_val
+    assert caplog.record_tuples == [
+        (
+            'pre_commit',
+            logging.WARNING,
+            'Unexpected config key(s): args',
+        ),
+    ]
+
+
+def test_validate_warn_on_unknown_keys_at_top_level(tmpdir, caplog):
+    f = tmpdir.join('cfg.yaml')
+    f.write(
+        'repos:\n'
+        '-   repo: https://gitlab.com/pycqa/flake8\n'
+        '    rev: 3.7.7\n'
+        '    hooks:\n'
+        '    -   id: flake8\n'
+        'foo:\n'
+        '    id: 1.0.0\n',
+    )
+    ret_val = validate_config_main((f.strpath,))
+    assert not ret_val
+    assert caplog.record_tuples == [
+        (
+            'pre_commit',
+            logging.WARNING,
+            'Unexpected config key(s): foo',
+        ),
+    ]
 
 
 @pytest.mark.parametrize('fn', (validate_config_main, validate_manifest_main))
@@ -261,3 +305,12 @@ def test_minimum_pre_commit_version_failing():
 def test_minimum_pre_commit_version_passing():
     cfg = {'repos': [], 'minimum_pre_commit_version': '0'}
     cfgv.validate(cfg, CONFIG_SCHEMA)
+
+
+@pytest.mark.parametrize('schema', (CONFIG_SCHEMA, CONFIG_REPO_DICT))
+def test_warn_additional(schema):
+    allowed_keys = {item.key for item in schema.items if hasattr(item, 'key')}
+    warn_additional, = [
+        x for x in schema.items if isinstance(x, cfgv.WarnAdditionalKeys)
+    ]
+    assert allowed_keys == set(warn_additional.keys)
