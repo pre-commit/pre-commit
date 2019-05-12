@@ -44,9 +44,11 @@ def _log_and_exit(msg, exc, formatted):
 def error_handler():
     try:
         yield
-    except FatalError as e:
-        _log_and_exit('An error has occurred', e, traceback.format_exc())
-    except Exception as e:
-        _log_and_exit(
-            'An unexpected error has occurred', e, traceback.format_exc(),
-        )
+    except (Exception, KeyboardInterrupt) as e:
+        if isinstance(e, FatalError):
+            msg = 'An error has occurred'
+        elif isinstance(e, KeyboardInterrupt):
+            msg = 'Interrupted (^C)'
+        else:
+            msg = 'An unexpected error has occurred'
+        _log_and_exit(msg, e, traceback.format_exc())

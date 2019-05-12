@@ -73,6 +73,29 @@ def test_error_handler_uncaught_error(mocked_log_and_exit):
     )
 
 
+def test_error_handler_keyboardinterrupt(mocked_log_and_exit):
+    exc = KeyboardInterrupt()
+    with error_handler.error_handler():
+        raise exc
+
+    mocked_log_and_exit.assert_called_once_with(
+        'Interrupted (^C)',
+        exc,
+        # Tested below
+        mock.ANY,
+    )
+    assert re.match(
+        r'Traceback \(most recent call last\):\n'
+        r'  File ".+pre_commit.error_handler.py", line \d+, in error_handler\n'
+        r'    yield\n'
+        r'  File ".+tests.error_handler_test.py", line \d+, '
+        r'in test_error_handler_keyboardinterrupt\n'
+        r'    raise exc\n'
+        r'KeyboardInterrupt\n',
+        mocked_log_and_exit.call_args[0][2],
+    )
+
+
 def test_log_and_exit(cap_out, mock_store_dir):
     with pytest.raises(SystemExit):
         error_handler._log_and_exit(
