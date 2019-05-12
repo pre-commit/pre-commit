@@ -109,6 +109,8 @@ META = 'meta'
 
 
 class MigrateShaToRev(object):
+    key = 'rev'
+
     @staticmethod
     def _cond(key):
         return cfgv.Conditional(
@@ -263,7 +265,14 @@ CONFIG_SCHEMA = cfgv.Map(
         '0',
     ),
     cfgv.WarnAdditionalKeys(
-        ('repos',),
+        (
+            'repos',
+            'default_language_version',
+            'default_stages',
+            'exclude',
+            'fail_fast',
+            'minimum_pre_commit_version',
+        ),
         warn_on_unknown_keys_at_top_level,
     ),
 )

@@ -305,3 +305,12 @@ def test_minimum_pre_commit_version_failing():
 def test_minimum_pre_commit_version_passing():
     cfg = {'repos': [], 'minimum_pre_commit_version': '0'}
     cfgv.validate(cfg, CONFIG_SCHEMA)
+
+
+@pytest.mark.parametrize('schema', (CONFIG_SCHEMA, CONFIG_REPO_DICT))
+def test_warn_additional(schema):
+    allowed_keys = {item.key for item in schema.items if hasattr(item, 'key')}
+    warn_additional, = [
+        x for x in schema.items if isinstance(x, cfgv.WarnAdditionalKeys)
+    ]
+    assert allowed_keys == set(warn_additional.keys)
