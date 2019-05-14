@@ -152,9 +152,10 @@ def _run_single_hook(classifier, hook, args, skips, cols):
 
         # Print a message if failing due to file modifications
         if file_modifications:
-            output.write('Files were modified by this hook.' \
-                         'Please review them in Git\'s staging area, ' \
-                         'and repeat the commit.')
+            output.write(
+                'Files were modified by this hook.  '
+                'Review the changes, `git add`, and repeat the commit.',
+            )
 
             if stdout or stderr:
                 output.write_line(' Additional output:')
