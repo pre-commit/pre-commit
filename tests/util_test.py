@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 import os.path
+import stat
 
 import pytest
 
@@ -8,6 +9,7 @@ from pre_commit.util import CalledProcessError
 from pre_commit.util import clean_path_on_failure
 from pre_commit.util import cmd_output
 from pre_commit.util import parse_version
+from pre_commit.util import rmtree
 from pre_commit.util import tmpdir
 
 
@@ -90,3 +92,14 @@ def test_parse_version():
     assert parse_version('0.0') == parse_version('0.0')
     assert parse_version('0.1') > parse_version('0.0')
     assert parse_version('2.1') >= parse_version('2')
+
+
+def test_rmtree_read_only_directories(tmpdir):
+    """Simulates the go module tree.  See #1042"""
+    tmpdir.join('x/y/z').ensure_dir().join('a').ensure()
+    mode = os.stat(str(tmpdir.join('x'))).st_mode
+    mode_no_w = mode & ~(stat.S_IWUSR | stat.S_IWGRP | stat.S_IWOTH)
+    tmpdir.join('x/y/z').chmod(mode_no_w)
+    tmpdir.join('x/y/z').chmod(mode_no_w)
+    tmpdir.join('x/y/z').chmod(mode_no_w)
+    rmtree(str(tmpdir.join('x')))

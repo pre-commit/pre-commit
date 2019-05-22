@@ -158,13 +158,14 @@ def cmd_output(*cmd, **kwargs):
 
 def rmtree(path):
     """On windows, rmtree fails for readonly dirs."""
-    def handle_remove_readonly(func, path, exc):  # pragma: no cover (windows)
+    def handle_remove_readonly(func, path, exc):
         excvalue = exc[1]
         if (
                 func in (os.rmdir, os.remove, os.unlink) and
                 excvalue.errno == errno.EACCES
         ):
-            os.chmod(path, stat.S_IRWXU | stat.S_IRWXG | stat.S_IRWXO)
+            for p in (path, os.path.dirname(path)):
+                os.chmod(p, os.stat(p).st_mode | stat.S_IWUSR)
             func(path)
         else:
             raise
