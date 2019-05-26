@@ -18,6 +18,7 @@ from pre_commit.commands.install_uninstall import is_our_script
 from pre_commit.commands.install_uninstall import PRIOR_HASHES
 from pre_commit.commands.install_uninstall import shebang
 from pre_commit.commands.install_uninstall import uninstall
+from pre_commit.parse_shebang import find_executable
 from pre_commit.util import cmd_output
 from pre_commit.util import make_executable
 from pre_commit.util import mkdirp
@@ -234,10 +235,16 @@ def test_install_idempotent(tempdir_factory, store):
 
 def _path_without_us():
     # Choose a path which *probably* doesn't include us
-    return os.pathsep.join([
-        x for x in os.environ['PATH'].split(os.pathsep)
-        if x.lower() != os.path.dirname(sys.executable).lower()
-    ])
+    env = dict(os.environ)
+    exe = find_executable('pre-commit', _environ=env)
+    while exe:
+        parts = env['PATH'].split(os.pathsep)
+        after = [x for x in parts if x.lower() != os.path.dirname(exe).lower()]
+        if parts == after:
+            raise AssertionError(exe, parts)
+        env['PATH'] = os.pathsep.join(after)
+        exe = find_executable('pre-commit', _environ=env)
+    return env['PATH']
 
 
 def test_environment_not_sourced(tempdir_factory, store):
