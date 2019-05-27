@@ -149,10 +149,16 @@ def _entry(modname):
     )
 
 
-def warn_unknown_keys(extra, orig_keys):
+def warn_unknown_keys_root(extra, orig_keys, dct):
     logger.warning(
-        'Unexpected config key(s): {}'.format(
-            ', '.join(sorted(extra)),
+        'Unexpected key(s) present at root: {}'.format(', '.join(extra)),
+    )
+
+
+def warn_unknown_keys_repo(extra, orig_keys, dct):
+    logger.warning(
+        'Unexpected key(s) present on {}: {}'.format(
+            dct['repo'], ', '.join(extra),
         ),
     )
 
@@ -235,10 +241,7 @@ CONFIG_REPO_DICT = cfgv.Map(
     ),
 
     MigrateShaToRev(),
-    cfgv.WarnAdditionalKeys(
-        ('repo', 'rev', 'hooks'),
-        warn_unknown_keys,
-    ),
+    cfgv.WarnAdditionalKeys(('repo', 'rev', 'hooks'), warn_unknown_keys_repo),
 )
 DEFAULT_LANGUAGE_VERSION = cfgv.Map(
     'DefaultLanguageVersion', None,
@@ -273,7 +276,7 @@ CONFIG_SCHEMA = cfgv.Map(
             'fail_fast',
             'minimum_pre_commit_version',
         ),
-        warn_unknown_keys,
+        warn_unknown_keys_root,
     ),
 )
 

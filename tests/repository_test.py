@@ -588,7 +588,7 @@ def test_unknown_keys(store, fake_log_handler):
         }],
     }
     _get_hook(config, store, 'too-much')
-    expected = 'Unexpected keys present on local => too-much: foo, hello'
+    expected = 'Unexpected key(s) present on local => too-much: foo, hello'
     assert fake_log_handler.handle.call_args[0][0].msg == expected
 
 
