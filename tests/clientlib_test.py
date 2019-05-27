@@ -133,7 +133,8 @@ def test_validate_warn_on_unknown_keys_at_repo_level(tmpdir, caplog):
         (
             'pre_commit',
             logging.WARNING,
-            'Unexpected config key(s): args',
+            'Unexpected key(s) present on https://gitlab.com/pycqa/flake8: '
+            'args',
         ),
     ]
 
@@ -155,7 +156,7 @@ def test_validate_warn_on_unknown_keys_at_top_level(tmpdir, caplog):
         (
             'pre_commit',
             logging.WARNING,
-            'Unexpected config key(s): foo',
+            'Unexpected key(s) present at root: foo',
         ),
     ]
 

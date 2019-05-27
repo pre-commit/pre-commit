@@ -105,7 +105,7 @@ class Hook(collections.namedtuple('Hook', ('src', 'prefix') + _KEYS)):
         extra_keys = set(dct) - set(_KEYS)
         if extra_keys:
             logger.warning(
-                'Unexpected keys present on {} => {}: '
+                'Unexpected key(s) present on {} => {}: '
                 '{}'.format(src, dct['id'], ', '.join(sorted(extra_keys))),
             )
         return cls(src=src, prefix=prefix, **{k: dct[k] for k in _KEYS})
