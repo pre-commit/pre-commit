@@ -20,10 +20,8 @@ jobs:
     os: windows
     additional_variables:
       COVERAGE_IGNORE_WINDOWS: '# pragma: windows no cover'
-      TOX_TESTENV_PASSENV: COVERAGE_IGNORE_WINDOWS
+      TOX_TESTENV_PASSENV: COVERAGE_IGNORE_WINDOWS RUSTUP_HOME
       TEMP: C:\Temp  # remove when dropping python2
-    pre_test:
-    - template: step--rust-install.yml
 - template: job--python-tox.yml@asottile
   parameters:
     toxenvs: [py37]
