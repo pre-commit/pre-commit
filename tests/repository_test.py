@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import os.path
 import re
 import shutil
+import sys
 
 import cfgv
 import mock
@@ -717,6 +718,10 @@ def local_python_config():
     return {'repo': 'local', 'hooks': hooks}
 
 
+@pytest.mark.xfail(  # pragma: windows no cover
+    sys.platform == 'win32',
+    reason='microsoft/azure-pipelines-image-generation#989',
+)
 def test_local_python_repo(store, local_python_config):
     hook = _get_hook(local_python_config, store, 'foo')
     # language_version should have been adjusted to the interpreter version
