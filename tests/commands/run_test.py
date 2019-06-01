@@ -184,7 +184,13 @@ def test_global_exclude(cap_out, store, tempdir_factory):
         (
             {
                 'show_diff_on_failure': True,
-                'color': 'auto',
+            },
+            b'All changes made by hooks:',
+        ),
+        (
+            {
+                'show_diff_on_failure': True,
+                'color': True,
             },
             b'All changes made by hooks:',
         ),
@@ -192,7 +198,6 @@ def test_global_exclude(cap_out, store, tempdir_factory):
             {
                 'show_diff_on_failure': True,
                 'all_files': True,
-                'color': 'auto',
             },
             b'reproduce locally with: pre-commit run --all-files',
         ),

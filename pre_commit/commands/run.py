@@ -224,9 +224,11 @@ def _run_hooks(config, hooks, args, environ):
                 '`pre-commit install`.',
             )
         output.write_line('All changes made by hooks:')
+        # args.color is a boolean.
+        # See user_color function in color.py
         subprocess.call((
             'git', '--no-pager', 'diff', '--no-ext-diff',
-            '--color={}'.format(args.color),
+            '--color={}'.format({True: 'always', False: 'never'}[args.color]),
         ))
 
     return retval
