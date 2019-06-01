@@ -224,13 +224,10 @@ def _run_hooks(config, hooks, args, environ):
                 '`pre-commit install`.',
             )
         output.write_line('All changes made by hooks:')
-        if args.color:
-            subprocess.call((
-                'git', '--no-pager', 'diff', '--no-ext-diff',
-                '--color={}'.format(args.color),
-            ))
-        else:
-            subprocess.call(('git', '--no-pager', 'diff', '--no-ext-diff'))
+        subprocess.call((
+            'git', '--no-pager', 'diff', '--no-ext-diff',
+            '--color={}'.format(args.color),
+        ))
 
     return retval
 
