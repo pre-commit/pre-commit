@@ -1,3 +1,29 @@
+1.17.0 - 2019-06-06
+===================
+
+### Features
+- Produce better output on `^C`
+    - #1030 PR by @asottile.
+- Warn on unknown keys at the top level and repo level
+    - #1028 PR by @yoavcaspi.
+    - #1048 PR by @asottile.
+
+### Fixes
+- Fix handling of `^C` in wrapper script in python 3.x
+    - #1027 PR by @asottile.
+- Fix `rmtree` for non-writable directories
+    - #1042 issue by @detailyang.
+    - #1043 PR by @asottile.
+- Pass `--color` option to `git diff` in `--show-diff-on-failure`
+    - #1007 issue by @chadrik.
+    - #1051 PR by @mandarvaze.
+
+### Misc.
+- Fix test when `pre-commit` is installed globally
+    - #1032 issue by @yoavcaspi.
+    - #1045 PR by @asottile.
+
+
 1.16.1 - 2019-05-08
 ===================
 
