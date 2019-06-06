@@ -20,7 +20,7 @@ jobs:
     os: windows
     additional_variables:
       COVERAGE_IGNORE_WINDOWS: '# pragma: windows no cover'
-      TOX_TESTENV_PASSENV: COVERAGE_IGNORE_WINDOWS RUSTUP_HOME
+      TOX_TESTENV_PASSENV: COVERAGE_IGNORE_WINDOWS
       TEMP: C:\Temp  # remove when dropping python2
 - template: job--python-tox.yml@asottile
   parameters:
@@ -30,7 +30,6 @@ jobs:
     pre_test:
     - task: UseRubyVersion@0
     - template: step--git-install.yml
-    - template: step--rust-install.yml
     - bash: |
         testing/get-swift.sh
         echo '##vso[task.prependpath]/tmp/swift/usr/bin'
@@ -41,7 +40,6 @@ jobs:
     os: linux
     pre_test:
     - task: UseRubyVersion@0
-    - template: step--rust-install.yml
     - bash: |
         testing/get-swift.sh
         echo '##vso[task.prependpath]/tmp/swift/usr/bin'
