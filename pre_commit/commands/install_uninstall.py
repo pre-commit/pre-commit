@@ -14,6 +14,7 @@ from pre_commit.clientlib import load_config
 from pre_commit.repository import all_hooks
 from pre_commit.repository import install_hook_envs
 from pre_commit.util import cmd_output
+from pre_commit.util import is_mingw
 from pre_commit.util import make_executable
 from pre_commit.util import mkdirp
 from pre_commit.util import resource_text
@@ -48,8 +49,8 @@ def is_our_script(filename):
 
 
 def shebang():
-    if sys.platform == 'win32':
-        py = 'python{}'.format(sys.version_info[0])
+    if sys.platform == 'win32' and not is_mingw():
+        py = 'python'
     else:
         # Homebrew/homebrew-core#35825: be more timid about appropriate `PATH`
         path_choices = [p for p in os.defpath.split(os.pathsep) if p]

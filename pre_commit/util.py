@@ -7,6 +7,7 @@ import shutil
 import stat
 import subprocess
 import sys
+import sysconfig
 import tempfile
 
 import six
@@ -175,3 +176,16 @@ def rmtree(path):
 def parse_version(s):
     """poor man's version comparison"""
     return tuple(int(p) for p in s.split('.'))
+
+
+def is_mingw():
+    """Check whether platform is mingw or not."""
+    return sysconfig.get_platform() in 'mingw'
+
+
+def fix_mingw_path(path):
+    """Convert cygwin path to mingw-style path"""
+    if is_mingw():
+        _return, path, _output = cmd_output('cygpath', '-m', path)
+        path = path.strip()
+    return path

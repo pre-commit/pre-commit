@@ -5,6 +5,8 @@ import os.path
 import sys
 
 from pre_commit.util import cmd_output
+from pre_commit.util import fix_mingw_path
+from pre_commit.util import is_mingw
 
 
 logger = logging.getLogger(__name__)
@@ -36,7 +38,12 @@ def no_git_env(_env=None):
 
 
 def get_root():
-    return cmd_output('git', 'rev-parse', '--show-toplevel')[1].strip()
+    return fix_mingw_path(
+        cmd_output(
+            'git', 'rev-parse',
+            '--show-toplevel',
+        )[1].strip(),
+    )
 
 
 def get_git_dir(git_root='.'):
@@ -159,7 +166,8 @@ def git_path(name, repo='.'):
 
 def check_for_cygwin_mismatch():
     """See https://github.com/pre-commit/pre-commit/issues/354"""
-    if sys.platform in ('cygwin', 'win32'):  # pragma: no cover (windows)
+    if sys.platform in ('cygwin', 'win32') and \
+            not is_mingw():  # pragma: no cover (windows)
         is_cygwin_python = sys.platform == 'cygwin'
         toplevel = cmd_output('git', 'rev-parse', '--show-toplevel')[1]
         is_cygwin_git = toplevel.startswith('/')

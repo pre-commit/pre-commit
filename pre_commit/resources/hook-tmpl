@@ -6,6 +6,7 @@ import distutils.spawn
 import os
 import subprocess
 import sys
+import sysconfig
 
 # work around https://github.com/Homebrew/homebrew-core/issues/30445
 os.environ.pop('__PYVENV_LAUNCHER__', None)
@@ -76,7 +77,10 @@ def _run_legacy():
 
 def _validate_config():
     cmd = ('git', 'rev-parse', '--show-toplevel')
-    top_level = subprocess.check_output(cmd).decode('UTF-8').strip()
+    top_level = fix_mingw_path(
+        subprocess.check_output(cmd).decode('UTF-8').
+        strip(),
+    )
     cfg = os.path.join(top_level, CONFIG)
     if os.path.isfile(cfg):
         pass
@@ -175,6 +179,21 @@ if sys.version_info < (3, 7):  # https://bugs.python.org/issue25942
         return subprocess.Popen(cmd).wait()
 else:
     _subprocess_call = subprocess.call
+
+
+def is_mingw():
+    """Check whether platform is mingw or not."""
+    return sysconfig.get_platform() in 'mingw'
+
+
+def fix_mingw_path(path):
+    """Convert cygwin path to mingw-style path"""
+    if is_mingw():
+        path = subprocess.check_output([
+            'cygpath', '-m',
+            path,
+        ]).decode().strip()
+    return path
 
 
 def main():
