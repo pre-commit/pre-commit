@@ -49,7 +49,7 @@ def is_our_script(filename):
 
 def shebang():
     if sys.platform == 'win32':
-        py = 'python'
+        py = 'python{}'.format(sys.version_info[0])
     else:
         # Homebrew/homebrew-core#35825: be more timid about appropriate `PATH`
         path_choices = [p for p in os.defpath.split(os.pathsep) if p]
@@ -62,7 +62,7 @@ def shebang():
                 py = exe
                 break
         else:
-            py = 'python'
+            py = 'python{}'.format(sys.version_info[0])
     return '#!/usr/bin/env {}'.format(py)
 
 
