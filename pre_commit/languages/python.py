@@ -104,11 +104,11 @@ def _sys_executable_matches(version):
 
 
 def norm_version(version):
-    if os.name == 'nt':  # pragma: no cover (windows)
-        # first see if our current executable is appropriate
-        if _sys_executable_matches(version):
-            return sys.executable
+    # first see if our current executable is appropriate
+    if _sys_executable_matches(version):
+        return sys.executable
 
+    if os.name == 'nt':  # pragma: no cover (windows)
         version_exec = _find_by_py_launcher(version)
         if version_exec:
             return version_exec
