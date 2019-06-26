@@ -16,8 +16,8 @@
 This is useful for running specific tests.  The easiest way to set this up
 is to run:
 
-1. `tox -e venv`
-2. `. venv-pre_commit/bin/activate`
+1. `tox --devenv venv`  (note: requires tox>=3.13)
+2. `. venv/bin/activate`
 
 This will create and put you into a virtualenv which has an editable
 installation of pre-commit.  Hack away!  Running `pre-commit` will reflect
