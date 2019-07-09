@@ -231,12 +231,17 @@ def test_show_diff_on_failure(
         ({}, (b'Bash hook', b'Passed'), 0, True),
         ({'verbose': True}, (b'foo.py\nHello World',), 0, True),
         ({'hook': 'bash_hook'}, (b'Bash hook', b'Passed'), 0, True),
-        ({'hook': 'nope'}, (b'No hook with id `nope` in stage `commit`',), 1, True),
+        (
+            {'hook': 'nope'},
+            (b'No hook with id `nope` in stage `commit`',),
+            1,
+            True,
+        ),
         (
             {'hook': 'nope', 'hook_stage': 'push'},
             (b'No hook with id `nope` in stage `push`',),
             1,
-            True
+            True,
         ),
         (
             {'all_files': True, 'verbose': True},
