@@ -285,7 +285,11 @@ def run(config_file, store, args, environ=os.environ):
         ]
 
         if args.hook and not hooks:
-            output.write_line('No hook with id `{}`'.format(args.hook))
+            output.write_line(
+                'No hook with id `{}` in stage `{}`'.format(
+                    args.hook, args.hook_stage,
+                ),
+            )
             return 1
 
         install_hook_envs(hooks, store)
