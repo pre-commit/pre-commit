@@ -5,6 +5,7 @@ from pre_commit import git
 from pre_commit.clientlib import load_config
 from pre_commit.commands.autoupdate import autoupdate
 from pre_commit.commands.gc import gc
+from pre_commit.commands.install_uninstall import install_hooks
 from pre_commit.repository import all_hooks
 from testing.fixtures import make_config_from_repo
 from testing.fixtures import make_repo
@@ -40,6 +41,7 @@ def test_gc(tempdir_factory, store, in_git_dir, cap_out):
     store.mark_config_used(C.CONFIG_FILE)
 
     # update will clone both the old and new repo, making the old one gc-able
+    install_hooks(C.CONFIG_FILE, store)
     assert not autoupdate(C.CONFIG_FILE, store, tags_only=False)
 
     assert _config_count(store) == 1
@@ -145,7 +147,7 @@ def test_invalid_manifest_gcd(tempdir_factory, store, in_git_dir, cap_out):
     store.mark_config_used(C.CONFIG_FILE)
 
     # trigger a clone
-    assert not autoupdate(C.CONFIG_FILE, store, tags_only=False)
+    install_hooks(C.CONFIG_FILE, store)
 
     # we'll "break" the manifest to simulate an old version clone
     (_, _, path), = store.select_all_repos()

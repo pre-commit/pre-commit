@@ -10,6 +10,7 @@ from aspy.yaml import ordered_load
 from cfgv import remove_defaults
 
 import pre_commit.constants as C
+from pre_commit import git
 from pre_commit import output
 from pre_commit.clientlib import CONFIG_SCHEMA
 from pre_commit.clientlib import InvalidManifestError
@@ -20,6 +21,7 @@ from pre_commit.clientlib import META
 from pre_commit.commands.migrate_config import migrate_config
 from pre_commit.util import CalledProcessError
 from pre_commit.util import cmd_output
+from pre_commit.util import tmpdir
 
 
 class RepositoryCannotBeUpdatedError(RuntimeError):
@@ -34,19 +36,20 @@ def _update_repo(repo_config, store, tags_only):
     Args:
         repo_config - A config for a repository
     """
-    repo_path = store.clone(repo_config['repo'], repo_config['rev'])
+    with tmpdir() as repo_path:
+        git.init_repo(repo_path, repo_config['repo'])
+        cmd_output('git', 'fetch', cwd=repo_path)
 
-    cmd_output('git', 'fetch', cwd=repo_path)
-    tag_cmd = ('git', 'describe', 'origin/master', '--tags')
-    if tags_only:
-        tag_cmd += ('--abbrev=0',)
-    else:
-        tag_cmd += ('--exact',)
-    try:
-        rev = cmd_output(*tag_cmd, cwd=repo_path)[1].strip()
-    except CalledProcessError:
-        tag_cmd = ('git', 'rev-parse', 'origin/master')
-        rev = cmd_output(*tag_cmd, cwd=repo_path)[1].strip()
+        tag_cmd = ('git', 'describe', 'origin/master', '--tags')
+        if tags_only:
+            tag_cmd += ('--abbrev=0',)
+        else:
+            tag_cmd += ('--exact',)
+        try:
+            rev = cmd_output(*tag_cmd, cwd=repo_path)[1].strip()
+        except CalledProcessError:
+            tag_cmd = ('git', 'rev-parse', 'origin/master')
+            rev = cmd_output(*tag_cmd, cwd=repo_path)[1].strip()
 
     # Don't bother trying to update if our rev is the same
     if rev == repo_config['rev']:
