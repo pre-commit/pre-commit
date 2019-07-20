@@ -143,6 +143,15 @@ def has_diff(*args, **kwargs):
     return cmd_output(*cmd, cwd=repo, retcode=None)[0]
 
 
+def init_repo(path, remote):
+    if os.path.isdir(remote):
+        remote = os.path.abspath(remote)
+
+    env = no_git_env()
+    cmd_output('git', 'init', path, env=env)
+    cmd_output('git', 'remote', 'add', 'origin', remote, cwd=path, env=env)
+
+
 def commit(repo='.'):
     env = no_git_env()
     name, email = 'pre-commit', 'asottile+pre-commit@umich.edu'

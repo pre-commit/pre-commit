@@ -156,17 +156,12 @@ class Store(object):
     def clone(self, repo, ref, deps=()):
         """Clone the given url and checkout the specific ref."""
 
-        if os.path.isdir(repo):
-            repo = os.path.abspath(repo)
-
         def clone_strategy(directory):
+            git.init_repo(directory, repo)
             env = git.no_git_env()
 
             def _git_cmd(*args):
                 cmd_output('git', *args, cwd=directory, env=env)
-
-            _git_cmd('init', '.')
-            _git_cmd('remote', 'add', 'origin', repo)
 
             try:
                 self._shallow_clone(ref, _git_cmd)
@@ -193,8 +188,7 @@ class Store(object):
             def _git_cmd(*args):
                 cmd_output('git', *args, cwd=directory, env=env)
 
-            _git_cmd('init', '.')
-            _git_cmd('config', 'remote.origin.url', '<<unknown>>')
+            git.init_repo(directory, '<<unknown>>')
             _git_cmd('add', '.')
             git.commit(repo=directory)
 
