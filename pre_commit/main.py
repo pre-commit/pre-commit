@@ -131,6 +131,37 @@ def main(argv=None):
 
     subparsers = parser.add_subparsers(dest='command')
 
+    autoupdate_parser = subparsers.add_parser(
+        'autoupdate',
+        help="Auto-update pre-commit config to the latest repos' versions.",
+    )
+    _add_color_option(autoupdate_parser)
+    _add_config_option(autoupdate_parser)
+    autoupdate_parser.add_argument(
+        '--tags-only', action='store_true', help='LEGACY: for compatibility',
+    )
+    autoupdate_parser.add_argument(
+        '--bleeding-edge', action='store_true',
+        help=(
+            'Update to the bleeding edge of `master` instead of the latest '
+            'tagged version (the default behavior).'
+        ),
+    )
+    autoupdate_parser.add_argument(
+        '--repo', dest='repos', action='append', metavar='REPO',
+        help='Only update this repository -- may be specified multiple times.',
+    )
+
+    clean_parser = subparsers.add_parser(
+        'clean', help='Clean out pre-commit files.',
+    )
+    _add_color_option(clean_parser)
+    _add_config_option(clean_parser)
+
+    gc_parser = subparsers.add_parser('gc', help='Clean unused cached repos.')
+    _add_color_option(gc_parser)
+    _add_config_option(gc_parser)
+
     install_parser = subparsers.add_parser(
         'install', help='Install the pre-commit script.',
     )
@@ -166,44 +197,6 @@ def main(argv=None):
     )
     _add_color_option(install_hooks_parser)
     _add_config_option(install_hooks_parser)
-
-    uninstall_parser = subparsers.add_parser(
-        'uninstall', help='Uninstall the pre-commit script.',
-    )
-    _add_color_option(uninstall_parser)
-    _add_config_option(uninstall_parser)
-    _add_hook_type_option(uninstall_parser)
-
-    clean_parser = subparsers.add_parser(
-        'clean', help='Clean out pre-commit files.',
-    )
-    _add_color_option(clean_parser)
-    _add_config_option(clean_parser)
-
-    gc_parser = subparsers.add_parser('gc', help='Clean unused cached repos.')
-    _add_color_option(gc_parser)
-    _add_config_option(gc_parser)
-
-    autoupdate_parser = subparsers.add_parser(
-        'autoupdate',
-        help="Auto-update pre-commit config to the latest repos' versions.",
-    )
-    _add_color_option(autoupdate_parser)
-    _add_config_option(autoupdate_parser)
-    autoupdate_parser.add_argument(
-        '--tags-only', action='store_true', help='LEGACY: for compatibility',
-    )
-    autoupdate_parser.add_argument(
-        '--bleeding-edge', action='store_true',
-        help=(
-            'Update to the bleeding edge of `master` instead of the latest '
-            'tagged version (the default behavior).'
-        ),
-    )
-    autoupdate_parser.add_argument(
-        '--repo', dest='repos', action='append', metavar='REPO',
-        help='Only update this repository -- may be specified multiple times.',
-    )
 
     migrate_config_parser = subparsers.add_parser(
         'migrate-config',
@@ -241,6 +234,13 @@ def main(argv=None):
     )
     _add_run_options(try_repo_parser)
 
+    uninstall_parser = subparsers.add_parser(
+        'uninstall', help='Uninstall the pre-commit script.',
+    )
+    _add_color_option(uninstall_parser)
+    _add_config_option(uninstall_parser)
+    _add_hook_type_option(uninstall_parser)
+
     help = subparsers.add_parser(
         'help', help='Show help for a specific command.',
     )
@@ -265,7 +265,19 @@ def main(argv=None):
         store = Store()
         store.mark_config_used(args.config)
 
-        if args.command == 'install':
+        if args.command == 'autoupdate':
+            if args.tags_only:
+                logger.warning('--tags-only is the default')
+            return autoupdate(
+                args.config, store,
+                tags_only=not args.bleeding_edge,
+                repos=args.repos,
+            )
+        elif args.command == 'clean':
+            return clean(store)
+        elif args.command == 'gc':
+            return gc(store)
+        elif args.command == 'install':
             return install(
                 args.config, store,
                 overwrite=args.overwrite, hooks=args.install_hooks,
@@ -274,20 +286,6 @@ def main(argv=None):
             )
         elif args.command == 'install-hooks':
             return install_hooks(args.config, store)
-        elif args.command == 'uninstall':
-            return uninstall(hook_type=args.hook_type)
-        elif args.command == 'clean':
-            return clean(store)
-        elif args.command == 'gc':
-            return gc(store)
-        elif args.command == 'autoupdate':
-            if args.tags_only:
-                logger.warning('--tags-only is the default')
-            return autoupdate(
-                args.config, store,
-                tags_only=not args.bleeding_edge,
-                repos=args.repos,
-            )
         elif args.command == 'migrate-config':
             return migrate_config(args.config)
         elif args.command == 'run':
@@ -296,6 +294,8 @@ def main(argv=None):
             return sample_config()
         elif args.command == 'try-repo':
             return try_repo(args)
+        elif args.command == 'uninstall':
+            return uninstall(hook_type=args.hook_type)
         else:
             raise NotImplementedError(
                 'Command {} not implemented.'.format(args.command),
