@@ -735,7 +735,7 @@ def test_install_disallow_missing_config(tempdir_factory, store):
     with cwd(path):
         remove_config_from_repo(path)
         ret = install(
-            C.CONFIG_FILE, store, overwrite=True, skip_on_missing_conf=False,
+            C.CONFIG_FILE, store, overwrite=True, skip_on_missing_config=False,
         )
         assert ret == 0
 
@@ -748,7 +748,7 @@ def test_install_allow_missing_config(tempdir_factory, store):
     with cwd(path):
         remove_config_from_repo(path)
         ret = install(
-            C.CONFIG_FILE, store, overwrite=True, skip_on_missing_conf=True,
+            C.CONFIG_FILE, store, overwrite=True, skip_on_missing_config=True,
         )
         assert ret == 0
 
@@ -766,7 +766,7 @@ def test_install_temporarily_allow_mising_config(tempdir_factory, store):
     with cwd(path):
         remove_config_from_repo(path)
         ret = install(
-            C.CONFIG_FILE, store, overwrite=True, skip_on_missing_conf=False,
+            C.CONFIG_FILE, store, overwrite=True, skip_on_missing_config=False,
         )
         assert ret == 0
 

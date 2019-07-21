@@ -12,6 +12,7 @@ from pre_commit import git
 from pre_commit.commands.autoupdate import autoupdate
 from pre_commit.commands.clean import clean
 from pre_commit.commands.gc import gc
+from pre_commit.commands.init_templatedir import init_templatedir
 from pre_commit.commands.install_uninstall import install
 from pre_commit.commands.install_uninstall import install_hooks
 from pre_commit.commands.install_uninstall import uninstall
@@ -162,6 +163,20 @@ def main(argv=None):
     _add_color_option(gc_parser)
     _add_config_option(gc_parser)
 
+    init_templatedir_parser = subparsers.add_parser(
+        'init-templatedir',
+        help=(
+            'Install hook script in a directory intended for use with '
+            '`git config init.templateDir`.'
+        ),
+    )
+    _add_color_option(init_templatedir_parser)
+    _add_config_option(init_templatedir_parser)
+    init_templatedir_parser.add_argument(
+        'directory', help='The directory in which to write the hook script.',
+    )
+    _add_hook_type_option(init_templatedir_parser)
+
     install_parser = subparsers.add_parser(
         'install', help='Install the pre-commit script.',
     )
@@ -282,7 +297,12 @@ def main(argv=None):
                 args.config, store,
                 overwrite=args.overwrite, hooks=args.install_hooks,
                 hook_type=args.hook_type,
-                skip_on_missing_conf=args.allow_missing_config,
+                skip_on_missing_config=args.allow_missing_config,
+            )
+        elif args.command == 'init-templatedir':
+            return init_templatedir(
+                args.config, store,
+                args.directory, hook_type=args.hook_type,
             )
         elif args.command == 'install-hooks':
             return install_hooks(args.config, store)

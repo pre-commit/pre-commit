@@ -34,8 +34,9 @@ TEMPLATE_START = '# start templated\n'
 TEMPLATE_END = '# end templated\n'
 
 
-def _hook_paths(hook_type):
-    pth = os.path.join(git.get_git_dir(), 'hooks', hook_type)
+def _hook_paths(hook_type, git_dir=None):
+    git_dir = git_dir if git_dir is not None else git.get_git_dir()
+    pth = os.path.join(git_dir, 'hooks', hook_type)
     return pth, '{}.legacy'.format(pth)
 
 
@@ -69,7 +70,7 @@ def shebang():
 def install(
         config_file, store,
         overwrite=False, hooks=False, hook_type='pre-commit',
-        skip_on_missing_conf=False,
+        skip_on_missing_config=False, git_dir=None,
 ):
     """Install the pre-commit hooks."""
     if cmd_output('git', 'config', 'core.hooksPath', retcode=None)[1].strip():
@@ -79,7 +80,7 @@ def install(
         )
         return 1
 
-    hook_path, legacy_path = _hook_paths(hook_type)
+    hook_path, legacy_path = _hook_paths(hook_type, git_dir=git_dir)
 
     mkdirp(os.path.dirname(hook_path))
 
@@ -100,7 +101,7 @@ def install(
         'CONFIG': config_file,
         'HOOK_TYPE': hook_type,
         'INSTALL_PYTHON': sys.executable,
-        'SKIP_ON_MISSING_CONFIG': skip_on_missing_conf,
+        'SKIP_ON_MISSING_CONFIG': skip_on_missing_config,
     }
 
     with io.open(hook_path, 'w') as hook_file:

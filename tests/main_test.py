@@ -140,6 +140,12 @@ def test_try_repo(mock_store_dir):
     assert patch.call_count == 1
 
 
+def test_init_templatedir(mock_store_dir):
+    with mock.patch.object(main, 'init_templatedir') as patch:
+        main.main(('init-templatedir', 'tdir'))
+    assert patch.call_count == 1
+
+
 def test_help_cmd_in_empty_directory(
         in_tmpdir,
         mock_commands,
