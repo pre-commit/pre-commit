@@ -309,6 +309,12 @@ def test_autoupdate_hook_disappearing_repo(
     assert before == after
 
 
+def test_autoupdate_non_master_default_branch(up_to_date_repo, store):
+    # change the default branch to be not-master
+    cmd_output('git', '-C', up_to_date_repo, 'branch', '-m', 'dev')
+    test_up_to_date_repo(up_to_date_repo, store)
+
+
 def test_autoupdate_local_hooks(in_git_dir, store):
     config = sample_local_config()
     add_config_to_repo('.', config)

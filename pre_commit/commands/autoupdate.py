@@ -38,9 +38,9 @@ def _update_repo(repo_config, store, tags_only):
     """
     with tmpdir() as repo_path:
         git.init_repo(repo_path, repo_config['repo'])
-        cmd_output('git', 'fetch', cwd=repo_path)
+        cmd_output('git', 'fetch', 'origin', 'HEAD', '--tags', cwd=repo_path)
 
-        tag_cmd = ('git', 'describe', 'origin/master', '--tags')
+        tag_cmd = ('git', 'describe', 'FETCH_HEAD', '--tags')
         if tags_only:
             tag_cmd += ('--abbrev=0',)
         else:
@@ -48,7 +48,7 @@ def _update_repo(repo_config, store, tags_only):
         try:
             rev = cmd_output(*tag_cmd, cwd=repo_path)[1].strip()
         except CalledProcessError:
-            tag_cmd = ('git', 'rev-parse', 'origin/master')
+            tag_cmd = ('git', 'rev-parse', 'FETCH_HEAD')
             rev = cmd_output(*tag_cmd, cwd=repo_path)[1].strip()
 
     # Don't bother trying to update if our rev is the same
