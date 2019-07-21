@@ -11,6 +11,7 @@ import pytest
 import six
 
 from pre_commit import output
+from pre_commit.envcontext import envcontext
 from pre_commit.logging_handler import logging_handler
 from pre_commit.store import Store
 from pre_commit.util import cmd_output
@@ -272,3 +273,10 @@ def fake_log_handler():
     logger.addHandler(handler)
     yield handler
     logger.removeHandler(handler)
+
+
+@pytest.fixture(scope='session', autouse=True)
+def set_git_templatedir(tmpdir_factory):
+    tdir = str(tmpdir_factory.mktemp('git_template_dir'))
+    with envcontext([('GIT_TEMPLATE_DIR', tdir)]):
+        yield
