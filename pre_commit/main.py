@@ -36,6 +36,17 @@ logger = logging.getLogger('pre_commit')
 os.environ.pop('__PYVENV_LAUNCHER__', None)
 
 
+def _file_path(path):
+    if os.path.isfile(path):
+        return path
+    elif os.path.exists(path):
+        msg = '{} is not a regular file'.format(path)
+        raise argparse.ArgumentTypeError(msg)
+    else:
+        msg = '{} does not exist'.format(path)
+        raise argparse.ArgumentTypeError(msg)
+
+
 def _add_color_option(parser):
     parser.add_argument(
         '--color', default='auto', type=color.use_color,
@@ -48,6 +59,7 @@ def _add_config_option(parser):
     parser.add_argument(
         '-c', '--config', default=C.CONFIG_FILE,
         help='Path to alternate config file',
+        type=_file_path,
     )
 
 
