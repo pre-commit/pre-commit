@@ -42,7 +42,11 @@ def _file_path(path):
     elif os.path.exists(path):
         msg = '{} is not a regular file'.format(path)
         raise argparse.ArgumentTypeError(msg)
-    git_path = os.path.join(git.get_root(), path)
+    try:
+        git_path = os.path.join(git.get_root(), path)
+    except CalledProcessError:
+        msg = '{} does not exist'.format(path)
+        raise argparse.ArgumentTypeError(msg)
     if os.path.isfile(git_path):
         return git_path
     else:
