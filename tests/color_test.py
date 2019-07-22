@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 
+import os
 import sys
 
 import mock
@@ -50,3 +51,18 @@ def test_use_color_tty_without_color_support():
 def test_use_color_raises_if_given_shenanigans():
     with pytest.raises(InvalidColorSetting):
         use_color('herpaderp')
+
+
+def test_no_color_env_unset():
+    with mock.patch.dict(os.environ, clear=True):
+        assert use_color('always') is True
+
+
+def test_no_color_env_empty():
+    with mock.patch.dict(os.environ, NO_COLOR=''):
+        assert use_color('always') is True
+
+
+def test_no_color_env_non_empty():
+    with mock.patch.dict(os.environ, NO_COLOR=' '):
+        assert use_color('always') is False

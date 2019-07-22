@@ -48,6 +48,9 @@ def use_color(setting):
     if setting not in COLOR_CHOICES:
         raise InvalidColorSetting(setting)
 
+    if os.environ.get('NO_COLOR'):
+        return False
+
     return (
         setting == 'always' or
         (setting == 'auto' and sys.stdout.isatty() and terminal_supports_color)
