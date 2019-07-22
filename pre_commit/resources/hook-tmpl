@@ -29,6 +29,10 @@ class FatalError(RuntimeError):
     pass
 
 
+class InvalidColorSetting(ValueError):
+    pass
+
+
 def _norm_exe(exe):
     """Necessary for shebang support on windows.
 
@@ -159,6 +163,24 @@ def _pre_push(stdin):
         raise EarlyExit()
 
 
+GIT_CONFIG_COLOR_UI_VALUE_MAPPING = {
+    'always': 'always',
+    'auto': 'auto',
+    'true': 'auto',
+    'false': 'never',
+    'never': 'never',
+}
+
+
+def _git_color():
+    cmd = ('git', 'config', '--default', 'auto', '--get', 'color.ui')
+    value = subprocess.check_output(cmd).decode().strip()
+    if value in GIT_CONFIG_COLOR_UI_VALUE_MAPPING:
+        return GIT_CONFIG_COLOR_UI_VALUE_MAPPING[value]
+    else:
+        raise InvalidColorSetting()
+
+
 def _opts(stdin):
     fns = {
         'prepare-commit-msg': lambda _: ('--commit-msg-filename', sys.argv[1]),
@@ -167,7 +189,10 @@ def _opts(stdin):
         'pre-push': _pre_push,
     }
     stage = HOOK_TYPE.replace('pre-', '')
-    return ('--config', CONFIG, '--hook-stage', stage) + fns[HOOK_TYPE](stdin)
+    return (
+        '--config', CONFIG, '--hook-stage', stage,
+        '--color', _git_color(),
+    ) + fns[HOOK_TYPE](stdin)
 
 
 if sys.version_info < (3, 7):  # https://bugs.python.org/issue25942
