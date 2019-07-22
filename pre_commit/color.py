@@ -48,7 +48,7 @@ def use_color(setting):
     if setting not in COLOR_CHOICES:
         raise InvalidColorSetting(setting)
 
-    if 'NO_COLOR' in os.environ:
+    if 'NO_COLOR' in os.environ and os.environ['NO_COLOR']:
         return False
 
     return (
