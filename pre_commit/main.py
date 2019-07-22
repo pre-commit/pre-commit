@@ -58,11 +58,11 @@ def _add_color_option(parser):
     )
 
 
-def _add_config_option(parser):
+def _add_config_option(parser, check=True):
     parser.add_argument(
         '-c', '--config', default=C.CONFIG_FILE,
         help='Path to alternate config file',
-        type=_file_path,
+        type=_file_path if check else str,
     )
 
 
@@ -172,11 +172,11 @@ def main(argv=None):
         'clean', help='Clean out pre-commit files.',
     )
     _add_color_option(clean_parser)
-    _add_config_option(clean_parser)
+    _add_config_option(clean_parser, check=False)
 
     gc_parser = subparsers.add_parser('gc', help='Clean unused cached repos.')
     _add_color_option(gc_parser)
-    _add_config_option(gc_parser)
+    _add_config_option(gc_parser, check=False)
 
     init_templatedir_parser = subparsers.add_parser(
         'init-templatedir',
@@ -186,7 +186,7 @@ def main(argv=None):
         ),
     )
     _add_color_option(init_templatedir_parser)
-    _add_config_option(init_templatedir_parser)
+    _add_config_option(init_templatedir_parser, check=False)
     init_templatedir_parser.add_argument(
         'directory', help='The directory in which to write the hook script.',
     )
@@ -244,7 +244,7 @@ def main(argv=None):
         'sample-config', help='Produce a sample {} file'.format(C.CONFIG_FILE),
     )
     _add_color_option(sample_config_parser)
-    _add_config_option(sample_config_parser)
+    _add_config_option(sample_config_parser, check=False)
 
     try_repo_parser = subparsers.add_parser(
         'try-repo',
