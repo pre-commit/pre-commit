@@ -42,6 +42,9 @@ def _file_path(path):
     elif os.path.exists(path):
         msg = '{} is not a regular file'.format(path)
         raise argparse.ArgumentTypeError(msg)
+    git_path = os.path.join(git.get_root(), path)
+    if os.path.isfile(git_path):
+        return git_path
     else:
         msg = '{} does not exist'.format(path)
         raise argparse.ArgumentTypeError(msg)
