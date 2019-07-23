@@ -75,14 +75,14 @@ def install_environment(
         os.mkdir(directory)
 
 
-def getuid():
+def getuid():  # pragma: windows no cover
     try:
         return os.getuid()
     except AttributeError:
         return FALLBACK_UID
 
 
-def getgid():
+def getgid():  # pragma: windows no cover
     try:
         return os.getgid()
     except AttributeError:
