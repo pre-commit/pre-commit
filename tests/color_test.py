@@ -54,7 +54,9 @@ def test_use_color_raises_if_given_shenanigans():
 
 
 def test_no_color_env_unset():
-    with mock.patch.dict(os.environ, clear=True):
+    with mock.patch.dict(os.environ):
+        if 'NO_COLOR' in os.environ:
+            del os.environ['NO_COLOR']
         assert use_color('always') is True
 
 
