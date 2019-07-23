@@ -38,7 +38,8 @@ os.environ.pop('__PYVENV_LAUNCHER__', None)
 
 def _add_color_option(parser):
     parser.add_argument(
-        '--color', default='auto', type=color.use_color,
+        '--color', default=os.environ.get('PRE_COMMIT_COLOR', 'auto'),
+        type=color.use_color,
         metavar='{' + ','.join(color.COLOR_CHOICES) + '}',
         help='Whether to use color in output.  Defaults to `%(default)s`.',
     )
