@@ -14,6 +14,8 @@ from pre_commit.util import cmd_output
 
 ENVIRONMENT_DIR = 'docker'
 PRE_COMMIT_LABEL = 'PRE_COMMIT'
+FALLBACK_UID = 1000
+FALLBACK_GID = 1000
 get_default_version = helpers.basic_get_default_version
 healthy = helpers.basic_healthy
 
@@ -73,11 +75,25 @@ def install_environment(
         os.mkdir(directory)
 
 
+def getuid():
+    try:
+        return os.getuid()
+    except AttributeError:
+        return FALLBACK_UID
+
+
+def getgid():
+    try:
+        return os.getgid()
+    except AttributeError:
+        return FALLBACK_GID
+
+
 def docker_cmd():  # pragma: windows no cover
     return (
         'docker', 'run',
         '--rm',
-        '-u', '{}:{}'.format(os.getuid(), os.getgid()),
+        '-u', '{}:{}'.format(getuid(), getgid()),
         # https://docs.docker.com/engine/reference/commandline/run/#mount-volumes-from-container-volumes-from
         # The `Z` option tells Docker to label the content with a private
         # unshared label. Only the current container can use a private volume.
