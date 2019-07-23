@@ -18,12 +18,12 @@ def test_docker_is_running_process_error():
 def test_docker_fallback_uid():
     def invalid_attribute():
         raise AttributeError
-    with mock.patch('os.getuid', invalid_attribute):
+    with mock.patch('os.getuid', invalid_attribute, create=True):
         assert docker.getuid() == docker.FALLBACK_UID
 
 
 def test_docker_fallback_gid():
     def invalid_attribute():
         raise AttributeError
-    with mock.patch('os.getgid', invalid_attribute):
+    with mock.patch('os.getgid', invalid_attribute, create=True):
         assert docker.getgid() == docker.FALLBACK_GID
