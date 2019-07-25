@@ -13,3 +13,14 @@ def test_docker_is_running_process_error():
         side_effect=CalledProcessError(*(None,) * 4),
     ):
         assert docker.docker_is_running() is False
+
+
+def test_docker_fallback_user():
+    def invalid_attribute():
+        raise AttributeError
+    with mock.patch.multiple(
+        'os', create=True,
+        getuid=invalid_attribute,
+        getgid=invalid_attribute,
+    ):
+        assert docker.get_docker_user() == '1000:1000'
