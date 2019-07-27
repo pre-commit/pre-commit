@@ -5,6 +5,7 @@ import sys
 import mock
 import pytest
 
+from pre_commit import envcontext
 from pre_commit.color import format_color
 from pre_commit.color import GREEN
 from pre_commit.color import InvalidColorSetting
@@ -38,13 +39,22 @@ def test_use_color_no_tty():
 def test_use_color_tty_with_color_support():
     with mock.patch.object(sys.stdout, 'isatty', return_value=True):
         with mock.patch('pre_commit.color.terminal_supports_color', True):
-            assert use_color('auto') is True
+            with envcontext.envcontext([('TERM', envcontext.UNSET)]):
+                assert use_color('auto') is True
 
 
 def test_use_color_tty_without_color_support():
     with mock.patch.object(sys.stdout, 'isatty', return_value=True):
         with mock.patch('pre_commit.color.terminal_supports_color', False):
-            assert use_color('auto') is False
+            with envcontext.envcontext([('TERM', envcontext.UNSET)]):
+                assert use_color('auto') is False
+
+
+def test_use_color_dumb_term():
+    with mock.patch.object(sys.stdout, 'isatty', return_value=True):
+        with mock.patch('pre_commit.color.terminal_supports_color', True):
+            with envcontext.envcontext([('TERM', 'dumb')]):
+                assert use_color('auto') is False
 
 
 def test_use_color_raises_if_given_shenanigans():
