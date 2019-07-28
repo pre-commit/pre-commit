@@ -49,6 +49,10 @@ def use_color(setting):
         raise InvalidColorSetting(setting)
 
     return (
-        setting == 'always' or
-        (setting == 'auto' and sys.stdout.isatty() and terminal_supports_color)
+        setting == 'always' or (
+            setting == 'auto' and
+            sys.stdout.isatty() and
+            terminal_supports_color and
+            os.getenv('TERM') != 'dumb'
+        )
     )
