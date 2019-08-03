@@ -2,6 +2,7 @@ import logging
 import os.path
 
 from pre_commit.commands.install_uninstall import install
+from pre_commit.util import CalledProcessError
 from pre_commit.util import cmd_output
 
 logger = logging.getLogger('pre_commit')
@@ -12,9 +13,14 @@ def init_templatedir(config_file, store, directory, hook_type):
         config_file, store, overwrite=True, hook_type=hook_type,
         skip_on_missing_config=True, git_dir=directory,
     )
-    _, out, _ = cmd_output('git', 'config', 'init.templateDir', retcode=None)
+    try:
+        _, out, _ = cmd_output('git', 'config', 'init.templateDir')
+    except CalledProcessError:
+        configured_path = None
+    else:
+        configured_path = os.path.realpath(out.strip())
     dest = os.path.realpath(directory)
-    if os.path.realpath(out.strip()) != dest:
+    if configured_path != dest:
         logger.warning('`init.templateDir` not set to the target directory')
         logger.warning(
             'maybe `git config --global init.templateDir {}`?'.format(dest),
