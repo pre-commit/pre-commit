@@ -1,3 +1,47 @@
+1.18.0 - 2019-08-03
+===================
+
+### Features
+- Use the current running executable if it matches the requested
+  `language_version`
+    - #1062 PR by @asottile.
+- Print the stage when a hook is not found
+    - #1078 issue by @madkinsz.
+    - #1079 PR by @madkinsz.
+- `pre-commit autoupdate` now supports non-`master` default branches
+    - #1089 PR by @asottile.
+- Add `pre-commit init-templatedir` which makes it easier to automatically
+  enable `pre-commit` in cloned repositories.
+    - #1084 issue by @ssbarnea.
+    - #1090 PR by @asottile.
+    - #1107 PR by @asottile.
+- pre-commit's color can be controlled using
+  `PRE_COMMIT_COLOR={auto,always,never}`
+    - #1073 issue by @saper.
+    - #1092 PR by @geieredgar.
+    - #1098 PR by @geieredgar.
+- pre-commit's color can now be disabled using `TERM=dumb`
+    - #1073 issue by @saper.
+    - #1103 PR by @asottile.
+- pre-commit now supports `docker` based hooks on windows
+    - #1072 by @cz-fish.
+    - #1093 PR by @geieredgar.
+
+### Fixes
+- Fix shallow clone
+    - #1077 PR by @asottile.
+- Fix autoupdate version flip flop when using shallow cloning
+    - #1076 issue by @mxr.
+    - #1088 PR by @asottile.
+- Fix autoupdate when the current revision is invalid
+    - #1088 PR by @asottile.
+
+### Misc.
+- Replace development instructions with `tox --devenv ...`
+    - #1032 issue by @yoavcaspi.
+    - #1067 PR by @asottile.
+
+
 1.17.0 - 2019-06-06
 ===================
 
