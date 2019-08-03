@@ -36,6 +36,9 @@ logger = logging.getLogger('pre_commit')
 os.environ.pop('__PYVENV_LAUNCHER__', None)
 
 
+COMMANDS_NO_GIT = {'clean', 'gc', 'init-templatedir', 'sample-config'}
+
+
 def _add_color_option(parser):
     parser.add_argument(
         '--color', default=os.environ.get('PRE_COMMIT_COLOR', 'auto'),
@@ -273,7 +276,7 @@ def main(argv=None):
         parser.parse_args(['--help'])
 
     with error_handler(), logging_handler(args.color):
-        if args.command not in {'clean', 'gc', 'sample-config'}:
+        if args.command not in COMMANDS_NO_GIT:
             _adjust_args_and_chdir(args)
 
         git.check_for_cygwin_mismatch()
