@@ -1,4 +1,7 @@
+import os.path
 import subprocess
+
+import mock
 
 import pre_commit.constants as C
 from pre_commit.commands.init_templatedir import init_templatedir
@@ -43,6 +46,35 @@ def test_init_templatedir_already_set(tmpdir, tempdir_factory, store, cap_out):
     with cwd(tmp_git_dir):
         cmd_output('git', 'config', 'init.templateDir', target)
         init_templatedir(C.CONFIG_FILE, store, target, hook_type='pre-commit')
+
+    lines = cap_out.get().splitlines()
+    assert len(lines) == 1
+    assert lines[0].startswith('pre-commit installed at')
+
+
+def test_init_templatedir_not_set(tmpdir, store, cap_out):
+    # set HOME to ignore the current `.gitconfig`
+    with envcontext([('HOME', str(tmpdir))]):
+        with tmpdir.join('tmpl').ensure_dir().as_cwd():
+            # we have not set init.templateDir so this should produce a warning
+            init_templatedir(C.CONFIG_FILE, store, '.', hook_type='pre-commit')
+
+    lines = cap_out.get().splitlines()
+    assert len(lines) == 3
+    assert lines[1] == (
+        '[WARNING] `init.templateDir` not set to the target directory'
+    )
+
+
+def test_init_templatedir_expanduser(tmpdir, tempdir_factory, store, cap_out):
+    target = str(tmpdir.join('tmpl'))
+    tmp_git_dir = git_dir(tempdir_factory)
+    with cwd(tmp_git_dir):
+        cmd_output('git', 'config', 'init.templateDir', '~/templatedir')
+        with mock.patch.object(os.path, 'expanduser', return_value=target):
+            init_templatedir(
+                C.CONFIG_FILE, store, target, hook_type='pre-commit',
+            )
 
     lines = cap_out.get().splitlines()
     assert len(lines) == 1
