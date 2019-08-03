@@ -18,7 +18,7 @@ def init_templatedir(config_file, store, directory, hook_type):
     except CalledProcessError:
         configured_path = None
     else:
-        configured_path = os.path.realpath(out.strip())
+        configured_path = os.path.realpath(os.path.expanduser(out.strip()))
     dest = os.path.realpath(directory)
     if configured_path != dest:
         logger.warning('`init.templateDir` not set to the target directory')
