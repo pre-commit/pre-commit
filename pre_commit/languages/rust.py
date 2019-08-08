@@ -73,7 +73,7 @@ def install_environment(prefix, version, additional_dependencies):
         _add_dependencies(prefix.path('Cargo.toml'), lib_deps)
 
     with clean_path_on_failure(directory):
-        packages_to_install = {()}
+        packages_to_install = {('--path', '.')}
         for cli_dep in cli_deps:
             cli_dep = cli_dep[len('cli:'):]
             package, _, version = cli_dep.partition(':')
