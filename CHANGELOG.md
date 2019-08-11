@@ -1,3 +1,11 @@
+1.18.1 - 2019-08-11
+===================
+
+### Fixes
+- Fix installation of `rust` hooks with new `cargo`
+    - #1112 issue by @zimbatm.
+    - #1113 PR by @zimbatm.
+
 1.18.0 - 2019-08-03
 ===================
 
