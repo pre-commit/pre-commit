@@ -7,7 +7,6 @@ import sys
 import mock
 import pytest
 
-from pre_commit import parse_shebang
 from pre_commit.languages import python
 
 
@@ -45,12 +44,7 @@ def test_sys_executable_matches_does_not_match(v):
     ),
 )
 def test_find_by_sys_executable(exe, realpath, expected):
-    def mocked_find_executable(exe):
-        return exe.rpartition('/')[2]
     with mock.patch.object(sys, 'executable', exe):
         with mock.patch.object(os.path, 'realpath', return_value=realpath):
-            with mock.patch.object(
-                parse_shebang, 'find_executable',
-                side_effect=mocked_find_executable,
-            ):
+            with mock.patch.object(python, 'find_executable', lambda x: x):
                 assert python._find_by_sys_executable() == expected
