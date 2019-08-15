@@ -7,6 +7,7 @@ import sys
 import mock
 import pytest
 
+import pre_commit.parse_shebang
 from pre_commit.languages import python
 
 
@@ -35,7 +36,7 @@ def test_sys_executable_matches_does_not_match(v):
 
 
 @pytest.mark.parametrize(
-    'exe,realpath,expected', (
+    ('exe', 'realpath', 'expected'), (
         ('/usr/bin/python3', '/usr/bin/python3.7', 'python3'),
         ('/usr/bin/python', '/usr/bin/python3.7', 'python3.7'),
         ('/usr/bin/python', '/usr/bin/python', None),
@@ -47,9 +48,9 @@ def test_find_by_sys_executable(exe, realpath, expected):
     def mocked_find_executable(exe):
         return exe.rpartition('/')[2]
     with mock.patch.object(sys, 'executable', exe):
-        with mock.patch('os.path.realpath', return_value=realpath):
-            with mock.patch(
-                'pre_commit.parse_shebang.find_executable',
+        with mock.patch.object(os.path, 'realpath', return_value=realpath):
+            with mock.patch.object(
+                pre_commit.parse_shebang, 'find_executable',
                 side_effect=mocked_find_executable,
             ):
                 assert python._find_by_sys_executable() == expected

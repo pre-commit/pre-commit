@@ -66,7 +66,6 @@ def _find_by_sys_executable():
 
 
 def _get_default_version():  # pragma: no cover (platform dependent)
-
     # First attempt from `sys.executable` (or the realpath)
     exe = _find_by_sys_executable()
 
