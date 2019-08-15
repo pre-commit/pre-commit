@@ -1,3 +1,10 @@
+1.18.2 - 2019-08-15
+===================
+
+### Fixes
+- Make default python lookup more deterministic to avoid redundant installs
+    - #1117 PR by @scop.
+
 1.18.1 - 2019-08-11
 ===================
 
