@@ -32,3 +32,19 @@ def test_sys_executable_matches(v):
 def test_sys_executable_matches_does_not_match(v):
     with mock.patch.object(sys, 'version_info', (3, 6, 7)):
         assert not python._sys_executable_matches(v)
+
+
+@pytest.mark.parametrize(
+    ('exe', 'realpath', 'expected'), (
+        ('/usr/bin/python3', '/usr/bin/python3.7', 'python3'),
+        ('/usr/bin/python', '/usr/bin/python3.7', 'python3.7'),
+        ('/usr/bin/python', '/usr/bin/python', None),
+        ('/usr/bin/python3.6m', '/usr/bin/python3.6m', 'python3.6m'),
+        ('v/bin/python', 'v/bin/pypy', 'pypy'),
+    ),
+)
+def test_find_by_sys_executable(exe, realpath, expected):
+    with mock.patch.object(sys, 'executable', exe):
+        with mock.patch.object(os.path, 'realpath', return_value=realpath):
+            with mock.patch.object(python, 'find_executable', lambda x: x):
+                assert python._find_by_sys_executable() == expected
