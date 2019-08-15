@@ -5,6 +5,8 @@ import logging
 import os
 import sys
 
+import argcomplete
+
 import pre_commit.constants as C
 from pre_commit import color
 from pre_commit import five
@@ -268,6 +270,9 @@ def main(argv=None):
     # argparse doesn't really provide a way to use a `default` subparser
     if len(argv) == 0:
         argv = ['run']
+
+    argcomplete.autocomplete(parser)
+
     args = parser.parse_args(argv)
 
     if args.command == 'help' and args.help_cmd:
