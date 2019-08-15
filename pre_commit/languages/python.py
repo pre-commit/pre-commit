@@ -43,14 +43,13 @@ def _find_by_py_launcher(version):  # pragma: no cover (windows only)
             pass
 
 
-def _get_default_version():  # pragma: no cover (platform dependent)
+def _find_by_sys_executable():
     def _norm(path):
         _, exe = os.path.split(path.lower())
         exe, _, _ = exe.partition('.exe')
         if find_executable(exe) and exe not in {'python', 'pythonw'}:
             return exe
 
-    # First attempt from `sys.executable` (or the realpath)
     # On linux, I see these common sys.executables:
     #
     # system `python`: /usr/bin/python -> python2.7
@@ -59,10 +58,17 @@ def _get_default_version():  # pragma: no cover (platform dependent)
     # virtualenv v -ppython2: v/bin/python -> python2
     # virtualenv v -ppython2.7: v/bin/python -> python2.7
     # virtualenv v -ppypy: v/bin/python -> v/bin/pypy
-    for path in {sys.executable, os.path.realpath(sys.executable)}:
+    for path in (sys.executable, os.path.realpath(sys.executable)):
         exe = _norm(path)
         if exe:
             return exe
+    return None
+
+
+def _get_default_version():  # pragma: no cover (platform dependent)
+
+    # First attempt from `sys.executable` (or the realpath)
+    exe = _find_by_sys_executable()
 
     # Next try the `pythonX.X` executable
     exe = 'python{}.{}'.format(*sys.version_info)
