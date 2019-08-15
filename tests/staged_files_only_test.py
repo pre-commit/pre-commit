@@ -328,7 +328,7 @@ def test_whitespace_errors(in_git_dir, patch_dir):
     test_crlf(in_git_dir, patch_dir, True, True, 'true')
 
 
-def test_autocrlf_commited_crlf(in_git_dir, patch_dir):
+def test_autocrlf_committed_crlf(in_git_dir, patch_dir):
     """Regression test for #570"""
     cmd_output('git', 'config', '--local', 'core.autocrlf', 'false')
     _write(b'1\r\n2\r\n')

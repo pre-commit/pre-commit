@@ -261,7 +261,7 @@
 
 ### Features
 - Run hooks in parallel
-    - individual hooks may opt out of parallel exection with `require_serial: true`
+    - individual hooks may opt out of parallel execution with `require_serial: true`
     - #510 issue by @chriskuehl.
     - #851 PR by @chriskuehl.
 
@@ -440,7 +440,7 @@
 ### Fixes
 - Fix integration with go 1.10 and `pkg` directory
     - #725 PR by @asottile
-- Restore support for `git<1.8.5` (inadvertantly removed in 1.7.0)
+- Restore support for `git<1.8.5` (inadvertently removed in 1.7.0)
     - #723 issue by @JohnLyman.
     - #724 PR by @asottile.
 
