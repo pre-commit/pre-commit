@@ -1,3 +1,11 @@
+1.18.3 - 2019-08-27
+===================
+
+### Fixes
+- Fix `node_modules` plugin installation on windows
+    - #1123 issue by @henryykt.
+    - #1122 PR by @henryykt.
+
 1.18.2 - 2019-08-15
 ===================
 
