@@ -24,15 +24,16 @@ def _envdir(prefix, version):
 
 
 def get_env_patch(venv):  # pragma: windows no cover
-    lib_dir = 'lib'
     if sys.platform == 'cygwin':  # pragma: no cover
         _, win_venv, _ = cmd_output('cygpath', '-w', venv)
         install_prefix = r'{}\bin'.format(win_venv.strip())
+        lib_dir = 'lib'
     elif sys.platform == 'win32':  # pragma: no cover
         install_prefix = bin_dir(venv)
         lib_dir = 'Scripts'
     else:  # pragma: windows no cover
         install_prefix = venv
+        lib_dir = 'lib'
     return (
         ('NODE_VIRTUAL_ENV', venv),
         ('NPM_CONFIG_PREFIX', install_prefix),
