@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 import io
 import os.path
+import pipes
 import subprocess
 import sys
 
@@ -642,9 +643,11 @@ def test_local_hook_passes(cap_out, store, repo_with_passing_hook):
         'repo': 'local',
         'hooks': [
             {
-                'id': 'flake8',
-                'name': 'flake8',
-                'entry': "'{}' -m flake8".format(sys.executable),
+                'id': 'identity-copy',
+                'name': 'identity-copy',
+                'entry': '{} -m pre_commit.meta_hooks.identity'.format(
+                    pipes.quote(sys.executable),
+                ),
                 'language': 'system',
                 'files': r'\.py$',
             },
@@ -869,10 +872,13 @@ def test_args_hook_only(cap_out, store, repo_with_passing_hook):
         'repo': 'local',
         'hooks': [
             {
-                'id': 'flake8',
-                'name': 'flake8',
-                'entry': "'{}' -m flake8".format(sys.executable),
+                'id': 'identity-copy',
+                'name': 'identity-copy',
+                'entry': '{} -m pre_commit.meta_hooks.identity'.format(
+                    pipes.quote(sys.executable),
+                ),
                 'language': 'system',
+                'files': r'\.py$',
                 'stages': ['commit'],
             },
             {
@@ -891,4 +897,4 @@ def test_args_hook_only(cap_out, store, repo_with_passing_hook):
         repo_with_passing_hook,
         run_opts(hook='do_not_commit'),
     )
-    assert b'flake8' not in printed
+    assert b'identity-copy' not in printed
