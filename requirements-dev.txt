@@ -1,7 +1,6 @@
 -e .
 
 coverage
-flake8
 mock
 pytest
 pytest-env
