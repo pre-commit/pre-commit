@@ -101,6 +101,13 @@ def _add_run_options(parser):
         '--show-diff-on-failure', action='store_true',
         help='When hooks fail, run `git diff` directly afterward.',
     )
+    parser.add_argument(
+        '--modified-files-ok', '-m', action='store_true',
+        default='PRE_COMMIT_MODIFIED_FILES_OK' in os.environ,
+        help="File modification by hooks won't be equated with failure. "
+             'Equivalent to setting the environment variable '
+             'PRE_COMMIT_MODIFIED_FILES_OK=true.',
+    )
     mutex_group = parser.add_mutually_exclusive_group(required=False)
     mutex_group.add_argument(
         '--all-files', '-a', action='store_true', default=False,

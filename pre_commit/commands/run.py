@@ -129,15 +129,20 @@ def _run_single_hook(classifier, hook, args, skips, cols, use_color):
     diff_after = cmd_output_b('git', 'diff', '--no-ext-diff', retcode=None)
 
     file_modifications = diff_before != diff_after
+    modified_ok = args.modified_files_ok
 
     # If the hook makes changes, fail the commit
-    if file_modifications:
+    if not modified_ok and file_modifications:
         retcode = 1
 
-    if retcode:
+    if retcode and not modified_ok:
         retcode = 1
         print_color = color.RED
         pass_fail = 'Failed'
+    elif file_modifications and modified_ok:
+        retcode = 0
+        print_color = color.YELLOW
+        pass_fail = 'Edited'
     else:
         retcode = 0
         print_color = color.GREEN
