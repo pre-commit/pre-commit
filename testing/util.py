@@ -108,6 +108,7 @@ def run_opts(
         show_diff_on_failure=False,
         commit_msg_filename='',
         modified_files_ok=False,
+        add_modified=False,
 ):
     # These are mutually exclusive
     assert not (all_files and files)
@@ -123,6 +124,7 @@ def run_opts(
         show_diff_on_failure=show_diff_on_failure,
         commit_msg_filename=commit_msg_filename,
         modified_files_ok=modified_files_ok,
+        add_modified=add_modified,
     )
 
 

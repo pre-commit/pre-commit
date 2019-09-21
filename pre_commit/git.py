@@ -192,3 +192,8 @@ def check_for_cygwin_mismatch():
                     exe_type[is_cygwin_python], exe_type[is_cygwin_git],
                 ),
             )
+
+
+def add_all(repo='.'):
+    cmd = ('git', 'add', '.')
+    cmd_output(*cmd, cwd=repo)

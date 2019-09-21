@@ -108,6 +108,15 @@ def _add_run_options(parser):
              'Equivalent to setting the environment variable '
              'PRE_COMMIT_MODIFIED_FILES_OK=true.',
     )
+    parser.add_argument(
+        '--add-modified', action='store_true',
+        default='PRE_COMMIT_ADD_MODIFIED_FILES' in os.environ,
+        help='Any file modifications made by hooks will be automatically '
+             'added to the index unless any hook fails. When set, file '
+             "modification by hooks won't be equated with failure (same as if "
+             '--modified-files-ok is set). Equivalent to setting the '
+             'environment variable PRE_COMMIT_ADD_MODIFIED_FILES=true.',
+    )
     mutex_group = parser.add_mutually_exclusive_group(required=False)
     mutex_group.add_argument(
         '--all-files', '-a', action='store_true', default=False,

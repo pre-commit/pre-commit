@@ -129,7 +129,7 @@ def _run_single_hook(classifier, hook, args, skips, cols, use_color):
     diff_after = cmd_output_b('git', 'diff', '--no-ext-diff', retcode=None)
 
     file_modifications = diff_before != diff_after
-    modified_ok = args.modified_files_ok
+    modified_ok = args.modified_files_ok or args.add_modified
 
     # If the hook makes changes, fail the commit
     if not modified_ok and file_modifications:
@@ -168,6 +168,10 @@ def _run_single_hook(classifier, hook, args, skips, cols, use_color):
         if out.strip():
             output.write_line(out.strip(), logfile_name=hook.log_file)
         output.write_line()
+
+    if file_modifications and modified_ok:
+        output.write_line('Adding modified files to index\n')
+        git.add_all()
 
     return retcode
 
