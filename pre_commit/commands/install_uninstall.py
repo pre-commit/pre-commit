@@ -67,19 +67,10 @@ def shebang():
     return '#!/usr/bin/env {}'.format(py)
 
 
-def install(
-        config_file, store,
-        overwrite=False, hooks=False, hook_type='pre-commit',
-        skip_on_missing_config=False, git_dir=None,
+def _install_hook_script(
+        config_file, hook_type,
+        overwrite=False, skip_on_missing_config=False, git_dir=None,
 ):
-    """Install the pre-commit hooks."""
-    if cmd_output('git', 'config', 'core.hooksPath', retcode=None)[1].strip():
-        logger.error(
-            'Cowardly refusing to install hooks with `core.hooksPath` set.\n'
-            'hint: `git config --unset-all core.hooksPath`',
-        )
-        return 1
-
     hook_path, legacy_path = _hook_paths(hook_type, git_dir=git_dir)
 
     mkdirp(os.path.dirname(hook_path))
@@ -120,7 +111,27 @@ def install(
 
     output.write_line('pre-commit installed at {}'.format(hook_path))
 
-    # If they requested we install all of the hooks, do so.
+
+def install(
+        config_file, store, hook_types,
+        overwrite=False, hooks=False,
+        skip_on_missing_config=False, git_dir=None,
+):
+    if cmd_output('git', 'config', 'core.hooksPath', retcode=None)[1].strip():
+        logger.error(
+            'Cowardly refusing to install hooks with `core.hooksPath` set.\n'
+            'hint: `git config --unset-all core.hooksPath`',
+        )
+        return 1
+
+    for hook_type in hook_types:
+        _install_hook_script(
+            config_file, hook_type,
+            overwrite=overwrite,
+            skip_on_missing_config=skip_on_missing_config,
+            git_dir=git_dir,
+        )
+
     if hooks:
         install_hooks(config_file, store)
 
@@ -131,13 +142,12 @@ def install_hooks(config_file, store):
     install_hook_envs(all_hooks(load_config(config_file), store), store)
 
 
-def uninstall(hook_type='pre-commit'):
-    """Uninstall the pre-commit hooks."""
+def _uninstall_hook_script(hook_type):  # type: (str) -> None
     hook_path, legacy_path = _hook_paths(hook_type)
 
     # If our file doesn't exist or it isn't ours, gtfo.
     if not os.path.exists(hook_path) or not is_our_script(hook_path):
-        return 0
+        return
 
     os.remove(hook_path)
     output.write_line('{} uninstalled'.format(hook_type))
@@ -146,4 +156,8 @@ def uninstall(hook_type='pre-commit'):
         os.rename(legacy_path, hook_path)
         output.write_line('Restored previous hooks to {}'.format(hook_path))
 
+
+def uninstall(hook_types):
+    for hook_type in hook_types:
+        _uninstall_hook_script(hook_type)
     return 0

@@ -60,7 +60,8 @@ def _add_hook_type_option(parser):
         '-t', '--hook-type', choices=(
             'pre-commit', 'pre-push', 'prepare-commit-msg', 'commit-msg',
         ),
-        default='pre-commit',
+        action='append',
+        dest='hook_types',
     )
 
 
@@ -120,6 +121,11 @@ def _adjust_args_and_chdir(args):
         args.files = [os.path.relpath(filename) for filename in args.files]
     if args.command == 'try-repo' and os.path.exists(args.repo):
         args.repo = os.path.relpath(args.repo)
+    if (
+            args.command in {'install', 'uninstall', 'init-templatedir'} and
+            not args.hook_types
+    ):
+        args.hook_types = ['pre-commit']
 
 
 def main(argv=None):
@@ -299,14 +305,14 @@ def main(argv=None):
         elif args.command == 'install':
             return install(
                 args.config, store,
+                hook_types=args.hook_types,
                 overwrite=args.overwrite, hooks=args.install_hooks,
-                hook_type=args.hook_type,
                 skip_on_missing_config=args.allow_missing_config,
             )
         elif args.command == 'init-templatedir':
             return init_templatedir(
-                args.config, store,
-                args.directory, hook_type=args.hook_type,
+                args.config, store, args.directory,
+                hook_types=args.hook_types,
             )
         elif args.command == 'install-hooks':
             return install_hooks(args.config, store)
@@ -319,7 +325,7 @@ def main(argv=None):
         elif args.command == 'try-repo':
             return try_repo(args)
         elif args.command == 'uninstall':
-            return uninstall(hook_type=args.hook_type)
+            return uninstall(hook_types=args.hook_types)
         else:
             raise NotImplementedError(
                 'Command {} not implemented.'.format(args.command),
