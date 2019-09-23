@@ -525,7 +525,7 @@ def test_stdout_write_bug_py26(repo_with_failing_hook, store, tempdir_factory):
             config['repos'][0]['hooks'][0]['args'] = ['☃']
         stage_a_file()
 
-        install(C.CONFIG_FILE, store)
+        install(C.CONFIG_FILE, store, hook_types=['pre-commit'])
 
         # Have to use subprocess because pytest monkeypatches sys.stdout
         _, stdout, _ = git_commit(
@@ -555,7 +555,7 @@ def test_lots_of_files(store, tempdir_factory):
             open(filename, 'w').close()
 
         cmd_output('git', 'add', '.')
-        install(C.CONFIG_FILE, store)
+        install(C.CONFIG_FILE, store, hook_types=['pre-commit'])
 
         git_commit(
             fn=cmd_output_mocked_pre_commit_home,

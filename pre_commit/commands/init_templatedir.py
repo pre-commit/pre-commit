@@ -8,10 +8,10 @@ from pre_commit.util import cmd_output
 logger = logging.getLogger('pre_commit')
 
 
-def init_templatedir(config_file, store, directory, hook_type):
+def init_templatedir(config_file, store, directory, hook_types):
     install(
-        config_file, store, overwrite=True, hook_type=hook_type,
-        skip_on_missing_config=True, git_dir=directory,
+        config_file, store, hook_types=hook_types,
+        overwrite=True, skip_on_missing_config=True, git_dir=directory,
     )
     try:
         _, out, _ = cmd_output('git', 'config', 'init.templateDir')
