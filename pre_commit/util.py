@@ -103,7 +103,7 @@ class CalledProcessError(RuntimeError):
                 ),
             ),
             b'Output: ', output[0], b'\n',
-            b'Errors: ', output[1], b'\n',
+            b'Errors: ', output[1],
         ))
 
     def to_text(self):

@@ -24,7 +24,7 @@ def test_CalledProcessError_str():
         'Output: \n'
         '    stdout\n'
         'Errors: \n'
-        '    stderr\n'
+        '    stderr'
     )
 
 
@@ -37,7 +37,7 @@ def test_CalledProcessError_str_nooutput():
         'Return code: 1\n'
         'Expected return code: 0\n'
         'Output: (none)\n'
-        'Errors: (none)\n'
+        'Errors: (none)'
     )
 
 

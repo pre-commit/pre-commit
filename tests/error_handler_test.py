@@ -113,18 +113,24 @@ def test_log_and_exit(cap_out, mock_store_dir):
         logged = f.read()
         expected = (
             r'^### version information\n'
+            r'\n'
             r'```\n'
-            r'pre-commit.version: \d+\.\d+\.\d+\n'
-            r'sys.version:\n(    .*\n)*'
+            r'pre-commit version: \d+\.\d+\.\d+\n'
+            r'sys.version:\n'
+            r'(    .*\n)*'
             r'sys.executable: .*\n'
             r'os.name: .*\n'
             r'sys.platform: .*\n'
             r'```\n'
+            r'\n'
             r'### error information\n'
+            r'\n'
             r'```\n'
             r'msg: FatalError: hai\n'
-            r"I'm a stacktrace\n"
+            r'```\n'
             r'\n'
+            r'```\n'
+            r"I'm a stacktrace\n"
             r'```\n'
         )
         assert re.match(expected, logged)
