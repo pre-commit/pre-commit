@@ -28,11 +28,6 @@ def _to_bytes(exc):
 
 def _log_and_exit(msg, exc, formatted):
     error_msg = b''.join((
-        _to_bytes('### version information\n'),
-        _to_bytes('pre-commit.version={}\n'.format(C.VERSION)),
-        _to_bytes('sys.version={}\n'.format(sys.version.replace('\n', ' '))),
-        _to_bytes('sys.executable={}\n'.format(sys.executable)),
-        _to_bytes('### error information\n'),
         five.to_bytes(msg), b': ',
         five.to_bytes(type(exc).__name__), b': ',
         _to_bytes(exc), b'\n',
@@ -41,9 +36,26 @@ def _log_and_exit(msg, exc, formatted):
     store = Store()
     log_path = os.path.join(store.directory, 'pre-commit.log')
     output.write_line('Check the log at {}'.format(log_path))
+
+    meta_info_msg = '### version information\n```\n'
+    meta_info_msg += 'pre-commit.version: {}\n'.format(C.VERSION)
+    meta_info_msg += 'sys.version: \n{}\n'.format(
+        '\n'.join(
+            [
+                '\t{}'.format(line)
+                for line in sys.version.splitlines()
+            ],
+        ),
+    )
+    meta_info_msg += 'sys.executable: {}\n'.format(sys.executable)
+    meta_info_msg += 'os.name: {}\n'.format(os.name)
+    meta_info_msg += 'sys.platform: {}\n```\n'.format(sys.platform)
+    meta_info_msg += '### error information\n```\n'
     with open(log_path, 'wb') as log:
+        output.write(meta_info_msg, stream=log)
         output.write(error_msg, stream=log)
         output.write_line(formatted, stream=log)
+        output.write('\n```\n', stream=log)
     raise SystemExit(1)
 
 
