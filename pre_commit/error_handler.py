@@ -4,10 +4,12 @@ from __future__ import unicode_literals
 
 import contextlib
 import os.path
+import sys
 import traceback
 
 import six
 
+import pre_commit.constants as C
 from pre_commit import five
 from pre_commit import output
 from pre_commit.store import Store
@@ -34,9 +36,36 @@ def _log_and_exit(msg, exc, formatted):
     store = Store()
     log_path = os.path.join(store.directory, 'pre-commit.log')
     output.write_line('Check the log at {}'.format(log_path))
+
     with open(log_path, 'wb') as log:
+        output.write_line(
+            '### version information\n```', stream=log,
+        )
+        output.write_line(
+            'pre-commit.version: {}'.format(C.VERSION), stream=log,
+        )
+        output.write_line(
+            'sys.version:\n{}'.format(
+                '\n'.join(
+                    [
+                        '    {}'.format(line)
+                        for line in sys.version.splitlines()
+                    ],
+                ),
+            ),
+            stream=log,
+        )
+        output.write_line(
+            'sys.executable: {}'.format(sys.executable), stream=log,
+        )
+        output.write_line('os.name: {}'.format(os.name), stream=log)
+        output.write_line(
+            'sys.platform: {}\n```'.format(sys.platform), stream=log,
+        )
+        output.write_line('### error information\n```', stream=log)
         output.write(error_msg, stream=log)
         output.write_line(formatted, stream=log)
+        output.write('\n```\n', stream=log)
     raise SystemExit(1)
 
 

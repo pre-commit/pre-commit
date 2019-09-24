@@ -105,16 +105,29 @@ def test_log_and_exit(cap_out, mock_store_dir):
     printed = cap_out.get()
     log_file = os.path.join(mock_store_dir, 'pre-commit.log')
     assert printed == (
-        'msg: FatalError: hai\n'
-        'Check the log at {}\n'.format(log_file)
+        'msg: FatalError: hai\n' 'Check the log at {}\n'.format(log_file)
     )
 
     assert os.path.exists(log_file)
     with io.open(log_file) as f:
-        assert f.read() == (
-            'msg: FatalError: hai\n'
-            "I'm a stacktrace\n"
+        logged = f.read()
+        expected = (
+            r'^### version information\n'
+            r'```\n'
+            r'pre-commit.version: \d+\.\d+\.\d+\n'
+            r'sys.version:\n(    .*\n)*'
+            r'sys.executable: .*\n'
+            r'os.name: .*\n'
+            r'sys.platform: .*\n'
+            r'```\n'
+            r'### error information\n'
+            r'```\n'
+            r'msg: FatalError: hai\n'
+            r"I'm a stacktrace\n"
+            r'\n'
+            r'```\n'
         )
+        assert re.match(expected, logged)
 
 
 def test_error_handler_non_ascii_exception(mock_store_dir):
@@ -126,7 +139,8 @@ def test_error_handler_non_ascii_exception(mock_store_dir):
 def test_error_handler_no_tty(tempdir_factory):
     pre_commit_home = tempdir_factory.get()
     output = cmd_output_mocked_pre_commit_home(
-        sys.executable, '-c',
+        sys.executable,
+        '-c',
         'from __future__ import unicode_literals\n'
         'from pre_commit.error_handler import error_handler\n'
         'with error_handler():\n'
@@ -136,7 +150,8 @@ def test_error_handler_no_tty(tempdir_factory):
         pre_commit_home=pre_commit_home,
     )
     log_file = os.path.join(pre_commit_home, 'pre-commit.log')
-    assert output[1].replace('\r', '') == (
-        'An unexpected error has occurred: ValueError: ☃\n'
-        'Check the log at {}\n'.format(log_file)
+    output_lines = output[1].replace('\r', '').splitlines()
+    assert (
+        output_lines[-2] == 'An unexpected error has occurred: ValueError: ☃'
     )
+    assert output_lines[-1] == 'Check the log at {}'.format(log_file)
