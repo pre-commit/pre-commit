@@ -104,29 +104,30 @@ def test_log_and_exit(cap_out, mock_store_dir):
 
     printed = cap_out.get()
     log_file = os.path.join(mock_store_dir, 'pre-commit.log')
-    printed_lines = printed.split('\n')
-    assert len(printed_lines) == 6, printed_lines
-    assert printed_lines[0] == 'msg: FatalError: hai'
+    printed_lines = printed.splitlines()
+    print(printed_lines)
+    assert len(printed_lines) == 7
+    assert printed_lines[0] == '### version information'
     assert re.match(r'^pre-commit.version=\d+\.\d+\.\d+$', printed_lines[1])
     assert printed_lines[2].startswith('sys.version=')
     assert printed_lines[3].startswith('sys.executable=')
-    assert printed_lines[4] == 'Check the log at {}'.format(log_file)
-    assert printed_lines[5] == ''  # checks for \n at the end of last line
+    assert printed_lines[4] == '### error information'
+    assert printed_lines[5] == 'msg: FatalError: hai'
+    assert printed_lines[6] == 'Check the log at {}'.format(log_file)
 
     assert os.path.exists(log_file)
     with io.open(log_file) as f:
-        logged_lines = f.read().split('\n')
-        assert len(logged_lines) == 6, logged_lines
-        assert logged_lines[0] == 'msg: FatalError: hai'
+        logged_lines = f.read().splitlines()
+        assert len(logged_lines) == 7
+        assert printed_lines[0] == '### version information'
         assert re.match(
             r'^pre-commit.version=\d+\.\d+\.\d+$',
             printed_lines[1],
         )
         assert logged_lines[2].startswith('sys.version=')
         assert logged_lines[3].startswith('sys.executable=')
-        assert logged_lines[4] == "I'm a stacktrace"
-        # checks for \n at the end of stack trace
-        assert printed_lines[5] == ''
+        assert logged_lines[5] == 'msg: FatalError: hai'
+        assert logged_lines[6] == "I'm a stacktrace"
 
 
 def test_error_handler_non_ascii_exception(mock_store_dir):
@@ -148,7 +149,8 @@ def test_error_handler_no_tty(tempdir_factory):
         pre_commit_home=pre_commit_home,
     )
     log_file = os.path.join(pre_commit_home, 'pre-commit.log')
-    output_lines = output[1].replace('\r', '').split('\n')
-    assert output_lines[0] == 'An unexpected error has occurred: ValueError: ☃'
-    assert output_lines[-2] == 'Check the log at {}'.format(log_file)
-    assert output_lines[-1] == ''  # checks for \n at the end of stack trace
+    output_lines = output[1].replace('\r', '').splitlines()
+    assert (
+        output_lines[-2] == 'An unexpected error has occurred: ValueError: ☃'
+    )
+    assert output_lines[-1] == 'Check the log at {}'.format(log_file)

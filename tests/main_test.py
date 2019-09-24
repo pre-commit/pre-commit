@@ -164,14 +164,13 @@ def test_expected_fatal_error_no_git_repo(in_tmpdir, cap_out, mock_store_dir):
     with pytest.raises(SystemExit):
         main.main([])
     log_file = os.path.join(mock_store_dir, 'pre-commit.log')
-    cap_out_lines = cap_out.get().split('\n')
+    cap_out_lines = cap_out.get().splitlines()
     assert (
-        cap_out_lines[0] ==
+        cap_out_lines[-2] ==
         'An error has occurred: FatalError: git failed. '
         'Is it installed, and are you in a Git repository directory?'
     )
-    assert cap_out_lines[-2] == 'Check the log at {}'.format(log_file)
-    assert cap_out_lines[-1] == ''  # checks for \n at the end of error message
+    assert cap_out_lines[-1] == 'Check the log at {}'.format(log_file)
 
 
 def test_warning_on_tags_only(mock_commands, cap_out, mock_store_dir):

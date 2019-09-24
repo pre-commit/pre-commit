@@ -9,9 +9,9 @@ import traceback
 
 import six
 
+import pre_commit.constants as C
 from pre_commit import five
 from pre_commit import output
-from pre_commit.constants import VERSION as pre_commit_version
 from pre_commit.store import Store
 
 
@@ -28,12 +28,14 @@ def _to_bytes(exc):
 
 def _log_and_exit(msg, exc, formatted):
     error_msg = b''.join((
+        _to_bytes('### version information\n'),
+        _to_bytes('pre-commit.version={}\n'.format(C.VERSION)),
+        _to_bytes('sys.version={}\n'.format(sys.version.replace('\n', ' '))),
+        _to_bytes('sys.executable={}\n'.format(sys.executable)),
+        _to_bytes('### error information\n'),
         five.to_bytes(msg), b': ',
         five.to_bytes(type(exc).__name__), b': ',
         _to_bytes(exc), b'\n',
-        _to_bytes('pre-commit.version={}\n'.format(pre_commit_version)),
-        _to_bytes('sys.version={}\n'.format(sys.version.replace('\n', ' '))),
-        _to_bytes('sys.executable={}\n'.format(sys.executable)),
     ))
     output.write(error_msg)
     store = Store()
