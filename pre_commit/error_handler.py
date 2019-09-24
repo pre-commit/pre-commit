@@ -37,22 +37,32 @@ def _log_and_exit(msg, exc, formatted):
     log_path = os.path.join(store.directory, 'pre-commit.log')
     output.write_line('Check the log at {}'.format(log_path))
 
-    meta_info_msg = '### version information\n```\n'
-    meta_info_msg += 'pre-commit.version: {}\n'.format(C.VERSION)
-    meta_info_msg += 'sys.version: \n{}\n'.format(
-        '\n'.join(
-            [
-                '\t{}'.format(line)
-                for line in sys.version.splitlines()
-            ],
-        ),
-    )
-    meta_info_msg += 'sys.executable: {}\n'.format(sys.executable)
-    meta_info_msg += 'os.name: {}\n'.format(os.name)
-    meta_info_msg += 'sys.platform: {}\n```\n'.format(sys.platform)
-    meta_info_msg += '### error information\n```\n'
     with open(log_path, 'wb') as log:
-        output.write(meta_info_msg, stream=log)
+        output.write_line(
+            '### version information\n```', stream=log,
+        )
+        output.write_line(
+            'pre-commit.version: {}'.format(C.VERSION), stream=log,
+        )
+        output.write_line(
+            'sys.version:\n{}'.format(
+                '\n'.join(
+                    [
+                        '    {}'.format(line)
+                        for line in sys.version.splitlines()
+                    ],
+                ),
+            ),
+            stream=log,
+        )
+        output.write_line(
+            'sys.executable: {}'.format(sys.executable), stream=log,
+        )
+        output.write_line('os.name: {}'.format(os.name), stream=log)
+        output.write_line(
+            'sys.platform: {}\n```'.format(sys.platform), stream=log,
+        )
+        output.write_line('### error information\n```', stream=log)
         output.write(error_msg, stream=log)
         output.write_line(formatted, stream=log)
         output.write('\n```\n', stream=log)
