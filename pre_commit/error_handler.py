@@ -30,42 +30,39 @@ def _log_and_exit(msg, exc, formatted):
     error_msg = b''.join((
         five.to_bytes(msg), b': ',
         five.to_bytes(type(exc).__name__), b': ',
-        _to_bytes(exc), b'\n',
+        _to_bytes(exc),
     ))
-    output.write(error_msg)
+    output.write_line(error_msg)
     store = Store()
     log_path = os.path.join(store.directory, 'pre-commit.log')
     output.write_line('Check the log at {}'.format(log_path))
 
     with open(log_path, 'wb') as log:
-        output.write_line(
-            '### version information\n```', stream=log,
-        )
-        output.write_line(
-            'pre-commit.version: {}'.format(C.VERSION), stream=log,
-        )
-        output.write_line(
-            'sys.version:\n{}'.format(
-                '\n'.join(
-                    [
-                        '    {}'.format(line)
-                        for line in sys.version.splitlines()
-                    ],
-                ),
-            ),
-            stream=log,
-        )
-        output.write_line(
-            'sys.executable: {}'.format(sys.executable), stream=log,
-        )
-        output.write_line('os.name: {}'.format(os.name), stream=log)
-        output.write_line(
-            'sys.platform: {}\n```'.format(sys.platform), stream=log,
-        )
-        output.write_line('### error information\n```', stream=log)
-        output.write(error_msg, stream=log)
-        output.write_line(formatted, stream=log)
-        output.write('\n```\n', stream=log)
+        def _log_line(*s):  # type: (*str) -> None
+            output.write_line(*s, stream=log)
+
+        _log_line('### version information')
+        _log_line()
+        _log_line('```')
+        _log_line('pre-commit version: {}'.format(C.VERSION))
+        _log_line('sys.version:')
+        for line in sys.version.splitlines():
+            _log_line('    {}'.format(line))
+        _log_line('sys.executable: {}'.format(sys.executable))
+        _log_line('os.name: {}'.format(os.name))
+        _log_line('sys.platform: {}'.format(sys.platform))
+        _log_line('```')
+        _log_line()
+
+        _log_line('### error information')
+        _log_line()
+        _log_line('```')
+        _log_line(error_msg)
+        _log_line('```')
+        _log_line()
+        _log_line('```')
+        _log_line(formatted)
+        _log_line('```')
     raise SystemExit(1)
 
 
