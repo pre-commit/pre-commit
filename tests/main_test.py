@@ -13,6 +13,20 @@ from pre_commit.error_handler import FatalError
 from testing.auto_namedtuple import auto_namedtuple
 
 
+@pytest.mark.parametrize(
+    ('argv', 'expected'),
+    (
+        ((), ['f']),
+        (('--f', 'x'), ['x']),
+        (('--f', 'x', '--f', 'y'), ['x', 'y']),
+    ),
+)
+def test_append_replace_default(argv, expected):
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--f', action=main.AppendReplaceDefault, default=['f'])
+    assert parser.parse_args(argv).f == expected
+
+
 class Args(object):
     def __init__(self, **kwargs):
         kwargs.setdefault('command', 'help')

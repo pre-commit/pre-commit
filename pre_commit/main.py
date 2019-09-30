@@ -55,12 +55,25 @@ def _add_config_option(parser):
     )
 
 
+class AppendReplaceDefault(argparse.Action):
+    def __init__(self, *args, **kwargs):
+        super(AppendReplaceDefault, self).__init__(*args, **kwargs)
+        self.appended = False
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        if not self.appended:
+            setattr(namespace, self.dest, [])
+            self.appended = True
+        getattr(namespace, self.dest).append(values)
+
+
 def _add_hook_type_option(parser):
     parser.add_argument(
         '-t', '--hook-type', choices=(
             'pre-commit', 'pre-push', 'prepare-commit-msg', 'commit-msg',
         ),
-        action='append',
+        action=AppendReplaceDefault,
+        default=['pre-commit'],
         dest='hook_types',
     )
 
@@ -121,11 +134,6 @@ def _adjust_args_and_chdir(args):
         args.files = [os.path.relpath(filename) for filename in args.files]
     if args.command == 'try-repo' and os.path.exists(args.repo):
         args.repo = os.path.relpath(args.repo)
-    if (
-            args.command in {'install', 'uninstall', 'init-templatedir'} and
-            not args.hook_types
-    ):
-        args.hook_types = ['pre-commit']
 
 
 def main(argv=None):
