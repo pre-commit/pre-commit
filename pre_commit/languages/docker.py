@@ -9,7 +9,7 @@ from pre_commit import five
 from pre_commit.languages import helpers
 from pre_commit.util import CalledProcessError
 from pre_commit.util import clean_path_on_failure
-from pre_commit.util import cmd_output
+from pre_commit.util import cmd_output_b
 
 
 ENVIRONMENT_DIR = 'docker'
@@ -29,9 +29,11 @@ def docker_tag(prefix):  # pragma: windows no cover
 
 def docker_is_running():  # pragma: windows no cover
     try:
-        return cmd_output('docker', 'ps')[0] == 0
+        cmd_output_b('docker', 'ps')
     except CalledProcessError:
         return False
+    else:
+        return True
 
 
 def assert_docker_available():  # pragma: windows no cover

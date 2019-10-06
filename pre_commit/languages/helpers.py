@@ -8,14 +8,14 @@ import shlex
 import six
 
 import pre_commit.constants as C
-from pre_commit.util import cmd_output
+from pre_commit.util import cmd_output_b
 from pre_commit.xargs import xargs
 
 FIXED_RANDOM_SEED = 1542676186
 
 
 def run_setup_cmd(prefix, cmd):
-    cmd_output(*cmd, cwd=prefix.prefix_dir, encoding=None)
+    cmd_output_b(*cmd, cwd=prefix.prefix_dir)
 
 
 def environment_dir(ENVIRONMENT_DIR, language_version):

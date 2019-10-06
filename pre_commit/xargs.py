@@ -11,7 +11,7 @@ import sys
 import six
 
 from pre_commit import parse_shebang
-from pre_commit.util import cmd_output
+from pre_commit.util import cmd_output_b
 
 
 def _environ_size(_env=None):
@@ -122,7 +122,7 @@ def xargs(cmd, varargs, **kwargs):
     partitions = partition(cmd, varargs, target_concurrency, max_length)
 
     def run_cmd_partition(run_cmd):
-        return cmd_output(*run_cmd, encoding=None, retcode=None, **kwargs)
+        return cmd_output_b(*run_cmd, retcode=None, **kwargs)
 
     threads = min(len(partitions), target_concurrency)
     with _thread_mapper(threads) as thread_map:

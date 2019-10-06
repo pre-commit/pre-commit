@@ -13,6 +13,7 @@ from pre_commit.parse_shebang import find_executable
 from pre_commit.util import CalledProcessError
 from pre_commit.util import clean_path_on_failure
 from pre_commit.util import cmd_output
+from pre_commit.util import cmd_output_b
 
 
 ENVIRONMENT_DIR = 'py_env'
@@ -143,11 +144,10 @@ def py_interface(_dir, _make_venv):
 
     def healthy(prefix, language_version):
         with in_env(prefix, language_version):
-            retcode, _, _ = cmd_output(
+            retcode, _, _ = cmd_output_b(
                 'python', '-c',
                 'import ctypes, datetime, io, os, ssl, weakref',
                 retcode=None,
-                encoding=None,
             )
         return retcode == 0
 
@@ -177,7 +177,7 @@ def py_interface(_dir, _make_venv):
 def make_venv(envdir, python):
     env = dict(os.environ, VIRTUALENV_NO_DOWNLOAD='1')
     cmd = (sys.executable, '-mvirtualenv', envdir, '-p', python)
-    cmd_output(*cmd, env=env, cwd='/')
+    cmd_output_b(*cmd, env=env, cwd='/')
 
 
 _interface = py_interface(ENVIRONMENT_DIR, make_venv)

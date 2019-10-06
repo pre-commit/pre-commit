@@ -21,6 +21,7 @@ from pre_commit.clientlib import META
 from pre_commit.commands.migrate_config import migrate_config
 from pre_commit.util import CalledProcessError
 from pre_commit.util import cmd_output
+from pre_commit.util import cmd_output_b
 from pre_commit.util import tmpdir
 
 
@@ -38,7 +39,7 @@ def _update_repo(repo_config, store, tags_only):
     """
     with tmpdir() as repo_path:
         git.init_repo(repo_path, repo_config['repo'])
-        cmd_output('git', 'fetch', 'origin', 'HEAD', '--tags', cwd=repo_path)
+        cmd_output_b('git', 'fetch', 'origin', 'HEAD', '--tags', cwd=repo_path)
 
         tag_cmd = ('git', 'describe', 'FETCH_HEAD', '--tags')
         if tags_only:

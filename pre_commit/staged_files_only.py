@@ -9,6 +9,7 @@ import time
 from pre_commit import git
 from pre_commit.util import CalledProcessError
 from pre_commit.util import cmd_output
+from pre_commit.util import cmd_output_b
 from pre_commit.util import mkdirp
 from pre_commit.xargs import xargs
 
@@ -19,10 +20,10 @@ logger = logging.getLogger('pre_commit')
 def _git_apply(patch):
     args = ('apply', '--whitespace=nowarn', patch)
     try:
-        cmd_output('git', *args, encoding=None)
+        cmd_output_b('git', *args)
     except CalledProcessError:
         # Retry with autocrlf=false -- see #570
-        cmd_output('git', '-c', 'core.autocrlf=false', *args, encoding=None)
+        cmd_output_b('git', '-c', 'core.autocrlf=false', *args)
 
 
 @contextlib.contextmanager
@@ -43,11 +44,10 @@ def _intent_to_add_cleared():
 @contextlib.contextmanager
 def _unstaged_changes_cleared(patch_dir):
     tree = cmd_output('git', 'write-tree')[1].strip()
-    retcode, diff_stdout_binary, _ = cmd_output(
+    retcode, diff_stdout_binary, _ = cmd_output_b(
         'git', 'diff-index', '--ignore-submodules', '--binary',
         '--exit-code', '--no-color', '--no-ext-diff', tree, '--',
         retcode=None,
-        encoding=None,
     )
     if retcode and diff_stdout_binary.strip():
         patch_filename = 'patch{}'.format(int(time.time()))
@@ -62,7 +62,7 @@ def _unstaged_changes_cleared(patch_dir):
             patch_file.write(diff_stdout_binary)
 
         # Clear the working directory of unstaged changes
-        cmd_output('git', 'checkout', '--', '.')
+        cmd_output_b('git', 'checkout', '--', '.')
         try:
             yield
         finally:
@@ -77,7 +77,7 @@ def _unstaged_changes_cleared(patch_dir):
                 # We failed to apply the patch, presumably due to fixes made
                 # by hooks.
                 # Roll back the changes made by hooks.
-                cmd_output('git', 'checkout', '--', '.')
+                cmd_output_b('git', 'checkout', '--', '.')
                 _git_apply(patch_filename)
             logger.info('Restored changes from {}.'.format(patch_filename))
     else:

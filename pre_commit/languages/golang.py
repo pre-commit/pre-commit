@@ -11,6 +11,7 @@ from pre_commit.envcontext import Var
 from pre_commit.languages import helpers
 from pre_commit.util import clean_path_on_failure
 from pre_commit.util import cmd_output
+from pre_commit.util import cmd_output_b
 from pre_commit.util import rmtree
 
 
@@ -70,9 +71,9 @@ def install_environment(prefix, version, additional_dependencies):
             gopath = directory
         env = dict(os.environ, GOPATH=gopath)
         env.pop('GOBIN', None)
-        cmd_output('go', 'get', './...', cwd=repo_src_dir, env=env)
+        cmd_output_b('go', 'get', './...', cwd=repo_src_dir, env=env)
         for dependency in additional_dependencies:
-            cmd_output('go', 'get', dependency, cwd=repo_src_dir, env=env)
+            cmd_output_b('go', 'get', dependency, cwd=repo_src_dir, env=env)
         # Same some disk space, we don't need these after installation
         rmtree(prefix.path(directory, 'src'))
         pkgdir = prefix.path(directory, 'pkg')
