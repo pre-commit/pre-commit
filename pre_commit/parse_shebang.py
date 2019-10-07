@@ -51,10 +51,12 @@ def normexe(orig):
         if exe is None:
             _error('not found')
         return exe
-    elif not os.access(orig, os.X_OK):
-        _error('not found')
     elif os.path.isdir(orig):
         _error('is a directory')
+    elif not os.path.isfile(orig):
+        _error('not found')
+    elif not os.access(orig, os.X_OK):  # pragma: windows no cover
+        _error('is not executable')
     else:
         return orig
 
