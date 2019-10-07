@@ -10,7 +10,7 @@ from pre_commit.envcontext import envcontext
 from pre_commit.envcontext import Var
 from pre_commit.languages import helpers
 from pre_commit.util import clean_path_on_failure
-from pre_commit.util import cmd_output
+from pre_commit.util import cmd_output_b
 
 
 ENVIRONMENT_DIR = 'rustenv'
@@ -83,7 +83,7 @@ def install_environment(prefix, version, additional_dependencies):
                 packages_to_install.add((package,))
 
         for package in packages_to_install:
-            cmd_output(
+            cmd_output_b(
                 'cargo', 'install', '--bins', '--root', directory, *package,
                 cwd=prefix.prefix_dir
             )

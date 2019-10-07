@@ -117,9 +117,8 @@ class CalledProcessError(RuntimeError):
         __str__ = to_text
 
 
-def cmd_output(*cmd, **kwargs):
+def cmd_output_b(*cmd, **kwargs):
     retcode = kwargs.pop('retcode', 0)
-    encoding = kwargs.pop('encoding', 'UTF-8')
 
     popen_kwargs = {
         'stdin': subprocess.PIPE,
@@ -133,26 +132,29 @@ def cmd_output(*cmd, **kwargs):
         five.n(key): five.n(value)
         for key, value in kwargs.pop('env', {}).items()
     } or None
+    popen_kwargs.update(kwargs)
 
     try:
         cmd = parse_shebang.normalize_cmd(cmd)
     except parse_shebang.ExecutableNotFoundError as e:
-        returncode, stdout, stderr = e.to_output()
+        returncode, stdout_b, stderr_b = e.to_output()
     else:
-        popen_kwargs.update(kwargs)
         proc = subprocess.Popen(cmd, **popen_kwargs)
-        stdout, stderr = proc.communicate()
+        stdout_b, stderr_b = proc.communicate()
         returncode = proc.returncode
-    if encoding is not None and stdout is not None:
-        stdout = stdout.decode(encoding)
-    if encoding is not None and stderr is not None:
-        stderr = stderr.decode(encoding)
 
     if retcode is not None and retcode != returncode:
         raise CalledProcessError(
-            returncode, cmd, retcode, output=(stdout, stderr),
+            returncode, cmd, retcode, output=(stdout_b, stderr_b),
         )
 
+    return returncode, stdout_b, stderr_b
+
+
+def cmd_output(*cmd, **kwargs):
+    returncode, stdout_b, stderr_b = cmd_output_b(*cmd, **kwargs)
+    stdout = stdout_b.decode('UTF-8') if stdout_b is not None else None
+    stderr = stderr_b.decode('UTF-8') if stderr_b is not None else None
     return returncode, stdout, stderr
 
 

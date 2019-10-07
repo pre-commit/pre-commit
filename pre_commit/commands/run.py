@@ -16,7 +16,7 @@ from pre_commit.output import get_hook_message
 from pre_commit.repository import all_hooks
 from pre_commit.repository import install_hook_envs
 from pre_commit.staged_files_only import staged_files_only
-from pre_commit.util import cmd_output
+from pre_commit.util import cmd_output_b
 from pre_commit.util import noop_context
 
 
@@ -117,15 +117,11 @@ def _run_single_hook(classifier, hook, args, skips, cols):
     )
     sys.stdout.flush()
 
-    diff_before = cmd_output(
-        'git', 'diff', '--no-ext-diff', retcode=None, encoding=None,
-    )
+    diff_before = cmd_output_b('git', 'diff', '--no-ext-diff', retcode=None)
     retcode, stdout, stderr = hook.run(
         tuple(filenames) if hook.pass_filenames else (),
     )
-    diff_after = cmd_output(
-        'git', 'diff', '--no-ext-diff', retcode=None, encoding=None,
-    )
+    diff_after = cmd_output_b('git', 'diff', '--no-ext-diff', retcode=None)
 
     file_modifications = diff_before != diff_after
 
@@ -235,12 +231,12 @@ def _run_hooks(config, hooks, args, environ):
 
 
 def _has_unmerged_paths():
-    _, stdout, _ = cmd_output('git', 'ls-files', '--unmerged')
+    _, stdout, _ = cmd_output_b('git', 'ls-files', '--unmerged')
     return bool(stdout.strip())
 
 
 def _has_unstaged_config(config_file):
-    retcode, _, _ = cmd_output(
+    retcode, _, _ = cmd_output_b(
         'git', 'diff', '--no-ext-diff', '--exit-code', config_file,
         retcode=None,
     )

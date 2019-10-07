@@ -6,6 +6,7 @@ import sys
 from pre_commit.languages import python
 from pre_commit.util import CalledProcessError
 from pre_commit.util import cmd_output
+from pre_commit.util import cmd_output_b
 
 
 ENVIRONMENT_DIR = 'py_venv'
@@ -48,7 +49,7 @@ def orig_py_exe(exe):  # pragma: no cover (platform specific)
 
 
 def make_venv(envdir, python):
-    cmd_output(orig_py_exe(python), '-mvenv', envdir, cwd='/')
+    cmd_output_b(orig_py_exe(python), '-mvenv', envdir, cwd='/')
 
 
 _interface = python.py_interface(ENVIRONMENT_DIR, make_venv)

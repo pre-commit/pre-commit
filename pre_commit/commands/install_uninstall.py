@@ -13,7 +13,6 @@ from pre_commit import output
 from pre_commit.clientlib import load_config
 from pre_commit.repository import all_hooks
 from pre_commit.repository import install_hook_envs
-from pre_commit.util import cmd_output
 from pre_commit.util import make_executable
 from pre_commit.util import mkdirp
 from pre_commit.util import resource_text
@@ -117,7 +116,7 @@ def install(
         overwrite=False, hooks=False,
         skip_on_missing_config=False, git_dir=None,
 ):
-    if cmd_output('git', 'config', 'core.hooksPath', retcode=None)[1].strip():
+    if git.has_core_hookpaths_set():
         logger.error(
             'Cowardly refusing to install hooks with `core.hooksPath` set.\n'
             'hint: `git config --unset-all core.hooksPath`',

@@ -12,7 +12,7 @@ from pre_commit import file_lock
 from pre_commit import git
 from pre_commit.util import CalledProcessError
 from pre_commit.util import clean_path_on_failure
-from pre_commit.util import cmd_output
+from pre_commit.util import cmd_output_b
 from pre_commit.util import resource_text
 from pre_commit.util import rmtree
 
@@ -161,7 +161,7 @@ class Store(object):
             env = git.no_git_env()
 
             def _git_cmd(*args):
-                cmd_output('git', *args, cwd=directory, env=env)
+                cmd_output_b('git', *args, cwd=directory, env=env)
 
             try:
                 self._shallow_clone(ref, _git_cmd)
@@ -186,7 +186,7 @@ class Store(object):
 
             # initialize the git repository so it looks more like cloned repos
             def _git_cmd(*args):
-                cmd_output('git', *args, cwd=directory, env=env)
+                cmd_output_b('git', *args, cwd=directory, env=env)
 
             git.init_repo(directory, '<<unknown>>')
             _git_cmd('add', '.')

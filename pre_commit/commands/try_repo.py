@@ -13,7 +13,7 @@ from pre_commit import output
 from pre_commit.clientlib import load_manifest
 from pre_commit.commands.run import run
 from pre_commit.store import Store
-from pre_commit.util import cmd_output
+from pre_commit.util import cmd_output_b
 from pre_commit.util import tmpdir
 from pre_commit.xargs import xargs
 
@@ -31,8 +31,8 @@ def _repo_ref(tmpdir, repo, ref):
         logger.warning('Creating temporary repo with uncommitted changes...')
 
         shadow = os.path.join(tmpdir, 'shadow-repo')
-        cmd_output('git', 'clone', repo, shadow)
-        cmd_output('git', 'checkout', ref, '-b', '_pc_tmp', cwd=shadow)
+        cmd_output_b('git', 'clone', repo, shadow)
+        cmd_output_b('git', 'checkout', ref, '-b', '_pc_tmp', cwd=shadow)
 
         idx = git.git_path('index', repo=shadow)
         objs = git.git_path('objects', repo=shadow)
@@ -42,7 +42,7 @@ def _repo_ref(tmpdir, repo, ref):
         if staged_files:
             xargs(('git', 'add', '--'), staged_files, cwd=repo, env=env)
 
-        cmd_output('git', 'add', '-u', cwd=repo, env=env)
+        cmd_output_b('git', 'add', '-u', cwd=repo, env=env)
         git.commit(repo=shadow)
 
         return shadow, git.head_rev(shadow)

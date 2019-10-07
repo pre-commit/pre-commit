@@ -11,6 +11,7 @@ from pre_commit.languages import helpers
 from pre_commit.languages.python import bin_dir
 from pre_commit.util import clean_path_on_failure
 from pre_commit.util import cmd_output
+from pre_commit.util import cmd_output_b
 
 
 ENVIRONMENT_DIR = 'node_env'
@@ -65,7 +66,7 @@ def install_environment(
         ]
         if version != C.DEFAULT:
             cmd.extend(['-n', version])
-        cmd_output(*cmd)
+        cmd_output_b(*cmd)
 
         with in_env(prefix, version):
             # https://npm.community/t/npm-install-g-git-vs-git-clone-cd-npm-install-g/5449

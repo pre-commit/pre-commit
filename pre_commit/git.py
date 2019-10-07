@@ -5,6 +5,7 @@ import os.path
 import sys
 
 from pre_commit.util import cmd_output
+from pre_commit.util import cmd_output_b
 
 
 logger = logging.getLogger(__name__)
@@ -50,8 +51,8 @@ def get_git_dir(git_root='.'):
 
 
 def get_remote_url(git_root):
-    ret = cmd_output('git', 'config', 'remote.origin.url', cwd=git_root)[1]
-    return ret.strip()
+    _, out, _ = cmd_output('git', 'config', 'remote.origin.url', cwd=git_root)
+    return out.strip()
 
 
 def is_in_merge_conflict():
@@ -105,8 +106,8 @@ def get_staged_files(cwd=None):
 
 
 def intent_to_add_files():
-    _, stdout_binary, _ = cmd_output('git', 'status', '--porcelain', '-z')
-    parts = list(reversed(zsplit(stdout_binary)))
+    _, stdout, _ = cmd_output('git', 'status', '--porcelain', '-z')
+    parts = list(reversed(zsplit(stdout)))
     intent_to_add = []
     while parts:
         line = parts.pop()
@@ -140,7 +141,12 @@ def has_diff(*args, **kwargs):
     repo = kwargs.pop('repo', '.')
     assert not kwargs, kwargs
     cmd = ('git', 'diff', '--quiet', '--no-ext-diff') + args
-    return cmd_output(*cmd, cwd=repo, retcode=None)[0]
+    return cmd_output_b(*cmd, cwd=repo, retcode=None)[0]
+
+
+def has_core_hookpaths_set():
+    _, out, _ = cmd_output_b('git', 'config', 'core.hooksPath', retcode=None)
+    return bool(out.strip())
 
 
 def init_repo(path, remote):
@@ -148,8 +154,8 @@ def init_repo(path, remote):
         remote = os.path.abspath(remote)
 
     env = no_git_env()
-    cmd_output('git', 'init', path, env=env)
-    cmd_output('git', 'remote', 'add', 'origin', remote, cwd=path, env=env)
+    cmd_output_b('git', 'init', path, env=env)
+    cmd_output_b('git', 'remote', 'add', 'origin', remote, cwd=path, env=env)
 
 
 def commit(repo='.'):
@@ -158,7 +164,7 @@ def commit(repo='.'):
     env['GIT_AUTHOR_NAME'] = env['GIT_COMMITTER_NAME'] = name
     env['GIT_AUTHOR_EMAIL'] = env['GIT_COMMITTER_EMAIL'] = email
     cmd = ('git', 'commit', '--no-edit', '--no-gpg-sign', '-n', '-minit')
-    cmd_output(*cmd, cwd=repo, env=env)
+    cmd_output_b(*cmd, cwd=repo, env=env)
 
 
 def git_path(name, repo='.'):

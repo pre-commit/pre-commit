@@ -28,6 +28,7 @@ from pre_commit.repository import all_hooks
 from pre_commit.repository import Hook
 from pre_commit.repository import install_hook_envs
 from pre_commit.util import cmd_output
+from pre_commit.util import cmd_output_b
 from testing.fixtures import make_config_from_repo
 from testing.fixtures import make_repo
 from testing.fixtures import modify_manifest
@@ -380,7 +381,7 @@ def _make_grep_repo(language, entry, store, args=()):
 @pytest.fixture
 def greppable_files(tmpdir):
     with tmpdir.as_cwd():
-        cmd_output('git', 'init', '.')
+        cmd_output_b('git', 'init', '.')
         tmpdir.join('f1').write_binary(b"hello'hi\nworld\n")
         tmpdir.join('f2').write_binary(b'foo\nbar\nbaz\n')
         tmpdir.join('f3').write_binary(b'[WARN] hi\n')
@@ -439,9 +440,8 @@ class TestPCRE(TestPygrep):
 def _norm_pwd(path):
     # Under windows bash's temp and windows temp is different.
     # This normalizes to the bash /tmp
-    return cmd_output(
+    return cmd_output_b(
         'bash', '-c', "cd '{}' && pwd".format(path),
-        encoding=None,
     )[1].strip()
 
 
@@ -654,7 +654,7 @@ def test_invalidated_virtualenv(tempdir_factory, store):
     paths = [
         os.path.join(libdir, p) for p in ('site.py', 'site.pyc', '__pycache__')
     ]
-    cmd_output('rm', '-rf', *paths)
+    cmd_output_b('rm', '-rf', *paths)
 
     # pre-commit should rebuild the virtualenv and it should be runnable
     retv, stdout, stderr = _get_hook(config, store, 'foo').run(())
@@ -664,7 +664,7 @@ def test_invalidated_virtualenv(tempdir_factory, store):
 def test_really_long_file_paths(tempdir_factory, store):
     base_path = tempdir_factory.get()
     really_long_path = os.path.join(base_path, 'really_long' * 10)
-    cmd_output('git', 'init', really_long_path)
+    cmd_output_b('git', 'init', really_long_path)
 
     path = make_repo(tempdir_factory, 'python_hooks_repo')
     config = make_config_from_repo(path)
@@ -687,7 +687,7 @@ def test_config_overrides_repo_specifics(tempdir_factory, store):
 
 def _create_repo_with_tags(tempdir_factory, src, tag):
     path = make_repo(tempdir_factory, src)
-    cmd_output('git', 'tag', tag, cwd=path)
+    cmd_output_b('git', 'tag', tag, cwd=path)
     return path
 
 
