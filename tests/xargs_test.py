@@ -3,6 +3,7 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 import concurrent.futures
+import os
 import sys
 import time
 
@@ -217,3 +218,14 @@ def test_xargs_propagate_kwargs_to_cmd():
     ret, stdout = xargs.xargs(cmd, ('1',), env=env)
     assert ret == 0
     assert b'Pre commit is awesome' in stdout
+
+
+@pytest.mark.xfail(os.name == 'nt', reason='posix only')
+def test_xargs_color_true_makes_tty():
+    retcode, out = xargs.xargs(
+        (sys.executable, '-c', 'import sys; print(sys.stdout.isatty())'),
+        ('1',),
+        color=True,
+    )
+    assert retcode == 0
+    assert out == b'True\n'

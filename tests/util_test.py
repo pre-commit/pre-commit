@@ -2,12 +2,14 @@ from __future__ import unicode_literals
 
 import os.path
 import stat
+import subprocess
 
 import pytest
 
 from pre_commit.util import CalledProcessError
 from pre_commit.util import clean_path_on_failure
 from pre_commit.util import cmd_output
+from pre_commit.util import cmd_output_p
 from pre_commit.util import parse_version
 from pre_commit.util import rmtree
 from pre_commit.util import tmpdir
@@ -83,9 +85,15 @@ def test_tmpdir():
 
 
 def test_cmd_output_exe_not_found():
-    ret, out, _ = cmd_output('i-dont-exist', retcode=None)
+    ret, out, _ = cmd_output('dne', retcode=None)
     assert ret == 1
-    assert out == 'Executable `i-dont-exist` not found'
+    assert out == 'Executable `dne` not found'
+
+
+def test_cmd_output_p_exe_not_found():
+    ret, out, _ = cmd_output_p('dne', retcode=None, stderr=subprocess.STDOUT)
+    assert ret == 1
+    assert out == b'Executable `dne` not found'
 
 
 def test_parse_version():

@@ -5,6 +5,7 @@ import io
 import json
 import logging
 import os
+import shlex
 
 import pre_commit.constants as C
 from pre_commit import five
@@ -55,6 +56,10 @@ class Hook(collections.namedtuple('Hook', ('src', 'prefix') + _KEYS)):
     __slots__ = ()
 
     @property
+    def cmd(self):
+        return tuple(shlex.split(self.entry)) + tuple(self.args)
+
+    @property
     def install_key(self):
         return (
             self.prefix,
@@ -95,9 +100,9 @@ class Hook(collections.namedtuple('Hook', ('src', 'prefix') + _KEYS)):
         # Write our state to indicate we're installed
         _write_state(self.prefix, venv, _state(self.additional_dependencies))
 
-    def run(self, file_args):
+    def run(self, file_args, color):
         lang = languages[self.language]
-        return lang.run_hook(self, file_args)
+        return lang.run_hook(self, file_args, color)
 
     @classmethod
     def create(cls, src, prefix, dct):

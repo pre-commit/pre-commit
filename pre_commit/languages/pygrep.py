@@ -44,9 +44,9 @@ def _process_filename_at_once(pattern, filename):
     return retv
 
 
-def run_hook(hook, file_args):
+def run_hook(hook, file_args, color):
     exe = (sys.executable, '-m', __name__) + tuple(hook.args) + (hook.entry,)
-    return xargs(exe, file_args)
+    return xargs(exe, file_args, color=color)
 
 
 def main(argv=None):

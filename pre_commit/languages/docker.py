@@ -95,15 +95,15 @@ def docker_cmd():  # pragma: windows no cover
     )
 
 
-def run_hook(hook, file_args):  # pragma: windows no cover
+def run_hook(hook, file_args, color):  # pragma: windows no cover
     assert_docker_available()
     # Rebuild the docker image in case it has gone missing, as many people do
     # automated cleanup of docker images.
     build_docker_image(hook.prefix, pull=False)
 
-    hook_cmd = helpers.to_cmd(hook)
-    entry_exe, cmd_rest = hook_cmd[0], hook_cmd[1:]
+    hook_cmd = hook.cmd
+    entry_exe, cmd_rest = hook.cmd[0], hook_cmd[1:]
 
     entry_tag = ('--entrypoint', entry_exe, docker_tag(hook.prefix))
     cmd = docker_cmd() + entry_tag + cmd_rest
-    return helpers.run_xargs(hook, cmd, file_args)
+    return helpers.run_xargs(hook, cmd, file_args, color=color)

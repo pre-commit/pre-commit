@@ -3,7 +3,6 @@ from __future__ import unicode_literals
 import multiprocessing
 import os
 import random
-import shlex
 
 import six
 
@@ -23,10 +22,6 @@ def environment_dir(ENVIRONMENT_DIR, language_version):
         return None
     else:
         return '{}-{}'.format(ENVIRONMENT_DIR, language_version)
-
-
-def to_cmd(hook):
-    return tuple(shlex.split(hook.entry)) + tuple(hook.args)
 
 
 def assert_version_default(binary, version):
@@ -83,8 +78,9 @@ def _shuffled(seq):
     return seq
 
 
-def run_xargs(hook, cmd, file_args):
+def run_xargs(hook, cmd, file_args, **kwargs):
     # Shuffle the files so that they more evenly fill out the xargs partitions,
     # but do it deterministically in case a hook cares about ordering.
     file_args = _shuffled(file_args)
-    return xargs(cmd, file_args, target_concurrency=target_concurrency(hook))
+    kwargs['target_concurrency'] = target_concurrency(hook)
+    return xargs(cmd, file_args, **kwargs)

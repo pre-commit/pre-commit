@@ -9,7 +9,7 @@ healthy = helpers.basic_healthy
 install_environment = helpers.no_install
 
 
-def run_hook(hook, file_args):
-    cmd = helpers.to_cmd(hook)
+def run_hook(hook, file_args, color):
+    cmd = hook.cmd
     cmd = (hook.prefix.path(cmd[0]),) + cmd[1:]
-    return helpers.run_xargs(hook, cmd, file_args)
+    return helpers.run_xargs(hook, cmd, file_args, color=color)
