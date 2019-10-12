@@ -118,9 +118,7 @@ def _run_single_hook(classifier, hook, args, skips, cols):
     sys.stdout.flush()
 
     diff_before = cmd_output_b('git', 'diff', '--no-ext-diff', retcode=None)
-    retcode, stdout, stderr = hook.run(
-        tuple(filenames) if hook.pass_filenames else (),
-    )
+    retcode, out = hook.run(tuple(filenames) if hook.pass_filenames else ())
     diff_after = cmd_output_b('git', 'diff', '--no-ext-diff', retcode=None)
 
     file_modifications = diff_before != diff_after
@@ -141,7 +139,7 @@ def _run_single_hook(classifier, hook, args, skips, cols):
     output.write_line(color.format_color(pass_fail, print_color, args.color))
 
     if (
-            (stdout or stderr or file_modifications) and
+            (out or file_modifications) and
             (retcode or args.verbose or hook.verbose)
     ):
         output.write_line('hookid: {}\n'.format(hook.id))
@@ -150,15 +148,13 @@ def _run_single_hook(classifier, hook, args, skips, cols):
         if file_modifications:
             output.write('Files were modified by this hook.')
 
-            if stdout or stderr:
+            if out:
                 output.write_line(' Additional output:')
 
             output.write_line()
 
-        for out in (stdout, stderr):
-            assert type(out) is bytes, type(out)
-            if out.strip():
-                output.write_line(out.strip(), logfile_name=hook.log_file)
+        if out.strip():
+            output.write_line(out.strip(), logfile_name=hook.log_file)
         output.write_line()
 
     return retcode

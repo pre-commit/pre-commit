@@ -1,0 +1,4 @@
+-   id: stdout-stderr
+    name: stdout-stderr
+    language: script
+    entry: ./entry

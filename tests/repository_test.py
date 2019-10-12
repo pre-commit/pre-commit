@@ -177,7 +177,8 @@ def test_run_a_failing_docker_hook(tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'docker_hooks_repo',
         'docker-hook-failing',
-        ['Hello World from docker'], b'',
+        ['Hello World from docker'],
+        mock.ANY,  # an error message about `bork` not existing
         expected_return_code=1,
     )
 
@@ -363,6 +364,15 @@ def test_run_hook_with_curly_braced_arguments(tempdir_factory, store):
     )
 
 
+def test_intermixed_stdout_stderr(tempdir_factory, store):
+    _test_hook_repo(
+        tempdir_factory, store, 'stdout_stderr_repo',
+        'stdout-stderr',
+        [],
+        b'0\n1\n2\n3\n4\n5\n',
+    )
+
+
 def _make_grep_repo(language, entry, store, args=()):
     config = {
         'repo': 'local',
@@ -393,20 +403,20 @@ class TestPygrep(object):
 
     def test_grep_hook_matching(self, greppable_files, store):
         hook = _make_grep_repo(self.language, 'ello', store)
-        ret, out, _ = hook.run(('f1', 'f2', 'f3'))
+        ret, out = hook.run(('f1', 'f2', 'f3'))
         assert ret == 1
         assert _norm_out(out) == b"f1:1:hello'hi\n"
 
     def test_grep_hook_case_insensitive(self, greppable_files, store):
         hook = _make_grep_repo(self.language, 'ELLO', store, args=['-i'])
-        ret, out, _ = hook.run(('f1', 'f2', 'f3'))
+        ret, out = hook.run(('f1', 'f2', 'f3'))
         assert ret == 1
         assert _norm_out(out) == b"f1:1:hello'hi\n"
 
     @pytest.mark.parametrize('regex', ('nope', "foo'bar", r'^\[INFO\]'))
     def test_grep_hook_not_matching(self, regex, greppable_files, store):
         hook = _make_grep_repo(self.language, regex, store)
-        ret, out, _ = hook.run(('f1', 'f2', 'f3'))
+        ret, out = hook.run(('f1', 'f2', 'f3'))
         assert (ret, out) == (0, b'')
 
 
@@ -420,7 +430,7 @@ class TestPCRE(TestPygrep):
         # file to make sure it still fails.  This is not the case when naively
         # using a system hook with `grep -H -n '...'`
         hook = _make_grep_repo('pcre', 'ello', store)
-        ret, out, _ = hook.run((os.devnull,) * 15000 + ('f1',))
+        ret, out = hook.run((os.devnull,) * 15000 + ('f1',))
         assert ret == 1
         assert _norm_out(out) == b"f1:1:hello'hi\n"
 
@@ -431,7 +441,7 @@ class TestPCRE(TestPygrep):
 
         with mock.patch.object(parse_shebang, 'find_executable', no_grep):
             hook = _make_grep_repo('pcre', 'ello', store)
-            ret, out, _ = hook.run(('f1', 'f2', 'f3'))
+            ret, out = hook.run(('f1', 'f2', 'f3'))
             assert ret == 1
             expected = 'Executable `{}` not found'.format(pcre.GREP).encode()
             assert out == expected
@@ -635,7 +645,7 @@ def test_control_c_control_c_on_install(tempdir_factory, store):
     # However, it should be perfectly runnable (reinstall after botched
     # install)
     install_hook_envs(hooks, store)
-    retv, stdout, stderr = hook.run(())
+    retv, stdout = hook.run(())
     assert retv == 0
 
 
@@ -657,7 +667,7 @@ def test_invalidated_virtualenv(tempdir_factory, store):
     cmd_output_b('rm', '-rf', *paths)
 
     # pre-commit should rebuild the virtualenv and it should be runnable
-    retv, stdout, stderr = _get_hook(config, store, 'foo').run(())
+    retv, stdout = _get_hook(config, store, 'foo').run(())
     assert retv == 0
 
 

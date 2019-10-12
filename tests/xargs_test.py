@@ -143,10 +143,9 @@ def test_argument_too_long():
 
 
 def test_xargs_smoke():
-    ret, out, err = xargs.xargs(('echo',), ('hello', 'world'))
+    ret, out = xargs.xargs(('echo',), ('hello', 'world'))
     assert ret == 0
     assert out.replace(b'\r\n', b'\n') == b'hello world\n'
-    assert err == b''
 
 
 exit_cmd = parse_shebang.normalize_cmd(('bash', '-c', 'exit $1', '--'))
@@ -155,27 +154,27 @@ max_length = len(' '.join(exit_cmd)) + 3
 
 
 def test_xargs_negate():
-    ret, _, _ = xargs.xargs(
+    ret, _ = xargs.xargs(
         exit_cmd, ('1',), negate=True, _max_length=max_length,
     )
     assert ret == 0
 
-    ret, _, _ = xargs.xargs(
+    ret, _ = xargs.xargs(
         exit_cmd, ('1', '0'), negate=True, _max_length=max_length,
     )
     assert ret == 1
 
 
 def test_xargs_negate_command_not_found():
-    ret, _, _ = xargs.xargs(('cmd-not-found',), ('1',), negate=True)
+    ret, _ = xargs.xargs(('cmd-not-found',), ('1',), negate=True)
     assert ret != 0
 
 
 def test_xargs_retcode_normal():
-    ret, _, _ = xargs.xargs(exit_cmd, ('0',), _max_length=max_length)
+    ret, _ = xargs.xargs(exit_cmd, ('0',), _max_length=max_length)
     assert ret == 0
 
-    ret, _, _ = xargs.xargs(exit_cmd, ('0', '1'), _max_length=max_length)
+    ret, _ = xargs.xargs(exit_cmd, ('0', '1'), _max_length=max_length)
     assert ret == 1
 
 
@@ -184,7 +183,7 @@ def test_xargs_concurrency():
     print_pid = ('sleep 0.5 && echo $$',)
 
     start = time.time()
-    ret, stdout, _ = xargs.xargs(
+    ret, stdout = xargs.xargs(
         bash_cmd, print_pid * 5,
         target_concurrency=5,
         _max_length=len(' '.join(bash_cmd + print_pid)) + 1,
@@ -215,6 +214,6 @@ def test_xargs_propagate_kwargs_to_cmd():
     cmd = ('bash', '-c', 'echo $PRE_COMMIT_TEST_VAR', '--')
     cmd = parse_shebang.normalize_cmd(cmd)
 
-    ret, stdout, _ = xargs.xargs(cmd, ('1',), env=env)
+    ret, stdout = xargs.xargs(cmd, ('1',), env=env)
     assert ret == 0
     assert b'Pre commit is awesome' in stdout

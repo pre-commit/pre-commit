@@ -6,6 +6,7 @@ import concurrent.futures
 import contextlib
 import math
 import os
+import subprocess
 import sys
 
 import six
@@ -112,23 +113,24 @@ def xargs(cmd, varargs, **kwargs):
     max_length = kwargs.pop('_max_length', _get_platform_max_length())
     retcode = 0
     stdout = b''
-    stderr = b''
 
     try:
         cmd = parse_shebang.normalize_cmd(cmd)
     except parse_shebang.ExecutableNotFoundError as e:
-        return e.to_output()
+        return e.to_output()[:2]
 
     partitions = partition(cmd, varargs, target_concurrency, max_length)
 
     def run_cmd_partition(run_cmd):
-        return cmd_output_b(*run_cmd, retcode=None, **kwargs)
+        return cmd_output_b(
+            *run_cmd, retcode=None, stderr=subprocess.STDOUT, **kwargs
+        )
 
     threads = min(len(partitions), target_concurrency)
     with _thread_mapper(threads) as thread_map:
         results = thread_map(run_cmd_partition, partitions)
 
-        for proc_retcode, proc_out, proc_err in results:
+        for proc_retcode, proc_out, _ in results:
             # This is *slightly* too clever so I'll explain it.
             # First the xor boolean table:
             #     T | F |
@@ -141,6 +143,5 @@ def xargs(cmd, varargs, **kwargs):
             # code. Otherwise, the returncode is unchanged.
             retcode |= bool(proc_retcode) ^ negate
             stdout += proc_out
-            stderr += proc_err
 
-    return retcode, stdout, stderr
+    return retcode, stdout
