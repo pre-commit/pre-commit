@@ -73,9 +73,9 @@ def _test_hook_repo(
 ):
     path = make_repo(tempdir_factory, repo_path)
     config = make_config_from_repo(path, **(config_kwargs or {}))
-    ret = _get_hook(config, store, hook_id).run(args)
-    assert ret[0] == expected_return_code
-    assert _norm_out(ret[1]) == expected
+    ret, out = _get_hook(config, store, hook_id).run(args)
+    assert ret == expected_return_code
+    assert _norm_out(out) == expected
 
 
 def test_python_hook(tempdir_factory, store):
@@ -137,9 +137,9 @@ def test_switch_language_versions_doesnt_clobber(tempdir_factory, store):
     def run_on_version(version, expected_output):
         config = make_config_from_repo(path)
         config['hooks'][0]['language_version'] = version
-        ret = _get_hook(config, store, 'python3-hook').run([])
-        assert ret[0] == 0
-        assert _norm_out(ret[1]) == expected_output
+        ret, out = _get_hook(config, store, 'python3-hook').run([])
+        assert ret == 0
+        assert _norm_out(out) == expected_output
 
     run_on_version('python2', b'2\n[]\nHello World\n')
     run_on_version('python3', b'3\n[]\nHello World\n')
@@ -543,9 +543,9 @@ def test_local_golang_additional_dependencies(store):
             'additional_dependencies': ['github.com/golang/example/hello'],
         }],
     }
-    ret = _get_hook(config, store, 'hello').run(())
-    assert ret[0] == 0
-    assert _norm_out(ret[1]) == b'Hello, Go examples!\n'
+    ret, out = _get_hook(config, store, 'hello').run(())
+    assert ret == 0
+    assert _norm_out(out) == b'Hello, Go examples!\n'
 
 
 def test_local_rust_additional_dependencies(store):
@@ -559,9 +559,9 @@ def test_local_rust_additional_dependencies(store):
             'additional_dependencies': ['cli:hello-cli:0.2.2'],
         }],
     }
-    ret = _get_hook(config, store, 'hello').run(())
-    assert ret[0] == 0
-    assert _norm_out(ret[1]) == b'Hello World!\n'
+    ret, out = _get_hook(config, store, 'hello').run(())
+    assert ret == 0
+    assert _norm_out(out) == b'Hello World!\n'
 
 
 def test_fail_hooks(store):
@@ -576,9 +576,9 @@ def test_fail_hooks(store):
         }],
     }
     hook = _get_hook(config, store, 'fail')
-    ret = hook.run(('changelog/1234.bugfix', 'changelog/wat'))
-    assert ret[0] == 1
-    assert ret[1] == (
+    ret, out = hook.run(('changelog/1234.bugfix', 'changelog/wat'))
+    assert ret == 1
+    assert out == (
         b'make sure to name changelogs as .rst!\n'
         b'\n'
         b'changelog/1234.bugfix\n'
@@ -645,8 +645,8 @@ def test_control_c_control_c_on_install(tempdir_factory, store):
     # However, it should be perfectly runnable (reinstall after botched
     # install)
     install_hook_envs(hooks, store)
-    retv, stdout = hook.run(())
-    assert retv == 0
+    ret, out = hook.run(())
+    assert ret == 0
 
 
 def test_invalidated_virtualenv(tempdir_factory, store):
@@ -667,8 +667,8 @@ def test_invalidated_virtualenv(tempdir_factory, store):
     cmd_output_b('rm', '-rf', *paths)
 
     # pre-commit should rebuild the virtualenv and it should be runnable
-    retv, stdout = _get_hook(config, store, 'foo').run(())
-    assert retv == 0
+    ret, out = _get_hook(config, store, 'foo').run(())
+    assert ret == 0
 
 
 def test_really_long_file_paths(tempdir_factory, store):
@@ -707,14 +707,14 @@ def test_tags_on_repositories(in_tmpdir, tempdir_factory, store):
     git2 = _create_repo_with_tags(tempdir_factory, 'script_hooks_repo', tag)
 
     config1 = make_config_from_repo(git1, rev=tag)
-    ret1 = _get_hook(config1, store, 'prints_cwd').run(('-L',))
-    assert ret1[0] == 0
-    assert ret1[1].strip() == _norm_pwd(in_tmpdir)
+    ret1, out1 = _get_hook(config1, store, 'prints_cwd').run(('-L',))
+    assert ret1 == 0
+    assert out1.strip() == _norm_pwd(in_tmpdir)
 
     config2 = make_config_from_repo(git2, rev=tag)
-    ret2 = _get_hook(config2, store, 'bash_hook').run(('bar',))
-    assert ret2[0] == 0
-    assert ret2[1] == b'bar\nHello World\n'
+    ret2, out2 = _get_hook(config2, store, 'bash_hook').run(('bar',))
+    assert ret2 == 0
+    assert out2 == b'bar\nHello World\n'
 
 
 @pytest.fixture
@@ -736,9 +736,9 @@ def test_local_python_repo(store, local_python_config):
     hook = _get_hook(local_python_config, store, 'foo')
     # language_version should have been adjusted to the interpreter version
     assert hook.language_version != C.DEFAULT
-    ret = hook.run(('filename',))
-    assert ret[0] == 0
-    assert _norm_out(ret[1]) == b"['filename']\nHello World\n"
+    ret, out = hook.run(('filename',))
+    assert ret == 0
+    assert _norm_out(out) == b"['filename']\nHello World\n"
 
 
 def test_default_language_version(store, local_python_config):
