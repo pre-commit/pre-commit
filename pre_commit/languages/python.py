@@ -151,9 +151,9 @@ def py_interface(_dir, _make_venv):
             )
         return retcode == 0
 
-    def run_hook(hook, file_args):
+    def run_hook(hook, file_args, color):
         with in_env(hook.prefix, hook.language_version):
-            return helpers.run_xargs(hook, helpers.to_cmd(hook), file_args)
+            return helpers.run_xargs(hook, hook.cmd, file_args, color=color)
 
     def install_environment(prefix, version, additional_dependencies):
         additional_dependencies = tuple(additional_dependencies)

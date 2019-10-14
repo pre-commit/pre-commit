@@ -1,0 +1,12 @@
+#!/usr/bin/env python
+import sys
+
+
+def main():
+    print('stdin: {}'.format(sys.stdin.isatty()))
+    print('stdout: {}'.format(sys.stdout.isatty()))
+    print('stderr: {}'.format(sys.stderr.isatty()))
+
+
+if __name__ == '__main__':
+    exit(main())

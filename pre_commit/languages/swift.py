@@ -51,6 +51,6 @@ def install_environment(
         )
 
 
-def run_hook(hook, file_args):  # pragma: windows no cover
+def run_hook(hook, file_args, color):  # pragma: windows no cover
     with in_env(hook.prefix):
-        return helpers.run_xargs(hook, helpers.to_cmd(hook), file_args)
+        return helpers.run_xargs(hook, hook.cmd, file_args, color=color)

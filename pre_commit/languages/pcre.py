@@ -13,10 +13,10 @@ healthy = helpers.basic_healthy
 install_environment = helpers.no_install
 
 
-def run_hook(hook, file_args):
+def run_hook(hook, file_args, color):
     # For PCRE the entry is the regular expression to match
     cmd = (GREP, '-H', '-n', '-P') + tuple(hook.args) + (hook.entry,)
 
     # Grep usually returns 0 for matches, and nonzero for non-matches so we
     # negate it here.
-    return xargs(cmd, file_args, negate=True)
+    return xargs(cmd, file_args, negate=True, color=color)

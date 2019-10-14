@@ -70,10 +70,11 @@ def _test_hook_repo(
         expected,
         expected_return_code=0,
         config_kwargs=None,
+        color=False,
 ):
     path = make_repo(tempdir_factory, repo_path)
     config = make_config_from_repo(path, **(config_kwargs or {}))
-    ret, out = _get_hook(config, store, hook_id).run(args)
+    ret, out = _get_hook(config, store, hook_id).run(args, color=color)
     assert ret == expected_return_code
     assert _norm_out(out) == expected
 
@@ -137,7 +138,8 @@ def test_switch_language_versions_doesnt_clobber(tempdir_factory, store):
     def run_on_version(version, expected_output):
         config = make_config_from_repo(path)
         config['hooks'][0]['language_version'] = version
-        ret, out = _get_hook(config, store, 'python3-hook').run([])
+        hook = _get_hook(config, store, 'python3-hook')
+        ret, out = hook.run([], color=False)
         assert ret == 0
         assert _norm_out(out) == expected_output
 
@@ -373,6 +375,17 @@ def test_intermixed_stdout_stderr(tempdir_factory, store):
     )
 
 
+@pytest.mark.xfail(os.name == 'nt', reason='ptys are posix-only')
+def test_output_isatty(tempdir_factory, store):
+    _test_hook_repo(
+        tempdir_factory, store, 'stdout_stderr_repo',
+        'tty-check',
+        [],
+        b'stdin: False\nstdout: True\nstderr: True\n',
+        color=True,
+    )
+
+
 def _make_grep_repo(language, entry, store, args=()):
     config = {
         'repo': 'local',
@@ -403,20 +416,20 @@ class TestPygrep(object):
 
     def test_grep_hook_matching(self, greppable_files, store):
         hook = _make_grep_repo(self.language, 'ello', store)
-        ret, out = hook.run(('f1', 'f2', 'f3'))
+        ret, out = hook.run(('f1', 'f2', 'f3'), color=False)
         assert ret == 1
         assert _norm_out(out) == b"f1:1:hello'hi\n"
 
     def test_grep_hook_case_insensitive(self, greppable_files, store):
         hook = _make_grep_repo(self.language, 'ELLO', store, args=['-i'])
-        ret, out = hook.run(('f1', 'f2', 'f3'))
+        ret, out = hook.run(('f1', 'f2', 'f3'), color=False)
         assert ret == 1
         assert _norm_out(out) == b"f1:1:hello'hi\n"
 
     @pytest.mark.parametrize('regex', ('nope', "foo'bar", r'^\[INFO\]'))
     def test_grep_hook_not_matching(self, regex, greppable_files, store):
         hook = _make_grep_repo(self.language, regex, store)
-        ret, out = hook.run(('f1', 'f2', 'f3'))
+        ret, out = hook.run(('f1', 'f2', 'f3'), color=False)
         assert (ret, out) == (0, b'')
 
 
@@ -430,7 +443,7 @@ class TestPCRE(TestPygrep):
         # file to make sure it still fails.  This is not the case when naively
         # using a system hook with `grep -H -n '...'`
         hook = _make_grep_repo('pcre', 'ello', store)
-        ret, out = hook.run((os.devnull,) * 15000 + ('f1',))
+        ret, out = hook.run((os.devnull,) * 15000 + ('f1',), color=False)
         assert ret == 1
         assert _norm_out(out) == b"f1:1:hello'hi\n"
 
@@ -441,7 +454,7 @@ class TestPCRE(TestPygrep):
 
         with mock.patch.object(parse_shebang, 'find_executable', no_grep):
             hook = _make_grep_repo('pcre', 'ello', store)
-            ret, out = hook.run(('f1', 'f2', 'f3'))
+            ret, out = hook.run(('f1', 'f2', 'f3'), color=False)
             assert ret == 1
             expected = 'Executable `{}` not found'.format(pcre.GREP).encode()
             assert out == expected
@@ -543,7 +556,7 @@ def test_local_golang_additional_dependencies(store):
             'additional_dependencies': ['github.com/golang/example/hello'],
         }],
     }
-    ret, out = _get_hook(config, store, 'hello').run(())
+    ret, out = _get_hook(config, store, 'hello').run((), color=False)
     assert ret == 0
     assert _norm_out(out) == b'Hello, Go examples!\n'
 
@@ -559,7 +572,7 @@ def test_local_rust_additional_dependencies(store):
             'additional_dependencies': ['cli:hello-cli:0.2.2'],
         }],
     }
-    ret, out = _get_hook(config, store, 'hello').run(())
+    ret, out = _get_hook(config, store, 'hello').run((), color=False)
     assert ret == 0
     assert _norm_out(out) == b'Hello World!\n'
 
@@ -576,12 +589,12 @@ def test_fail_hooks(store):
         }],
     }
     hook = _get_hook(config, store, 'fail')
-    ret, out = hook.run(('changelog/1234.bugfix', 'changelog/wat'))
+    ret, out = hook.run(('changelog/123.bugfix', 'changelog/wat'), color=False)
     assert ret == 1
     assert out == (
         b'make sure to name changelogs as .rst!\n'
         b'\n'
-        b'changelog/1234.bugfix\n'
+        b'changelog/123.bugfix\n'
         b'changelog/wat\n'
     )
 
@@ -645,7 +658,7 @@ def test_control_c_control_c_on_install(tempdir_factory, store):
     # However, it should be perfectly runnable (reinstall after botched
     # install)
     install_hook_envs(hooks, store)
-    ret, out = hook.run(())
+    ret, out = hook.run((), color=False)
     assert ret == 0
 
 
@@ -667,7 +680,7 @@ def test_invalidated_virtualenv(tempdir_factory, store):
     cmd_output_b('rm', '-rf', *paths)
 
     # pre-commit should rebuild the virtualenv and it should be runnable
-    ret, out = _get_hook(config, store, 'foo').run(())
+    ret, out = _get_hook(config, store, 'foo').run((), color=False)
     assert ret == 0
 
 
@@ -707,12 +720,14 @@ def test_tags_on_repositories(in_tmpdir, tempdir_factory, store):
     git2 = _create_repo_with_tags(tempdir_factory, 'script_hooks_repo', tag)
 
     config1 = make_config_from_repo(git1, rev=tag)
-    ret1, out1 = _get_hook(config1, store, 'prints_cwd').run(('-L',))
+    hook1 = _get_hook(config1, store, 'prints_cwd')
+    ret1, out1 = hook1.run(('-L',), color=False)
     assert ret1 == 0
     assert out1.strip() == _norm_pwd(in_tmpdir)
 
     config2 = make_config_from_repo(git2, rev=tag)
-    ret2, out2 = _get_hook(config2, store, 'bash_hook').run(('bar',))
+    hook2 = _get_hook(config2, store, 'bash_hook')
+    ret2, out2 = hook2.run(('bar',), color=False)
     assert ret2 == 0
     assert out2 == b'bar\nHello World\n'
 
@@ -736,7 +751,7 @@ def test_local_python_repo(store, local_python_config):
     hook = _get_hook(local_python_config, store, 'foo')
     # language_version should have been adjusted to the interpreter version
     assert hook.language_version != C.DEFAULT
-    ret, out = hook.run(('filename',))
+    ret, out = hook.run(('filename',), color=False)
     assert ret == 0
     assert _norm_out(out) == b"['filename']\nHello World\n"
 

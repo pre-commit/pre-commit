@@ -13,6 +13,7 @@ import six
 
 from pre_commit import parse_shebang
 from pre_commit.util import cmd_output_b
+from pre_commit.util import cmd_output_p
 
 
 def _environ_size(_env=None):
@@ -108,9 +109,11 @@ def xargs(cmd, varargs, **kwargs):
     negate: Make nonzero successful and zero a failure
     target_concurrency: Target number of partitions to run concurrently
     """
+    color = kwargs.pop('color', False)
     negate = kwargs.pop('negate', False)
     target_concurrency = kwargs.pop('target_concurrency', 1)
     max_length = kwargs.pop('_max_length', _get_platform_max_length())
+    cmd_fn = cmd_output_p if color else cmd_output_b
     retcode = 0
     stdout = b''
 
@@ -122,7 +125,7 @@ def xargs(cmd, varargs, **kwargs):
     partitions = partition(cmd, varargs, target_concurrency, max_length)
 
     def run_cmd_partition(run_cmd):
-        return cmd_output_b(
+        return cmd_fn(
             *run_cmd, retcode=None, stderr=subprocess.STDOUT, **kwargs
         )
 

@@ -39,7 +39,7 @@ def test_ENVIRONMENT_DIR(language):
 
 @pytest.mark.parametrize('language', all_languages)
 def test_run_hook_argpsec(language):
-    expected_argspec = ArgSpec(args=['hook', 'file_args'])
+    expected_argspec = ArgSpec(args=['hook', 'file_args', 'color'])
     argspec = getargspec(languages[language].run_hook)
     assert argspec == expected_argspec
 
