@@ -67,12 +67,21 @@ def get_hook_message(
 stdout_byte_stream = getattr(sys.stdout, 'buffer', sys.stdout)
 
 
-def write(s, stream=stdout_byte_stream):
+def write(s, stream=stdout_byte_stream, cond=True):
+    if not cond:
+        return
     stream.write(five.to_bytes(s))
     stream.flush()
 
 
-def write_line(s=None, stream=stdout_byte_stream, logfile_name=None):
+def write_line(
+        s=None,
+        stream=stdout_byte_stream,
+        logfile_name=None,
+        cond=True,
+):
+    if not cond:
+        return
     output_streams = [stream]
     if logfile_name:
         ctx = open(logfile_name, 'ab')

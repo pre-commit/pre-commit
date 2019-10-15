@@ -315,3 +315,24 @@ def test_warn_additional(schema):
         x for x in schema.items if isinstance(x, cfgv.WarnAdditionalKeys)
     ]
     assert allowed_keys == set(warn_additional.keys)
+
+
+def test_hide_skipped_passing(tmpdir, caplog):
+    f = tmpdir.join('cfg.yaml')
+    f.write(
+        'hide_skipped: True\n'
+        'repos:\n'
+        '-   repo: https://gitlab.com/pycqa/flake8\n'
+        '    rev: 3.7.7\n'
+        '    hooks:\n'
+        '    -   id: flake8\n',
+    )
+    ret_val = validate_config_main((f.strpath,))
+    assert not ret_val
+    assert caplog.record_tuples != [
+        (
+            'pre_commit',
+            logging.WARNING,
+            'Unexpected key(s) present at root: hide_skipped',
+        ),
+    ]

@@ -19,7 +19,6 @@ from pre_commit.staged_files_only import staged_files_only
 from pre_commit.util import cmd_output_b
 from pre_commit.util import noop_context
 
-
 logger = logging.getLogger('pre_commit')
 
 
@@ -70,10 +69,16 @@ def _hook_msg_start(hook, verbose):
 
 
 SKIPPED = 'Skipped'
+FAILED = 'Failed'
+PASSED = 'Passed'
 NO_FILES = '(no files to check)'
 
 
-def _run_single_hook(classifier, hook, args, skips, cols, use_color):
+def _run_single_hook(
+    classifier, hook, args, skips, cols,
+    use_color,
+    hide_skipped,
+):
     filenames = classifier.filenames_for_hook(hook)
 
     if hook.language == 'pcre':
@@ -93,6 +98,7 @@ def _run_single_hook(classifier, hook, args, skips, cols, use_color):
                 use_color=args.color,
                 cols=cols,
             ),
+            cond=not hide_skipped,
         )
         return 0
     elif not filenames and not hook.always_run:
@@ -105,6 +111,7 @@ def _run_single_hook(classifier, hook, args, skips, cols, use_color):
                 use_color=args.color,
                 cols=cols,
             ),
+            cond=not hide_skipped,
         )
         return 0
 
@@ -131,11 +138,11 @@ def _run_single_hook(classifier, hook, args, skips, cols, use_color):
     if retcode:
         retcode = 1
         print_color = color.RED
-        pass_fail = 'Failed'
+        pass_fail = FAILED
     else:
         retcode = 0
         print_color = color.GREEN
-        pass_fail = 'Passed'
+        pass_fail = PASSED
 
     output.write_line(color.format_color(pass_fail, print_color, args.color))
 
@@ -202,10 +209,12 @@ def _run_hooks(config, hooks, args, environ):
     filenames = _all_filenames(args)
     filenames = filter_by_include_exclude(filenames, '', config['exclude'])
     classifier = Classifier(filenames)
+    hide_skipped = False if args.verbose else config['hide_skipped']
     retval = 0
     for hook in hooks:
         retval |= _run_single_hook(
             classifier, hook, args, skips, cols, args.color,
+            hide_skipped,
         )
         if retval and config['fail_fast']:
             break
@@ -219,6 +228,7 @@ def _run_hooks(config, hooks, args, environ):
                 '`pre-commit install`.',
             )
         output.write_line('All changes made by hooks:')
+
         # args.color is a boolean.
         # See user_color function in color.py
         subprocess.call((

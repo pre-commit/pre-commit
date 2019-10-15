@@ -71,9 +71,12 @@ def _do_run(cap_out, store, repo, args, environ={}, config_file=C.CONFIG_FILE):
 
 
 def _test_run(
-    cap_out, store, repo, opts, expected_outputs, expected_ret, stage,
-    config_file=C.CONFIG_FILE,
+        cap_out, store, repo, opts, expected_outputs, expected_ret, stage,
+        config_file=C.CONFIG_FILE,
+        unexpected_outputs=None,
 ):
+    unexpected_outputs = unexpected_outputs or []
+
     if stage:
         stage_a_file()
     args = run_opts(**opts)
@@ -82,6 +85,8 @@ def _test_run(
     assert ret == expected_ret, (ret, expected_ret, printed)
     for expected_output_part in expected_outputs:
         assert expected_output_part in printed
+    for unexpected_output_part in unexpected_outputs:
+        assert unexpected_output_part not in printed
 
 
 def test_run_all_hooks_failing(cap_out, store, repo_with_failing_hook):
@@ -99,6 +104,61 @@ def test_run_all_hooks_failing(cap_out, store, repo_with_failing_hook):
         expected_ret=1,
         stage=True,
     )
+
+
+PASSED_MSG = (
+    b'Passing hook',
+    b'Passed',
+)
+FAILED_MSG = (
+    b'Failing hook',
+    b'Failed',
+    b'hookid: failing_hook',
+    b'foo.py',
+)
+SKIPPED_MSG = (
+    b'Skipping hook',
+    b'(no files to check)',
+    b'Skipped',
+)
+
+
+@pytest.mark.parametrize(
+    ('expected_outputs', 'unexpected_outputs', 'hide_skipped', 'args'), [
+        ([*PASSED_MSG, *FAILED_MSG, *SKIPPED_MSG], [], None, {}),
+        ([*PASSED_MSG, *FAILED_MSG, *SKIPPED_MSG], [], False, {}),
+        ([*FAILED_MSG, *PASSED_MSG], [*SKIPPED_MSG], True, {}),
+        (
+            [*PASSED_MSG, *FAILED_MSG, *SKIPPED_MSG], [], True,
+            {'verbose': True},
+        ),
+    ],
+)
+def test_hide_skipped(
+        cap_out,
+        store,
+        tempdir_factory,
+        expected_outputs,
+        unexpected_outputs,
+        hide_skipped,
+        args,
+):
+    git_path = make_consuming_repo(tempdir_factory, 'all_statuses_hooks_repo')
+    with cwd(git_path):
+        if hide_skipped is not None:
+            with modify_config() as config:
+                config['hide_skipped'] = hide_skipped
+
+        _test_run(
+            cap_out,
+            store,
+            git_path,
+            args,
+            expected_outputs,
+            expected_ret=1,
+            stage=True,
+            unexpected_outputs=unexpected_outputs,
+        )
 
 
 def test_arbitrary_bytes_hook(cap_out, store, tempdir_factory):

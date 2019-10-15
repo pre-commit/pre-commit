@@ -262,6 +262,7 @@ CONFIG_SCHEMA = cfgv.Map(
     ),
     cfgv.Optional('exclude', cfgv.check_regex, '^$'),
     cfgv.Optional('fail_fast', cfgv.check_bool, False),
+    cfgv.Optional('hide_skipped', cfgv.check_bool, False),
     cfgv.Optional(
         'minimum_pre_commit_version',
         cfgv.check_and(cfgv.check_string, check_min_version),
@@ -274,6 +275,7 @@ CONFIG_SCHEMA = cfgv.Map(
             'default_stages',
             'exclude',
             'fail_fast',
+            'hide_skipped',
             'minimum_pre_commit_version',
         ),
         warn_unknown_keys_root,

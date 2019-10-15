@@ -1,0 +1,15 @@
+-   id: passing_hook
+    name: Passing hook
+    entry: bin/hook.sh
+    args: ['0']
+    language: script
+-   id: failing_hook
+    name: Failing hook
+    entry: bin/hook.sh
+    args: ['1']
+    language: script
+-   id: skipping_hook
+    name: Skipping hook
+    entry: bin/hook.sh
+    language: script
+    files: 'no-exist-file'
