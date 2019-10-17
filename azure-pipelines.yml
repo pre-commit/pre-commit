@@ -36,7 +36,7 @@ jobs:
       displayName: install swift
 - template: job--python-tox.yml@asottile
   parameters:
-    toxenvs: [pypy, pypy3, py27, py36, py37]
+    toxenvs: [pypy, pypy3, py27, py36, py37, py38]
     os: linux
     pre_test:
     - task: UseRubyVersion@0
