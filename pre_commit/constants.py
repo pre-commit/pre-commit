@@ -1,7 +1,12 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-import importlib_metadata  # TODO: importlib.metadata py38?
+import sys
+
+if sys.version_info < (3, 8):  # pragma: no cover (<PY38)
+    import importlib_metadata
+else:  # pragma: no cover (PY38+)
+    import importlib.metadata as importlib_metadata
 
 CONFIG_FILE = '.pre-commit-config.yaml'
 MANIFEST_FILE = '.pre-commit-hooks.yaml'
