@@ -7,6 +7,7 @@ import pipes
 import subprocess
 import sys
 
+import mock
 import pytest
 
 import pre_commit.constants as C
@@ -782,7 +783,7 @@ def test_files_running_subdir(repo_with_passing_hook, tempdir_factory):
                 '--files', 'foo.py',
                 tempdir_factory=tempdir_factory,
             )
-        assert 'subdir/foo.py'.replace('/', os.sep) in stdout
+        assert 'subdir/foo.py' in stdout
 
 
 @pytest.mark.parametrize(
@@ -824,6 +825,23 @@ def test_fail_fast(cap_out, store, repo_with_failing_hook):
 def test_classifier_removes_dne():
     classifier = Classifier(('this_file_does_not_exist',))
     assert classifier.filenames == []
+
+
+def test_classifier_normalizes_filenames_on_windows_to_forward_slashes(tmpdir):
+    with tmpdir.as_cwd():
+        tmpdir.join('a/b/c').ensure()
+        with mock.patch.object(os, 'altsep', '/'):
+            with mock.patch.object(os, 'sep', '\\'):
+                classifier = Classifier((r'a\b\c',))
+                assert classifier.filenames == ['a/b/c']
+
+
+def test_classifier_does_not_normalize_backslashes_non_windows(tmpdir):
+    with mock.patch.object(os.path, 'lexists', return_value=True):
+        with mock.patch.object(os, 'altsep', None):
+            with mock.patch.object(os, 'sep', '/'):
+                classifier = Classifier((r'a/b\c',))
+                assert classifier.filenames == [r'a/b\c']
 
 
 @pytest.fixture
