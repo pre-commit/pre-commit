@@ -81,6 +81,8 @@ def install_environment(prefix, version, additional_dependencies):
             rmtree(pkgdir)
 
 
-def run_hook(hook, file_args, color):
+def run_hook(hook, file_args, color, progress):
     with in_env(hook.prefix):
-        return helpers.run_xargs(hook, hook.cmd, file_args, color=color)
+        return helpers.run_xargs(
+            hook, hook.cmd, file_args, color=color, progress=progress,
+        )

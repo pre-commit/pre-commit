@@ -54,7 +54,10 @@ def get_hook_message(
         )
 
     if end_len:
-        return start + '.' * (cols - len(start) - end_len - 1)
+        num_dots = cols - len(start) - end_len - 1
+        if end_msg is None:
+            return start, num_dots
+        return start + '.' * num_dots
     else:
         return '{}{}{}{}\n'.format(
             start,

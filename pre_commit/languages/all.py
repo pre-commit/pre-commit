@@ -38,7 +38,7 @@ from pre_commit.languages import system
 #         version - A version specified in the hook configuration or 'default'.
 #     """
 #
-# def run_hook(hook, file_args, color):
+# def run_hook(hook, file_args, color, progress):
 #     """Runs a hook and returns the returncode and output of running that
 #     hook.
 #
@@ -46,6 +46,7 @@ from pre_commit.languages import system
 #         hook - `Hook`
 #         file_args - The files to be run
 #         color - whether the hook should be given a pty (when supported)
+#         progress - report progress as a float percentage
 #
 #     Returns:
 #         (returncode, output)

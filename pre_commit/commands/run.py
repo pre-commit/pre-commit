@@ -110,16 +110,25 @@ def _run_single_hook(classifier, hook, args, skips, cols, use_color):
 
     # Print the hook and the dots first in case the hook takes hella long to
     # run.
-    output.write(
-        get_hook_message(
-            _hook_msg_start(hook, args.verbose), end_len=6, cols=cols,
-        ),
+    msg, num_dots = get_hook_message(
+        _hook_msg_start(hook, args.verbose), end_len=6, cols=cols,
     )
+    output.write(msg)
     sys.stdout.flush()
+
+    dots_printed = [0]
+
+    def progress(perc):
+        dots_to_print = int(round(num_dots * perc))
+
+        sys.stdout.write('.' * (dots_to_print - dots_printed[0]))
+        sys.stdout.flush()
+
+        dots_printed[0] = dots_to_print
 
     diff_before = cmd_output_b('git', 'diff', '--no-ext-diff', retcode=None)
     filenames = tuple(filenames) if hook.pass_filenames else ()
-    retcode, out = hook.run(filenames, use_color)
+    retcode, out = hook.run(filenames, use_color, progress)
     diff_after = cmd_output_b('git', 'diff', '--no-ext-diff', retcode=None)
 
     file_modifications = diff_before != diff_after

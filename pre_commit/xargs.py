@@ -112,6 +112,7 @@ def xargs(cmd, varargs, **kwargs):
     color = kwargs.pop('color', False)
     negate = kwargs.pop('negate', False)
     target_concurrency = kwargs.pop('target_concurrency', 1)
+    progress = kwargs.pop('progress', lambda _: None)
     max_length = kwargs.pop('_max_length', _get_platform_max_length())
     cmd_fn = cmd_output_p if color else cmd_output_b
     retcode = 0
@@ -125,15 +126,17 @@ def xargs(cmd, varargs, **kwargs):
     partitions = partition(cmd, varargs, target_concurrency, max_length)
 
     def run_cmd_partition(run_cmd):
-        return cmd_fn(
+        ret = cmd_fn(
             *run_cmd, retcode=None, stderr=subprocess.STDOUT, **kwargs
         )
+        return ret, len(run_cmd) - len(cmd)
 
     threads = min(len(partitions), target_concurrency)
     with _thread_mapper(threads) as thread_map:
         results = thread_map(run_cmd_partition, partitions)
 
-        for proc_retcode, proc_out, _ in results:
+        total_processed = 0
+        for (proc_retcode, proc_out, _), processed in results:
             # This is *slightly* too clever so I'll explain it.
             # First the xor boolean table:
             #     T | F |
@@ -146,5 +149,7 @@ def xargs(cmd, varargs, **kwargs):
             # code. Otherwise, the returncode is unchanged.
             retcode |= bool(proc_retcode) ^ negate
             stdout += proc_out
+            total_processed += processed
+            progress(float(total_processed) / len(varargs))
 
     return retcode, stdout

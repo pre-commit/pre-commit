@@ -100,9 +100,9 @@ class Hook(collections.namedtuple('Hook', ('src', 'prefix') + _KEYS)):
         # Write our state to indicate we're installed
         _write_state(self.prefix, venv, _state(self.additional_dependencies))
 
-    def run(self, file_args, color):
+    def run(self, file_args, color, progress):
         lang = languages[self.language]
-        return lang.run_hook(self, file_args, color)
+        return lang.run_hook(self, file_args, color, progress)
 
     @classmethod
     def create(cls, src, prefix, dct):
