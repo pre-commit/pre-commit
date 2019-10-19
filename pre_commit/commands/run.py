@@ -34,6 +34,12 @@ def filter_by_include_exclude(names, include, exclude):
 
 class Classifier(object):
     def __init__(self, filenames):
+        # on windows we normalize all filenames to use forward slashes
+        # this makes it easier to filter using the `files:` regex
+        # this also makes improperly quoted shell-based hooks work better
+        # see #1173
+        if os.altsep == '/' and os.sep == '\\':
+            filenames = (f.replace(os.sep, os.altsep) for f in filenames)
         self.filenames = [f for f in filenames if os.path.lexists(f)]
         self._types_cache = {}
 
