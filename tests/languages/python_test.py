@@ -7,7 +7,9 @@ import sys
 import mock
 import pytest
 
+import pre_commit.constants as C
 from pre_commit.languages import python
+from pre_commit.prefix import Prefix
 
 
 def test_norm_version_expanduser():
@@ -48,3 +50,11 @@ def test_find_by_sys_executable(exe, realpath, expected):
         with mock.patch.object(os.path, 'realpath', return_value=realpath):
             with mock.patch.object(python, 'find_executable', lambda x: x):
                 assert python._find_by_sys_executable() == expected
+
+
+def test_healthy_types_py_in_cwd(tmpdir):
+    with tmpdir.as_cwd():
+        # even if a `types.py` file exists, should still be healthy
+        tmpdir.join('types.py').ensure()
+        # this env doesn't actually exist (for test speed purposes)
+        assert python.healthy(Prefix(str(tmpdir)), C.DEFAULT) is True

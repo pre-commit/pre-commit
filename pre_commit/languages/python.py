@@ -147,6 +147,7 @@ def py_interface(_dir, _make_venv):
             retcode, _, _ = cmd_output_b(
                 'python', '-c',
                 'import ctypes, datetime, io, os, ssl, weakref',
+                cwd='/',
                 retcode=None,
             )
         return retcode == 0
