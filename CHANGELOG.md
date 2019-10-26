@@ -1,3 +1,41 @@
+1.19.0 - 2019-10-26
+===================
+
+### Features
+- Allow `--hook-type` to be specified multiple times.
+    - example: `pre-commit install --hook-type pre-commit --hook-type pre-push`
+    - #1139 issue by @MaxymVlasov.
+    - #1145 PR by @asottile.
+- Include more version information in crash logs.
+    - #1142 by @marqueewinq.
+- Hook colors are now passed through on platforms which support `pty`.
+    - #1169 by @asottile.
+- pre-commit now  uses `importlib.metadata` directly when running in python 3.8
+    - #1176 by @asottile.
+- Normalize paths to forward slash separators on windows.
+    - makes it easier to match paths with `files:` regex
+    - avoids some quoting bugs in shell-based hooks
+    - #1173 issue by @steigenTI.
+    - #1179 PR by @asottile.
+
+### Fixes
+- Remove some extra newlines from error messages.
+    - #1148 by @asottile.
+- When a hook is not executable it now reports `not executable` instead of
+  `not found`.
+    - #1159 issue by @nixjdm.
+    - #1161 PR by @WillKoehrsen.
+- Fix interleaving of stdout / stderr in hooks.
+    - #1168 by @asottile.
+- Fix python environment `healthy()` check when current working directory
+  contains modules which shadow standard library names.
+    - issue by @vwhsu92.
+    - #1185 PR by @asottile.
+
+### Updating
+- Regexes handling both backslashes and forward slashes for directory
+  separators now only need to handle forward slashes.
+
 1.18.3 - 2019-08-27
 ===================
 
