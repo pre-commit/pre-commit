@@ -13,6 +13,7 @@ from pre_commit import git
 from pre_commit.util import CalledProcessError
 from pre_commit.util import clean_path_on_failure
 from pre_commit.util import cmd_output_b
+from pre_commit.util import mkdirp
 from pre_commit.util import resource_text
 from pre_commit.util import rmtree
 
@@ -41,7 +42,7 @@ class Store(object):
         self.db_path = os.path.join(self.directory, 'db.db')
 
         if not os.path.exists(self.directory):
-            os.makedirs(self.directory)
+            mkdirp(self.directory)
             with io.open(os.path.join(self.directory, 'README'), 'w') as f:
                 f.write(
                     'This directory is maintained by the pre-commit project.\n'
