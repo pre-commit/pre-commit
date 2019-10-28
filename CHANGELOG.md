@@ -1,3 +1,18 @@
+1.20.0 - 2019-10-28
+===================
+
+### Features
+- Allow building newer versions of `ruby`.
+    - #1193 issue by @choffee.
+    - #1195 PR by @choffee.
+- Bump versions reported in `pre-commit sample-config`.
+    - #1197 PR by @asottile.
+
+### Fixes
+- Fix rare race condition with multiple concurrent first-time runs.
+    - #1192 issue by @raholler.
+    - #1196 PR by @asottile.
+
 1.19.0 - 2019-10-26
 ===================
 
