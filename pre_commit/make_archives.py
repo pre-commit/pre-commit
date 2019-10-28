@@ -17,8 +17,8 @@ from pre_commit.util import tmpdir
 
 
 REPOS = (
-    ('rbenv', 'git://github.com/rbenv/rbenv', 'e60ad4a'),
-    ('ruby-build', 'git://github.com/rbenv/ruby-build', '9bc9971'),
+    ('rbenv', 'git://github.com/rbenv/rbenv', 'a3fa9b7'),
+    ('ruby-build', 'git://github.com/rbenv/ruby-build', '1a902f3'),
     (
         'ruby-download',
         'git://github.com/garnieretienne/rvm-download',
