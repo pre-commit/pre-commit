@@ -106,6 +106,7 @@ def _thread_mapper(maxsize):
 def xargs(cmd, varargs, **kwargs):
     """A simplified implementation of xargs.
 
+    color: Make a pty if on a platform that supports it
     negate: Make nonzero successful and zero a failure
     target_concurrency: Target number of partitions to run concurrently
     """
