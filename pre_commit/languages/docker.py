@@ -69,7 +69,7 @@ def install_environment(
     )
 
     # Docker doesn't really have relevant disk environment, but pre-commit
-    # still needs to cleanup it's state files on failure
+    # still needs to cleanup its state files on failure
     with clean_path_on_failure(directory):
         build_docker_image(prefix, pull=True)
         os.mkdir(directory)
