@@ -41,7 +41,11 @@ def _update_repo(repo_config, store, tags_only):
         git.init_repo(repo_path, repo_config['repo'])
         cmd_output_b('git', 'fetch', 'origin', 'HEAD', '--tags', cwd=repo_path)
 
-        tag_cmd = ('git', 'describe', 'FETCH_HEAD', '--tags')
+        # Get the latest tagged commit
+        latest_tag_cmd = ('git', 'rev-list', '--tags', '--max-count=1')
+        latest_tagged = cmd_output(*latest_tag_cmd, cwd=repo_path)[1].strip()
+
+        tag_cmd = ('git', 'describe', latest_tagged, '--tags')
         if tags_only:
             tag_cmd += ('--abbrev=0',)
         else:
