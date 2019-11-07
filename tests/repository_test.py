@@ -895,7 +895,8 @@ def test_manifest_hooks(tempdir_factory, store):
         pass_filenames=True,
         require_serial=False,
         stages=(
-            'commit', 'prepare-commit-msg', 'commit-msg', 'manual', 'push',
+            'commit', 'merge-commit', 'prepare-commit-msg', 'commit-msg',
+            'manual', 'push',
         ),
         types=['file'],
         verbose=False,
