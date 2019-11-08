@@ -11,7 +11,7 @@ repos:
     -   id: name-tests-test
     -   id: requirements-txt-fixer
     -   id: double-quote-string-fixer
--   repo: https://gitlab.com/pycqa/flake8
+-   repo: https://gitlab.com/pycqa/flake8.git
     rev: 3.7.7
     hooks:
     -   id: flake8
