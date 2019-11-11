@@ -26,7 +26,6 @@ from pre_commit.logging_handler import logging_handler
 from pre_commit.store import Store
 from pre_commit.util import CalledProcessError
 
-
 logger = logging.getLogger('pre_commit')
 
 # https://github.com/pre-commit/pre-commit/issues/217
@@ -34,7 +33,6 @@ logger = logging.getLogger('pre_commit')
 # to install packages to the wrong place.  We don't want anything to deal with
 # pyvenv
 os.environ.pop('__PYVENV_LAUNCHER__', None)
-
 
 COMMANDS_NO_GIT = {'clean', 'gc', 'init-templatedir', 'sample-config'}
 
@@ -52,6 +50,13 @@ def _add_config_option(parser):
     parser.add_argument(
         '-c', '--config', default=C.CONFIG_FILE,
         help='Path to alternate config file',
+    )
+
+
+def _add_quiet_option(parser):
+    parser.add_argument(
+        '-q', '--quiet', action='store_true',
+        help='Enable quiet mode',
     )
 
 
@@ -242,6 +247,7 @@ def main(argv=None):
     _add_color_option(run_parser)
     _add_config_option(run_parser)
     _add_run_options(run_parser)
+    _add_quiet_option(run_parser)
 
     sample_config_parser = subparsers.add_parser(
         'sample-config', help='Produce a sample {} file'.format(C.CONFIG_FILE),

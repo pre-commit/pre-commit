@@ -13,12 +13,13 @@ from pre_commit import git
 from pre_commit import output
 from pre_commit.clientlib import load_config
 from pre_commit.output import get_hook_message
+from pre_commit.output import NormalMode
+from pre_commit.output import QuietMode
 from pre_commit.repository import all_hooks
 from pre_commit.repository import install_hook_envs
 from pre_commit.staged_files_only import staged_files_only
 from pre_commit.util import cmd_output_b
 from pre_commit.util import noop_context
-
 
 logger = logging.getLogger('pre_commit')
 
@@ -75,11 +76,13 @@ def _hook_msg_start(hook, verbose):
     return '{}{}'.format('[{}] '.format(hook.id) if verbose else '', hook.name)
 
 
+PASSED = 'Passed'
+FAILED = 'Failed'
 SKIPPED = 'Skipped'
 NO_FILES = '(no files to check)'
 
 
-def _run_single_hook(classifier, hook, args, skips, cols, use_color):
+def _run_single_hook(classifier, hook, args, skips, cols, use_color, output_):
     filenames = classifier.filenames_for_hook(hook)
 
     if hook.language == 'pcre':
@@ -91,7 +94,7 @@ def _run_single_hook(classifier, hook, args, skips, cols, use_color):
         )
 
     if hook.id in skips or hook.alias in skips:
-        output.write(
+        output_.write(
             get_hook_message(
                 _hook_msg_start(hook, args.verbose),
                 end_msg=SKIPPED,
@@ -100,9 +103,9 @@ def _run_single_hook(classifier, hook, args, skips, cols, use_color):
                 cols=cols,
             ),
         )
-        return 0
+        return 0, SKIPPED
     elif not filenames and not hook.always_run:
-        output.write(
+        output_.write(
             get_hook_message(
                 _hook_msg_start(hook, args.verbose),
                 postfix=NO_FILES,
@@ -112,11 +115,11 @@ def _run_single_hook(classifier, hook, args, skips, cols, use_color):
                 cols=cols,
             ),
         )
-        return 0
+        return 0, SKIPPED
 
     # Print the hook and the dots first in case the hook takes hella long to
     # run.
-    output.write(
+    output_.write(
         get_hook_message(
             _hook_msg_start(hook, args.verbose), end_len=6, cols=cols,
         ),
@@ -137,34 +140,34 @@ def _run_single_hook(classifier, hook, args, skips, cols, use_color):
     if retcode:
         retcode = 1
         print_color = color.RED
-        pass_fail = 'Failed'
+        pass_fail = FAILED
     else:
         retcode = 0
         print_color = color.GREEN
-        pass_fail = 'Passed'
+        pass_fail = PASSED
 
-    output.write_line(color.format_color(pass_fail, print_color, args.color))
+    output_.write_line(color.format_color(pass_fail, print_color, args.color))
 
     if (
             (out or file_modifications) and
             (retcode or args.verbose or hook.verbose)
     ):
-        output.write_line('hookid: {}\n'.format(hook.id))
+        output_.write_line('hookid: {}\n'.format(hook.id))
 
         # Print a message if failing due to file modifications
         if file_modifications:
-            output.write('Files were modified by this hook.')
+            output_.write('Files were modified by this hook.')
 
             if out:
-                output.write_line(' Additional output:')
+                output_.write_line(' Additional output:')
 
-            output.write_line()
+            output_.write_line()
 
         if out.strip():
-            output.write_line(out.strip(), logfile_name=hook.log_file)
-        output.write_line()
+            output_.write_line(out.strip(), logfile_name=hook.log_file)
+        output_.write_line()
 
-    return retcode
+    return retcode, pass_fail
 
 
 def _compute_cols(hooks, verbose):
@@ -201,20 +204,29 @@ def _all_filenames(args):
         return git.get_staged_files()
 
 
-def _run_hooks(config, hooks, args, environ):
+def _run_hooks(config, hooks, args, environ, quiet):
     """Actually run the hooks."""
     skips = _get_skips(environ)
     cols = _compute_cols(hooks, args.verbose)
     filenames = _all_filenames(args)
     filenames = filter_by_include_exclude(filenames, '', config['exclude'])
     classifier = Classifier(filenames)
+    quiet = False if args.verbose else quiet
+    output_mode_cls = QuietMode if quiet else NormalMode
+    output_mode = output_mode_cls(hooks, cols, args.color)
     retval = 0
-    for hook in hooks:
-        retval |= _run_single_hook(
-            classifier, hook, args, skips, cols, args.color,
-        )
-        if retval and config['fail_fast']:
-            break
+    with output_mode:
+        for hook in hooks:
+            output_ = output_mode.get_output()
+            hook_retval, hook_status = _run_single_hook(
+                classifier, hook, args, skips, cols, args.color, output_,
+            )
+            output_.process(hook_status)
+
+            retval |= hook_retval
+            if retval and config['fail_fast']:
+                break
+
     if retval and args.show_diff_on_failure and git.has_diff():
         if args.all_files:
             output.write_line(
@@ -295,4 +307,4 @@ def run(config_file, store, args, environ=os.environ):
 
         install_hook_envs(hooks, store)
 
-        return _run_hooks(config, hooks, args, environ)
+        return _run_hooks(config, hooks, args, environ, args.quiet)

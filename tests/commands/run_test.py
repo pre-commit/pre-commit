@@ -72,9 +72,12 @@ def _do_run(cap_out, store, repo, args, environ={}, config_file=C.CONFIG_FILE):
 
 
 def _test_run(
-    cap_out, store, repo, opts, expected_outputs, expected_ret, stage,
-    config_file=C.CONFIG_FILE,
+        cap_out, store, repo, opts, expected_outputs, expected_ret, stage,
+        config_file=C.CONFIG_FILE,
+        unexpected_outputs=None,
 ):
+    unexpected_outputs = unexpected_outputs or []
+
     if stage:
         stage_a_file()
     args = run_opts(**opts)
@@ -83,6 +86,8 @@ def _test_run(
     assert ret == expected_ret, (ret, expected_ret, printed)
     for expected_output_part in expected_outputs:
         assert expected_output_part in printed
+    for unexpected_output_part in unexpected_outputs:
+        assert unexpected_output_part not in printed
 
 
 def test_run_all_hooks_failing(cap_out, store, repo_with_failing_hook):
@@ -100,6 +105,84 @@ def test_run_all_hooks_failing(cap_out, store, repo_with_failing_hook):
         expected_ret=1,
         stage=True,
     )
+
+
+PASSED_MSG = (
+    b'Passing hook',
+    b'Passed',
+)
+FAILED_MSG = (
+    b'Failing hook',
+    b'Failed',
+    b'hookid: failing_hook',
+    b'foo.py',
+)
+SKIPPED_MSG = (
+    b'Skipping hook',
+    b'(no files to check)',
+    b'Skipped',
+)
+START_MSG_3_HOOKS = (
+    b'Running 3 hooks',
+)
+
+
+@pytest.mark.parametrize(
+    ('expected_outputs', 'unexpected_outputs', 'args', 'exp_ret'), [
+        (
+            [*PASSED_MSG, *FAILED_MSG, *SKIPPED_MSG],
+            [*START_MSG_3_HOOKS],
+            {'quiet': False}, 1,
+        ),
+        (
+            [*START_MSG_3_HOOKS, *FAILED_MSG],
+            [*PASSED_MSG, *SKIPPED_MSG],
+            {'quiet': True}, 1,
+        ),
+        (
+            [b'Running 1 hooks', b'Passed'],
+            [b'Passing hook', *SKIPPED_MSG, *FAILED_MSG],
+            {'quiet': True, 'hook': 'passing_hook'}, 0,
+        ),
+        (
+            [b'Running 1 hooks', b'Skipped'],
+            [b'Skipping hook', *FAILED_MSG],
+            {'quiet': True, 'hook': 'skipping_hook'}, 0,
+        ),
+        (
+            [b'Running 1 hooks', b'Failed', *FAILED_MSG],
+            [],
+            {'quiet': True, 'hook': 'failing_hook'}, 1,
+        ),
+        # Verbose must suppresses quiet mode
+        (
+            [*PASSED_MSG, *FAILED_MSG, *SKIPPED_MSG],
+            [*START_MSG_3_HOOKS],
+            {'quiet': True, 'verbose': True}, 1,
+        ),
+    ],
+)
+def test_quiet(
+        cap_out,
+        store,
+        tempdir_factory,
+        expected_outputs,
+        unexpected_outputs,
+        args,
+        exp_ret,
+):
+    git_path = make_consuming_repo(tempdir_factory, 'all_statuses_hooks_repo')
+    with cwd(git_path):
+        _test_run(
+            cap_out,
+            store,
+            git_path,
+            args,
+            expected_outputs,
+            expected_ret=exp_ret,
+            stage=True,
+            unexpected_outputs=unexpected_outputs,
+        )
 
 
 def test_arbitrary_bytes_hook(cap_out, store, tempdir_factory):

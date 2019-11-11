@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 import sys
+from functools import partial
 
 from pre_commit import color
 from pre_commit import five
@@ -86,3 +87,118 @@ def write_line(s=None, stream=stdout_byte_stream, logfile_name=None):
                 output_stream.write(five.to_bytes(s))
             output_stream.write(b'\n')
             output_stream.flush()
+
+
+class NormalOutput:
+    def __init__(self, mgr):
+        self.mgr = mgr
+
+    def write(self, *args, **kwargs):
+        write(*args, **kwargs)
+
+    def write_line(self, *args, **kwargs):
+        write_line(*args, **kwargs)
+
+    def process(self, status):
+        pass
+
+
+class LazyOutputProxy(NormalOutput):
+    """
+    Collect output call and repeat on fail
+    """
+
+    def __init__(self, mgr):
+        super().__init__(mgr)
+        self._calls = []
+        self.status = None
+
+    def write(self, *args, **kwargs):
+        call = partial(write, *args, **kwargs)
+        self._calls.append(call)
+
+    def write_line(self, *args, **kwargs):
+        call = partial(write_line, *args, **kwargs)
+        self._calls.append(call)
+
+    def process(self, status):
+        self.status = status
+        if status == 'Failed':
+            self.mgr.close('Failed', color.RED)
+            for call in self._calls:
+                call()
+
+
+class NormalMode:
+    """
+    Normal output - pass calls to real methods
+    """
+    output_proxy = NormalOutput
+
+    def __init__(self, hooks, cols, clr):
+        self._hooks = hooks
+        self._cols = cols
+        self._color = clr
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        pass
+
+    def get_output(self):
+        return self.output_proxy(self)
+
+
+class QuietMode(NormalMode):
+    output_proxy = LazyOutputProxy
+
+    def __init__(self, hooks, cols, clr):
+        super().__init__(hooks, cols, clr)
+        self._proxies = []
+        self._closed = False
+        self._msg = 'Running {} hooks'.format(len(hooks))
+
+    def __enter__(self):
+        write(get_hook_message(self._msg, end_len=7))
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+
+    def get_output(self):
+        """ Return new instance of collector """
+        proxy = super().get_output()
+        self._proxies.append(proxy)
+        return proxy
+
+    def close(self, status=None, print_color=None):
+        if self._closed:
+            return
+        # TODO: Replace by constant
+        if status is None:
+            statuses = {x.status for x in self._proxies}
+            if 'Passed' in statuses:
+                print_color = color.GREEN
+                status = 'Passed'
+            else:
+                print_color = color.YELLOW
+                status = 'Skipped'
+
+        self._summary(status, print_color)
+        self._closed = True
+
+    def _summary(self, status, end_color):
+        """
+        We have to clean line because statuses could have different length
+        """
+        write('\r')
+        write(
+            get_hook_message(
+                self._msg,
+                end_msg=status,
+                end_color=end_color,
+                use_color=self._color,
+                cols=self._cols,
+            ),
+        )
