@@ -6,6 +6,7 @@ import os.path
 import pipes
 import subprocess
 import sys
+from itertools import chain
 
 import mock
 import pytest
@@ -130,34 +131,34 @@ START_MSG_3_HOOKS = (
 @pytest.mark.parametrize(
     ('expected_outputs', 'unexpected_outputs', 'args', 'exp_ret'), [
         (
-            [*PASSED_MSG, *FAILED_MSG, *SKIPPED_MSG],
-            [*START_MSG_3_HOOKS],
+            chain(PASSED_MSG, FAILED_MSG, SKIPPED_MSG),
+            chain(START_MSG_3_HOOKS),
             {'quiet': False}, 1,
         ),
         (
-            [*START_MSG_3_HOOKS, *FAILED_MSG],
-            [*PASSED_MSG, *SKIPPED_MSG],
+            chain(START_MSG_3_HOOKS, FAILED_MSG),
+            chain(PASSED_MSG, SKIPPED_MSG),
             {'quiet': True}, 1,
         ),
         (
             [b'Running 1 hooks', b'Passed'],
-            [b'Passing hook', *SKIPPED_MSG, *FAILED_MSG],
+            chain([b'Passing hook'], SKIPPED_MSG, FAILED_MSG),
             {'quiet': True, 'hook': 'passing_hook'}, 0,
         ),
         (
             [b'Running 1 hooks', b'Skipped'],
-            [b'Skipping hook', *FAILED_MSG],
+            chain([b'Skipping hook'], FAILED_MSG),
             {'quiet': True, 'hook': 'skipping_hook'}, 0,
         ),
         (
-            [b'Running 1 hooks', b'Failed', *FAILED_MSG],
+            chain([b'Running 1 hooks', b'Failed'], FAILED_MSG),
             [],
             {'quiet': True, 'hook': 'failing_hook'}, 1,
         ),
         # Verbose must suppresses quiet mode
         (
-            [*PASSED_MSG, *FAILED_MSG, *SKIPPED_MSG],
-            [*START_MSG_3_HOOKS],
+            chain(PASSED_MSG, FAILED_MSG, SKIPPED_MSG),
+            chain(START_MSG_3_HOOKS),
             {'quiet': True, 'verbose': True}, 1,
         ),
     ],

@@ -89,7 +89,7 @@ def write_line(s=None, stream=stdout_byte_stream, logfile_name=None):
             output_stream.flush()
 
 
-class NormalOutput:
+class NormalOutput(object):
     def __init__(self, mgr):
         self.mgr = mgr
 
@@ -109,7 +109,7 @@ class LazyOutputProxy(NormalOutput):
     """
 
     def __init__(self, mgr):
-        super().__init__(mgr)
+        super(LazyOutputProxy, self).__init__(mgr)
         self._calls = []
         self.status = None
 
@@ -129,7 +129,7 @@ class LazyOutputProxy(NormalOutput):
                 call()
 
 
-class NormalMode:
+class NormalMode(object):
     """
     Normal output - pass calls to real methods
     """
@@ -154,7 +154,7 @@ class QuietMode(NormalMode):
     output_proxy = LazyOutputProxy
 
     def __init__(self, hooks, cols, clr):
-        super().__init__(hooks, cols, clr)
+        super(QuietMode, self).__init__(hooks, cols, clr)
         self._proxies = []
         self._closed = False
         self._msg = 'Running {} hooks'.format(len(hooks))
@@ -168,7 +168,7 @@ class QuietMode(NormalMode):
 
     def get_output(self):
         """ Return new instance of collector """
-        proxy = super().get_output()
+        proxy = super(QuietMode, self).get_output()
         self._proxies.append(proxy)
         return proxy
 
