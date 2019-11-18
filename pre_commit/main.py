@@ -122,12 +122,20 @@ def _adjust_args_and_chdir(args):
         args.repo = os.path.abspath(args.repo)
 
     try:
-        os.chdir(git.get_root())
+        toplevel = git.get_root()
     except CalledProcessError:
         raise FatalError(
             'git failed. Is it installed, and are you in a Git repository '
             'directory?',
         )
+    else:
+        if toplevel == '':
+            raise FatalError(
+                'git toplevel unexpectedly empty! make sure you are not '
+                'inside the `.git` directory of your repository.',
+            )
+        else:
+            os.chdir(toplevel)
 
     args.config = os.path.relpath(args.config)
     if args.command in {'run', 'try-repo'}:
