@@ -4,6 +4,9 @@ from __future__ import unicode_literals
 import os.path
 
 from identify.identify import parse_shebang_from_file
+from identify.identify import tags_from_path
+
+from pre_commit import ShelPathConv
 
 
 class ExecutableNotFoundError(OSError):
@@ -71,10 +74,12 @@ def normalize_cmd(cmd):
     # Use PATH to determine the executable
     exe = normexe(cmd[0])
 
+    convert = 'shell' in tags_from_path(exe)
+
     # Figure out the shebang from the resulting command
     cmd = parse_filename(exe) + (exe,) + cmd[1:]
 
     # This could have given us back another bare executable
     exe = normexe(cmd[0])
-
-    return (exe,) + cmd[1:]
+    cmd = (exe,) + cmd[1:]
+    return ShelPathConv.ConvertArgs(*cmd) if convert else cmd

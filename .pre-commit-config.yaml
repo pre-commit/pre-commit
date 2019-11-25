@@ -40,3 +40,11 @@ repos:
     hooks:
     -   id: check-hooks-apply
     -   id: check-useless-excludes
+    # Requires to be run under `bash`.
+    # Requires installation of additional tools. Tools are available on Windows.
+    # shfmt: https://github.com/mvdan/sh/releases
+-   repo: https://github.com/syntaqx/git-hooks
+    rev: v0.0.16
+    hooks:
+    -   id: shfmt
+        args: [-i 4, -w, -s]
