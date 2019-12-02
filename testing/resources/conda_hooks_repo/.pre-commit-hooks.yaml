@@ -1,0 +1,10 @@
+-   id: sys-exec
+    name: sys-exec
+    entry: python -c 'import os; import sys; print(sys.executable.split(os.path.sep)[-2]) if os.name == "nt" else print(sys.executable.split(os.path.sep)[-3])'
+    language: conda
+    files: \.py$
+-   id: additional-deps
+    name: additional-deps
+    entry: python
+    language: conda
+    files: \.py$

@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 
+from pre_commit.languages import conda
 from pre_commit.languages import docker
 from pre_commit.languages import docker_image
 from pre_commit.languages import fail
@@ -52,6 +53,7 @@ from pre_commit.languages import system
 #     """
 
 languages = {
+    'conda': conda,
     'docker': docker,
     'docker_image': docker_image,
     'fail': fail,

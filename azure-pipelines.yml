@@ -22,6 +22,9 @@ jobs:
       COVERAGE_IGNORE_WINDOWS: '# pragma: windows no cover'
       TOX_TESTENV_PASSENV: COVERAGE_IGNORE_WINDOWS
       TEMP: C:\Temp  # remove when dropping python2
+    pre_test:
+    - powershell: Write-Host "##vso[task.prependpath]$env:CONDA\Scripts"
+      displayName: Add conda to PATH
 - template: job--python-tox.yml@asottile
   parameters:
     toxenvs: [py37]
