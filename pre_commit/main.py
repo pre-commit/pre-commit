@@ -129,7 +129,7 @@ def _adjust_args_and_chdir(args):
             'directory?',
         )
     else:
-        if toplevel == '':
+        if toplevel == '':  # pragma: no cover (old git)
             raise FatalError(
                 'git toplevel unexpectedly empty! make sure you are not '
                 'inside the `.git` directory of your repository.',
