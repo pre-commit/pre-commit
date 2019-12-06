@@ -29,7 +29,7 @@ jobs:
     name_postfix: _latest_git
     pre_test:
     - task: UseRubyVersion@0
-    - template: step--git-install.yml
+    - template: step--git-install.yml@asottile
     - bash: |
         testing/get-swift.sh
         echo '##vso[task.prependpath]/tmp/swift/usr/bin'
