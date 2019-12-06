@@ -21,9 +21,9 @@ def test_file_doesnt_exist():
 
 def test_simple_case(tmpdir):
     x = tmpdir.join('f')
-    x.write_text('#!/usr/bin/env python', encoding='UTF-8')
+    x.write_text('#!/usr/bin/env echo', encoding='UTF-8')
     make_executable(x.strpath)
-    assert parse_shebang.parse_filename(x.strpath) == ('python',)
+    assert parse_shebang.parse_filename(x.strpath) == ('echo',)
 
 
 def test_find_executable_full_path():
@@ -125,28 +125,28 @@ def test_normalize_cmd_trivial():
 
 
 def test_normalize_cmd_PATH():
-    cmd = ('python', '--version')
-    expected = (distutils.spawn.find_executable('python'), '--version')
+    cmd = ('echo', '--version')
+    expected = (distutils.spawn.find_executable('echo'), '--version')
     assert parse_shebang.normalize_cmd(cmd) == expected
 
 
 def test_normalize_cmd_shebang(in_tmpdir):
-    python = distutils.spawn.find_executable('python').replace(os.sep, '/')
-    path = write_executable(python)
-    assert parse_shebang.normalize_cmd((path,)) == (python, path)
+    echo = distutils.spawn.find_executable('echo').replace(os.sep, '/')
+    path = write_executable(echo)
+    assert parse_shebang.normalize_cmd((path,)) == (echo, path)
 
 
 def test_normalize_cmd_PATH_shebang_full_path(in_tmpdir):
-    python = distutils.spawn.find_executable('python').replace(os.sep, '/')
-    path = write_executable(python)
+    echo = distutils.spawn.find_executable('echo').replace(os.sep, '/')
+    path = write_executable(echo)
     with bin_on_path():
         ret = parse_shebang.normalize_cmd(('run',))
-        assert ret == (python, os.path.abspath(path))
+        assert ret == (echo, os.path.abspath(path))
 
 
 def test_normalize_cmd_PATH_shebang_PATH(in_tmpdir):
-    python = distutils.spawn.find_executable('python')
-    path = write_executable('/usr/bin/env python')
+    echo = distutils.spawn.find_executable('echo')
+    path = write_executable('/usr/bin/env echo')
     with bin_on_path():
         ret = parse_shebang.normalize_cmd(('run',))
-        assert ret == (python, os.path.abspath(path))
+        assert ret == (echo, os.path.abspath(path))
