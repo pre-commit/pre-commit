@@ -54,7 +54,11 @@ def test_find_by_sys_executable(exe, realpath, expected):
 
 def test_healthy_types_py_in_cwd(tmpdir):
     with tmpdir.as_cwd():
+        prefix = tmpdir.join('prefix').ensure_dir()
+        prefix.join('setup.py').write('import setuptools; setuptools.setup()')
+        prefix = Prefix(str(prefix))
+        python.install_environment(prefix, C.DEFAULT, ())
+
         # even if a `types.py` file exists, should still be healthy
         tmpdir.join('types.py').ensure()
-        # this env doesn't actually exist (for test speed purposes)
-        assert python.healthy(Prefix(str(tmpdir)), C.DEFAULT) is True
+        assert python.healthy(prefix, C.DEFAULT) is True
