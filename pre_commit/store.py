@@ -173,7 +173,7 @@ class Store(object):
 
     LOCAL_RESOURCES = (
         'Cargo.toml', 'main.go', 'main.rs', '.npmignore', 'package.json',
-        'pre_commit_dummy_package.gemspec', 'setup.py',
+        'pre_commit_dummy_package.gemspec', 'setup.py', 'environment.yml',
     )
 
     def make_local(self, deps):
