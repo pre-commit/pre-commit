@@ -18,6 +18,8 @@ from pre_commit.util import parse_version
 
 logger = logging.getLogger('pre_commit')
 
+check_string_regex = cfgv.check_and(cfgv.check_string, cfgv.check_regex)
+
 
 def check_type_tag(tag):
     if tag not in ALL_TAGS:
@@ -53,12 +55,8 @@ MANIFEST_HOOK_DICT = cfgv.Map(
     cfgv.Required('language', cfgv.check_one_of(all_languages)),
     cfgv.Optional('alias', cfgv.check_string, ''),
 
-    cfgv.Optional(
-        'files', cfgv.check_and(cfgv.check_string, cfgv.check_regex), '',
-    ),
-    cfgv.Optional(
-        'exclude', cfgv.check_and(cfgv.check_string, cfgv.check_regex), '^$',
-    ),
+    cfgv.Optional('files', check_string_regex, ''),
+    cfgv.Optional('exclude', check_string_regex, '^$'),
     cfgv.Optional('types', cfgv.check_array(check_type_tag), ['file']),
     cfgv.Optional('exclude_types', cfgv.check_array(check_type_tag), []),
 
@@ -260,7 +258,8 @@ CONFIG_SCHEMA = cfgv.Map(
         cfgv.check_array(cfgv.check_one_of(C.STAGES)),
         C.STAGES,
     ),
-    cfgv.Optional('exclude', cfgv.check_regex, '^$'),
+    cfgv.Optional('files', check_string_regex, ''),
+    cfgv.Optional('exclude', check_string_regex, '^$'),
     cfgv.Optional('fail_fast', cfgv.check_bool, False),
     cfgv.Optional(
         'minimum_pre_commit_version',
@@ -272,6 +271,7 @@ CONFIG_SCHEMA = cfgv.Map(
             'repos',
             'default_language_version',
             'default_stages',
+            'files',
             'exclude',
             'fail_fast',
             'minimum_pre_commit_version',
