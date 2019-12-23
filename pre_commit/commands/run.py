@@ -206,7 +206,9 @@ def _run_hooks(config, hooks, args, environ):
     skips = _get_skips(environ)
     cols = _compute_cols(hooks, args.verbose)
     filenames = _all_filenames(args)
-    filenames = filter_by_include_exclude(filenames, '', config['exclude'])
+    filenames = filter_by_include_exclude(
+        filenames, config['files'], config['exclude'],
+    )
     classifier = Classifier(filenames)
     retval = 0
     for hook in hooks:

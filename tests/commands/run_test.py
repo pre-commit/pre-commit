@@ -180,6 +180,22 @@ def test_global_exclude(cap_out, store, tempdir_factory):
         assert printed.endswith(expected)
 
 
+def test_global_files(cap_out, store, tempdir_factory):
+    git_path = make_consuming_repo(tempdir_factory, 'script_hooks_repo')
+    with cwd(git_path):
+        with modify_config() as config:
+            config['files'] = '^bar.py$'
+        open('foo.py', 'a').close()
+        open('bar.py', 'a').close()
+        cmd_output('git', 'add', '.')
+        opts = run_opts(verbose=True)
+        ret, printed = _do_run(cap_out, store, git_path, opts)
+        assert ret == 0
+        # Does not contain foo.py since it was not included
+        expected = b'hookid: bash_hook\n\nbar.py\nHello World\n\n'
+        assert printed.endswith(expected)
+
+
 @pytest.mark.parametrize(
     ('args', 'expected_out'),
     [
