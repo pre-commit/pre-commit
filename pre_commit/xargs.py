@@ -135,17 +135,9 @@ def xargs(cmd, varargs, **kwargs):
         results = thread_map(run_cmd_partition, partitions)
 
         for proc_retcode, proc_out, _ in results:
-            # This is *slightly* too clever so I'll explain it.
-            # First the xor boolean table:
-            #     T | F |
-            #   +-------+
-            # T | F | T |
-            # --+-------+
-            # F | T | F |
-            # --+-------+
-            # When negate is True, it has the effect of flipping the return
-            # code. Otherwise, the returncode is unchanged.
-            retcode |= bool(proc_retcode) ^ negate
+            if negate:
+                proc_retcode = not proc_retcode
+            retcode = max(retcode, proc_retcode)
             stdout += proc_out
 
     return retcode, stdout

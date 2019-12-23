@@ -54,15 +54,17 @@ def test_try_repo_repo_only(cap_out, tempdir_factory):
         '    -   id: bash_hook3\n$',
         config,
     )
-    assert rest == (
-        '[bash_hook] Bash hook................................(no files to check)Skipped\n'  # noqa: E501
-        '[bash_hook2] Bash hook...................................................Passed\n'  # noqa: E501
-        'hookid: bash_hook2\n'
-        '\n'
-        'test-file\n'
-        '\n'
-        '[bash_hook3] Bash hook...............................(no files to check)Skipped\n'  # noqa: E501
-    )
+    assert rest == '''\
+Bash hook............................................(no files to check)Skipped
+- hook id: bash_hook
+Bash hook................................................................Passed
+- hook id: bash_hook2
+
+test-file
+
+Bash hook............................................(no files to check)Skipped
+- hook id: bash_hook3
+'''
 
 
 def test_try_repo_with_specific_hook(cap_out, tempdir_factory):
@@ -77,7 +79,10 @@ def test_try_repo_with_specific_hook(cap_out, tempdir_factory):
         '    -   id: bash_hook\n$',
         config,
     )
-    assert rest == '[bash_hook] Bash hook................................(no files to check)Skipped\n'  # noqa: E501
+    assert rest == '''\
+Bash hook............................................(no files to check)Skipped
+- hook id: bash_hook
+'''
 
 
 def test_try_repo_relative_path(cap_out, tempdir_factory):

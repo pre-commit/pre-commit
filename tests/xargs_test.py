@@ -178,6 +178,10 @@ def test_xargs_retcode_normal():
     ret, _ = xargs.xargs(exit_cmd, ('0', '1'), _max_length=max_length)
     assert ret == 1
 
+    # takes the maximum return code
+    ret, _ = xargs.xargs(exit_cmd, ('0', '5', '1'), _max_length=max_length)
+    assert ret == 5
+
 
 def test_xargs_concurrency():
     bash_cmd = parse_shebang.normalize_cmd(('bash', '-c'))
