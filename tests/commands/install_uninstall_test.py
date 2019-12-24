@@ -288,7 +288,8 @@ def test_environment_not_sourced(tempdir_factory, store):
 FAILING_PRE_COMMIT_RUN = re.compile(
     r'^\[INFO\] Initializing environment for .+\.\r?\n'
     r'Failing hook\.+Failed\r?\n'
-    r'hookid: failing_hook\r?\n'
+    r'- hook id: failing_hook\r?\n'
+    r'- exit code: 1\r?\n'
     r'\r?\n'
     r'Fail\r?\n'
     r'foo\r?\n'
@@ -548,7 +549,7 @@ def test_pre_push_integration_failing(tempdir_factory, store):
         assert 'Failing hook' in output
         assert 'Failed' in output
         assert 'foo zzz' in output  # both filenames should be printed
-        assert 'hookid: failing_hook' in output
+        assert 'hook id: failing_hook' in output
 
 
 def test_pre_push_integration_accepted(tempdir_factory, store):
@@ -647,8 +648,11 @@ def test_commit_msg_integration_failing(
     install(C.CONFIG_FILE, store, hook_types=['commit-msg'])
     retc, out = _get_commit_output(tempdir_factory)
     assert retc == 1
-    assert out.startswith('Must have "Signed off by:"...')
-    assert out.strip().endswith('...Failed')
+    assert out.replace('\r', '') == '''\
+Must have "Signed off by:"...............................................Failed
+- hook id: must-have-signoff
+- exit code: 1
+'''
 
 
 def test_commit_msg_integration_passing(
@@ -691,16 +695,18 @@ def test_prepare_commit_msg_integration_failing(
     install(C.CONFIG_FILE, store, hook_types=['prepare-commit-msg'])
     retc, out = _get_commit_output(tempdir_factory)
     assert retc == 1
-    assert out.startswith('Add "Signed off by:"...')
-    assert out.strip().endswith('...Failed')
+    assert out.replace('\r', '') == '''\
+Add "Signed off by:".....................................................Failed
+- hook id: add-signoff
+- exit code: 1
+'''
 
 
 def test_prepare_commit_msg_integration_passing(
         prepare_commit_msg_repo, tempdir_factory, store,
 ):
     install(C.CONFIG_FILE, store, hook_types=['prepare-commit-msg'])
-    msg = 'Hi'
-    retc, out = _get_commit_output(tempdir_factory, msg=msg)
+    retc, out = _get_commit_output(tempdir_factory, msg='Hi')
     assert retc == 0
     first_line = out.splitlines()[0]
     assert first_line.startswith('Add "Signed off by:"...')
@@ -730,8 +736,7 @@ def test_prepare_commit_msg_legacy(
 
     install(C.CONFIG_FILE, store, hook_types=['prepare-commit-msg'])
 
-    msg = 'Hi'
-    retc, out = _get_commit_output(tempdir_factory, msg=msg)
+    retc, out = _get_commit_output(tempdir_factory, msg='Hi')
     assert retc == 0
     first_line, second_line = out.splitlines()[:2]
     assert first_line == 'legacy'

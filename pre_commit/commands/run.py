@@ -4,7 +4,6 @@ import logging
 import os
 import re
 import subprocess
-import sys
 
 from identify.identify import tags_from_path
 
@@ -71,15 +70,15 @@ def _get_skips(environ):
     return {skip.strip() for skip in skips.split(',') if skip.strip()}
 
 
-def _hook_msg_start(hook, verbose):
-    return '{}{}'.format('[{}] '.format(hook.id) if verbose else '', hook.name)
-
-
 SKIPPED = 'Skipped'
 NO_FILES = '(no files to check)'
 
 
-def _run_single_hook(classifier, hook, args, skips, cols, use_color):
+def _subtle_line(s, use_color):
+    output.write_line(color.format_color(s, color.SUBTLE, use_color))
+
+
+def _run_single_hook(classifier, hook, skips, cols, verbose, use_color):
     filenames = classifier.filenames_for_hook(hook)
 
     if hook.language == 'pcre':
@@ -93,92 +92,78 @@ def _run_single_hook(classifier, hook, args, skips, cols, use_color):
     if hook.id in skips or hook.alias in skips:
         output.write(
             get_hook_message(
-                _hook_msg_start(hook, args.verbose),
+                hook.name,
                 end_msg=SKIPPED,
                 end_color=color.YELLOW,
-                use_color=args.color,
+                use_color=use_color,
                 cols=cols,
             ),
         )
-        return 0
+        retcode = 0
+        files_modified = False
+        out = b''
     elif not filenames and not hook.always_run:
         output.write(
             get_hook_message(
-                _hook_msg_start(hook, args.verbose),
+                hook.name,
                 postfix=NO_FILES,
                 end_msg=SKIPPED,
                 end_color=color.TURQUOISE,
-                use_color=args.color,
+                use_color=use_color,
                 cols=cols,
             ),
         )
-        return 0
-
-    # Print the hook and the dots first in case the hook takes hella long to
-    # run.
-    output.write(
-        get_hook_message(
-            _hook_msg_start(hook, args.verbose), end_len=6, cols=cols,
-        ),
-    )
-    sys.stdout.flush()
-
-    diff_before = cmd_output_b('git', 'diff', '--no-ext-diff', retcode=None)
-    filenames = tuple(filenames) if hook.pass_filenames else ()
-    retcode, out = hook.run(filenames, use_color)
-    diff_after = cmd_output_b('git', 'diff', '--no-ext-diff', retcode=None)
-
-    file_modifications = diff_before != diff_after
-
-    # If the hook makes changes, fail the commit
-    if file_modifications:
-        retcode = 1
-
-    if retcode:
-        retcode = 1
-        print_color = color.RED
-        pass_fail = 'Failed'
-    else:
         retcode = 0
-        print_color = color.GREEN
-        pass_fail = 'Passed'
+        files_modified = False
+        out = b''
+    else:
+        # print hook and dots first in case the hook takes a while to run
+        output.write(get_hook_message(hook.name, end_len=6, cols=cols))
 
-    output.write_line(color.format_color(pass_fail, print_color, args.color))
+        diff_cmd = ('git', 'diff', '--no-ext-diff')
+        diff_before = cmd_output_b(*diff_cmd, retcode=None)
+        filenames = tuple(filenames) if hook.pass_filenames else ()
+        retcode, out = hook.run(filenames, use_color)
+        diff_after = cmd_output_b(*diff_cmd, retcode=None)
 
-    if (
-            (out or file_modifications) and
-            (retcode or args.verbose or hook.verbose)
-    ):
-        output.write_line('hookid: {}\n'.format(hook.id))
+        # if the hook makes changes, fail the commit
+        files_modified = diff_before != diff_after
+
+        if retcode or files_modified:
+            print_color = color.RED
+            status = 'Failed'
+        else:
+            print_color = color.GREEN
+            status = 'Passed'
+
+        output.write_line(color.format_color(status, print_color, use_color))
+
+    if verbose or hook.verbose or retcode or files_modified:
+        _subtle_line('- hook id: {}'.format(hook.id), use_color)
+
+        if retcode:
+            _subtle_line('- exit code: {}'.format(retcode), use_color)
 
         # Print a message if failing due to file modifications
-        if file_modifications:
-            output.write('Files were modified by this hook.')
-
-            if out:
-                output.write_line(' Additional output:')
-
-            output.write_line()
+        if files_modified:
+            _subtle_line('- files were modified by this hook', use_color)
 
         if out.strip():
+            output.write_line()
             output.write_line(out.strip(), logfile_name=hook.log_file)
-        output.write_line()
+            output.write_line()
 
-    return retcode
+    return files_modified or bool(retcode)
 
 
-def _compute_cols(hooks, verbose):
+def _compute_cols(hooks):
     """Compute the number of columns to display hook messages.  The widest
     that will be displayed is in the no files skipped case:
 
         Hook name...(no files to check) Skipped
-
-    or in the verbose case
-
-        Hook name [hookid]...(no files to check) Skipped
     """
     if hooks:
-        name_len = max(len(_hook_msg_start(hook, verbose)) for hook in hooks)
+        name_len = max(len(hook.name) for hook in hooks)
     else:
         name_len = 0
 
@@ -204,7 +189,7 @@ def _all_filenames(args):
 def _run_hooks(config, hooks, args, environ):
     """Actually run the hooks."""
     skips = _get_skips(environ)
-    cols = _compute_cols(hooks, args.verbose)
+    cols = _compute_cols(hooks)
     filenames = _all_filenames(args)
     filenames = filter_by_include_exclude(
         filenames, config['files'], config['exclude'],
@@ -213,7 +198,8 @@ def _run_hooks(config, hooks, args, environ):
     retval = 0
     for hook in hooks:
         retval |= _run_single_hook(
-            classifier, hook, args, skips, cols, args.color,
+            classifier, hook, skips, cols,
+            verbose=args.verbose, use_color=args.color,
         )
         if retval and config['fail_fast']:
             break

@@ -94,7 +94,7 @@ def test_run_all_hooks_failing(cap_out, store, repo_with_failing_hook):
         (
             b'Failing hook',
             b'Failed',
-            b'hookid: failing_hook',
+            b'hook id: failing_hook',
             b'Fail\nfoo.py\n',
         ),
         expected_ret=1,
@@ -125,14 +125,14 @@ def test_hook_that_modifies_but_returns_zero(cap_out, store, tempdir_factory):
                 # The first should fail
                 b'Failed',
                 # With a modified file (default message + the hook's output)
-                b'Files were modified by this hook. Additional output:\n\n'
+                b'- files were modified by this hook\n\n'
                 b'Modified: foo.py',
                 # The next hook should pass despite the first modifying
                 b'Passed',
                 # The next hook should fail
                 b'Failed',
                 # bar.py was modified, but provides no additional output
-                b'Files were modified by this hook.\n',
+                b'- files were modified by this hook\n',
             ),
             1,
             True,
@@ -176,7 +176,7 @@ def test_global_exclude(cap_out, store, tempdir_factory):
         ret, printed = _do_run(cap_out, store, git_path, opts)
         assert ret == 0
         # Does not contain foo.py since it was excluded
-        expected = b'hookid: bash_hook\n\nbar.py\nHello World\n\n'
+        expected = b'- hook id: bash_hook\n\nbar.py\nHello World\n\n'
         assert printed.endswith(expected)
 
 
@@ -192,7 +192,7 @@ def test_global_files(cap_out, store, tempdir_factory):
         ret, printed = _do_run(cap_out, store, git_path, opts)
         assert ret == 0
         # Does not contain foo.py since it was not included
-        expected = b'hookid: bash_hook\n\nbar.py\nHello World\n\n'
+        expected = b'- hook id: bash_hook\n\nbar.py\nHello World\n\n'
         assert printed.endswith(expected)
 
 
@@ -422,23 +422,21 @@ def test_merge_conflict_resolved(cap_out, store, in_merge_conflict):
 
 
 @pytest.mark.parametrize(
-    ('hooks', 'verbose', 'expected'),
+    ('hooks', 'expected'),
     (
-        ([], True, 80),
-        ([auto_namedtuple(id='a', name='a' * 51)], False, 81),
-        ([auto_namedtuple(id='a', name='a' * 51)], True, 85),
+        ([], 80),
+        ([auto_namedtuple(id='a', name='a' * 51)], 81),
         (
             [
                 auto_namedtuple(id='a', name='a' * 51),
                 auto_namedtuple(id='b', name='b' * 52),
             ],
-            False,
             82,
         ),
     ),
 )
-def test_compute_cols(hooks, verbose, expected):
-    assert _compute_cols(hooks, verbose) == expected
+def test_compute_cols(hooks, expected):
+    assert _compute_cols(hooks) == expected
 
 
 @pytest.mark.parametrize(
@@ -492,7 +490,7 @@ def test_hook_id_in_verbose_output(cap_out, store, repo_with_passing_hook):
     ret, printed = _do_run(
         cap_out, store, repo_with_passing_hook, run_opts(verbose=True),
     )
-    assert b'[bash_hook] Bash hook' in printed
+    assert b'- hook id: bash_hook' in printed
 
 
 def test_multiple_hooks_same_id(cap_out, store, repo_with_passing_hook):

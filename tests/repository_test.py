@@ -221,7 +221,7 @@ def test_run_a_failing_docker_hook(tempdir_factory, store):
         'docker-hook-failing',
         ['Hello World from docker'],
         mock.ANY,  # an error message about `bork` not existing
-        expected_return_code=1,
+        expected_return_code=127,
     )
 
 
