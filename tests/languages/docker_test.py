@@ -10,7 +10,7 @@ from pre_commit.util import CalledProcessError
 def test_docker_is_running_process_error():
     with mock.patch(
         'pre_commit.languages.docker.cmd_output_b',
-        side_effect=CalledProcessError(*(None,) * 4),
+        side_effect=CalledProcessError(None, None, None, None, None),
     ):
         assert docker.docker_is_running() is False
 

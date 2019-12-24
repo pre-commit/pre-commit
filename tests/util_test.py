@@ -9,6 +9,7 @@ import pytest
 from pre_commit.util import CalledProcessError
 from pre_commit.util import clean_path_on_failure
 from pre_commit.util import cmd_output
+from pre_commit.util import cmd_output_b
 from pre_commit.util import cmd_output_p
 from pre_commit.util import parse_version
 from pre_commit.util import rmtree
@@ -16,30 +17,26 @@ from pre_commit.util import tmpdir
 
 
 def test_CalledProcessError_str():
-    error = CalledProcessError(
-        1, [str('git'), str('status')], 0, (str('stdout'), str('stderr')),
-    )
+    error = CalledProcessError(1, [str('exe')], 0, b'output', b'errors')
     assert str(error) == (
-        "Command: ['git', 'status']\n"
-        'Return code: 1\n'
-        'Expected return code: 0\n'
-        'Output: \n'
-        '    stdout\n'
-        'Errors: \n'
-        '    stderr'
+        "command: ['exe']\n"
+        'return code: 1\n'
+        'expected return code: 0\n'
+        'stdout:\n'
+        '    output\n'
+        'stderr:\n'
+        '    errors'
     )
 
 
 def test_CalledProcessError_str_nooutput():
-    error = CalledProcessError(
-        1, [str('git'), str('status')], 0, (str(''), str('')),
-    )
+    error = CalledProcessError(1, [str('exe')], 0, b'', b'')
     assert str(error) == (
-        "Command: ['git', 'status']\n"
-        'Return code: 1\n'
-        'Expected return code: 0\n'
-        'Output: (none)\n'
-        'Errors: (none)'
+        "command: ['exe']\n"
+        'return code: 1\n'
+        'expected return code: 0\n'
+        'stdout: (none)\n'
+        'stderr: (none)'
     )
 
 
@@ -90,8 +87,9 @@ def test_cmd_output_exe_not_found():
     assert out == 'Executable `dne` not found'
 
 
-def test_cmd_output_p_exe_not_found():
-    ret, out, _ = cmd_output_p('dne', retcode=None, stderr=subprocess.STDOUT)
+@pytest.mark.parametrize('fn', (cmd_output_b, cmd_output_p))
+def test_cmd_output_exe_not_found_bytes(fn):
+    ret, out, _ = fn('dne', retcode=None, stderr=subprocess.STDOUT)
     assert ret == 1
     assert out == b'Executable `dne` not found'
 
