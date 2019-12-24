@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 
 import contextlib
 import os.path
+import subprocess
 import sys
 
 import pytest
@@ -24,9 +25,11 @@ def cmd_output_mocked_pre_commit_home(*args, **kwargs):
     # keyword-only argument
     tempdir_factory = kwargs.pop('tempdir_factory')
     pre_commit_home = kwargs.pop('pre_commit_home', tempdir_factory.get())
+    kwargs.setdefault('stderr', subprocess.STDOUT)
     # Don't want to write to the home directory
     env = dict(kwargs.pop('env', os.environ), PRE_COMMIT_HOME=pre_commit_home)
-    return cmd_output(*args, env=env, **kwargs)
+    ret, out, _ = cmd_output(*args, env=env, **kwargs)
+    return ret, out.replace('\r\n', '\n'), None
 
 
 skipif_cant_run_docker = pytest.mark.skipif(
@@ -137,8 +140,10 @@ def cwd(path):
 def git_commit(*args, **kwargs):
     fn = kwargs.pop('fn', cmd_output)
     msg = kwargs.pop('msg', 'commit!')
+    kwargs.setdefault('stderr', subprocess.STDOUT)
 
     cmd = ('git', 'commit', '--allow-empty', '--no-gpg-sign', '-a') + args
     if msg is not None:  # allow skipping `-m` with `msg=None`
         cmd += ('-m', msg)
-    return fn(*cmd, **kwargs)
+    ret, out, _ = fn(*cmd, **kwargs)
+    return ret, out.replace('\r\n', '\n')

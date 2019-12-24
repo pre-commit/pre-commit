@@ -144,7 +144,7 @@ def test_error_handler_non_ascii_exception(mock_store_dir):
 
 def test_error_handler_no_tty(tempdir_factory):
     pre_commit_home = tempdir_factory.get()
-    output = cmd_output_mocked_pre_commit_home(
+    ret, out, _ = cmd_output_mocked_pre_commit_home(
         sys.executable,
         '-c',
         'from __future__ import unicode_literals\n'
@@ -156,8 +156,6 @@ def test_error_handler_no_tty(tempdir_factory):
         pre_commit_home=pre_commit_home,
     )
     log_file = os.path.join(pre_commit_home, 'pre-commit.log')
-    output_lines = output[1].replace('\r', '').splitlines()
-    assert (
-        output_lines[-2] == 'An unexpected error has occurred: ValueError: ☃'
-    )
-    assert output_lines[-1] == 'Check the log at {}'.format(log_file)
+    out_lines = out.splitlines()
+    assert out_lines[-2] == 'An unexpected error has occurred: ValueError: ☃'
+    assert out_lines[-1] == 'Check the log at {}'.format(log_file)

@@ -21,8 +21,7 @@ def try_repo_opts(repo, ref=None, **kwargs):
 
 
 def _get_out(cap_out):
-    out = cap_out.get().replace('\r\n', '\n')
-    out = re.sub(r'\[INFO\].+\n', '', out)
+    out = re.sub(r'\[INFO\].+\n', '', cap_out.get())
     start, using_config, config, rest = out.split('=' * 79 + '\n')
     assert using_config == 'Using config:\n'
     return start, config, rest

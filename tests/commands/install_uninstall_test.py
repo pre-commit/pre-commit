@@ -5,7 +5,6 @@ from __future__ import unicode_literals
 import io
 import os.path
 import re
-import subprocess
 import sys
 
 import mock
@@ -121,30 +120,28 @@ def _get_commit_output(tempdir_factory, touch_file='foo', **kwargs):
     cmd_output('git', 'add', touch_file)
     return git_commit(
         fn=cmd_output_mocked_pre_commit_home,
-        # git commit puts pre-commit to stderr
-        stderr=subprocess.STDOUT,
         retcode=None,
         tempdir_factory=tempdir_factory,
         **kwargs
-    )[:2]
+    )
 
 
 # osx does this different :(
 FILES_CHANGED = (
     r'('
-    r' 1 file changed, 0 insertions\(\+\), 0 deletions\(-\)\r?\n'
+    r' 1 file changed, 0 insertions\(\+\), 0 deletions\(-\)\n'
     r'|'
-    r' 0 files changed\r?\n'
+    r' 0 files changed\n'
     r')'
 )
 
 
 NORMAL_PRE_COMMIT_RUN = re.compile(
-    r'^\[INFO\] Initializing environment for .+\.\r?\n'
-    r'Bash hook\.+Passed\r?\n'
-    r'\[master [a-f0-9]{7}\] commit!\r?\n' +
+    r'^\[INFO\] Initializing environment for .+\.\n'
+    r'Bash hook\.+Passed\n'
+    r'\[master [a-f0-9]{7}\] commit!\n' +
     FILES_CHANGED +
-    r' create mode 100644 foo\r?\n$',
+    r' create mode 100644 foo\n$',
 )
 
 
@@ -265,7 +262,7 @@ def test_environment_not_sourced(tempdir_factory, store):
 
         # Use a specific homedir to ignore --user installs
         homedir = tempdir_factory.get()
-        ret, stdout, stderr = git_commit(
+        ret, out = git_commit(
             env={
                 'HOME': homedir,
                 'PATH': _path_without_us(),
@@ -278,22 +275,21 @@ def test_environment_not_sourced(tempdir_factory, store):
             retcode=None,
         )
         assert ret == 1
-        assert stdout == ''
-        assert stderr.replace('\r\n', '\n') == (
+        assert out == (
             '`pre-commit` not found.  '
             'Did you forget to activate your virtualenv?\n'
         )
 
 
 FAILING_PRE_COMMIT_RUN = re.compile(
-    r'^\[INFO\] Initializing environment for .+\.\r?\n'
-    r'Failing hook\.+Failed\r?\n'
-    r'- hook id: failing_hook\r?\n'
-    r'- exit code: 1\r?\n'
-    r'\r?\n'
-    r'Fail\r?\n'
-    r'foo\r?\n'
-    r'\r?\n$',
+    r'^\[INFO\] Initializing environment for .+\.\n'
+    r'Failing hook\.+Failed\n'
+    r'- hook id: failing_hook\n'
+    r'- exit code: 1\n'
+    r'\n'
+    r'Fail\n'
+    r'foo\n'
+    r'\n$',
 )
 
 
@@ -308,10 +304,10 @@ def test_failing_hooks_returns_nonzero(tempdir_factory, store):
 
 
 EXISTING_COMMIT_RUN = re.compile(
-    r'^legacy hook\r?\n'
-    r'\[master [a-f0-9]{7}\] commit!\r?\n' +
+    r'^legacy hook\n'
+    r'\[master [a-f0-9]{7}\] commit!\n' +
     FILES_CHANGED +
-    r' create mode 100644 baz\r?\n$',
+    r' create mode 100644 baz\n$',
 )
 
 
@@ -369,9 +365,9 @@ def test_install_existing_hook_no_overwrite_idempotent(tempdir_factory, store):
 
 
 FAIL_OLD_HOOK = re.compile(
-    r'fail!\r?\n'
-    r'\[INFO\] Initializing environment for .+\.\r?\n'
-    r'Bash hook\.+Passed\r?\n',
+    r'fail!\n'
+    r'\[INFO\] Initializing environment for .+\.\n'
+    r'Bash hook\.+Passed\n',
 )
 
 
@@ -465,10 +461,10 @@ def test_uninstall_doesnt_remove_not_our_hooks(in_git_dir):
 
 
 PRE_INSTALLED = re.compile(
-    r'Bash hook\.+Passed\r?\n'
-    r'\[master [a-f0-9]{7}\] commit!\r?\n' +
+    r'Bash hook\.+Passed\n'
+    r'\[master [a-f0-9]{7}\] commit!\n' +
     FILES_CHANGED +
-    r' create mode 100644 foo\r?\n$',
+    r' create mode 100644 foo\n$',
 )
 
 
@@ -527,8 +523,6 @@ def test_installed_from_venv(tempdir_factory, store):
 def _get_push_output(tempdir_factory, opts=()):
     return cmd_output_mocked_pre_commit_home(
         'git', 'push', 'origin', 'HEAD:new_branch', *opts,
-        # git push puts pre-commit to stderr
-        stderr=subprocess.STDOUT,
         tempdir_factory=tempdir_factory,
         retcode=None
     )[:2]
@@ -648,7 +642,7 @@ def test_commit_msg_integration_failing(
     install(C.CONFIG_FILE, store, hook_types=['commit-msg'])
     retc, out = _get_commit_output(tempdir_factory)
     assert retc == 1
-    assert out.replace('\r', '') == '''\
+    assert out == '''\
 Must have "Signed off by:"...............................................Failed
 - hook id: must-have-signoff
 - exit code: 1
@@ -695,7 +689,7 @@ def test_prepare_commit_msg_integration_failing(
     install(C.CONFIG_FILE, store, hook_types=['prepare-commit-msg'])
     retc, out = _get_commit_output(tempdir_factory)
     assert retc == 1
-    assert out.replace('\r', '') == '''\
+    assert out == '''\
 Add "Signed off by:".....................................................Failed
 - hook id: add-signoff
 - exit code: 1

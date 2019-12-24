@@ -4,7 +4,6 @@ from __future__ import unicode_literals
 import io
 import os.path
 import pipes
-import subprocess
 import sys
 
 import mock
@@ -543,16 +542,14 @@ def test_stdout_write_bug_py26(repo_with_failing_hook, store, tempdir_factory):
         install(C.CONFIG_FILE, store, hook_types=['pre-commit'])
 
         # Have to use subprocess because pytest monkeypatches sys.stdout
-        _, stdout, _ = git_commit(
+        _, out = git_commit(
             fn=cmd_output_mocked_pre_commit_home,
-            # git commit puts pre-commit to stderr
-            stderr=subprocess.STDOUT,
-            retcode=None,
             tempdir_factory=tempdir_factory,
+            retcode=None,
         )
-        assert 'UnicodeEncodeError' not in stdout
+        assert 'UnicodeEncodeError' not in out
         # Doesn't actually happen, but a reasonable assertion
-        assert 'UnicodeDecodeError' not in stdout
+        assert 'UnicodeDecodeError' not in out
 
 
 def test_lots_of_files(store, tempdir_factory):
@@ -574,8 +571,6 @@ def test_lots_of_files(store, tempdir_factory):
 
         git_commit(
             fn=cmd_output_mocked_pre_commit_home,
-            # git commit puts pre-commit to stderr
-            stderr=subprocess.STDOUT,
             tempdir_factory=tempdir_factory,
         )
 
