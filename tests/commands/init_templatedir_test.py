@@ -1,5 +1,4 @@
 import os.path
-import subprocess
 
 import mock
 
@@ -30,11 +29,9 @@ def test_init_templatedir(tmpdir, tempdir_factory, store, cap_out):
         path = make_consuming_repo(tempdir_factory, 'script_hooks_repo')
 
         with cwd(path):
-            retcode, output, _ = git_commit(
+            retcode, output = git_commit(
                 fn=cmd_output_mocked_pre_commit_home,
                 tempdir_factory=tempdir_factory,
-                # git commit puts pre-commit to stderr
-                stderr=subprocess.STDOUT,
             )
             assert retcode == 0
             assert 'Bash hook....' in output

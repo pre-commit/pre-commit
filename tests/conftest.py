@@ -249,7 +249,7 @@ class Fixture(object):
         data = self._stream.data.getvalue()
         self._stream.data.seek(0)
         self._stream.data.truncate()
-        return data
+        return data.replace(b'\r\n', b'\n')
 
     def get(self):
         """Get the output assuming it was written as UTF-8 bytes"""
