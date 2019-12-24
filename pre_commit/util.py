@@ -74,36 +74,31 @@ def make_executable(filename):
 
 
 class CalledProcessError(RuntimeError):
-    def __init__(self, returncode, cmd, expected_returncode, output=None):
+    def __init__(self, returncode, cmd, expected_returncode, stdout, stderr):
         super(CalledProcessError, self).__init__(
-            returncode, cmd, expected_returncode, output,
+            returncode, cmd, expected_returncode, stdout, stderr,
         )
         self.returncode = returncode
         self.cmd = cmd
         self.expected_returncode = expected_returncode
-        self.output = output
+        self.stdout = stdout
+        self.stderr = stderr
 
     def to_bytes(self):
-        output = []
-        for maybe_text in self.output:
-            if maybe_text:
-                output.append(
-                    b'\n    ' +
-                    five.to_bytes(maybe_text).replace(b'\n', b'\n    '),
-                )
+        def _indent_or_none(part):
+            if part:
+                return b'\n    ' + part.replace(b'\n', b'\n    ')
             else:
-                output.append(b'(none)')
+                return b' (none)'
 
         return b''.join((
-            five.to_bytes(
-                'Command: {!r}\n'
-                'Return code: {}\n'
-                'Expected return code: {}\n'.format(
-                    self.cmd, self.returncode, self.expected_returncode,
-                ),
-            ),
-            b'Output: ', output[0], b'\n',
-            b'Errors: ', output[1],
+            'command: {!r}\n'
+            'return code: {}\n'
+            'expected return code: {}\n'.format(
+                self.cmd, self.returncode, self.expected_returncode,
+            ).encode('UTF-8'),
+            b'stdout:', _indent_or_none(self.stdout), b'\n',
+            b'stderr:', _indent_or_none(self.stderr),
         ))
 
     def to_text(self):
@@ -143,9 +138,7 @@ def cmd_output_b(*cmd, **kwargs):
         returncode = proc.returncode
 
     if retcode is not None and retcode != returncode:
-        raise CalledProcessError(
-            returncode, cmd, retcode, output=(stdout_b, stderr_b),
-        )
+        raise CalledProcessError(returncode, cmd, retcode, stdout_b, stderr_b)
 
     return returncode, stdout_b, stderr_b
 
