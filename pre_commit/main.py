@@ -70,7 +70,8 @@ class AppendReplaceDefault(argparse.Action):
 def _add_hook_type_option(parser):
     parser.add_argument(
         '-t', '--hook-type', choices=(
-            'pre-commit', 'pre-push', 'prepare-commit-msg', 'commit-msg',
+            'pre-commit', 'pre-merge-commit', 'pre-push',
+            'prepare-commit-msg', 'commit-msg',
         ),
         action=AppendReplaceDefault,
         default=['pre-commit'],

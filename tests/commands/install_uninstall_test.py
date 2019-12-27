@@ -29,6 +29,7 @@ from testing.util import cmd_output_mocked_pre_commit_home
 from testing.util import cwd
 from testing.util import git_commit
 from testing.util import xfailif_no_symlink
+from testing.util import xfailif_windows
 
 
 def test_is_not_script():
@@ -740,6 +741,33 @@ def test_prepare_commit_msg_legacy(
     )
     with io.open(commit_msg_path) as f:
         assert 'Signed off by: ' in f.read()
+
+
+@xfailif_windows  # pragma: windows no cover (once AP has git 2.24)
+def test_pre_merge_commit_integration(tempdir_factory, store):
+    expected = re.compile(
+        r'^\[INFO\] Initializing environment for .+\n'
+        r'Bash hook\.+Passed\n'
+        r"Merge made by the 'recursive' strategy.\n"
+        r' foo \| 0\n'
+        r' 1 file changed, 0 insertions\(\+\), 0 deletions\(-\)\n'
+        r' create mode 100644 foo\n$',
+    )
+
+    path = make_consuming_repo(tempdir_factory, 'script_hooks_repo')
+    with cwd(path):
+        ret = install(C.CONFIG_FILE, store, hook_types=['pre-merge-commit'])
+        assert ret == 0
+
+        cmd_output('git', 'checkout', 'master', '-b', 'feature')
+        _get_commit_output(tempdir_factory)
+        cmd_output('git', 'checkout', 'master')
+        ret, output, _ = cmd_output_mocked_pre_commit_home(
+            'git', 'merge', '--no-ff', '--no-edit', 'feature',
+            tempdir_factory=tempdir_factory,
+        )
+        assert ret == 0
+        assert expected.match(output)
 
 
 def test_install_disallow_missing_config(tempdir_factory, store):
