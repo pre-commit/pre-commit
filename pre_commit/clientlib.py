@@ -133,8 +133,7 @@ class MigrateShaToRev(object):
         if 'sha' in dct:
             dct['rev'] = dct.pop('sha')
 
-    def remove_default(self, dct):
-        pass
+    remove_default = cfgv.Required.remove_default
 
 
 def _entry(modname):

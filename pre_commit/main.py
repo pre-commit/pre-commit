@@ -176,6 +176,10 @@ def main(argv=None):
         ),
     )
     autoupdate_parser.add_argument(
+        '--freeze', action='store_true',
+        help='Store "frozen" hashes in `rev` instead of tag names',
+    )
+    autoupdate_parser.add_argument(
         '--repo', dest='repos', action='append', metavar='REPO',
         help='Only update this repository -- may be specified multiple times.',
     )
@@ -313,6 +317,7 @@ def main(argv=None):
             return autoupdate(
                 args.config, store,
                 tags_only=not args.bleeding_edge,
+                freeze=args.freeze,
                 repos=args.repos,
             )
         elif args.command == 'clean':
