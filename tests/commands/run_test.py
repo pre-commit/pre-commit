@@ -5,6 +5,7 @@ import io
 import os.path
 import pipes
 import sys
+import time
 
 import mock
 import pytest
@@ -25,6 +26,7 @@ from testing.fixtures import make_consuming_repo
 from testing.fixtures import modify_config
 from testing.fixtures import read_config
 from testing.fixtures import sample_meta_config
+from testing.fixtures import write_config
 from testing.util import cmd_output_mocked_pre_commit_home
 from testing.util import cwd
 from testing.util import git_commit
@@ -163,36 +165,55 @@ def test_exclude_types_hook_repository(cap_out, store, tempdir_factory):
         assert b'exe' not in printed
 
 
-def test_global_exclude(cap_out, store, tempdir_factory):
-    git_path = make_consuming_repo(tempdir_factory, 'script_hooks_repo')
-    with cwd(git_path):
-        with modify_config() as config:
-            config['exclude'] = '^foo.py$'
-        open('foo.py', 'a').close()
-        open('bar.py', 'a').close()
-        cmd_output('git', 'add', '.')
-        opts = run_opts(verbose=True)
-        ret, printed = _do_run(cap_out, store, git_path, opts)
-        assert ret == 0
-        # Does not contain foo.py since it was excluded
-        expected = b'- hook id: bash_hook\n\nbar.py\nHello World\n\n'
-        assert printed.endswith(expected)
+def test_global_exclude(cap_out, store, in_git_dir):
+    config = {
+        'exclude': r'^foo\.py$',
+        'repos': [{'repo': 'meta', 'hooks': [{'id': 'identity'}]}],
+    }
+    write_config('.', config)
+    open('foo.py', 'a').close()
+    open('bar.py', 'a').close()
+    cmd_output('git', 'add', '.')
+    opts = run_opts(verbose=True)
+    ret, printed = _do_run(cap_out, store, str(in_git_dir), opts)
+    assert ret == 0
+    # Does not contain foo.py since it was excluded
+    assert printed.startswith(b'identity' + b'.' * 65 + b'Passed\n')
+    assert printed.endswith(b'\n\n.pre-commit-config.yaml\nbar.py\n\n')
 
 
-def test_global_files(cap_out, store, tempdir_factory):
-    git_path = make_consuming_repo(tempdir_factory, 'script_hooks_repo')
-    with cwd(git_path):
-        with modify_config() as config:
-            config['files'] = '^bar.py$'
-        open('foo.py', 'a').close()
-        open('bar.py', 'a').close()
-        cmd_output('git', 'add', '.')
-        opts = run_opts(verbose=True)
-        ret, printed = _do_run(cap_out, store, git_path, opts)
-        assert ret == 0
-        # Does not contain foo.py since it was not included
-        expected = b'- hook id: bash_hook\n\nbar.py\nHello World\n\n'
-        assert printed.endswith(expected)
+def test_global_files(cap_out, store, in_git_dir):
+    config = {
+        'files': r'^bar\.py$',
+        'repos': [{'repo': 'meta', 'hooks': [{'id': 'identity'}]}],
+    }
+    write_config('.', config)
+    open('foo.py', 'a').close()
+    open('bar.py', 'a').close()
+    cmd_output('git', 'add', '.')
+    opts = run_opts(verbose=True)
+    ret, printed = _do_run(cap_out, store, str(in_git_dir), opts)
+    assert ret == 0
+    # Does not contain foo.py since it was excluded
+    assert printed.startswith(b'identity' + b'.' * 65 + b'Passed\n')
+    assert printed.endswith(b'\n\nbar.py\n\n')
+
+
+@pytest.mark.parametrize(
+    ('t1', 't2', 'expected'),
+    (
+        (1.234, 2., b'\n- duration: 0.77s\n'),
+        (1., 1., b'\n- duration: 0s\n'),
+    ),
+)
+def test_verbose_duration(cap_out, store, in_git_dir, t1, t2, expected):
+    write_config('.', {'repo': 'meta', 'hooks': [{'id': 'identity'}]})
+    cmd_output('git', 'add', '.')
+    opts = run_opts(verbose=True)
+    with mock.patch.object(time, 'time', side_effect=(t1, t2)):
+        ret, printed = _do_run(cap_out, store, str(in_git_dir), opts)
+    assert ret == 0
+    assert expected in printed
 
 
 @pytest.mark.parametrize(

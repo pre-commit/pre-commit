@@ -4,6 +4,7 @@ import logging
 import os
 import re
 import subprocess
+import time
 
 from identify.identify import tags_from_path
 
@@ -99,6 +100,7 @@ def _run_single_hook(classifier, hook, skips, cols, verbose, use_color):
                 cols=cols,
             ),
         )
+        duration = None
         retcode = 0
         files_modified = False
         out = b''
@@ -113,6 +115,7 @@ def _run_single_hook(classifier, hook, skips, cols, verbose, use_color):
                 cols=cols,
             ),
         )
+        duration = None
         retcode = 0
         files_modified = False
         out = b''
@@ -123,7 +126,9 @@ def _run_single_hook(classifier, hook, skips, cols, verbose, use_color):
         diff_cmd = ('git', 'diff', '--no-ext-diff')
         diff_before = cmd_output_b(*diff_cmd, retcode=None)
         filenames = tuple(filenames) if hook.pass_filenames else ()
+        time_before = time.time()
         retcode, out = hook.run(filenames, use_color)
+        duration = round(time.time() - time_before, 2) or 0
         diff_after = cmd_output_b(*diff_cmd, retcode=None)
 
         # if the hook makes changes, fail the commit
@@ -140,6 +145,9 @@ def _run_single_hook(classifier, hook, skips, cols, verbose, use_color):
 
     if verbose or hook.verbose or retcode or files_modified:
         _subtle_line('- hook id: {}'.format(hook.id), use_color)
+
+        if (verbose or hook.verbose) and duration is not None:
+            _subtle_line('- duration: {}s'.format(duration), use_color)
 
         if retcode:
             _subtle_line('- exit code: {}'.format(retcode), use_color)

@@ -3,6 +3,9 @@ from __future__ import unicode_literals
 
 import os.path
 import re
+import time
+
+import mock
 
 from pre_commit import git
 from pre_commit.commands.try_repo import try_repo
@@ -40,7 +43,8 @@ def _run_try_repo(tempdir_factory, **kwargs):
 
 
 def test_try_repo_repo_only(cap_out, tempdir_factory):
-    _run_try_repo(tempdir_factory, verbose=True)
+    with mock.patch.object(time, 'time', return_value=0.0):
+        _run_try_repo(tempdir_factory, verbose=True)
     start, config, rest = _get_out(cap_out)
     assert start == ''
     assert re.match(
@@ -58,6 +62,7 @@ Bash hook............................................(no files to check)Skipped
 - hook id: bash_hook
 Bash hook................................................................Passed
 - hook id: bash_hook2
+- duration: 0s
 
 test-file
 
