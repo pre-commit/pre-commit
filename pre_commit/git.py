@@ -141,7 +141,7 @@ def has_diff(*args, **kwargs):
     repo = kwargs.pop('repo', '.')
     assert not kwargs, kwargs
     cmd = ('git', 'diff', '--quiet', '--no-ext-diff') + args
-    return cmd_output_b(*cmd, cwd=repo, retcode=None)[0]
+    return cmd_output_b(*cmd, cwd=repo, retcode=None)[0] == 1
 
 
 def has_core_hookpaths_set():
