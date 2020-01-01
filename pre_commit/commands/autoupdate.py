@@ -136,7 +136,7 @@ def autoupdate(config_file, store, tags_only, freeze, repos=()):
             rev_infos.append(None)
             continue
 
-        output.write('Updating {}...'.format(info.repo))
+        output.write('Updating {} ... '.format(info.repo))
         new_info = info.update(tags_only=tags_only, freeze=freeze)
         try:
             _check_hooks_still_exist_at_rev(repo_config, new_info, store)
