@@ -108,7 +108,9 @@ def _write_new_config(path, rev_infos):
         new_rev_s = ordered_dump({'rev': rev_info.rev}, **C.YAML_DUMP_KWARGS)
         new_rev = new_rev_s.split(':', 1)[1].strip()
         if rev_info.frozen is not None:
-            comment = '  # {}'.format(rev_info.frozen)
+            comment = '  # frozen: {}'.format(rev_info.frozen)
+        elif match.group(4).strip().startswith('# frozen:'):
+            comment = ''
         else:
             comment = match.group(4)
         lines[idx] = REV_LINE_FMT.format(

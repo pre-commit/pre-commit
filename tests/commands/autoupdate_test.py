@@ -312,8 +312,13 @@ def test_autoupdate_freeze(tagged, in_tmpdir, store):
 
     assert autoupdate(C.CONFIG_FILE, store, freeze=True, tags_only=False) == 0
     with open(C.CONFIG_FILE) as f:
-        expected = 'rev: {}  # v1.2.3'.format(tagged.head_rev)
+        expected = 'rev: {}  # frozen: v1.2.3'.format(tagged.head_rev)
         assert expected in f.read()
+
+    # if we un-freeze it should remove the frozen comment
+    assert autoupdate(C.CONFIG_FILE, store, freeze=False, tags_only=False) == 0
+    with open(C.CONFIG_FILE) as f:
+        assert 'rev: v1.2.3\n' in f.read()
 
 
 def test_autoupdate_tags_only(tagged, in_tmpdir, store):
