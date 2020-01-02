@@ -1,3 +1,48 @@
+1.21.0 - 2019-01-02
+===================
+
+### Features
+- Add `conda` as a new `language`.
+    - #1204 issue by @xhochy.
+    - #1232 PR by @xhochy.
+- Add top-level configuration `files` for file selection.
+    - #1220 issue by @TheButlah.
+    - #1248 PR by @asottile.
+- Rework `--verbose` / `verbose` to be more consistent with normal runs.
+    - #1249 PR by @asottile.
+- Add support for the `pre-merge-commit` git hook.
+    - #1210 PR by @asottile.
+    - this requires git 1.24+.
+- Add `pre-commit autoupdate --freeze` which produces "frozen" revisions.
+    - #1068 issue by @SkypLabs.
+    - #1256 PR by @asottile.
+- Display hook runtime duration when run with `--verbose`.
+    - #1144 issue by @potiuk.
+    - #1257 PR by @asottile.
+
+### Fixes
+- Produce better error message when erroneously running inside of `.git`.
+    - #1219 issue by @Nusserdt.
+    - #1224 PR by @asottile.
+    - Note: `git` has since fixed this bug: git/git@36fd304d
+- Produce better error message when hook installation fails.
+    - #1250 issue by @asottile.
+    - #1251 PR by @asottile.
+- Fix cloning when `GIT_SSL_CAINFO` is necessary.
+    - #1253 issue by @igankevich.
+    - #1254 PR by @igankevich.
+- Fix `pre-commit try-repo` for bare, on-disk repositories.
+    - #1257 issue by @webknjaz.
+    - #1259 PR by @asottile.
+- Add some whitespace to `pre-commit autoupdate` to improve terminal autolink.
+    - #1261 issue by @yhoiseth.
+    - #1262 PR by @yhoiseth.
+
+### Misc.
+- Minor code documentation updates.
+    - #1200 PR by @ryanrhee.
+    - #1201 PR by @ryanrhee.
+
 1.20.0 - 2019-10-28
 ===================
 
