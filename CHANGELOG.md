@@ -32,7 +32,7 @@
     - #1253 issue by @igankevich.
     - #1254 PR by @igankevich.
 - Fix `pre-commit try-repo` for bare, on-disk repositories.
-    - #1257 issue by @webknjaz.
+    - #1258 issue by @webknjaz.
     - #1259 PR by @asottile.
 - Add some whitespace to `pre-commit autoupdate` to improve terminal autolink.
     - #1261 issue by @yhoiseth.
