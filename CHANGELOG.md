@@ -12,7 +12,7 @@
     - #1249 PR by @asottile.
 - Add support for the `pre-merge-commit` git hook.
     - #1210 PR by @asottile.
-    - this requires git 1.24+.
+    - this requires git 2.24+.
 - Add `pre-commit autoupdate --freeze` which produces "frozen" revisions.
     - #1068 issue by @SkypLabs.
     - #1256 PR by @asottile.
