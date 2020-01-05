@@ -12,14 +12,12 @@ import pytest
 
 import pre_commit.constants as C
 from pre_commit import five
-from pre_commit import parse_shebang
 from pre_commit.clientlib import CONFIG_SCHEMA
 from pre_commit.clientlib import load_manifest
 from pre_commit.envcontext import envcontext
 from pre_commit.languages import golang
 from pre_commit.languages import helpers
 from pre_commit.languages import node
-from pre_commit.languages import pcre
 from pre_commit.languages import python
 from pre_commit.languages import ruby
 from pre_commit.languages import rust
@@ -37,7 +35,6 @@ from testing.util import get_resource_path
 from testing.util import skipif_cant_run_docker
 from testing.util import skipif_cant_run_swift
 from testing.util import xfailif_broken_deep_listdir
-from testing.util import xfailif_no_pcre_support
 from testing.util import xfailif_no_venv
 from testing.util import xfailif_windows_no_ruby
 
@@ -426,13 +423,13 @@ def test_output_isatty(tempdir_factory, store):
     )
 
 
-def _make_grep_repo(language, entry, store, args=()):
+def _make_grep_repo(entry, store, args=()):
     config = {
         'repo': 'local',
         'hooks': [{
             'id': 'grep-hook',
             'name': 'grep-hook',
-            'language': language,
+            'language': 'pygrep',
             'entry': entry,
             'args': args,
             'types': ['text'],
@@ -451,53 +448,25 @@ def greppable_files(tmpdir):
         yield tmpdir
 
 
-class TestPygrep(object):
-    language = 'pygrep'
-
-    def test_grep_hook_matching(self, greppable_files, store):
-        hook = _make_grep_repo(self.language, 'ello', store)
-        ret, out = hook.run(('f1', 'f2', 'f3'), color=False)
-        assert ret == 1
-        assert _norm_out(out) == b"f1:1:hello'hi\n"
-
-    def test_grep_hook_case_insensitive(self, greppable_files, store):
-        hook = _make_grep_repo(self.language, 'ELLO', store, args=['-i'])
-        ret, out = hook.run(('f1', 'f2', 'f3'), color=False)
-        assert ret == 1
-        assert _norm_out(out) == b"f1:1:hello'hi\n"
-
-    @pytest.mark.parametrize('regex', ('nope', "foo'bar", r'^\[INFO\]'))
-    def test_grep_hook_not_matching(self, regex, greppable_files, store):
-        hook = _make_grep_repo(self.language, regex, store)
-        ret, out = hook.run(('f1', 'f2', 'f3'), color=False)
-        assert (ret, out) == (0, b'')
+def test_grep_hook_matching(greppable_files, store):
+    hook = _make_grep_repo('ello', store)
+    ret, out = hook.run(('f1', 'f2', 'f3'), color=False)
+    assert ret == 1
+    assert _norm_out(out) == b"f1:1:hello'hi\n"
 
 
-@xfailif_no_pcre_support  # pragma: windows no cover
-class TestPCRE(TestPygrep):
-    """organized as a class for xfailing pcre"""
-    language = 'pcre'
+def test_grep_hook_case_insensitive(greppable_files, store):
+    hook = _make_grep_repo('ELLO', store, args=['-i'])
+    ret, out = hook.run(('f1', 'f2', 'f3'), color=False)
+    assert ret == 1
+    assert _norm_out(out) == b"f1:1:hello'hi\n"
 
-    def test_pcre_hook_many_files(self, greppable_files, store):
-        # This is intended to simulate lots of passing files and one failing
-        # file to make sure it still fails.  This is not the case when naively
-        # using a system hook with `grep -H -n '...'`
-        hook = _make_grep_repo('pcre', 'ello', store)
-        ret, out = hook.run((os.devnull,) * 15000 + ('f1',), color=False)
-        assert ret == 1
-        assert _norm_out(out) == b"f1:1:hello'hi\n"
 
-    def test_missing_pcre_support(self, greppable_files, store):
-        def no_grep(exe, **kwargs):
-            assert exe == pcre.GREP
-            return None
-
-        with mock.patch.object(parse_shebang, 'find_executable', no_grep):
-            hook = _make_grep_repo('pcre', 'ello', store)
-            ret, out = hook.run(('f1', 'f2', 'f3'), color=False)
-            assert ret == 1
-            expected = 'Executable `{}` not found'.format(pcre.GREP).encode()
-            assert out == expected
+@pytest.mark.parametrize('regex', ('nope', "foo'bar", r'^\[INFO\]'))
+def test_grep_hook_not_matching(regex, greppable_files, store):
+    hook = _make_grep_repo(regex, store)
+    ret, out = hook.run(('f1', 'f2', 'f3'), color=False)
+    assert (ret, out) == (0, b'')
 
 
 def _norm_pwd(path):

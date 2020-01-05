@@ -149,7 +149,7 @@ def _hook(*hook_dicts, **kwargs):
 def _non_cloned_repository_hooks(repo_config, store, root_config):
     def _prefix(language_name, deps):
         language = languages[language_name]
-        # pcre / pygrep / script / system / docker_image do not have
+        # pygrep / script / system / docker_image do not have
         # environments so they work out of the current directory
         if language.ENVIRONMENT_DIR is None:
             return Prefix(os.getcwd())

@@ -9,7 +9,6 @@ import pytest
 
 from pre_commit import parse_shebang
 from pre_commit.languages.docker import docker_is_running
-from pre_commit.languages.pcre import GREP
 from pre_commit.util import cmd_output
 from testing.auto_namedtuple import auto_namedtuple
 
@@ -67,16 +66,6 @@ xfailif_broken_deep_listdir = pytest.mark.xfail(
     reason='Node on windows requires deep listdir',
 )
 
-
-def platform_supports_pcre():
-    output = cmd_output(GREP, '-P', "Don't", 'CHANGELOG.md', retcode=None)
-    return output[0] == 0 and "Don't use readlink -f" in output[1]
-
-
-xfailif_no_pcre_support = pytest.mark.xfail(
-    not platform_supports_pcre(),
-    reason='grep -P is not supported on this platform',
-)
 
 xfailif_no_symlink = pytest.mark.xfail(
     not hasattr(os, 'symlink'),

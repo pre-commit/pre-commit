@@ -82,14 +82,6 @@ def _subtle_line(s, use_color):
 def _run_single_hook(classifier, hook, skips, cols, verbose, use_color):
     filenames = classifier.filenames_for_hook(hook)
 
-    if hook.language == 'pcre':
-        logger.warning(
-            '`{}` (from {}) uses the deprecated pcre language.\n'
-            'The pcre language is scheduled for removal in pre-commit 2.x.\n'
-            'The pygrep language is a more portable (and usually drop-in) '
-            'replacement.'.format(hook.id, hook.src),
-        )
-
     if hook.id in skips or hook.alias in skips:
         output.write(
             get_hook_message(
