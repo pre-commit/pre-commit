@@ -166,9 +166,6 @@ def main(argv=None):
     _add_color_option(autoupdate_parser)
     _add_config_option(autoupdate_parser)
     autoupdate_parser.add_argument(
-        '--tags-only', action='store_true', help='LEGACY: for compatibility',
-    )
-    autoupdate_parser.add_argument(
         '--bleeding-edge', action='store_true',
         help=(
             'Update to the bleeding edge of `master` instead of the latest '
@@ -312,8 +309,6 @@ def main(argv=None):
         store.mark_config_used(args.config)
 
         if args.command == 'autoupdate':
-            if args.tags_only:
-                logger.warning('--tags-only is the default')
             return autoupdate(
                 args.config, store,
                 tags_only=not args.bleeding_edge,
