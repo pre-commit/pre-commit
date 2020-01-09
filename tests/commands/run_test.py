@@ -734,32 +734,6 @@ def test_local_hook_fails(cap_out, store, repo_with_passing_hook):
     )
 
 
-def test_pcre_deprecation_warning(cap_out, store, repo_with_passing_hook):
-    config = {
-        'repo': 'local',
-        'hooks': [{
-            'id': 'pcre-hook',
-            'name': 'pcre-hook',
-            'language': 'pcre',
-            'entry': '.',
-        }],
-    }
-    add_config_to_repo(repo_with_passing_hook, config)
-
-    _test_run(
-        cap_out,
-        store,
-        repo_with_passing_hook,
-        opts={},
-        expected_outputs=[
-            b'[WARNING] `pcre-hook` (from local) uses the deprecated '
-            b'pcre language.',
-        ],
-        expected_ret=0,
-        stage=False,
-    )
-
-
 def test_meta_hook_passes(cap_out, store, repo_with_passing_hook):
     add_config_to_repo(repo_with_passing_hook, sample_meta_config())
 

@@ -6,7 +6,6 @@ from pre_commit.languages import docker_image
 from pre_commit.languages import fail
 from pre_commit.languages import golang
 from pre_commit.languages import node
-from pre_commit.languages import pcre
 from pre_commit.languages import pygrep
 from pre_commit.languages import python
 from pre_commit.languages import python_venv
@@ -59,7 +58,6 @@ languages = {
     'fail': fail,
     'golang': golang,
     'node': node,
-    'pcre': pcre,
     'pygrep': pygrep,
     'python': python,
     'python_venv': python_venv,

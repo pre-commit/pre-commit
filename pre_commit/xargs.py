@@ -107,11 +107,9 @@ def xargs(cmd, varargs, **kwargs):
     """A simplified implementation of xargs.
 
     color: Make a pty if on a platform that supports it
-    negate: Make nonzero successful and zero a failure
     target_concurrency: Target number of partitions to run concurrently
     """
     color = kwargs.pop('color', False)
-    negate = kwargs.pop('negate', False)
     target_concurrency = kwargs.pop('target_concurrency', 1)
     max_length = kwargs.pop('_max_length', _get_platform_max_length())
     cmd_fn = cmd_output_p if color else cmd_output_b
@@ -135,8 +133,6 @@ def xargs(cmd, varargs, **kwargs):
         results = thread_map(run_cmd_partition, partitions)
 
         for proc_retcode, proc_out, _ in results:
-            if negate:
-                proc_retcode = not proc_retcode
             retcode = max(retcode, proc_retcode)
             stdout += proc_out
 
