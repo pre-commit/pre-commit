@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 import os
 import sys
 
@@ -8,7 +6,7 @@ if os.name == 'nt':  # pragma: no cover (windows)
     from pre_commit.color_windows import enable_virtual_terminal_processing
     try:
         enable_virtual_terminal_processing()
-    except WindowsError:
+    except OSError:
         terminal_supports_color = False
 
 RED = '\033[41m'
@@ -34,7 +32,7 @@ def format_color(text, color, use_color_setting):
     if not use_color_setting:
         return text
     else:
-        return '{}{}{}'.format(color, text, NORMAL)
+        return f'{color}{text}{NORMAL}'
 
 
 COLOR_CHOICES = ('auto', 'always', 'never')

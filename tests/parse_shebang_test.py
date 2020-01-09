@@ -1,9 +1,5 @@
-from __future__ import absolute_import
-from __future__ import unicode_literals
-
 import contextlib
 import distutils.spawn
-import io
 import os
 import sys
 
@@ -42,8 +38,8 @@ def test_find_executable_not_found_none():
 def write_executable(shebang, filename='run'):
     os.mkdir('bin')
     path = os.path.join('bin', filename)
-    with io.open(path, 'w') as f:
-        f.write('#!{}'.format(shebang))
+    with open(path, 'w') as f:
+        f.write(f'#!{shebang}')
     make_executable(path)
     return path
 
@@ -106,7 +102,7 @@ def test_normexe_is_a_directory(tmpdir):
         with pytest.raises(OSError) as excinfo:
             parse_shebang.normexe(exe)
         msg, = excinfo.value.args
-        assert msg == 'Executable `{}` is a directory'.format(exe)
+        assert msg == f'Executable `{exe}` is a directory'
 
 
 def test_normexe_already_full_path():

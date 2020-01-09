@@ -1,6 +1,3 @@
-from __future__ import absolute_import
-from __future__ import unicode_literals
-
 import hashlib
 import os
 
@@ -24,7 +21,7 @@ def md5(s):  # pragma: windows no cover
 
 def docker_tag(prefix):  # pragma: windows no cover
     md5sum = md5(os.path.basename(prefix.prefix_dir)).lower()
-    return 'pre-commit-{}'.format(md5sum)
+    return f'pre-commit-{md5sum}'
 
 
 def docker_is_running():  # pragma: windows no cover

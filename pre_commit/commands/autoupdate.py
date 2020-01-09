@@ -1,11 +1,7 @@
-from __future__ import print_function
-from __future__ import unicode_literals
-
 import collections
 import os.path
 import re
 
-import six
 from aspy.yaml import ordered_dump
 from aspy.yaml import ordered_load
 
@@ -64,7 +60,7 @@ def _check_hooks_still_exist_at_rev(repo_config, info, store):
         path = store.clone(repo_config['repo'], info.rev)
         manifest = load_manifest(os.path.join(path, C.MANIFEST_FILE))
     except InvalidManifestError as e:
-        raise RepositoryCannotBeUpdatedError(six.text_type(e))
+        raise RepositoryCannotBeUpdatedError(str(e))
 
     # See if any of our hooks were deleted with the new commits
     hooks = {hook['id'] for hook in repo_config['hooks']}
@@ -108,7 +104,7 @@ def _write_new_config(path, rev_infos):
         new_rev_s = ordered_dump({'rev': rev_info.rev}, **C.YAML_DUMP_KWARGS)
         new_rev = new_rev_s.split(':', 1)[1].strip()
         if rev_info.frozen is not None:
-            comment = '  # frozen: {}'.format(rev_info.frozen)
+            comment = f'  # frozen: {rev_info.frozen}'
         elif match.group(4).strip().startswith('# frozen:'):
             comment = ''
         else:
@@ -138,7 +134,7 @@ def autoupdate(config_file, store, tags_only, freeze, repos=()):
             rev_infos.append(None)
             continue
 
-        output.write('Updating {} ... '.format(info.repo))
+        output.write(f'Updating {info.repo} ... ')
         new_info = info.update(tags_only=tags_only, freeze=freeze)
         try:
             _check_hooks_still_exist_at_rev(repo_config, new_info, store)
@@ -151,10 +147,10 @@ def autoupdate(config_file, store, tags_only, freeze, repos=()):
         if new_info.rev != info.rev:
             changed = True
             if new_info.frozen:
-                updated_to = '{} (frozen)'.format(new_info.frozen)
+                updated_to = f'{new_info.frozen} (frozen)'
             else:
                 updated_to = new_info.rev
-            msg = 'updating {} -> {}.'.format(info.rev, updated_to)
+            msg = f'updating {info.rev} -> {updated_to}.'
             output.write_line(msg)
             rev_infos.append(new_info)
         else:

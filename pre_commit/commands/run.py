@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 import logging
 import os
 import re
@@ -32,7 +30,7 @@ def filter_by_include_exclude(names, include, exclude):
     ]
 
 
-class Classifier(object):
+class Classifier:
     def __init__(self, filenames):
         # on windows we normalize all filenames to use forward slashes
         # this makes it easier to filter using the `files:` regex
@@ -136,13 +134,13 @@ def _run_single_hook(classifier, hook, skips, cols, verbose, use_color):
         output.write_line(color.format_color(status, print_color, use_color))
 
     if verbose or hook.verbose or retcode or files_modified:
-        _subtle_line('- hook id: {}'.format(hook.id), use_color)
+        _subtle_line(f'- hook id: {hook.id}', use_color)
 
         if (verbose or hook.verbose) and duration is not None:
-            _subtle_line('- duration: {}s'.format(duration), use_color)
+            _subtle_line(f'- duration: {duration}s', use_color)
 
         if retcode:
-            _subtle_line('- exit code: {}'.format(retcode), use_color)
+            _subtle_line(f'- exit code: {retcode}', use_color)
 
         # Print a message if failing due to file modifications
         if files_modified:

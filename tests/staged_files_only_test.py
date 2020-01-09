@@ -1,8 +1,3 @@
-# -*- coding: UTF-8 -*-
-from __future__ import absolute_import
-from __future__ import unicode_literals
-
-import io
 import itertools
 import os.path
 import shutil
@@ -47,7 +42,7 @@ def _test_foo_state(
         encoding='UTF-8',
 ):
     assert os.path.exists(path.foo_filename)
-    with io.open(path.foo_filename, encoding=encoding) as f:
+    with open(path.foo_filename, encoding=encoding) as f:
         assert f.read() == foo_contents
     actual_status = get_short_git_status()['foo']
     assert status == actual_status
@@ -64,7 +59,7 @@ def test_foo_nothing_unstaged(foo_staged, patch_dir):
 
 
 def test_foo_something_unstaged(foo_staged, patch_dir):
-    with io.open(foo_staged.foo_filename, 'w') as foo_file:
+    with open(foo_staged.foo_filename, 'w') as foo_file:
         foo_file.write('herp\nderp\n')
 
     _test_foo_state(foo_staged, 'herp\nderp\n', 'AM')
@@ -76,7 +71,7 @@ def test_foo_something_unstaged(foo_staged, patch_dir):
 
 
 def test_does_not_crash_patch_dir_does_not_exist(foo_staged, patch_dir):
-    with io.open(foo_staged.foo_filename, 'w') as foo_file:
+    with open(foo_staged.foo_filename, 'w') as foo_file:
         foo_file.write('hello\nworld\n')
 
     shutil.rmtree(patch_dir)
@@ -97,7 +92,7 @@ def test_foo_something_unstaged_diff_color_always(foo_staged, patch_dir):
 
 
 def test_foo_both_modify_non_conflicting(foo_staged, patch_dir):
-    with io.open(foo_staged.foo_filename, 'w') as foo_file:
+    with open(foo_staged.foo_filename, 'w') as foo_file:
         foo_file.write(FOO_CONTENTS + '9\n')
 
     _test_foo_state(foo_staged, FOO_CONTENTS + '9\n', 'AM')
@@ -106,7 +101,7 @@ def test_foo_both_modify_non_conflicting(foo_staged, patch_dir):
         _test_foo_state(foo_staged)
 
         # Modify the file as part of the "pre-commit"
-        with io.open(foo_staged.foo_filename, 'w') as foo_file:
+        with open(foo_staged.foo_filename, 'w') as foo_file:
             foo_file.write(FOO_CONTENTS.replace('1', 'a'))
 
         _test_foo_state(foo_staged, FOO_CONTENTS.replace('1', 'a'), 'AM')
@@ -115,7 +110,7 @@ def test_foo_both_modify_non_conflicting(foo_staged, patch_dir):
 
 
 def test_foo_both_modify_conflicting(foo_staged, patch_dir):
-    with io.open(foo_staged.foo_filename, 'w') as foo_file:
+    with open(foo_staged.foo_filename, 'w') as foo_file:
         foo_file.write(FOO_CONTENTS.replace('1', 'a'))
 
     _test_foo_state(foo_staged, FOO_CONTENTS.replace('1', 'a'), 'AM')
@@ -124,7 +119,7 @@ def test_foo_both_modify_conflicting(foo_staged, patch_dir):
         _test_foo_state(foo_staged)
 
         # Modify in the same place as the stashed diff
-        with io.open(foo_staged.foo_filename, 'w') as foo_file:
+        with open(foo_staged.foo_filename, 'w') as foo_file:
             foo_file.write(FOO_CONTENTS.replace('1', 'b'))
 
         _test_foo_state(foo_staged, FOO_CONTENTS.replace('1', 'b'), 'AM')
@@ -142,8 +137,8 @@ def img_staged(in_git_dir):
 
 def _test_img_state(path, expected_file='img1.jpg', status='A'):
     assert os.path.exists(path.img_filename)
-    with io.open(path.img_filename, 'rb') as f1:
-        with io.open(get_resource_path(expected_file), 'rb') as f2:
+    with open(path.img_filename, 'rb') as f1:
+        with open(get_resource_path(expected_file), 'rb') as f2:
             assert f1.read() == f2.read()
     actual_status = get_short_git_status()['img.jpg']
     assert status == actual_status
@@ -248,7 +243,7 @@ def test_sub_something_unstaged(sub_staged, patch_dir):
 
 def test_stage_utf8_changes(foo_staged, patch_dir):
     contents = '\u2603'
-    with io.open('foo', 'w', encoding='UTF-8') as foo_file:
+    with open('foo', 'w', encoding='UTF-8') as foo_file:
         foo_file.write(contents)
 
     _test_foo_state(foo_staged, contents, 'AM')
@@ -260,7 +255,7 @@ def test_stage_utf8_changes(foo_staged, patch_dir):
 def test_stage_non_utf8_changes(foo_staged, patch_dir):
     contents = 'ú'
     # Produce a latin-1 diff
-    with io.open('foo', 'w', encoding='latin-1') as foo_file:
+    with open('foo', 'w', encoding='latin-1') as foo_file:
         foo_file.write(contents)
 
     _test_foo_state(foo_staged, contents, 'AM', encoding='latin-1')
@@ -282,14 +277,14 @@ def test_non_utf8_conflicting_diff(foo_staged, patch_dir):
     # Previously, the error message (though discarded immediately) was being
     # decoded with the UTF-8 codec (causing a crash)
     contents = 'ú \n'
-    with io.open('foo', 'w', encoding='latin-1') as foo_file:
+    with open('foo', 'w', encoding='latin-1') as foo_file:
         foo_file.write(contents)
 
     _test_foo_state(foo_staged, contents, 'AM', encoding='latin-1')
     with staged_files_only(patch_dir):
         _test_foo_state(foo_staged)
         # Create a conflicting diff that will need to be rolled back
-        with io.open('foo', 'w') as foo_file:
+        with open('foo', 'w') as foo_file:
             foo_file.write('')
     _test_foo_state(foo_staged, contents, 'AM', encoding='latin-1')
 

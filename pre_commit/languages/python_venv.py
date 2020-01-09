@@ -1,7 +1,4 @@
-from __future__ import unicode_literals
-
 import os.path
-import sys
 
 from pre_commit.languages import python
 from pre_commit.util import CalledProcessError
@@ -13,10 +10,7 @@ ENVIRONMENT_DIR = 'py_venv'
 
 
 def get_default_version():  # pragma: no cover (version specific)
-    if sys.version_info < (3,):
-        return 'python3'
-    else:
-        return python.get_default_version()
+    return python.get_default_version()
 
 
 def orig_py_exe(exe):  # pragma: no cover (platform specific)

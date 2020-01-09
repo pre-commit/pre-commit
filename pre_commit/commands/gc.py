@@ -1,6 +1,3 @@
-from __future__ import absolute_import
-from __future__ import unicode_literals
-
 import os.path
 
 import pre_commit.constants as C
@@ -79,5 +76,5 @@ def _gc_repos(store):
 def gc(store):
     with store.exclusive_lock():
         repos_removed = _gc_repos(store)
-    output.write_line('{} repo(s) removed.'.format(repos_removed))
+    output.write_line(f'{repos_removed} repo(s) removed.')
     return 0

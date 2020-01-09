@@ -1,7 +1,4 @@
-from __future__ import unicode_literals
-
 import contextlib
-import io
 import logging
 import os.path
 import sqlite3
@@ -34,7 +31,7 @@ def _get_default_directory():
     )
 
 
-class Store(object):
+class Store:
     get_default_directory = staticmethod(_get_default_directory)
 
     def __init__(self, directory=None):
@@ -43,7 +40,7 @@ class Store(object):
 
         if not os.path.exists(self.directory):
             mkdirp(self.directory)
-            with io.open(os.path.join(self.directory, 'README'), 'w') as f:
+            with open(os.path.join(self.directory, 'README'), 'w') as f:
                 f.write(
                     'This directory is maintained by the pre-commit project.\n'
                     'Learn more: https://github.com/pre-commit/pre-commit\n',
@@ -122,7 +119,7 @@ class Store(object):
             if result:  # pragma: no cover (race)
                 return result
 
-            logger.info('Initializing environment for {}.'.format(repo))
+            logger.info(f'Initializing environment for {repo}.')
 
             directory = tempfile.mkdtemp(prefix='repo', dir=self.directory)
             with clean_path_on_failure(directory):
@@ -179,8 +176,8 @@ class Store(object):
     def make_local(self, deps):
         def make_local_strategy(directory):
             for resource in self.LOCAL_RESOURCES:
-                contents = resource_text('empty_template_{}'.format(resource))
-                with io.open(os.path.join(directory, resource), 'w') as f:
+                contents = resource_text(f'empty_template_{resource}')
+                with open(os.path.join(directory, resource), 'w') as f:
                     f.write(contents)
 
             env = git.no_git_env()

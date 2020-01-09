@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 import os.path
 import stat
 import subprocess
@@ -17,7 +15,7 @@ from pre_commit.util import tmpdir
 
 
 def test_CalledProcessError_str():
-    error = CalledProcessError(1, [str('exe')], 0, b'output', b'errors')
+    error = CalledProcessError(1, ['exe'], 0, b'output', b'errors')
     assert str(error) == (
         "command: ['exe']\n"
         'return code: 1\n'
@@ -30,7 +28,7 @@ def test_CalledProcessError_str():
 
 
 def test_CalledProcessError_str_nooutput():
-    error = CalledProcessError(1, [str('exe')], 0, b'', b'')
+    error = CalledProcessError(1, ['exe'], 0, b'', b'')
     assert str(error) == (
         "command: ['exe']\n"
         'return code: 1\n'

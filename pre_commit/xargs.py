@@ -1,15 +1,9 @@
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import unicode_literals
-
 import concurrent.futures
 import contextlib
 import math
 import os
 import subprocess
 import sys
-
-import six
 
 from pre_commit import parse_shebang
 from pre_commit.util import cmd_output_b
@@ -26,7 +20,7 @@ def _environ_size(_env=None):
 
 def _get_platform_max_length():  # pragma: no cover (platform specific)
     if os.name == 'posix':
-        maximum = os.sysconf(str('SC_ARG_MAX')) - 2048 - _environ_size()
+        maximum = os.sysconf('SC_ARG_MAX') - 2048 - _environ_size()
         maximum = max(min(maximum, 2 ** 17), 2 ** 12)
         return maximum
     elif os.name == 'nt':
@@ -43,10 +37,7 @@ def _command_length(*cmd):
     # https://github.com/pre-commit/pre-commit/pull/839
     if sys.platform == 'win32':
         # the python2.x apis require bytes, we encode as UTF-8
-        if six.PY2:
-            return len(full_cmd.encode('utf-8'))
-        else:
-            return len(full_cmd.encode('utf-16le')) // 2
+        return len(full_cmd.encode('utf-16le')) // 2
     else:
         return len(full_cmd.encode(sys.getfilesystemencoding()))
 
@@ -125,7 +116,7 @@ def xargs(cmd, varargs, **kwargs):
 
     def run_cmd_partition(run_cmd):
         return cmd_fn(
-            *run_cmd, retcode=None, stderr=subprocess.STDOUT, **kwargs
+            *run_cmd, retcode=None, stderr=subprocess.STDOUT, **kwargs,
         )
 
     threads = min(len(partitions), target_concurrency)

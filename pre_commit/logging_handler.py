@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 import contextlib
 import logging
 
@@ -19,14 +17,14 @@ LOG_LEVEL_COLORS = {
 
 class LoggingHandler(logging.Handler):
     def __init__(self, use_color):
-        super(LoggingHandler, self).__init__()
+        super().__init__()
         self.use_color = use_color
 
     def emit(self, record):
         output.write_line(
             '{} {}'.format(
                 color.format_color(
-                    '[{}]'.format(record.levelname),
+                    f'[{record.levelname}]',
                     LOG_LEVEL_COLORS[record.levelname],
                     self.use_color,
                 ),

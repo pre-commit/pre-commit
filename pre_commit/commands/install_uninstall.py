@@ -1,7 +1,3 @@
-from __future__ import print_function
-from __future__ import unicode_literals
-
-import io
 import itertools
 import logging
 import os.path
@@ -36,13 +32,13 @@ TEMPLATE_END = '# end templated\n'
 def _hook_paths(hook_type, git_dir=None):
     git_dir = git_dir if git_dir is not None else git.get_git_dir()
     pth = os.path.join(git_dir, 'hooks', hook_type)
-    return pth, '{}.legacy'.format(pth)
+    return pth, f'{pth}.legacy'
 
 
 def is_our_script(filename):
     if not os.path.exists(filename):  # pragma: windows no cover (symlink)
         return False
-    with io.open(filename) as f:
+    with open(filename) as f:
         contents = f.read()
     return any(h in contents for h in (CURRENT_HASH,) + PRIOR_HASHES)
 
@@ -63,7 +59,7 @@ def shebang():
                 break
         else:
             py = 'python'
-    return '#!/usr/bin/env {}'.format(py)
+    return f'#!/usr/bin/env {py}'
 
 
 def _install_hook_script(
@@ -94,7 +90,7 @@ def _install_hook_script(
         'SKIP_ON_MISSING_CONFIG': skip_on_missing_config,
     }
 
-    with io.open(hook_path, 'w') as hook_file:
+    with open(hook_path, 'w') as hook_file:
         contents = resource_text('hook-tmpl')
         before, rest = contents.split(TEMPLATE_START)
         to_template, after = rest.split(TEMPLATE_END)
@@ -108,7 +104,7 @@ def _install_hook_script(
         hook_file.write(TEMPLATE_END + after)
     make_executable(hook_path)
 
-    output.write_line('pre-commit installed at {}'.format(hook_path))
+    output.write_line(f'pre-commit installed at {hook_path}')
 
 
 def install(
@@ -149,11 +145,11 @@ def _uninstall_hook_script(hook_type):  # type: (str) -> None
         return
 
     os.remove(hook_path)
-    output.write_line('{} uninstalled'.format(hook_type))
+    output.write_line(f'{hook_type} uninstalled')
 
     if os.path.exists(legacy_path):
         os.rename(legacy_path, hook_path)
-        output.write_line('Restored previous hooks to {}'.format(hook_path))
+        output.write_line(f'Restored previous hooks to {hook_path}')
 
 
 def uninstall(hook_types):

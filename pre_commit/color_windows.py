@@ -1,6 +1,3 @@
-from __future__ import absolute_import
-from __future__ import unicode_literals
-
 from ctypes import POINTER
 from ctypes import windll
 from ctypes import WinError

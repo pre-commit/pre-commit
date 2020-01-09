@@ -1,8 +1,4 @@
-from __future__ import absolute_import
-from __future__ import unicode_literals
-
 import contextlib
-import io
 import os.path
 import shutil
 
@@ -58,10 +54,10 @@ def modify_manifest(path, commit=True):
     .pre-commit-hooks.yaml.
     """
     manifest_path = os.path.join(path, C.MANIFEST_FILE)
-    with io.open(manifest_path) as f:
+    with open(manifest_path) as f:
         manifest = ordered_load(f.read())
     yield manifest
-    with io.open(manifest_path, 'w') as manifest_file:
+    with open(manifest_path, 'w') as manifest_file:
         manifest_file.write(ordered_dump(manifest, **C.YAML_DUMP_KWARGS))
     if commit:
         git_commit(msg=modify_manifest.__name__, cwd=path)
@@ -73,10 +69,10 @@ def modify_config(path='.', commit=True):
     .pre-commit-config.yaml
     """
     config_path = os.path.join(path, C.CONFIG_FILE)
-    with io.open(config_path) as f:
+    with open(config_path) as f:
         config = ordered_load(f.read())
     yield config
-    with io.open(config_path, 'w', encoding='UTF-8') as config_file:
+    with open(config_path, 'w', encoding='UTF-8') as config_file:
         config_file.write(ordered_dump(config, **C.YAML_DUMP_KWARGS))
     if commit:
         git_commit(msg=modify_config.__name__, cwd=path)
@@ -101,7 +97,7 @@ def sample_meta_config():
 def make_config_from_repo(repo_path, rev=None, hooks=None, check=True):
     manifest = load_manifest(os.path.join(repo_path, C.MANIFEST_FILE))
     config = {
-        'repo': 'file://{}'.format(repo_path),
+        'repo': f'file://{repo_path}',
         'rev': rev or git.head_rev(repo_path),
         'hooks': hooks or [{'id': hook['id']} for hook in manifest],
     }
@@ -117,7 +113,7 @@ def make_config_from_repo(repo_path, rev=None, hooks=None, check=True):
 
 def read_config(directory, config_file=C.CONFIG_FILE):
     config_path = os.path.join(directory, config_file)
-    with io.open(config_path) as f:
+    with open(config_path) as f:
         config = ordered_load(f.read())
     return config
 
@@ -126,7 +122,7 @@ def write_config(directory, config, config_file=C.CONFIG_FILE):
     if type(config) is not list and 'repos' not in config:
         assert isinstance(config, dict), config
         config = {'repos': [config]}
-    with io.open(os.path.join(directory, config_file), 'w') as outfile:
+    with open(os.path.join(directory, config_file), 'w') as outfile:
         outfile.write(ordered_dump(config, **C.YAML_DUMP_KWARGS))
 
 

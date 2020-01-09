@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 import argparse
 import logging
 import os
@@ -57,7 +55,7 @@ def _add_config_option(parser):
 
 class AppendReplaceDefault(argparse.Action):
     def __init__(self, *args, **kwargs):
-        super(AppendReplaceDefault, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.appended = False
 
     def __call__(self, parser, namespace, values, option_string=None):
@@ -154,7 +152,7 @@ def main(argv=None):
     parser.add_argument(
         '-V', '--version',
         action='version',
-        version='%(prog)s {}'.format(C.VERSION),
+        version=f'%(prog)s {C.VERSION}',
     )
 
     subparsers = parser.add_subparsers(dest='command')
@@ -254,7 +252,7 @@ def main(argv=None):
     _add_run_options(run_parser)
 
     sample_config_parser = subparsers.add_parser(
-        'sample-config', help='Produce a sample {} file'.format(C.CONFIG_FILE),
+        'sample-config', help=f'Produce a sample {C.CONFIG_FILE} file',
     )
     _add_color_option(sample_config_parser)
     _add_config_option(sample_config_parser)
@@ -345,11 +343,11 @@ def main(argv=None):
             return uninstall(hook_types=args.hook_types)
         else:
             raise NotImplementedError(
-                'Command {} not implemented.'.format(args.command),
+                f'Command {args.command} not implemented.',
             )
 
         raise AssertionError(
-            'Command {} failed to exit with a returncode'.format(args.command),
+            f'Command {args.command} failed to exit with a returncode',
         )
 
 

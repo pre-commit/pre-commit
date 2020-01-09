@@ -1,8 +1,3 @@
-from __future__ import absolute_import
-from __future__ import print_function
-from __future__ import unicode_literals
-
-
 # TODO: maybe `git ls-remote git://github.com/pre-commit/pre-commit-hooks` to
 # determine the latest revision?  This adds ~200ms from my tests (and is
 # significantly faster than https:// or http://).  For now, periodically

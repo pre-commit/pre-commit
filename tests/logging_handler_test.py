@@ -1,10 +1,8 @@
-from __future__ import unicode_literals
-
 from pre_commit import color
 from pre_commit.logging_handler import LoggingHandler
 
 
-class FakeLogRecord(object):
+class FakeLogRecord:
     def __init__(self, message, levelname, levelno):
         self.message = message
         self.levelname = levelname

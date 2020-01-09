@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 import contextlib
 import errno
 import os.path
@@ -8,8 +6,6 @@ import stat
 import subprocess
 import sys
 import tempfile
-
-import six
 
 from pre_commit import five
 from pre_commit import parse_shebang
@@ -75,7 +71,7 @@ def make_executable(filename):
 
 class CalledProcessError(RuntimeError):
     def __init__(self, returncode, cmd, expected_returncode, stdout, stderr):
-        super(CalledProcessError, self).__init__(
+        super().__init__(
             returncode, cmd, expected_returncode, stdout, stderr,
         )
         self.returncode = returncode
@@ -104,12 +100,8 @@ class CalledProcessError(RuntimeError):
     def to_text(self):
         return self.to_bytes().decode('UTF-8')
 
-    if six.PY2:  # pragma: no cover (py2)
-        __str__ = to_bytes
-        __unicode__ = to_text
-    else:  # pragma: no cover (py3)
-        __bytes__ = to_bytes
-        __str__ = to_text
+    __bytes__ = to_bytes
+    __str__ = to_text
 
 
 def _cmd_kwargs(*cmd, **kwargs):
@@ -154,7 +146,7 @@ if os.name != 'nt':  # pragma: windows no cover
     from os import openpty
     import termios
 
-    class Pty(object):
+    class Pty:
         def __init__(self):
             self.r = self.w = None
 

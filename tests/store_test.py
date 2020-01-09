@@ -1,13 +1,8 @@
-from __future__ import absolute_import
-from __future__ import unicode_literals
-
-import io
 import os.path
 import sqlite3
 
 import mock
 import pytest
-import six
 
 from pre_commit import git
 from pre_commit.store import _get_default_directory
@@ -53,7 +48,7 @@ def test_store_init(store):
     # Should create the store directory
     assert os.path.exists(store.directory)
     # Should create a README file indicating what the directory is about
-    with io.open(os.path.join(store.directory, 'README')) as readme_file:
+    with open(os.path.join(store.directory, 'README')) as readme_file:
         readme_contents = readme_file.read()
         for text_line in (
             'This directory is maintained by the pre-commit project.',
@@ -93,7 +88,7 @@ def test_clone_cleans_up_on_checkout_failure(store):
         # This raises an exception because you can't clone something that
         # doesn't exist!
         store.clone('/i_dont_exist_lol', 'fake_rev')
-    assert '/i_dont_exist_lol' in six.text_type(excinfo.value)
+    assert '/i_dont_exist_lol' in str(excinfo.value)
 
     repo_dirs = [
         d for d in os.listdir(store.directory) if d.startswith('repo')

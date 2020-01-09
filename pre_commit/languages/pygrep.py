@@ -1,6 +1,3 @@
-from __future__ import absolute_import
-from __future__ import unicode_literals
-
 import argparse
 import re
 import sys
@@ -22,7 +19,7 @@ def _process_filename_by_line(pattern, filename):
         for line_no, line in enumerate(f, start=1):
             if pattern.search(line):
                 retv = 1
-                output.write('{}:{}:'.format(filename, line_no))
+                output.write(f'{filename}:{line_no}:')
                 output.write_line(line.rstrip(b'\r\n'))
     return retv
 

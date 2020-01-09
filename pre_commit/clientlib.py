@@ -1,6 +1,3 @@
-from __future__ import absolute_import
-from __future__ import unicode_literals
-
 import argparse
 import functools
 import logging
@@ -106,7 +103,7 @@ LOCAL = 'local'
 META = 'meta'
 
 
-class MigrateShaToRev(object):
+class MigrateShaToRev:
     key = 'rev'
 
     @staticmethod
@@ -202,7 +199,7 @@ META_HOOK_DICT = cfgv.Map(
         if item.key in {'name', 'language', 'entry'} else
         item
         for item in MANIFEST_HOOK_DICT.items
-    ])
+    ]),
 )
 CONFIG_HOOK_DICT = cfgv.Map(
     'Hook', 'id',
@@ -217,7 +214,7 @@ CONFIG_HOOK_DICT = cfgv.Map(
         cfgv.OptionalNoDefault(item.key, item.check_fn)
         for item in MANIFEST_HOOK_DICT.items
         if item.key != 'id'
-    ]
+    ],
 )
 CONFIG_REPO_DICT = cfgv.Map(
     'Repository', 'repo',
@@ -243,7 +240,7 @@ CONFIG_REPO_DICT = cfgv.Map(
 DEFAULT_LANGUAGE_VERSION = cfgv.Map(
     'DefaultLanguageVersion', None,
     cfgv.NoAdditionalKeys(all_languages),
-    *[cfgv.Optional(x, cfgv.check_string, C.DEFAULT) for x in all_languages]
+    *[cfgv.Optional(x, cfgv.check_string, C.DEFAULT) for x in all_languages],
 )
 CONFIG_SCHEMA = cfgv.Map(
     'Config', None,

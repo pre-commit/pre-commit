@@ -1,6 +1,3 @@
-from __future__ import absolute_import
-from __future__ import unicode_literals
-
 import os.path
 
 from identify.identify import parse_shebang_from_file
@@ -44,7 +41,7 @@ def find_executable(exe, _environ=None):
 
 def normexe(orig):
     def _error(msg):
-        raise ExecutableNotFoundError('Executable `{}` {}'.format(orig, msg))
+        raise ExecutableNotFoundError(f'Executable `{orig}` {msg}')
 
     if os.sep not in orig and (not os.altsep or os.altsep not in orig):
         exe = find_executable(orig)

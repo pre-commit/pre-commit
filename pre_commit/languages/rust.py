@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 import contextlib
 import os.path
 
@@ -85,7 +83,7 @@ def install_environment(prefix, version, additional_dependencies):
         for package in packages_to_install:
             cmd_output_b(
                 'cargo', 'install', '--bins', '--root', directory, *package,
-                cwd=prefix.prefix_dir
+                cwd=prefix.prefix_dir,
             )
 
 

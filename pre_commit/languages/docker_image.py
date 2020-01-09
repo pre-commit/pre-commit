@@ -1,6 +1,3 @@
-from __future__ import absolute_import
-from __future__ import unicode_literals
-
 from pre_commit.languages import helpers
 from pre_commit.languages.docker import assert_docker_available
 from pre_commit.languages.docker import docker_cmd

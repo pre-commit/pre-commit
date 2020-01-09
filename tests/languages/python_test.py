@@ -1,6 +1,3 @@
-from __future__ import absolute_import
-from __future__ import unicode_literals
-
 import os.path
 import sys
 
@@ -16,7 +13,7 @@ def test_norm_version_expanduser():
     home = os.path.expanduser('~')
     if os.name == 'nt':  # pragma: no cover (nt)
         path = r'~\python343'
-        expected_path = r'{}\python343'.format(home)
+        expected_path = fr'{home}\python343'
     else:  # pragma: windows no cover
         path = '~/.pyenv/versions/3.4.3/bin/python'
         expected_path = home + '/.pyenv/versions/3.4.3/bin/python'

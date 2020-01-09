@@ -1,6 +1,3 @@
-from __future__ import absolute_import
-from __future__ import unicode_literals
-
 import os.path
 import re
 import shutil
@@ -473,7 +470,7 @@ def _norm_pwd(path):
     # Under windows bash's temp and windows temp is different.
     # This normalizes to the bash /tmp
     return cmd_output_b(
-        'bash', '-c', "cd '{}' && pwd".format(path),
+        'bash', '-c', f"cd '{path}' && pwd",
     )[1].strip()
 
 
@@ -844,7 +841,7 @@ def test_manifest_hooks(tempdir_factory, store):
     hook = _get_hook(config, store, 'bash_hook')
 
     assert hook == Hook(
-        src='file://{}'.format(path),
+        src=f'file://{path}',
         prefix=Prefix(mock.ANY),
         additional_dependencies=[],
         alias='',

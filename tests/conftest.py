@@ -1,6 +1,3 @@
-from __future__ import absolute_import
-from __future__ import unicode_literals
-
 import functools
 import io
 import logging
@@ -8,7 +5,6 @@ import os.path
 
 import mock
 import pytest
-import six
 
 from pre_commit import output
 from pre_commit.envcontext import envcontext
@@ -36,19 +32,19 @@ def no_warnings(recwarn):
             ' missing __init__' in message
         ):
             warnings.append(
-                '{}:{} {}'.format(warning.filename, warning.lineno, message),
+                f'{warning.filename}:{warning.lineno} {message}',
             )
     assert not warnings
 
 
 @pytest.fixture
 def tempdir_factory(tmpdir):
-    class TmpdirFactory(object):
+    class TmpdirFactory:
         def __init__(self):
             self.tmpdir_count = 0
 
         def get(self):
-            path = tmpdir.join(six.text_type(self.tmpdir_count)).strpath
+            path = tmpdir.join(str(self.tmpdir_count)).strpath
             self.tmpdir_count += 1
             os.mkdir(path)
             return path
@@ -73,18 +69,18 @@ def in_git_dir(tmpdir):
 
 def _make_conflict():
     cmd_output('git', 'checkout', 'origin/master', '-b', 'foo')
-    with io.open('conflict_file', 'w') as conflict_file:
+    with open('conflict_file', 'w') as conflict_file:
         conflict_file.write('herp\nderp\n')
     cmd_output('git', 'add', 'conflict_file')
-    with io.open('foo_only_file', 'w') as foo_only_file:
+    with open('foo_only_file', 'w') as foo_only_file:
         foo_only_file.write('foo')
     cmd_output('git', 'add', 'foo_only_file')
     git_commit(msg=_make_conflict.__name__)
     cmd_output('git', 'checkout', 'origin/master', '-b', 'bar')
-    with io.open('conflict_file', 'w') as conflict_file:
+    with open('conflict_file', 'w') as conflict_file:
         conflict_file.write('harp\nddrp\n')
     cmd_output('git', 'add', 'conflict_file')
-    with io.open('bar_only_file', 'w') as bar_only_file:
+    with open('bar_only_file', 'w') as bar_only_file:
         bar_only_file.write('bar')
     cmd_output('git', 'add', 'bar_only_file')
     git_commit(msg=_make_conflict.__name__)
@@ -145,14 +141,14 @@ def prepare_commit_msg_repo(tempdir_factory):
         'hooks': [{
             'id': 'add-signoff',
             'name': 'Add "Signed off by:"',
-            'entry': './{}'.format(script_name),
+            'entry': f'./{script_name}',
             'language': 'script',
             'stages': ['prepare-commit-msg'],
         }],
     }
     write_config(path, config)
     with cwd(path):
-        with io.open(script_name, 'w') as script_file:
+        with open(script_name, 'w') as script_file:
             script_file.write(
                 '#!/usr/bin/env bash\n'
                 'set -eu\n'
@@ -229,7 +225,7 @@ def log_info_mock():
         yield mck
 
 
-class FakeStream(object):
+class FakeStream:
     def __init__(self):
         self.data = io.BytesIO()
 
@@ -240,7 +236,7 @@ class FakeStream(object):
         pass
 
 
-class Fixture(object):
+class Fixture:
     def __init__(self, stream):
         self._stream = stream
 

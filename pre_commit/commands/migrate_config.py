@@ -1,7 +1,3 @@
-from __future__ import print_function
-from __future__ import unicode_literals
-
-import io
 import re
 
 import yaml
@@ -47,14 +43,14 @@ def _migrate_sha_to_rev(contents):
 
 
 def migrate_config(config_file, quiet=False):
-    with io.open(config_file) as f:
+    with open(config_file) as f:
         orig_contents = contents = f.read()
 
     contents = _migrate_map(contents)
     contents = _migrate_sha_to_rev(contents)
 
     if contents != orig_contents:
-        with io.open(config_file, 'w') as f:
+        with open(config_file, 'w') as f:
             f.write(contents)
 
         print('Configuration has been migrated.')

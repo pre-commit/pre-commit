@@ -1,6 +1,3 @@
-from __future__ import absolute_import
-from __future__ import unicode_literals
-
 import contextlib
 import errno
 
@@ -18,12 +15,12 @@ try:  # pragma: no cover (windows)
     def _locked(fileno, blocked_cb):
         try:
             msvcrt.locking(fileno, msvcrt.LK_NBLCK, _region)
-        except IOError:
+        except OSError:
             blocked_cb()
             while True:
                 try:
                     msvcrt.locking(fileno, msvcrt.LK_LOCK, _region)
-                except IOError as e:
+                except OSError as e:
                     # Locking violation. Returned when the _LK_LOCK or _LK_RLCK
                     # flag is specified and the file cannot be locked after 10
                     # attempts.
@@ -48,7 +45,7 @@ except ImportError:  # pragma: windows no cover
     def _locked(fileno, blocked_cb):
         try:
             fcntl.flock(fileno, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        except IOError:  # pragma: no cover (tests are single-threaded)
+        except OSError:  # pragma: no cover (tests are single-threaded)
             blocked_cb()
             fcntl.flock(fileno, fcntl.LOCK_EX)
         try:

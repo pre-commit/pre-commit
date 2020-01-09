@@ -1,6 +1,3 @@
-from __future__ import absolute_import
-from __future__ import unicode_literals
-
 from pre_commit.commands.sample_config import sample_config
 
 

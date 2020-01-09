@@ -1,6 +1,3 @@
-from __future__ import absolute_import
-from __future__ import unicode_literals
-
 import argparse
 import os.path
 
@@ -27,7 +24,7 @@ def test_append_replace_default(argv, expected):
     assert parser.parse_args(argv).f == expected
 
 
-class Args(object):
+class Args:
     def __init__(self, **kwargs):
         kwargs.setdefault('command', 'help')
         kwargs.setdefault('config', C.CONFIG_FILE)
@@ -189,4 +186,4 @@ def test_expected_fatal_error_no_git_repo(in_tmpdir, cap_out, mock_store_dir):
         'An error has occurred: FatalError: git failed. '
         'Is it installed, and are you in a Git repository directory?'
     )
-    assert cap_out_lines[-1] == 'Check the log at {}'.format(log_file)
+    assert cap_out_lines[-1] == f'Check the log at {log_file}'

@@ -1,7 +1,3 @@
-# -*- coding: UTF-8 -*-
-from __future__ import unicode_literals
-
-import io
 import os.path
 import pipes
 import sys
@@ -154,7 +150,7 @@ def test_types_hook_repository(cap_out, store, tempdir_factory):
 def test_exclude_types_hook_repository(cap_out, store, tempdir_factory):
     git_path = make_consuming_repo(tempdir_factory, 'exclude_types_repo')
     with cwd(git_path):
-        with io.open('exe', 'w') as exe:
+        with open('exe', 'w') as exe:
             exe.write('#!/usr/bin/env python3\n')
         make_executable('exe')
         cmd_output('git', 'add', 'exe')
@@ -601,8 +597,8 @@ def test_stages(cap_out, store, repo_with_passing_hook):
         'repo': 'local',
         'hooks': [
             {
-                'id': 'do-not-commit-{}'.format(i),
-                'name': 'hook {}'.format(i),
+                'id': f'do-not-commit-{i}',
+                'name': f'hook {i}',
                 'entry': 'DO NOT COMMIT',
                 'language': 'pygrep',
                 'stages': [stage],
@@ -636,7 +632,7 @@ def test_stages(cap_out, store, repo_with_passing_hook):
 
 def test_commit_msg_hook(cap_out, store, commit_msg_repo):
     filename = '.git/COMMIT_EDITMSG'
-    with io.open(filename, 'w') as f:
+    with open(filename, 'w') as f:
         f.write('This is the commit message')
 
     _test_run(
@@ -652,7 +648,7 @@ def test_commit_msg_hook(cap_out, store, commit_msg_repo):
 
 def test_prepare_commit_msg_hook(cap_out, store, prepare_commit_msg_repo):
     filename = '.git/COMMIT_EDITMSG'
-    with io.open(filename, 'w') as f:
+    with open(filename, 'w') as f:
         f.write('This is the commit message')
 
     _test_run(
@@ -665,7 +661,7 @@ def test_prepare_commit_msg_hook(cap_out, store, prepare_commit_msg_repo):
         stage=False,
     )
 
-    with io.open(filename) as f:
+    with open(filename) as f:
         assert 'Signed off by: ' in f.read()
 
 
@@ -692,7 +688,7 @@ def test_local_hook_passes(cap_out, store, repo_with_passing_hook):
     }
     add_config_to_repo(repo_with_passing_hook, config)
 
-    with io.open('dummy.py', 'w') as staged_file:
+    with open('dummy.py', 'w') as staged_file:
         staged_file.write('"""TODO: something"""\n')
     cmd_output('git', 'add', 'dummy.py')
 
@@ -719,7 +715,7 @@ def test_local_hook_fails(cap_out, store, repo_with_passing_hook):
     }
     add_config_to_repo(repo_with_passing_hook, config)
 
-    with io.open('dummy.py', 'w') as staged_file:
+    with open('dummy.py', 'w') as staged_file:
         staged_file.write('"""TODO: something"""\n')
     cmd_output('git', 'add', 'dummy.py')
 

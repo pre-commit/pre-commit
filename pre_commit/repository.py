@@ -1,7 +1,4 @@
-from __future__ import unicode_literals
-
 import collections
-import io
 import json
 import logging
 import os
@@ -36,14 +33,14 @@ def _read_state(prefix, venv):
     if not os.path.exists(filename):
         return None
     else:
-        with io.open(filename) as f:
+        with open(filename) as f:
             return json.load(f)
 
 
 def _write_state(prefix, venv, state):
     state_filename = _state_filename(prefix, venv)
     staging = state_filename + 'staging'
-    with io.open(staging, 'w') as state_file:
+    with open(staging, 'w') as state_file:
         state_file.write(five.to_text(json.dumps(state)))
     # Move the file into place atomically to indicate we've installed
     os.rename(staging, state_filename)
@@ -82,7 +79,7 @@ class Hook(collections.namedtuple('Hook', ('src', 'prefix') + _KEYS)):
         )
 
     def install(self):
-        logger.info('Installing environment for {}.'.format(self.src))
+        logger.info(f'Installing environment for {self.src}.')
         logger.info('Once installed this environment will be reused.')
         logger.info('This may take a few minutes...')
 

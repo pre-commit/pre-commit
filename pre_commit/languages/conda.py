@@ -53,7 +53,7 @@ def install_environment(prefix, version, additional_dependencies):
         if additional_dependencies:
             cmd_output_b(
                 'conda', 'install', '-p', env_dir, *additional_dependencies,
-                cwd=prefix.prefix_dir
+                cwd=prefix.prefix_dir,
             )
 
 

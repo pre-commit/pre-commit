@@ -1,13 +1,7 @@
-from __future__ import absolute_import
-from __future__ import print_function
-from __future__ import unicode_literals
-
 import contextlib
 import os.path
 import sys
 import traceback
-
-import six
 
 import pre_commit.constants as C
 from pre_commit import five
@@ -23,7 +17,7 @@ def _to_bytes(exc):
     try:
         return bytes(exc)
     except Exception:
-        return six.text_type(exc).encode('UTF-8')
+        return str(exc).encode('UTF-8')
 
 
 def _log_and_exit(msg, exc, formatted):
@@ -35,7 +29,7 @@ def _log_and_exit(msg, exc, formatted):
     output.write_line(error_msg)
     store = Store()
     log_path = os.path.join(store.directory, 'pre-commit.log')
-    output.write_line('Check the log at {}'.format(log_path))
+    output.write_line(f'Check the log at {log_path}')
 
     with open(log_path, 'wb') as log:
         def _log_line(*s):  # type: (*str) -> None
@@ -44,13 +38,13 @@ def _log_and_exit(msg, exc, formatted):
         _log_line('### version information')
         _log_line()
         _log_line('```')
-        _log_line('pre-commit version: {}'.format(C.VERSION))
+        _log_line(f'pre-commit version: {C.VERSION}')
         _log_line('sys.version:')
         for line in sys.version.splitlines():
-            _log_line('    {}'.format(line))
-        _log_line('sys.executable: {}'.format(sys.executable))
-        _log_line('os.name: {}'.format(os.name))
-        _log_line('sys.platform: {}'.format(sys.platform))
+            _log_line(f'    {line}')
+        _log_line(f'sys.executable: {sys.executable}')
+        _log_line(f'os.name: {os.name}')
+        _log_line(f'sys.platform: {sys.platform}')
         _log_line('```')
         _log_line()
 

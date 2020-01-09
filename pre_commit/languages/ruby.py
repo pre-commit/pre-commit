@@ -1,7 +1,4 @@
-from __future__ import unicode_literals
-
 import contextlib
-import io
 import os.path
 import shutil
 import tarfile
@@ -66,7 +63,7 @@ def _install_rbenv(prefix, version=C.DEFAULT):  # pragma: windows no cover
         _extract_resource('ruby-build.tar.gz', plugins_dir)
 
     activate_path = prefix.path(directory, 'bin', 'activate')
-    with io.open(activate_path, 'w') as activate_file:
+    with open(activate_path, 'w') as activate_file:
         # This is similar to how you would install rbenv to your home directory
         # However we do a couple things to make the executables exposed and
         # configure it to work in our directory.
@@ -86,7 +83,7 @@ def _install_rbenv(prefix, version=C.DEFAULT):  # pragma: windows no cover
 
         # If we aren't using the system ruby, add a version here
         if version != C.DEFAULT:
-            activate_file.write('export RBENV_VERSION="{}"\n'.format(version))
+            activate_file.write(f'export RBENV_VERSION="{version}"\n')
 
 
 def _install_ruby(prefix, version):  # pragma: windows no cover

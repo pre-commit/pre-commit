@@ -1,8 +1,3 @@
-# -*- coding: UTF-8 -*-
-from __future__ import absolute_import
-from __future__ import unicode_literals
-
-import io
 import os.path
 import re
 import sys
@@ -123,7 +118,7 @@ def _get_commit_output(tempdir_factory, touch_file='foo', **kwargs):
         fn=cmd_output_mocked_pre_commit_home,
         retcode=None,
         tempdir_factory=tempdir_factory,
-        **kwargs
+        **kwargs,
     )
 
 
@@ -203,7 +198,7 @@ def test_commit_am(tempdir_factory, store):
         open('unstaged', 'w').close()
         cmd_output('git', 'add', '.')
         git_commit(cwd=path)
-        with io.open('unstaged', 'w') as foo_file:
+        with open('unstaged', 'w') as foo_file:
             foo_file.write('Oh hai')
 
         assert install(C.CONFIG_FILE, store, hook_types=['pre-commit']) == 0
@@ -314,7 +309,7 @@ EXISTING_COMMIT_RUN = re.compile(
 
 def _write_legacy_hook(path):
     mkdirp(os.path.join(path, '.git/hooks'))
-    with io.open(os.path.join(path, '.git/hooks/pre-commit'), 'w') as f:
+    with open(os.path.join(path, '.git/hooks/pre-commit'), 'w') as f:
         f.write('#!/usr/bin/env bash\necho "legacy hook"\n')
     make_executable(f.name)
 
@@ -377,7 +372,7 @@ def test_failing_existing_hook_returns_1(tempdir_factory, store):
     with cwd(path):
         # Write out a failing "old" hook
         mkdirp(os.path.join(path, '.git/hooks'))
-        with io.open(os.path.join(path, '.git/hooks/pre-commit'), 'w') as f:
+        with open(os.path.join(path, '.git/hooks/pre-commit'), 'w') as f:
             f.write('#!/usr/bin/env bash\necho "fail!"\nexit 1\n')
         make_executable(f.name)
 
@@ -439,7 +434,7 @@ def test_replace_old_commit_script(tempdir_factory, store):
         )
 
         mkdirp(os.path.join(path, '.git/hooks'))
-        with io.open(os.path.join(path, '.git/hooks/pre-commit'), 'w') as f:
+        with open(os.path.join(path, '.git/hooks/pre-commit'), 'w') as f:
             f.write(new_contents)
         make_executable(f.name)
 
@@ -525,7 +520,7 @@ def _get_push_output(tempdir_factory, opts=()):
     return cmd_output_mocked_pre_commit_home(
         'git', 'push', 'origin', 'HEAD:new_branch', *opts,
         tempdir_factory=tempdir_factory,
-        retcode=None
+        retcode=None,
     )[:2]
 
 
@@ -616,7 +611,7 @@ def test_pre_push_legacy(tempdir_factory, store):
     cmd_output('git', 'clone', upstream, path)
     with cwd(path):
         mkdirp(os.path.join(path, '.git/hooks'))
-        with io.open(os.path.join(path, '.git/hooks/pre-push'), 'w') as f:
+        with open(os.path.join(path, '.git/hooks/pre-push'), 'w') as f:
             f.write(
                 '#!/usr/bin/env bash\n'
                 'set -eu\n'
@@ -665,7 +660,7 @@ def test_commit_msg_integration_passing(
 def test_commit_msg_legacy(commit_msg_repo, tempdir_factory, store):
     hook_path = os.path.join(commit_msg_repo, '.git/hooks/commit-msg')
     mkdirp(os.path.dirname(hook_path))
-    with io.open(hook_path, 'w') as hook_file:
+    with open(hook_path, 'w') as hook_file:
         hook_file.write(
             '#!/usr/bin/env bash\n'
             'set -eu\n'
@@ -709,7 +704,7 @@ def test_prepare_commit_msg_integration_passing(
     commit_msg_path = os.path.join(
         prepare_commit_msg_repo, '.git/COMMIT_EDITMSG',
     )
-    with io.open(commit_msg_path) as f:
+    with open(commit_msg_path) as f:
         assert 'Signed off by: ' in f.read()
 
 
@@ -720,7 +715,7 @@ def test_prepare_commit_msg_legacy(
         prepare_commit_msg_repo, '.git/hooks/prepare-commit-msg',
     )
     mkdirp(os.path.dirname(hook_path))
-    with io.open(hook_path, 'w') as hook_file:
+    with open(hook_path, 'w') as hook_file:
         hook_file.write(
             '#!/usr/bin/env bash\n'
             'set -eu\n'
@@ -739,7 +734,7 @@ def test_prepare_commit_msg_legacy(
     commit_msg_path = os.path.join(
         prepare_commit_msg_repo, '.git/COMMIT_EDITMSG',
     )
-    with io.open(commit_msg_path) as f:
+    with open(commit_msg_path) as f:
         assert 'Signed off by: ' in f.read()
 
 

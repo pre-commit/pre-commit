@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 import contextlib
 import os.path
 import subprocess
@@ -50,7 +48,7 @@ def broken_deep_listdir():  # pragma: no cover (platform specific)
     if sys.platform != 'win32':
         return False
     try:
-        os.listdir(str('\\\\?\\') + os.path.abspath(str('.')))
+        os.listdir('\\\\?\\' + os.path.abspath('.'))
     except OSError:
         return True
     try:

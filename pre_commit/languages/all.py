@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 from pre_commit.languages import conda
 from pre_commit.languages import docker
 from pre_commit.languages import docker_image

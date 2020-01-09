@@ -1,26 +1,17 @@
-from __future__ import unicode_literals
-
 import functools
 import inspect
 
 import pytest
-import six
 
 from pre_commit.languages.all import all_languages
 from pre_commit.languages.all import languages
 
 
-if six.PY2:  # pragma: no cover
-    ArgSpec = functools.partial(
-        inspect.ArgSpec, varargs=None, keywords=None, defaults=None,
-    )
-    getargspec = inspect.getargspec
-else:  # pragma: no cover
-    ArgSpec = functools.partial(
-        inspect.FullArgSpec, varargs=None, varkw=None, defaults=None,
-        kwonlyargs=[], kwonlydefaults=None, annotations={},
-    )
-    getargspec = inspect.getfullargspec
+ArgSpec = functools.partial(
+    inspect.FullArgSpec, varargs=None, varkw=None, defaults=None,
+    kwonlyargs=[], kwonlydefaults=None, annotations={},
+)
+getargspec = inspect.getfullargspec
 
 
 @pytest.mark.parametrize('language', all_languages)

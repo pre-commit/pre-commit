@@ -1,10 +1,6 @@
-from __future__ import unicode_literals
-
 import multiprocessing
 import os
 import random
-
-import six
 
 import pre_commit.constants as C
 from pre_commit.util import cmd_output_b
@@ -21,13 +17,13 @@ def environment_dir(ENVIRONMENT_DIR, language_version):
     if ENVIRONMENT_DIR is None:
         return None
     else:
-        return '{}-{}'.format(ENVIRONMENT_DIR, language_version)
+        return f'{ENVIRONMENT_DIR}-{language_version}'
 
 
 def assert_version_default(binary, version):
     if version != C.DEFAULT:
         raise AssertionError(
-            'For now, pre-commit requires system-installed {}'.format(binary),
+            f'For now, pre-commit requires system-installed {binary}',
         )
 
 
@@ -68,10 +64,7 @@ def target_concurrency(hook):
 def _shuffled(seq):
     """Deterministically shuffle identically under both py2 + py3."""
     fixed_random = random.Random()
-    if six.PY2:  # pragma: no cover (py2)
-        fixed_random.seed(FIXED_RANDOM_SEED)
-    else:  # pragma: no cover (py3)
-        fixed_random.seed(FIXED_RANDOM_SEED, version=1)
+    fixed_random.seed(FIXED_RANDOM_SEED, version=1)
 
     seq = list(seq)
     random.shuffle(seq, random=fixed_random.random)

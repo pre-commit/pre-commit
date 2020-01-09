@@ -1,7 +1,4 @@
-from __future__ import unicode_literals
-
 import contextlib
-import io
 import logging
 import os.path
 import time
@@ -54,11 +51,11 @@ def _unstaged_changes_cleared(patch_dir):
         patch_filename = os.path.join(patch_dir, patch_filename)
         logger.warning('Unstaged files detected.')
         logger.info(
-            'Stashing unstaged files to {}.'.format(patch_filename),
+            f'Stashing unstaged files to {patch_filename}.',
         )
         # Save the current unstaged changes as a patch
         mkdirp(patch_dir)
-        with io.open(patch_filename, 'wb') as patch_file:
+        with open(patch_filename, 'wb') as patch_file:
             patch_file.write(diff_stdout_binary)
 
         # Clear the working directory of unstaged changes
@@ -79,7 +76,7 @@ def _unstaged_changes_cleared(patch_dir):
                 # Roll back the changes made by hooks.
                 cmd_output_b('git', 'checkout', '--', '.')
                 _git_apply(patch_filename)
-            logger.info('Restored changes from {}.'.format(patch_filename))
+            logger.info(f'Restored changes from {patch_filename}.')
     else:
         # There weren't any staged files so we don't need to do anything
         # special

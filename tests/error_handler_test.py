@@ -1,8 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import
-from __future__ import unicode_literals
-
-import io
 import os.path
 import re
 import sys
@@ -109,7 +104,7 @@ def test_log_and_exit(cap_out, mock_store_dir):
     )
 
     assert os.path.exists(log_file)
-    with io.open(log_file) as f:
+    with open(log_file) as f:
         logged = f.read()
         expected = (
             r'^### version information\n'
@@ -158,4 +153,4 @@ def test_error_handler_no_tty(tempdir_factory):
     log_file = os.path.join(pre_commit_home, 'pre-commit.log')
     out_lines = out.splitlines()
     assert out_lines[-2] == 'An unexpected error has occurred: ValueError: ☃'
-    assert out_lines[-1] == 'Check the log at {}'.format(log_file)
+    assert out_lines[-1] == f'Check the log at {log_file}'

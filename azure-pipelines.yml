@@ -10,18 +10,17 @@ resources:
       type: github
       endpoint: github
       name: asottile/azure-pipeline-templates
-      ref: refs/tags/v0.0.15
+      ref: refs/tags/v1.0.0
 
 jobs:
 - template: job--pre-commit.yml@asottile
 - template: job--python-tox.yml@asottile
   parameters:
-    toxenvs: [py27, py37]
+    toxenvs: [py37]
     os: windows
     additional_variables:
       COVERAGE_IGNORE_WINDOWS: '# pragma: windows no cover'
       TOX_TESTENV_PASSENV: COVERAGE_IGNORE_WINDOWS
-      TEMP: C:\Temp  # remove when dropping python2
     pre_test:
     - powershell: Write-Host "##vso[task.prependpath]$env:CONDA\Scripts"
       displayName: Add conda to PATH
@@ -39,7 +38,7 @@ jobs:
       displayName: install swift
 - template: job--python-tox.yml@asottile
   parameters:
-    toxenvs: [pypy, pypy3, py27, py36, py37, py38]
+    toxenvs: [pypy3, py36, py37, py38]
     os: linux
     pre_test:
     - task: UseRubyVersion@0

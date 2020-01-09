@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 import pipes
 
 import pytest
@@ -213,7 +211,7 @@ def test_autoupdate_out_of_date_repo_with_correct_repo_name(
 
     with open(C.CONFIG_FILE) as f:
         before = f.read()
-    repo_name = 'file://{}'.format(out_of_date.path)
+    repo_name = f'file://{out_of_date.path}'
     ret = autoupdate(
         C.CONFIG_FILE, store, freeze=False, tags_only=False,
         repos=(repo_name,),
@@ -312,7 +310,7 @@ def test_autoupdate_freeze(tagged, in_tmpdir, store):
 
     assert autoupdate(C.CONFIG_FILE, store, freeze=True, tags_only=False) == 0
     with open(C.CONFIG_FILE) as f:
-        expected = 'rev: {}  # frozen: v1.2.3'.format(tagged.head_rev)
+        expected = f'rev: {tagged.head_rev}  # frozen: v1.2.3'
         assert expected in f.read()
 
     # if we un-freeze it should remove the frozen comment

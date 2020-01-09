@@ -1,7 +1,3 @@
-from __future__ import absolute_import
-from __future__ import print_function
-from __future__ import unicode_literals
-
 import argparse
 import os.path
 import tarfile
@@ -59,7 +55,7 @@ def main(argv=None):
     args = parser.parse_args(argv)
     for archive_name, repo, ref in REPOS:
         output.write_line(
-            'Making {}.tar.gz for {}@{}'.format(archive_name, repo, ref),
+            f'Making {archive_name}.tar.gz for {repo}@{ref}',
         )
         make_archive(archive_name, repo, ref, args.dest)
 

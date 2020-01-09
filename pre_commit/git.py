@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 import logging
 import os.path
 import sys
@@ -127,7 +125,7 @@ def get_changed_files(new, old):
     return zsplit(
         cmd_output(
             'git', 'diff', '--name-only', '--no-ext-diff', '-z',
-            '{}...{}'.format(old, new),
+            f'{old}...{new}',
         )[1],
     )
 
