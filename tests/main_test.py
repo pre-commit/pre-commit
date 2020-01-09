@@ -190,8 +190,3 @@ def test_expected_fatal_error_no_git_repo(in_tmpdir, cap_out, mock_store_dir):
         'Is it installed, and are you in a Git repository directory?'
     )
     assert cap_out_lines[-1] == 'Check the log at {}'.format(log_file)
-
-
-def test_warning_on_tags_only(mock_commands, cap_out, mock_store_dir):
-    main.main(('autoupdate', '--tags-only'))
-    assert '--tags-only is the default' in cap_out.get()
