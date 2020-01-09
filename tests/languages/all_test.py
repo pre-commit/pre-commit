@@ -11,7 +11,6 @@ ArgSpec = functools.partial(
     inspect.FullArgSpec, varargs=None, varkw=None, defaults=None,
     kwonlyargs=[], kwonlydefaults=None, annotations={},
 )
-getargspec = inspect.getfullargspec
 
 
 @pytest.mark.parametrize('language', all_languages)
@@ -19,7 +18,7 @@ def test_install_environment_argspec(language):
     expected_argspec = ArgSpec(
         args=['prefix', 'version', 'additional_dependencies'],
     )
-    argspec = getargspec(languages[language].install_environment)
+    argspec = inspect.getfullargpsec(languages[language].install_environment)
     assert argspec == expected_argspec
 
 
@@ -31,19 +30,19 @@ def test_ENVIRONMENT_DIR(language):
 @pytest.mark.parametrize('language', all_languages)
 def test_run_hook_argpsec(language):
     expected_argspec = ArgSpec(args=['hook', 'file_args', 'color'])
-    argspec = getargspec(languages[language].run_hook)
+    argspec = inspect.getfullargpsec(languages[language].run_hook)
     assert argspec == expected_argspec
 
 
 @pytest.mark.parametrize('language', all_languages)
 def test_get_default_version_argspec(language):
     expected_argspec = ArgSpec(args=[])
-    argspec = getargspec(languages[language].get_default_version)
+    argspec = inspect.getfullargpsec(languages[language].get_default_version)
     assert argspec == expected_argspec
 
 
 @pytest.mark.parametrize('language', all_languages)
 def test_healthy_argspec(language):
     expected_argspec = ArgSpec(args=['prefix', 'language_version'])
-    argspec = getargspec(languages[language].healthy)
+    argspec = inspect.getfullargpsec(languages[language].healthy)
     assert argspec == expected_argspec

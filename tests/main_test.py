@@ -1,7 +1,7 @@
 import argparse
 import os.path
+from unittest import mock
 
-import mock
 import pytest
 
 import pre_commit.constants as C

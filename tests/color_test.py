@@ -1,6 +1,6 @@
 import sys
+from unittest import mock
 
-import mock
 import pytest
 
 from pre_commit import envcontext

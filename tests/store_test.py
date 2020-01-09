@@ -1,7 +1,7 @@
 import os.path
 import sqlite3
+from unittest import mock
 
-import mock
 import pytest
 
 from pre_commit import git

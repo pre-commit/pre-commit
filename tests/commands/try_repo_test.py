@@ -1,8 +1,7 @@
 import os.path
 import re
 import time
-
-import mock
+from unittest import mock
 
 from pre_commit import git
 from pre_commit.commands.try_repo import try_repo

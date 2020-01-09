@@ -1,8 +1,8 @@
 import multiprocessing
 import os
 import sys
+from unittest import mock
 
-import mock
 import pytest
 
 import pre_commit.constants as C

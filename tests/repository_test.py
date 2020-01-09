@@ -2,9 +2,9 @@ import os.path
 import re
 import shutil
 import sys
+from unittest import mock
 
 import cfgv
-import mock
 import pytest
 
 import pre_commit.constants as C

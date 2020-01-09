@@ -1,6 +1,6 @@
 import os
+from unittest import mock
 
-import mock
 import pytest
 
 from pre_commit.envcontext import envcontext
@@ -91,11 +91,11 @@ def test_exception_safety():
     class MyError(RuntimeError):
         pass
 
-    env = {}
+    env = {'hello': 'world'}
     with pytest.raises(MyError):
         with envcontext([('foo', 'bar')], _env=env):
             raise MyError()
-    assert env == {}
+    assert env == {'hello': 'world'}
 
 
 def test_integration_os_environ():

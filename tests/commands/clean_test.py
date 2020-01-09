@@ -1,6 +1,6 @@
 import os.path
+from unittest import mock
 
-import mock
 import pytest
 
 from pre_commit.commands.clean import clean

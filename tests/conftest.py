@@ -2,8 +2,8 @@ import functools
 import io
 import logging
 import os.path
+from unittest import mock
 
-import mock
 import pytest
 
 from pre_commit import output

@@ -1,6 +1,5 @@
 import os.path
-
-import mock
+from unittest import mock
 
 import pre_commit.constants as C
 from pre_commit.commands.init_templatedir import init_templatedir

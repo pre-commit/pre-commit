@@ -1,8 +1,7 @@
 import os.path
 import re
 import sys
-
-import mock
+from unittest import mock
 
 import pre_commit.constants as C
 from pre_commit.commands.install_uninstall import CURRENT_HASH

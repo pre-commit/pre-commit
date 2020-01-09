@@ -1,4 +1,4 @@
-import mock
+from unittest import mock
 
 from pre_commit.languages import docker
 from pre_commit.util import CalledProcessError

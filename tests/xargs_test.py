@@ -2,10 +2,9 @@ import concurrent.futures
 import os
 import sys
 import time
+from unittest import mock
 
-import mock
 import pytest
-import six
 
 from pre_commit import parse_shebang
 from pre_commit import xargs
@@ -26,19 +25,10 @@ def test_environ_size(env, expected):
 
 
 @pytest.fixture
-def win32_py2_mock():
+def win32_mock():
     with mock.patch.object(sys, 'getfilesystemencoding', return_value='utf-8'):
         with mock.patch.object(sys, 'platform', 'win32'):
-            with mock.patch.object(six, 'PY2', True):
-                yield
-
-
-@pytest.fixture
-def win32_py3_mock():
-    with mock.patch.object(sys, 'getfilesystemencoding', return_value='utf-8'):
-        with mock.patch.object(sys, 'platform', 'win32'):
-            with mock.patch.object(six, 'PY2', False):
-                yield
+            yield
 
 
 @pytest.fixture
@@ -78,18 +68,11 @@ def test_partition_limits():
     )
 
 
-def test_partition_limit_win32_py3(win32_py3_mock):
+def test_partition_limit_win32(win32_mock):
     cmd = ('ninechars',)
     # counted as half because of utf-16 encode
     varargs = ('😑' * 5,)
     ret = xargs.partition(cmd, varargs, 1, _max_length=21)
-    assert ret == (cmd + varargs,)
-
-
-def test_partition_limit_win32_py2(win32_py2_mock):
-    cmd = ('ninechars',)
-    varargs = ('😑' * 5,)  # 4 bytes * 5
-    ret = xargs.partition(cmd, varargs, 1, _max_length=31)
     assert ret == (cmd + varargs,)
 
 

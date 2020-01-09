@@ -2,8 +2,8 @@ import os.path
 import pipes
 import sys
 import time
+from unittest import mock
 
-import mock
 import pytest
 
 import pre_commit.constants as C

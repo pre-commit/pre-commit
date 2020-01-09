@@ -1,8 +1,8 @@
 import os.path
 import re
 import sys
+from unittest import mock
 
-import mock
 import pytest
 
 from pre_commit import error_handler

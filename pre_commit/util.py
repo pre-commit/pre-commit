@@ -80,7 +80,7 @@ class CalledProcessError(RuntimeError):
         self.stdout = stdout
         self.stderr = stderr
 
-    def to_bytes(self):
+    def __bytes__(self):
         def _indent_or_none(part):
             if part:
                 return b'\n    ' + part.replace(b'\n', b'\n    ')
@@ -97,11 +97,8 @@ class CalledProcessError(RuntimeError):
             b'stderr:', _indent_or_none(self.stderr),
         ))
 
-    def to_text(self):
-        return self.to_bytes().decode('UTF-8')
-
-    __bytes__ = to_bytes
-    __str__ = to_text
+    def __str__(self):
+        return self.__bytes__().decode('UTF-8')
 
 
 def _cmd_kwargs(*cmd, **kwargs):
