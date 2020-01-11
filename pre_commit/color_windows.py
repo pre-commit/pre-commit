@@ -1,10 +1,14 @@
-from ctypes import POINTER
-from ctypes import windll
-from ctypes import WinError
-from ctypes import WINFUNCTYPE
-from ctypes.wintypes import BOOL
-from ctypes.wintypes import DWORD
-from ctypes.wintypes import HANDLE
+import sys
+assert sys.platform == 'win32'
+
+from ctypes import POINTER  # noqa: E402
+from ctypes import windll  # noqa: E402
+from ctypes import WinError  # noqa: E402
+from ctypes import WINFUNCTYPE  # noqa: E402
+from ctypes.wintypes import BOOL  # noqa: E402
+from ctypes.wintypes import DWORD  # noqa: E402
+from ctypes.wintypes import HANDLE  # noqa: E402
+
 
 STD_OUTPUT_HANDLE = -11
 ENABLE_VIRTUAL_TERMINAL_PROCESSING = 4

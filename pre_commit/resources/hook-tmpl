@@ -4,6 +4,7 @@ import distutils.spawn
 import os
 import subprocess
 import sys
+from typing import Tuple
 
 # work around https://github.com/Homebrew/homebrew-core/issues/30445
 os.environ.pop('__PYVENV_LAUNCHER__', None)
@@ -12,10 +13,10 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 Z40 = '0' * 40
 ID_HASH = '138fd403232d2ddd5efb44317e38bf03'
 # start templated
-CONFIG = None
-HOOK_TYPE = None
-INSTALL_PYTHON = None
-SKIP_ON_MISSING_CONFIG = None
+CONFIG = ''
+HOOK_TYPE = ''
+INSTALL_PYTHON = ''
+SKIP_ON_MISSING_CONFIG = False
 # end templated
 
 
@@ -123,7 +124,7 @@ def _rev_exists(rev):
 def _pre_push(stdin):
     remote = sys.argv[1]
 
-    opts = ()
+    opts: Tuple[str, ...] = ()
     for line in stdin.decode('UTF-8').splitlines():
         _, local_sha, _, remote_sha = line.split()
         if local_sha == Z40:
@@ -146,8 +147,8 @@ def _pre_push(stdin):
                     # pushing the whole tree including root commit
                     opts = ('--all-files',)
                 else:
-                    cmd = ('git', 'rev-parse', f'{first_ancestor}^')
-                    source = subprocess.check_output(cmd).decode().strip()
+                    rev_cmd = ('git', 'rev-parse', f'{first_ancestor}^')
+                    source = subprocess.check_output(rev_cmd).decode().strip()
                     opts = ('--origin', local_sha, '--source', source)
 
     if opts:

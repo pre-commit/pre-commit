@@ -1,5 +1,8 @@
 import argparse
 import os.path
+from typing import NamedTuple
+from typing import Optional
+from typing import Sequence
 from unittest import mock
 
 import pytest
@@ -24,11 +27,11 @@ def test_append_replace_default(argv, expected):
     assert parser.parse_args(argv).f == expected
 
 
-class Args:
-    def __init__(self, **kwargs):
-        kwargs.setdefault('command', 'help')
-        kwargs.setdefault('config', C.CONFIG_FILE)
-        self.__dict__.update(kwargs)
+class Args(NamedTuple):
+    command: str = 'help'
+    config: str = C.CONFIG_FILE
+    files: Sequence[str] = []
+    repo: Optional[str] = None
 
 
 def test_adjust_args_and_chdir_not_in_git_dir(in_tmpdir):
@@ -73,6 +76,7 @@ def test_adjust_args_try_repo_repo_relative(in_git_dir):
     in_git_dir.join('foo').ensure_dir().chdir()
 
     args = Args(command='try-repo', repo='../foo', files=[])
+    assert args.repo is not None
     assert os.path.exists(args.repo)
     main._adjust_args_and_chdir(args)
     assert os.getcwd() == in_git_dir

@@ -1,8 +1,8 @@
+import contextlib
 import sys
 
 from pre_commit import color
 from pre_commit import five
-from pre_commit.util import noop_context
 
 
 def get_hook_message(
@@ -71,14 +71,12 @@ def write(s, stream=stdout_byte_stream):
 
 
 def write_line(s=None, stream=stdout_byte_stream, logfile_name=None):
-    output_streams = [stream]
-    if logfile_name:
-        ctx = open(logfile_name, 'ab')
-        output_streams.append(ctx)
-    else:
-        ctx = noop_context()
+    with contextlib.ExitStack() as exit_stack:
+        output_streams = [stream]
+        if logfile_name:
+            stream = exit_stack.enter_context(open(logfile_name, 'ab'))
+            output_streams.append(stream)
 
-    with ctx:
         for output_stream in output_streams:
             if s is not None:
                 output_stream.write(five.to_bytes(s))

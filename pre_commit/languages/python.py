@@ -1,4 +1,5 @@
 import contextlib
+import functools
 import os
 import sys
 
@@ -64,7 +65,8 @@ def _find_by_sys_executable():
     return None
 
 
-def _get_default_version():  # pragma: no cover (platform dependent)
+@functools.lru_cache(maxsize=1)
+def get_default_version():  # pragma: no cover (platform dependent)
     # First attempt from `sys.executable` (or the realpath)
     exe = _find_by_sys_executable()
     if exe:
@@ -84,15 +86,6 @@ def _get_default_version():  # pragma: no cover (platform dependent)
 
     # We tried!
     return C.DEFAULT
-
-
-def get_default_version():
-    # TODO: when dropping python2, use `functools.lru_cache(maxsize=1)`
-    try:
-        return get_default_version.cached_version
-    except AttributeError:
-        get_default_version.cached_version = _get_default_version()
-        return get_default_version()
 
 
 def _sys_executable_matches(version):

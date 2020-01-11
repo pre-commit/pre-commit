@@ -1,13 +1,26 @@
-import collections
 import contextlib
+import enum
 import os
+from typing import NamedTuple
+from typing import Tuple
+from typing import Union
 
 
-UNSET = collections.namedtuple('UNSET', ())()
+class _Unset(enum.Enum):
+    UNSET = 1
 
 
-Var = collections.namedtuple('Var', ('name', 'default'))
-Var.__new__.__defaults__ = ('',)
+UNSET = _Unset.UNSET
+
+
+class Var(NamedTuple):
+    name: str
+    default: str = ''
+
+
+SubstitutionT = Tuple[Union[str, Var], ...]
+ValueT = Union[str, _Unset, SubstitutionT]
+PatchesT = Tuple[Tuple[str, ValueT], ...]
 
 
 def format_env(parts, env):

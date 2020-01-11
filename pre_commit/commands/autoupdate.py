@@ -1,6 +1,8 @@
 import collections
 import os.path
 import re
+from typing import List
+from typing import Optional
 
 from aspy.yaml import ordered_dump
 from aspy.yaml import ordered_load
@@ -121,7 +123,7 @@ def autoupdate(config_file, store, tags_only, freeze, repos=()):
     """Auto-update the pre-commit config to the latest versions of repos."""
     migrate_config(config_file, quiet=True)
     retv = 0
-    rev_infos = []
+    rev_infos: List[Optional[RevInfo]] = []
     changed = False
 
     config = load_config(config_file)

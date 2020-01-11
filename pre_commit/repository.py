@@ -1,8 +1,10 @@
-import collections
 import json
 import logging
 import os
 import shlex
+from typing import NamedTuple
+from typing import Sequence
+from typing import Set
 
 import pre_commit.constants as C
 from pre_commit import five
@@ -49,8 +51,29 @@ def _write_state(prefix, venv, state):
 _KEYS = tuple(item.key for item in MANIFEST_HOOK_DICT.items)
 
 
-class Hook(collections.namedtuple('Hook', ('src', 'prefix') + _KEYS)):
-    __slots__ = ()
+class Hook(NamedTuple):
+    src: str
+    prefix: Prefix
+    id: str
+    name: str
+    entry: str
+    language: str
+    alias: str
+    files: str
+    exclude: str
+    types: Sequence[str]
+    exclude_types: Sequence[str]
+    additional_dependencies: Sequence[str]
+    args: Sequence[str]
+    always_run: bool
+    pass_filenames: bool
+    description: str
+    language_version: str
+    log_file: str
+    minimum_pre_commit_version: str
+    require_serial: bool
+    stages: Sequence[str]
+    verbose: bool
 
     @property
     def cmd(self):
@@ -201,7 +224,7 @@ def _repository_hooks(repo_config, store, root_config):
 
 def install_hook_envs(hooks, store):
     def _need_installed():
-        seen = set()
+        seen: Set[Hook] = set()
         ret = []
         for hook in hooks:
             if hook.install_key not in seen and not hook.installed():

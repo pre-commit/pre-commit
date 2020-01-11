@@ -2,6 +2,7 @@ import contextlib
 import os
 
 from pre_commit.envcontext import envcontext
+from pre_commit.envcontext import SubstitutionT
 from pre_commit.envcontext import UNSET
 from pre_commit.envcontext import Var
 from pre_commit.languages import helpers
@@ -18,7 +19,7 @@ def get_env_patch(env):
     # they can be in $CONDA_PREFIX/bin, $CONDA_PREFIX/Library/bin,
     # $CONDA_PREFIX/Scripts and $CONDA_PREFIX. Whereas the latter only
     # seems to be used for python.exe.
-    path = (os.path.join(env, 'bin'), os.pathsep, Var('PATH'))
+    path: SubstitutionT = (os.path.join(env, 'bin'), os.pathsep, Var('PATH'))
     if os.name == 'nt':  # pragma: no cover (platform specific)
         path = (env, os.pathsep) + path
         path = (os.path.join(env, 'Scripts'), os.pathsep) + path

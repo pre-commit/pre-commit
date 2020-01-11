@@ -2,6 +2,8 @@ import os.path
 import re
 import shutil
 import sys
+from typing import Any
+from typing import Dict
 from unittest import mock
 
 import cfgv
@@ -763,7 +765,7 @@ def test_local_python_repo(store, local_python_config):
 
 
 def test_default_language_version(store, local_python_config):
-    config = {
+    config: Dict[str, Any] = {
         'default_language_version': {'python': 'fake'},
         'default_stages': ['commit'],
         'repos': [local_python_config],
@@ -780,7 +782,7 @@ def test_default_language_version(store, local_python_config):
 
 
 def test_default_stages(store, local_python_config):
-    config = {
+    config: Dict[str, Any] = {
         'default_language_version': {'python': C.DEFAULT},
         'default_stages': ['commit'],
         'repos': [local_python_config],

@@ -1,8 +1,9 @@
 import contextlib
 import errno
+import os
 
 
-try:  # pragma: no cover (windows)
+if os.name == 'nt':  # pragma: no cover (windows)
     import msvcrt
 
     # https://docs.microsoft.com/en-us/cpp/c-runtime-library/reference/locking
@@ -14,12 +15,14 @@ try:  # pragma: no cover (windows)
     @contextlib.contextmanager
     def _locked(fileno, blocked_cb):
         try:
-            msvcrt.locking(fileno, msvcrt.LK_NBLCK, _region)
+            # TODO: https://github.com/python/typeshed/pull/3607
+            msvcrt.locking(fileno, msvcrt.LK_NBLCK, _region)  # type: ignore
         except OSError:
             blocked_cb()
             while True:
                 try:
-                    msvcrt.locking(fileno, msvcrt.LK_LOCK, _region)
+                    # TODO: https://github.com/python/typeshed/pull/3607
+                    msvcrt.locking(fileno, msvcrt.LK_LOCK, _region)  # type: ignore  # noqa: E501
                 except OSError as e:
                     # Locking violation. Returned when the _LK_LOCK or _LK_RLCK
                     # flag is specified and the file cannot be locked after 10
@@ -37,8 +40,9 @@ try:  # pragma: no cover (windows)
             # The documentation however states:
             # "Regions should be locked only briefly and should be unlocked
             # before closing a file or exiting the program."
-            msvcrt.locking(fileno, msvcrt.LK_UNLCK, _region)
-except ImportError:  # pragma: windows no cover
+            # TODO: https://github.com/python/typeshed/pull/3607
+            msvcrt.locking(fileno, msvcrt.LK_UNLCK, _region)  # type: ignore
+else:  # pramga: windows no cover
     import fcntl
 
     @contextlib.contextmanager

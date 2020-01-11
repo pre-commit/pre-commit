@@ -1,5 +1,6 @@
 import hashlib
 import os
+from typing import Tuple
 
 import pre_commit.constants as C
 from pre_commit import five
@@ -42,7 +43,7 @@ def assert_docker_available():  # pragma: windows no cover
 def build_docker_image(prefix, **kwargs):  # pragma: windows no cover
     pull = kwargs.pop('pull')
     assert not kwargs, kwargs
-    cmd = (
+    cmd: Tuple[str, ...] = (
         'docker', 'build',
         '--tag', docker_tag(prefix),
         '--label', PRE_COMMIT_LABEL,

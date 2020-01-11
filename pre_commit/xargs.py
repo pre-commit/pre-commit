@@ -4,6 +4,7 @@ import math
 import os
 import subprocess
 import sys
+from typing import List
 
 from pre_commit import parse_shebang
 from pre_commit.util import cmd_output_b
@@ -56,7 +57,7 @@ def partition(cmd, varargs, target_concurrency, _max_length=None):
     cmd = tuple(cmd)
     ret = []
 
-    ret_cmd = []
+    ret_cmd: List[str] = []
     # Reversed so arguments are in order
     varargs = list(reversed(varargs))
 

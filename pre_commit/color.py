@@ -2,7 +2,7 @@ import os
 import sys
 
 terminal_supports_color = True
-if os.name == 'nt':  # pragma: no cover (windows)
+if sys.platform == 'win32':  # pragma: no cover (windows)
     from pre_commit.color_windows import enable_virtual_terminal_processing
     try:
         enable_virtual_terminal_processing()

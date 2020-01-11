@@ -24,7 +24,8 @@ def patch_dir(tempdir_factory):
 
 def get_short_git_status():
     git_status = cmd_output('git', 'status', '-s')[1]
-    return dict(reversed(line.split()) for line in git_status.splitlines())
+    line_parts = [line.split() for line in git_status.splitlines()]
+    return {v: k for k, v in line_parts}
 
 
 @pytest.fixture

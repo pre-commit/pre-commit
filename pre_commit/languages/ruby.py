@@ -5,6 +5,7 @@ import tarfile
 
 import pre_commit.constants as C
 from pre_commit.envcontext import envcontext
+from pre_commit.envcontext import PatchesT
 from pre_commit.envcontext import Var
 from pre_commit.languages import helpers
 from pre_commit.util import CalledProcessError
@@ -18,7 +19,7 @@ healthy = helpers.basic_healthy
 
 
 def get_env_patch(venv, language_version):  # pragma: windows no cover
-    patches = (
+    patches: PatchesT = (
         ('GEM_HOME', os.path.join(venv, 'gems')),
         ('RBENV_ROOT', venv),
         ('BUNDLE_IGNORE_CONFIG', '1'),

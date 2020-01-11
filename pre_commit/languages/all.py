@@ -1,3 +1,6 @@
+from typing import Any
+from typing import Dict
+
 from pre_commit.languages import conda
 from pre_commit.languages import docker
 from pre_commit.languages import docker_image
@@ -12,6 +15,7 @@ from pre_commit.languages import rust
 from pre_commit.languages import script
 from pre_commit.languages import swift
 from pre_commit.languages import system
+
 
 # A language implements the following constant and functions in its module:
 #
@@ -49,7 +53,7 @@ from pre_commit.languages import system
 #         (returncode, output)
 #     """
 
-languages = {
+languages: Dict[str, Any] = {
     'conda': conda,
     'docker': docker,
     'docker_image': docker_image,

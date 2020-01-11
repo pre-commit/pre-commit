@@ -2,6 +2,7 @@ import contextlib
 import os.path
 import sys
 import traceback
+from typing import Union
 
 import pre_commit.constants as C
 from pre_commit import five
@@ -32,8 +33,8 @@ def _log_and_exit(msg, exc, formatted):
     output.write_line(f'Check the log at {log_path}')
 
     with open(log_path, 'wb') as log:
-        def _log_line(*s):  # type: (*str) -> None
-            output.write_line(*s, stream=log)
+        def _log_line(s: Union[None, str, bytes] = None) -> None:
+            output.write_line(s, stream=log)
 
         _log_line('### version information')
         _log_line()
