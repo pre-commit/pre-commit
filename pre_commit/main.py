@@ -148,7 +148,7 @@ def _adjust_args_and_chdir(args):
 def main(argv=None):
     argv = argv if argv is not None else sys.argv[1:]
     argv = [five.to_text(arg) for arg in argv]
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(prog='pre-commit')
 
     # https://stackoverflow.com/a/8521644/812183
     parser.add_argument(
