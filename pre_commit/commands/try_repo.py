@@ -1,6 +1,8 @@
+import argparse
 import collections
 import logging
 import os.path
+from typing import Tuple
 
 from aspy.yaml import ordered_dump
 
@@ -17,7 +19,7 @@ from pre_commit.xargs import xargs
 logger = logging.getLogger(__name__)
 
 
-def _repo_ref(tmpdir, repo, ref):
+def _repo_ref(tmpdir: str, repo: str, ref: str) -> Tuple[str, str]:
     # if `ref` is explicitly passed, use it
     if ref:
         return repo, ref
@@ -47,7 +49,7 @@ def _repo_ref(tmpdir, repo, ref):
         return repo, ref
 
 
-def try_repo(args):
+def try_repo(args: argparse.Namespace) -> int:
     with tmpdir() as tempdir:
         repo, ref = _repo_ref(tempdir, args.repo, args.ref)
 

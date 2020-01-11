@@ -1,4 +1,6 @@
 import argparse
+from typing import Optional
+from typing import Sequence
 
 import pre_commit.constants as C
 from pre_commit import git
@@ -8,7 +10,7 @@ from pre_commit.repository import all_hooks
 from pre_commit.store import Store
 
 
-def check_all_hooks_match_files(config_file):
+def check_all_hooks_match_files(config_file: str) -> int:
     classifier = Classifier(git.get_all_files())
     retv = 0
 
@@ -22,7 +24,7 @@ def check_all_hooks_match_files(config_file):
     return retv
 
 
-def main(argv=None):
+def main(argv: Optional[Sequence[str]] = None) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument('filenames', nargs='*', default=[C.CONFIG_FILE])
     args = parser.parse_args(argv)

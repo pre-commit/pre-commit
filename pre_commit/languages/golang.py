@@ -1,31 +1,39 @@
 import contextlib
 import os.path
 import sys
+from typing import Generator
+from typing import Sequence
+from typing import Tuple
+from typing import TYPE_CHECKING
 
 import pre_commit.constants as C
 from pre_commit import git
 from pre_commit.envcontext import envcontext
+from pre_commit.envcontext import PatchesT
 from pre_commit.envcontext import Var
 from pre_commit.languages import helpers
+from pre_commit.prefix import Prefix
 from pre_commit.util import clean_path_on_failure
 from pre_commit.util import cmd_output
 from pre_commit.util import cmd_output_b
 from pre_commit.util import rmtree
 
+if TYPE_CHECKING:
+    from pre_commit.repository import Hook
 
 ENVIRONMENT_DIR = 'golangenv'
 get_default_version = helpers.basic_get_default_version
 healthy = helpers.basic_healthy
 
 
-def get_env_patch(venv):
+def get_env_patch(venv: str) -> PatchesT:
     return (
         ('PATH', (os.path.join(venv, 'bin'), os.pathsep, Var('PATH'))),
     )
 
 
 @contextlib.contextmanager
-def in_env(prefix):
+def in_env(prefix: Prefix) -> Generator[None, None, None]:
     envdir = prefix.path(
         helpers.environment_dir(ENVIRONMENT_DIR, C.DEFAULT),
     )
@@ -33,7 +41,7 @@ def in_env(prefix):
         yield
 
 
-def guess_go_dir(remote_url):
+def guess_go_dir(remote_url: str) -> str:
     if remote_url.endswith('.git'):
         remote_url = remote_url[:-1 * len('.git')]
     looks_like_url = (
@@ -49,7 +57,11 @@ def guess_go_dir(remote_url):
         return 'unknown_src_dir'
 
 
-def install_environment(prefix, version, additional_dependencies):
+def install_environment(
+        prefix: Prefix,
+        version: str,
+        additional_dependencies: Sequence[str],
+) -> None:
     helpers.assert_version_default('golang', version)
     directory = prefix.path(
         helpers.environment_dir(ENVIRONMENT_DIR, C.DEFAULT),
@@ -79,6 +91,10 @@ def install_environment(prefix, version, additional_dependencies):
             rmtree(pkgdir)
 
 
-def run_hook(hook, file_args, color):
+def run_hook(
+        hook: 'Hook',
+        file_args: Sequence[str],
+        color: bool,
+) -> Tuple[int, bytes]:
     with in_env(hook.prefix):
         return helpers.run_xargs(hook, hook.cmd, file_args, color=color)

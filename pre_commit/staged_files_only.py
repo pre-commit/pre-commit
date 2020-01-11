@@ -2,6 +2,7 @@ import contextlib
 import logging
 import os.path
 import time
+from typing import Generator
 
 from pre_commit import git
 from pre_commit.util import CalledProcessError
@@ -14,7 +15,7 @@ from pre_commit.xargs import xargs
 logger = logging.getLogger('pre_commit')
 
 
-def _git_apply(patch):
+def _git_apply(patch: str) -> None:
     args = ('apply', '--whitespace=nowarn', patch)
     try:
         cmd_output_b('git', *args)
@@ -24,7 +25,7 @@ def _git_apply(patch):
 
 
 @contextlib.contextmanager
-def _intent_to_add_cleared():
+def _intent_to_add_cleared() -> Generator[None, None, None]:
     intent_to_add = git.intent_to_add_files()
     if intent_to_add:
         logger.warning('Unstaged intent-to-add files detected.')
@@ -39,7 +40,7 @@ def _intent_to_add_cleared():
 
 
 @contextlib.contextmanager
-def _unstaged_changes_cleared(patch_dir):
+def _unstaged_changes_cleared(patch_dir: str) -> Generator[None, None, None]:
     tree = cmd_output('git', 'write-tree')[1].strip()
     retcode, diff_stdout_binary, _ = cmd_output_b(
         'git', 'diff-index', '--ignore-submodules', '--binary',
@@ -84,7 +85,7 @@ def _unstaged_changes_cleared(patch_dir):
 
 
 @contextlib.contextmanager
-def staged_files_only(patch_dir):
+def staged_files_only(patch_dir: str) -> Generator[None, None, None]:
     """Clear any unstaged changes from the git working directory inside this
     context.
     """

@@ -1,20 +1,29 @@
 import contextlib
 import os
+from typing import Generator
+from typing import Sequence
+from typing import Tuple
+from typing import TYPE_CHECKING
 
 from pre_commit.envcontext import envcontext
+from pre_commit.envcontext import PatchesT
 from pre_commit.envcontext import SubstitutionT
 from pre_commit.envcontext import UNSET
 from pre_commit.envcontext import Var
 from pre_commit.languages import helpers
+from pre_commit.prefix import Prefix
 from pre_commit.util import clean_path_on_failure
 from pre_commit.util import cmd_output_b
+
+if TYPE_CHECKING:
+    from pre_commit.repository import Hook
 
 ENVIRONMENT_DIR = 'conda'
 get_default_version = helpers.basic_get_default_version
 healthy = helpers.basic_healthy
 
 
-def get_env_patch(env):
+def get_env_patch(env: str) -> PatchesT:
     # On non-windows systems executable live in $CONDA_PREFIX/bin, on Windows
     # they can be in $CONDA_PREFIX/bin, $CONDA_PREFIX/Library/bin,
     # $CONDA_PREFIX/Scripts and $CONDA_PREFIX. Whereas the latter only
@@ -34,14 +43,21 @@ def get_env_patch(env):
 
 
 @contextlib.contextmanager
-def in_env(prefix, language_version):
+def in_env(
+        prefix: Prefix,
+        language_version: str,
+) -> Generator[None, None, None]:
     directory = helpers.environment_dir(ENVIRONMENT_DIR, language_version)
     envdir = prefix.path(directory)
     with envcontext(get_env_patch(envdir)):
         yield
 
 
-def install_environment(prefix, version, additional_dependencies):
+def install_environment(
+        prefix: Prefix,
+        version: str,
+        additional_dependencies: Sequence[str],
+) -> None:
     helpers.assert_version_default('conda', version)
     directory = helpers.environment_dir(ENVIRONMENT_DIR, version)
 
@@ -58,7 +74,11 @@ def install_environment(prefix, version, additional_dependencies):
             )
 
 
-def run_hook(hook, file_args, color):
+def run_hook(
+        hook: 'Hook',
+        file_args: Sequence[str],
+        color: bool,
+) -> Tuple[int, bytes]:
     # TODO: Some rare commands need to be run using `conda run` but mostly we
     #       can run them withot which is much quicker and produces a better
     #       output.

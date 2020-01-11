@@ -1,8 +1,17 @@
+import argparse
+import functools
 import logging
 import os
 import re
 import subprocess
 import time
+from typing import Any
+from typing import Collection
+from typing import Dict
+from typing import List
+from typing import Sequence
+from typing import Set
+from typing import Tuple
 
 from identify.identify import tags_from_path
 
@@ -12,16 +21,23 @@ from pre_commit import output
 from pre_commit.clientlib import load_config
 from pre_commit.output import get_hook_message
 from pre_commit.repository import all_hooks
+from pre_commit.repository import Hook
 from pre_commit.repository import install_hook_envs
 from pre_commit.staged_files_only import staged_files_only
+from pre_commit.store import Store
 from pre_commit.util import cmd_output_b
+from pre_commit.util import EnvironT
 from pre_commit.util import noop_context
 
 
 logger = logging.getLogger('pre_commit')
 
 
-def filter_by_include_exclude(names, include, exclude):
+def filter_by_include_exclude(
+        names: Collection[str],
+        include: str,
+        exclude: str,
+) -> List[str]:
     include_re, exclude_re = re.compile(include), re.compile(exclude)
     return [
         filename for filename in names
@@ -31,24 +47,25 @@ def filter_by_include_exclude(names, include, exclude):
 
 
 class Classifier:
-    def __init__(self, filenames):
+    def __init__(self, filenames: Sequence[str]) -> None:
         # on windows we normalize all filenames to use forward slashes
         # this makes it easier to filter using the `files:` regex
         # this also makes improperly quoted shell-based hooks work better
         # see #1173
         if os.altsep == '/' and os.sep == '\\':
-            filenames = (f.replace(os.sep, os.altsep) for f in filenames)
+            filenames = [f.replace(os.sep, os.altsep) for f in filenames]
         self.filenames = [f for f in filenames if os.path.lexists(f)]
-        self._types_cache = {}
 
-    def _types_for_file(self, filename):
-        try:
-            return self._types_cache[filename]
-        except KeyError:
-            ret = self._types_cache[filename] = tags_from_path(filename)
-            return ret
+    @functools.lru_cache(maxsize=None)
+    def _types_for_file(self, filename: str) -> Set[str]:
+        return tags_from_path(filename)
 
-    def by_types(self, names, types, exclude_types):
+    def by_types(
+            self,
+            names: Sequence[str],
+            types: Collection[str],
+            exclude_types: Collection[str],
+    ) -> List[str]:
         types, exclude_types = frozenset(types), frozenset(exclude_types)
         ret = []
         for filename in names:
@@ -57,14 +74,14 @@ class Classifier:
                 ret.append(filename)
         return ret
 
-    def filenames_for_hook(self, hook):
+    def filenames_for_hook(self, hook: Hook) -> Tuple[str, ...]:
         names = self.filenames
         names = filter_by_include_exclude(names, hook.files, hook.exclude)
         names = self.by_types(names, hook.types, hook.exclude_types)
-        return names
+        return tuple(names)
 
 
-def _get_skips(environ):
+def _get_skips(environ: EnvironT) -> Set[str]:
     skips = environ.get('SKIP', '')
     return {skip.strip() for skip in skips.split(',') if skip.strip()}
 
@@ -73,11 +90,18 @@ SKIPPED = 'Skipped'
 NO_FILES = '(no files to check)'
 
 
-def _subtle_line(s, use_color):
+def _subtle_line(s: str, use_color: bool) -> None:
     output.write_line(color.format_color(s, color.SUBTLE, use_color))
 
 
-def _run_single_hook(classifier, hook, skips, cols, verbose, use_color):
+def _run_single_hook(
+        classifier: Classifier,
+        hook: Hook,
+        skips: Set[str],
+        cols: int,
+        verbose: bool,
+        use_color: bool,
+) -> bool:
     filenames = classifier.filenames_for_hook(hook)
 
     if hook.id in skips or hook.alias in skips:
@@ -115,7 +139,8 @@ def _run_single_hook(classifier, hook, skips, cols, verbose, use_color):
 
         diff_cmd = ('git', 'diff', '--no-ext-diff')
         diff_before = cmd_output_b(*diff_cmd, retcode=None)
-        filenames = tuple(filenames) if hook.pass_filenames else ()
+        if not hook.pass_filenames:
+            filenames = ()
         time_before = time.time()
         retcode, out = hook.run(filenames, use_color)
         duration = round(time.time() - time_before, 2) or 0
@@ -154,7 +179,7 @@ def _run_single_hook(classifier, hook, skips, cols, verbose, use_color):
     return files_modified or bool(retcode)
 
 
-def _compute_cols(hooks):
+def _compute_cols(hooks: Sequence[Hook]) -> int:
     """Compute the number of columns to display hook messages.  The widest
     that will be displayed is in the no files skipped case:
 
@@ -169,7 +194,7 @@ def _compute_cols(hooks):
     return max(cols, 80)
 
 
-def _all_filenames(args):
+def _all_filenames(args: argparse.Namespace) -> Collection[str]:
     if args.origin and args.source:
         return git.get_changed_files(args.origin, args.source)
     elif args.hook_stage in {'prepare-commit-msg', 'commit-msg'}:
@@ -184,7 +209,12 @@ def _all_filenames(args):
         return git.get_staged_files()
 
 
-def _run_hooks(config, hooks, args, environ):
+def _run_hooks(
+        config: Dict[str, Any],
+        hooks: Sequence[Hook],
+        args: argparse.Namespace,
+        environ: EnvironT,
+) -> int:
     """Actually run the hooks."""
     skips = _get_skips(environ)
     cols = _compute_cols(hooks)
@@ -221,12 +251,12 @@ def _run_hooks(config, hooks, args, environ):
     return retval
 
 
-def _has_unmerged_paths():
+def _has_unmerged_paths() -> bool:
     _, stdout, _ = cmd_output_b('git', 'ls-files', '--unmerged')
     return bool(stdout.strip())
 
 
-def _has_unstaged_config(config_file):
+def _has_unstaged_config(config_file: str) -> bool:
     retcode, _, _ = cmd_output_b(
         'git', 'diff', '--no-ext-diff', '--exit-code', config_file,
         retcode=None,
@@ -235,7 +265,12 @@ def _has_unstaged_config(config_file):
     return retcode == 1
 
 
-def run(config_file, store, args, environ=os.environ):
+def run(
+        config_file: str,
+        store: Store,
+        args: argparse.Namespace,
+        environ: EnvironT = os.environ,
+) -> int:
     no_stash = args.all_files or bool(args.files)
 
     # Check if we have unresolved merge conflict files and fail fast.

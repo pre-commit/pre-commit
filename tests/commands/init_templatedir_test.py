@@ -24,7 +24,7 @@ def test_init_templatedir(tmpdir, tempdir_factory, store, cap_out):
         '[WARNING] maybe `git config --global init.templateDir',
     )
 
-    with envcontext([('GIT_TEMPLATE_DIR', target)]):
+    with envcontext((('GIT_TEMPLATE_DIR', target),)):
         path = make_consuming_repo(tempdir_factory, 'script_hooks_repo')
 
         with cwd(path):
@@ -52,7 +52,7 @@ def test_init_templatedir_already_set(tmpdir, tempdir_factory, store, cap_out):
 
 def test_init_templatedir_not_set(tmpdir, store, cap_out):
     # set HOME to ignore the current `.gitconfig`
-    with envcontext([('HOME', str(tmpdir))]):
+    with envcontext((('HOME', str(tmpdir)),)):
         with tmpdir.join('tmpl').ensure_dir().as_cwd():
             # we have not set init.templateDir so this should produce a warning
             init_templatedir(

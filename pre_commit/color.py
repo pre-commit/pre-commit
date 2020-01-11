@@ -21,7 +21,7 @@ class InvalidColorSetting(ValueError):
     pass
 
 
-def format_color(text, color, use_color_setting):
+def format_color(text: str, color: str, use_color_setting: bool) -> str:
     """Format text with color.
 
     Args:
@@ -38,7 +38,7 @@ def format_color(text, color, use_color_setting):
 COLOR_CHOICES = ('auto', 'always', 'never')
 
 
-def use_color(setting):
+def use_color(setting: str) -> bool:
     """Choose whether to use color based on the command argument.
 
     Args:

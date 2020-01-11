@@ -1,21 +1,28 @@
 import os.path
+from typing import Mapping
+from typing import NoReturn
+from typing import Optional
+from typing import Tuple
 
 from identify.identify import parse_shebang_from_file
 
 
 class ExecutableNotFoundError(OSError):
-    def to_output(self):
-        return (1, self.args[0].encode('UTF-8'), b'')
+    def to_output(self) -> Tuple[int, bytes, None]:
+        return (1, self.args[0].encode('UTF-8'), None)
 
 
-def parse_filename(filename):
+def parse_filename(filename: str) -> Tuple[str, ...]:
     if not os.path.exists(filename):
         return ()
     else:
         return parse_shebang_from_file(filename)
 
 
-def find_executable(exe, _environ=None):
+def find_executable(
+        exe: str,
+        _environ: Optional[Mapping[str, str]] = None,
+) -> Optional[str]:
     exe = os.path.normpath(exe)
     if os.sep in exe:
         return exe
@@ -39,8 +46,8 @@ def find_executable(exe, _environ=None):
         return None
 
 
-def normexe(orig):
-    def _error(msg):
+def normexe(orig: str) -> str:
+    def _error(msg: str) -> NoReturn:
         raise ExecutableNotFoundError(f'Executable `{orig}` {msg}')
 
     if os.sep not in orig and (not os.altsep or os.altsep not in orig):
@@ -58,7 +65,7 @@ def normexe(orig):
         return orig
 
 
-def normalize_cmd(cmd):
+def normalize_cmd(cmd: Tuple[str, ...]) -> Tuple[str, ...]:
     """Fixes for the following issues on windows
     - https://bugs.python.org/issue8557
     - windows does not parse shebangs

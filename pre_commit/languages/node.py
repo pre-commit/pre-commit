@@ -1,28 +1,36 @@
 import contextlib
 import os
 import sys
+from typing import Generator
+from typing import Sequence
+from typing import Tuple
+from typing import TYPE_CHECKING
 
 import pre_commit.constants as C
 from pre_commit.envcontext import envcontext
+from pre_commit.envcontext import PatchesT
 from pre_commit.envcontext import Var
 from pre_commit.languages import helpers
 from pre_commit.languages.python import bin_dir
+from pre_commit.prefix import Prefix
 from pre_commit.util import clean_path_on_failure
 from pre_commit.util import cmd_output
 from pre_commit.util import cmd_output_b
 
+if TYPE_CHECKING:
+    from pre_commit.repository import Hook
 
 ENVIRONMENT_DIR = 'node_env'
 get_default_version = helpers.basic_get_default_version
 healthy = helpers.basic_healthy
 
 
-def _envdir(prefix, version):
+def _envdir(prefix: Prefix, version: str) -> str:
     directory = helpers.environment_dir(ENVIRONMENT_DIR, version)
     return prefix.path(directory)
 
 
-def get_env_patch(venv):  # pragma: windows no cover
+def get_env_patch(venv: str) -> PatchesT:  # pragma: windows no cover
     if sys.platform == 'cygwin':  # pragma: no cover
         _, win_venv, _ = cmd_output('cygpath', '-w', venv)
         install_prefix = r'{}\bin'.format(win_venv.strip())
@@ -43,14 +51,17 @@ def get_env_patch(venv):  # pragma: windows no cover
 
 
 @contextlib.contextmanager
-def in_env(prefix, language_version):  # pragma: windows no cover
+def in_env(
+        prefix: Prefix,
+        language_version: str,
+) -> Generator[None, None, None]:  # pragma: windows no cover
     with envcontext(get_env_patch(_envdir(prefix, language_version))):
         yield
 
 
 def install_environment(
-        prefix, version, additional_dependencies,
-):  # pragma: windows no cover
+        prefix: Prefix, version: str, additional_dependencies: Sequence[str],
+) -> None:  # pragma: windows no cover
     additional_dependencies = tuple(additional_dependencies)
     assert prefix.exists('package.json')
     envdir = _envdir(prefix, version)
@@ -76,6 +87,10 @@ def install_environment(
             )
 
 
-def run_hook(hook, file_args, color):  # pragma: windows no cover
+def run_hook(
+        hook: 'Hook',
+        file_args: Sequence[str],
+        color: bool,
+) -> Tuple[int, bytes]:  # pragma: windows no cover
     with in_env(hook.prefix, hook.language_version):
         return helpers.run_xargs(hook, hook.cmd, file_args, color=color)

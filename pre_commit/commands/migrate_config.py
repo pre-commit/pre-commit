@@ -4,16 +4,16 @@ import yaml
 from aspy.yaml import ordered_load
 
 
-def _indent(s):
+def _indent(s: str) -> str:
     lines = s.splitlines(True)
     return ''.join(' ' * 4 + line if line.strip() else line for line in lines)
 
 
-def _is_header_line(line):
-    return (line.startswith(('#', '---')) or not line.strip())
+def _is_header_line(line: str) -> bool:
+    return line.startswith(('#', '---')) or not line.strip()
 
 
-def _migrate_map(contents):
+def _migrate_map(contents: str) -> str:
     # Find the first non-header line
     lines = contents.splitlines(True)
     i = 0
@@ -37,12 +37,12 @@ def _migrate_map(contents):
     return contents
 
 
-def _migrate_sha_to_rev(contents):
+def _migrate_sha_to_rev(contents: str) -> str:
     reg = re.compile(r'(\n\s+)sha:')
     return reg.sub(r'\1rev:', contents)
 
 
-def migrate_config(config_file, quiet=False):
+def migrate_config(config_file: str, quiet: bool = False) -> int:
     with open(config_file) as f:
         orig_contents = contents = f.read()
 
@@ -56,3 +56,4 @@ def migrate_config(config_file, quiet=False):
         print('Configuration has been migrated.')
     elif not quiet:
         print('Configuration is already migrated.')
+    return 0

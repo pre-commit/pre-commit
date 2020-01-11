@@ -25,6 +25,10 @@ exclude_lines =
     ^\s*return NotImplemented\b
     ^\s*raise$
 
+    # Ignore typing-related things
+    ^if (False|TYPE_CHECKING):
+    : \.\.\.$
+
     # Don't complain if non-runnable code isn't run:
     ^if __name__ == ['"]__main__['"]:$
 

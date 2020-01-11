@@ -16,6 +16,6 @@ repos:
 '''
 
 
-def sample_config():
+def sample_config() -> int:
     print(SAMPLE_CONFIG, end='')
     return 0

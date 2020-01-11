@@ -1,12 +1,21 @@
 import contextlib
 import os
+from typing import Generator
+from typing import Sequence
+from typing import Tuple
+from typing import TYPE_CHECKING
 
 import pre_commit.constants as C
 from pre_commit.envcontext import envcontext
+from pre_commit.envcontext import PatchesT
 from pre_commit.envcontext import Var
 from pre_commit.languages import helpers
+from pre_commit.prefix import Prefix
 from pre_commit.util import clean_path_on_failure
 from pre_commit.util import cmd_output_b
+
+if TYPE_CHECKING:
+    from pre_commit.repository import Hook
 
 ENVIRONMENT_DIR = 'swift_env'
 get_default_version = helpers.basic_get_default_version
@@ -15,13 +24,13 @@ BUILD_DIR = '.build'
 BUILD_CONFIG = 'release'
 
 
-def get_env_patch(venv):  # pragma: windows no cover
+def get_env_patch(venv: str) -> PatchesT:  # pragma: windows no cover
     bin_path = os.path.join(venv, BUILD_DIR, BUILD_CONFIG)
     return (('PATH', (bin_path, os.pathsep, Var('PATH'))),)
 
 
-@contextlib.contextmanager
-def in_env(prefix):  # pragma: windows no cover
+@contextlib.contextmanager  # pragma: windows no cover
+def in_env(prefix: Prefix) -> Generator[None, None, None]:
     envdir = prefix.path(
         helpers.environment_dir(ENVIRONMENT_DIR, C.DEFAULT),
     )
@@ -30,8 +39,8 @@ def in_env(prefix):  # pragma: windows no cover
 
 
 def install_environment(
-        prefix, version, additional_dependencies,
-):  # pragma: windows no cover
+        prefix: Prefix, version: str, additional_dependencies: Sequence[str],
+) -> None:  # pragma: windows no cover
     helpers.assert_version_default('swift', version)
     helpers.assert_no_additional_deps('swift', additional_dependencies)
     directory = prefix.path(
@@ -49,6 +58,10 @@ def install_environment(
         )
 
 
-def run_hook(hook, file_args, color):  # pragma: windows no cover
+def run_hook(
+        hook: 'Hook',
+        file_args: Sequence[str],
+        color: bool,
+) -> Tuple[int, bytes]:  # pragma: windows no cover
     with in_env(hook.prefix):
         return helpers.run_xargs(hook, hook.cmd, file_args, color=color)

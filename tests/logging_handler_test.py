@@ -1,25 +1,21 @@
+import logging
+
 from pre_commit import color
 from pre_commit.logging_handler import LoggingHandler
 
 
-class FakeLogRecord:
-    def __init__(self, message, levelname, levelno):
-        self.message = message
-        self.levelname = levelname
-        self.levelno = levelno
-
-    def getMessage(self):
-        return self.message
+def _log_record(message, level):
+    return logging.LogRecord('name', level, '', 1, message, {}, None)
 
 
 def test_logging_handler_color(cap_out):
     handler = LoggingHandler(True)
-    handler.emit(FakeLogRecord('hi', 'WARNING', 30))
+    handler.emit(_log_record('hi', logging.WARNING))
     ret = cap_out.get()
     assert ret == color.YELLOW + '[WARNING]' + color.NORMAL + ' hi\n'
 
 
 def test_logging_handler_no_color(cap_out):
     handler = LoggingHandler(False)
-    handler.emit(FakeLogRecord('hi', 'WARNING', 30))
+    handler.emit(_log_record('hi', logging.WARNING))
     assert cap_out.get() == '[WARNING] hi\n'

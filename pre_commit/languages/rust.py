@@ -1,24 +1,31 @@
 import contextlib
 import os.path
+from typing import Generator
+from typing import Sequence
 from typing import Set
 from typing import Tuple
+from typing import TYPE_CHECKING
 
 import toml
 
 import pre_commit.constants as C
 from pre_commit.envcontext import envcontext
+from pre_commit.envcontext import PatchesT
 from pre_commit.envcontext import Var
 from pre_commit.languages import helpers
+from pre_commit.prefix import Prefix
 from pre_commit.util import clean_path_on_failure
 from pre_commit.util import cmd_output_b
 
+if TYPE_CHECKING:
+    from pre_commit.repository import Hook
 
 ENVIRONMENT_DIR = 'rustenv'
 get_default_version = helpers.basic_get_default_version
 healthy = helpers.basic_healthy
 
 
-def get_env_patch(target_dir):
+def get_env_patch(target_dir: str) -> PatchesT:
     return (
         (
             'PATH',
@@ -28,7 +35,7 @@ def get_env_patch(target_dir):
 
 
 @contextlib.contextmanager
-def in_env(prefix):
+def in_env(prefix: Prefix) -> Generator[None, None, None]:
     target_dir = prefix.path(
         helpers.environment_dir(ENVIRONMENT_DIR, C.DEFAULT),
     )
@@ -36,7 +43,10 @@ def in_env(prefix):
         yield
 
 
-def _add_dependencies(cargo_toml_path, additional_dependencies):
+def _add_dependencies(
+        cargo_toml_path: str,
+        additional_dependencies: Set[str],
+) -> None:
     with open(cargo_toml_path, 'r+') as f:
         cargo_toml = toml.load(f)
         cargo_toml.setdefault('dependencies', {})
@@ -48,7 +58,11 @@ def _add_dependencies(cargo_toml_path, additional_dependencies):
         f.truncate()
 
 
-def install_environment(prefix, version, additional_dependencies):
+def install_environment(
+        prefix: Prefix,
+        version: str,
+        additional_dependencies: Sequence[str],
+) -> None:
     helpers.assert_version_default('rust', version)
     directory = prefix.path(
         helpers.environment_dir(ENVIRONMENT_DIR, C.DEFAULT),
@@ -82,13 +96,17 @@ def install_environment(prefix, version, additional_dependencies):
             else:
                 packages_to_install.add((package,))
 
-        for package in packages_to_install:
+        for args in packages_to_install:
             cmd_output_b(
-                'cargo', 'install', '--bins', '--root', directory, *package,
+                'cargo', 'install', '--bins', '--root', directory, *args,
                 cwd=prefix.prefix_dir,
             )
 
 
-def run_hook(hook, file_args, color):
+def run_hook(
+        hook: 'Hook',
+        file_args: Sequence[str],
+        color: bool,
+) -> Tuple[int, bytes]:
     with in_env(hook.prefix):
         return helpers.run_xargs(hook, hook.cmd, file_args, color=color)

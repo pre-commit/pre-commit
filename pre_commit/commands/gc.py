@@ -1,4 +1,8 @@
 import os.path
+from typing import Any
+from typing import Dict
+from typing import Set
+from typing import Tuple
 
 import pre_commit.constants as C
 from pre_commit import output
@@ -8,9 +12,15 @@ from pre_commit.clientlib import load_config
 from pre_commit.clientlib import load_manifest
 from pre_commit.clientlib import LOCAL
 from pre_commit.clientlib import META
+from pre_commit.store import Store
 
 
-def _mark_used_repos(store, all_repos, unused_repos, repo):
+def _mark_used_repos(
+        store: Store,
+        all_repos: Dict[Tuple[str, str], str],
+        unused_repos: Set[Tuple[str, str]],
+        repo: Dict[str, Any],
+) -> None:
     if repo['repo'] == META:
         return
     elif repo['repo'] == LOCAL:
@@ -47,7 +57,7 @@ def _mark_used_repos(store, all_repos, unused_repos, repo):
             ))
 
 
-def _gc_repos(store):
+def _gc_repos(store: Store) -> int:
     configs = store.select_all_configs()
     repos = store.select_all_repos()
 
@@ -73,7 +83,7 @@ def _gc_repos(store):
     return len(unused_repos)
 
 
-def gc(store):
+def gc(store: Store) -> int:
     with store.exclusive_lock():
         repos_removed = _gc_repos(store)
     output.write_line(f'{repos_removed} repo(s) removed.')

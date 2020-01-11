@@ -311,7 +311,7 @@ def test_golang_hook(tempdir_factory, store):
 
 def test_golang_hook_still_works_when_gobin_is_set(tempdir_factory, store):
     gobin_dir = tempdir_factory.get()
-    with envcontext([('GOBIN', gobin_dir)]):
+    with envcontext((('GOBIN', gobin_dir),)):
         test_golang_hook(tempdir_factory, store)
     assert os.listdir(gobin_dir) == []
 

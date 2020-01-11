@@ -274,5 +274,5 @@ def fake_log_handler():
 @pytest.fixture(scope='session', autouse=True)
 def set_git_templatedir(tmpdir_factory):
     tdir = str(tmpdir_factory.mktemp('git_template_dir'))
-    with envcontext([('GIT_TEMPLATE_DIR', tdir)]):
+    with envcontext((('GIT_TEMPLATE_DIR', tdir),)):
         yield

@@ -2,6 +2,7 @@ import concurrent.futures
 import os
 import sys
 import time
+from typing import Tuple
 from unittest import mock
 
 import pytest
@@ -166,9 +167,8 @@ def test_xargs_concurrency():
 
 def test_thread_mapper_concurrency_uses_threadpoolexecutor_map():
     with xargs._thread_mapper(10) as thread_map:
-        assert isinstance(
-            thread_map.__self__, concurrent.futures.ThreadPoolExecutor,
-        ) is True
+        _self = thread_map.__self__  # type: ignore
+        assert isinstance(_self, concurrent.futures.ThreadPoolExecutor)
 
 
 def test_thread_mapper_concurrency_uses_regular_map():
@@ -178,7 +178,7 @@ def test_thread_mapper_concurrency_uses_regular_map():
 
 def test_xargs_propagate_kwargs_to_cmd():
     env = {'PRE_COMMIT_TEST_VAR': 'Pre commit is awesome'}
-    cmd = ('bash', '-c', 'echo $PRE_COMMIT_TEST_VAR', '--')
+    cmd: Tuple[str, ...] = ('bash', '-c', 'echo $PRE_COMMIT_TEST_VAR', '--')
     cmd = parse_shebang.normalize_cmd(cmd)
 
     ret, stdout = xargs.xargs(cmd, ('1',), env=env)

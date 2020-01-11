@@ -2,6 +2,7 @@ import contextlib
 import os.path
 import sys
 import traceback
+from typing import Generator
 from typing import Union
 
 import pre_commit.constants as C
@@ -14,14 +15,11 @@ class FatalError(RuntimeError):
     pass
 
 
-def _to_bytes(exc):
-    try:
-        return bytes(exc)
-    except Exception:
-        return str(exc).encode('UTF-8')
+def _to_bytes(exc: BaseException) -> bytes:
+    return str(exc).encode('UTF-8')
 
 
-def _log_and_exit(msg, exc, formatted):
+def _log_and_exit(msg: str, exc: BaseException, formatted: str) -> None:
     error_msg = b''.join((
         five.to_bytes(msg), b': ',
         five.to_bytes(type(exc).__name__), b': ',
@@ -62,7 +60,7 @@ def _log_and_exit(msg, exc, formatted):
 
 
 @contextlib.contextmanager
-def error_handler():
+def error_handler() -> Generator[None, None, None]:
     try:
         yield
     except (Exception, KeyboardInterrupt) as e:

@@ -93,7 +93,7 @@ def test_exception_safety():
 
     env = {'hello': 'world'}
     with pytest.raises(MyError):
-        with envcontext([('foo', 'bar')], _env=env):
+        with envcontext((('foo', 'bar'),), _env=env):
             raise MyError()
     assert env == {'hello': 'world'}
 
@@ -101,6 +101,6 @@ def test_exception_safety():
 def test_integration_os_environ():
     with mock.patch.dict(os.environ, {'FOO': 'bar'}, clear=True):
         assert os.environ == {'FOO': 'bar'}
-        with envcontext([('HERP', 'derp')]):
+        with envcontext((('HERP', 'derp'),)):
             assert os.environ == {'FOO': 'bar', 'HERP': 'derp'}
         assert os.environ == {'FOO': 'bar'}

@@ -1,6 +1,8 @@
 import contextlib
 import errno
 import os
+from typing import Callable
+from typing import Generator
 
 
 if os.name == 'nt':  # pragma: no cover (windows)
@@ -13,7 +15,10 @@ if os.name == 'nt':  # pragma: no cover (windows)
     _region = 0xffff
 
     @contextlib.contextmanager
-    def _locked(fileno, blocked_cb):
+    def _locked(
+            fileno: int,
+            blocked_cb: Callable[[], None],
+    ) -> Generator[None, None, None]:
         try:
             # TODO: https://github.com/python/typeshed/pull/3607
             msvcrt.locking(fileno, msvcrt.LK_NBLCK, _region)  # type: ignore
@@ -42,11 +47,14 @@ if os.name == 'nt':  # pragma: no cover (windows)
             # before closing a file or exiting the program."
             # TODO: https://github.com/python/typeshed/pull/3607
             msvcrt.locking(fileno, msvcrt.LK_UNLCK, _region)  # type: ignore
-else:  # pramga: windows no cover
+else:  # pragma: windows no cover
     import fcntl
 
     @contextlib.contextmanager
-    def _locked(fileno, blocked_cb):
+    def _locked(
+            fileno: int,
+            blocked_cb: Callable[[], None],
+    ) -> Generator[None, None, None]:
         try:
             fcntl.flock(fileno, fcntl.LOCK_EX | fcntl.LOCK_NB)
         except OSError:  # pragma: no cover (tests are single-threaded)
@@ -59,7 +67,10 @@ else:  # pramga: windows no cover
 
 
 @contextlib.contextmanager
-def lock(path, blocked_cb):
+def lock(
+        path: str,
+        blocked_cb: Callable[[], None],
+) -> Generator[None, None, None]:
     with open(path, 'a+') as f:
         with _locked(f.fileno(), blocked_cb):
             yield

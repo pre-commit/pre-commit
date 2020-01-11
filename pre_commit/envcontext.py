@@ -1,9 +1,13 @@
 import contextlib
 import enum
 import os
+from typing import Generator
 from typing import NamedTuple
+from typing import Optional
 from typing import Tuple
 from typing import Union
+
+from pre_commit.util import EnvironT
 
 
 class _Unset(enum.Enum):
@@ -23,7 +27,7 @@ ValueT = Union[str, _Unset, SubstitutionT]
 PatchesT = Tuple[Tuple[str, ValueT], ...]
 
 
-def format_env(parts, env):
+def format_env(parts: SubstitutionT, env: EnvironT) -> str:
     return ''.join(
         env.get(part.name, part.default) if isinstance(part, Var) else part
         for part in parts
@@ -31,7 +35,10 @@ def format_env(parts, env):
 
 
 @contextlib.contextmanager
-def envcontext(patch, _env=None):
+def envcontext(
+        patch: PatchesT,
+        _env: Optional[EnvironT] = None,
+) -> Generator[None, None, None]:
     """In this context, `os.environ` is modified according to `patch`.
 
     `patch` is an iterable of 2-tuples (key, value):

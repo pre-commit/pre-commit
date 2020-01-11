@@ -1,14 +1,18 @@
 import hashlib
 import os
+from typing import Sequence
 from typing import Tuple
+from typing import TYPE_CHECKING
 
 import pre_commit.constants as C
-from pre_commit import five
 from pre_commit.languages import helpers
+from pre_commit.prefix import Prefix
 from pre_commit.util import CalledProcessError
 from pre_commit.util import clean_path_on_failure
 from pre_commit.util import cmd_output_b
 
+if TYPE_CHECKING:
+    from pre_commit.repository import Hook
 
 ENVIRONMENT_DIR = 'docker'
 PRE_COMMIT_LABEL = 'PRE_COMMIT'
@@ -16,16 +20,16 @@ get_default_version = helpers.basic_get_default_version
 healthy = helpers.basic_healthy
 
 
-def md5(s):  # pragma: windows no cover
-    return hashlib.md5(five.to_bytes(s)).hexdigest()
+def md5(s: str) -> str:  # pragma: windows no cover
+    return hashlib.md5(s.encode()).hexdigest()
 
 
-def docker_tag(prefix):  # pragma: windows no cover
+def docker_tag(prefix: Prefix) -> str:  # pragma: windows no cover
     md5sum = md5(os.path.basename(prefix.prefix_dir)).lower()
     return f'pre-commit-{md5sum}'
 
 
-def docker_is_running():  # pragma: windows no cover
+def docker_is_running() -> bool:  # pragma: windows no cover
     try:
         cmd_output_b('docker', 'ps')
     except CalledProcessError:
@@ -34,15 +38,17 @@ def docker_is_running():  # pragma: windows no cover
         return True
 
 
-def assert_docker_available():  # pragma: windows no cover
+def assert_docker_available() -> None:  # pragma: windows no cover
     assert docker_is_running(), (
         'Docker is either not running or not configured in this environment'
     )
 
 
-def build_docker_image(prefix, **kwargs):  # pragma: windows no cover
-    pull = kwargs.pop('pull')
-    assert not kwargs, kwargs
+def build_docker_image(
+        prefix: Prefix,
+        *,
+        pull: bool,
+) -> None:  # pragma: windows no cover
     cmd: Tuple[str, ...] = (
         'docker', 'build',
         '--tag', docker_tag(prefix),
@@ -56,8 +62,8 @@ def build_docker_image(prefix, **kwargs):  # pragma: windows no cover
 
 
 def install_environment(
-        prefix, version, additional_dependencies,
-):  # pragma: windows no cover
+        prefix: Prefix, version: str, additional_dependencies: Sequence[str],
+) -> None:  # pragma: windows no cover
     helpers.assert_version_default('docker', version)
     helpers.assert_no_additional_deps('docker', additional_dependencies)
     assert_docker_available()
@@ -73,14 +79,14 @@ def install_environment(
         os.mkdir(directory)
 
 
-def get_docker_user():  # pragma: windows no cover
+def get_docker_user() -> str:  # pragma: windows no cover
     try:
         return '{}:{}'.format(os.getuid(), os.getgid())
     except AttributeError:
         return '1000:1000'
 
 
-def docker_cmd():  # pragma: windows no cover
+def docker_cmd() -> Tuple[str, ...]:  # pragma: windows no cover
     return (
         'docker', 'run',
         '--rm',
@@ -93,7 +99,11 @@ def docker_cmd():  # pragma: windows no cover
     )
 
 
-def run_hook(hook, file_args, color):  # pragma: windows no cover
+def run_hook(
+        hook: 'Hook',
+        file_args: Sequence[str],
+        color: bool,
+) -> Tuple[int, bytes]:  # pragma: windows no cover
     assert_docker_available()
     # Rebuild the docker image in case it has gone missing, as many people do
     # automated cleanup of docker images.

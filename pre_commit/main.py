@@ -2,6 +2,10 @@ import argparse
 import logging
 import os
 import sys
+from typing import Any
+from typing import Optional
+from typing import Sequence
+from typing import Union
 
 import pre_commit.constants as C
 from pre_commit import color
@@ -37,7 +41,7 @@ os.environ.pop('__PYVENV_LAUNCHER__', None)
 COMMANDS_NO_GIT = {'clean', 'gc', 'init-templatedir', 'sample-config'}
 
 
-def _add_color_option(parser):
+def _add_color_option(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         '--color', default=os.environ.get('PRE_COMMIT_COLOR', 'auto'),
         type=color.use_color,
@@ -46,7 +50,7 @@ def _add_color_option(parser):
     )
 
 
-def _add_config_option(parser):
+def _add_config_option(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         '-c', '--config', default=C.CONFIG_FILE,
         help='Path to alternate config file',
@@ -54,18 +58,24 @@ def _add_config_option(parser):
 
 
 class AppendReplaceDefault(argparse.Action):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         self.appended = False
 
-    def __call__(self, parser, namespace, values, option_string=None):
+    def __call__(
+            self,
+            parser: argparse.ArgumentParser,
+            namespace: argparse.Namespace,
+            values: Union[str, Sequence[str], None],
+            option_string: Optional[str] = None,
+    ) -> None:
         if not self.appended:
             setattr(namespace, self.dest, [])
             self.appended = True
         getattr(namespace, self.dest).append(values)
 
 
-def _add_hook_type_option(parser):
+def _add_hook_type_option(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         '-t', '--hook-type', choices=(
             'pre-commit', 'pre-merge-commit', 'pre-push',
@@ -77,7 +87,7 @@ def _add_hook_type_option(parser):
     )
 
 
-def _add_run_options(parser):
+def _add_run_options(parser: argparse.ArgumentParser) -> None:
     parser.add_argument('hook', nargs='?', help='A single hook-id to run')
     parser.add_argument('--verbose', '-v', action='store_true', default=False)
     parser.add_argument(
@@ -111,7 +121,7 @@ def _add_run_options(parser):
     )
 
 
-def _adjust_args_and_chdir(args):
+def _adjust_args_and_chdir(args: argparse.Namespace) -> None:
     # `--config` was specified relative to the non-root working directory
     if os.path.exists(args.config):
         args.config = os.path.abspath(args.config)
@@ -143,7 +153,7 @@ def _adjust_args_and_chdir(args):
         args.repo = os.path.relpath(args.repo)
 
 
-def main(argv=None):
+def main(argv: Optional[Sequence[str]] = None) -> int:
     argv = argv if argv is not None else sys.argv[1:]
     argv = [five.to_text(arg) for arg in argv]
     parser = argparse.ArgumentParser(prog='pre-commit')

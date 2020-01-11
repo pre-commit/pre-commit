@@ -4,14 +4,26 @@ import math
 import os
 import subprocess
 import sys
+from typing import Any
+from typing import Callable
+from typing import Generator
+from typing import Iterable
 from typing import List
+from typing import Optional
+from typing import Sequence
+from typing import Tuple
+from typing import TypeVar
 
 from pre_commit import parse_shebang
 from pre_commit.util import cmd_output_b
 from pre_commit.util import cmd_output_p
+from pre_commit.util import EnvironT
+
+TArg = TypeVar('TArg')
+TRet = TypeVar('TRet')
 
 
-def _environ_size(_env=None):
+def _environ_size(_env: Optional[EnvironT] = None) -> int:
     environ = _env if _env is not None else getattr(os, 'environb', os.environ)
     size = 8 * len(environ)  # number of pointers in `envp`
     for k, v in environ.items():
@@ -19,7 +31,7 @@ def _environ_size(_env=None):
     return size
 
 
-def _get_platform_max_length():  # pragma: no cover (platform specific)
+def _get_platform_max_length() -> int:  # pragma: no cover (platform specific)
     if os.name == 'posix':
         maximum = os.sysconf('SC_ARG_MAX') - 2048 - _environ_size()
         maximum = max(min(maximum, 2 ** 17), 2 ** 12)
@@ -31,7 +43,7 @@ def _get_platform_max_length():  # pragma: no cover (platform specific)
         return 2 ** 12
 
 
-def _command_length(*cmd):
+def _command_length(*cmd: str) -> int:
     full_cmd = ' '.join(cmd)
 
     # win32 uses the amount of characters, more details at:
@@ -47,7 +59,12 @@ class ArgumentTooLongError(RuntimeError):
     pass
 
 
-def partition(cmd, varargs, target_concurrency, _max_length=None):
+def partition(
+        cmd: Sequence[str],
+        varargs: Sequence[str],
+        target_concurrency: int,
+        _max_length: Optional[int] = None,
+) -> Tuple[Tuple[str, ...], ...]:
     _max_length = _max_length or _get_platform_max_length()
 
     # Generally, we try to partition evenly into at least `target_concurrency`
@@ -87,7 +104,10 @@ def partition(cmd, varargs, target_concurrency, _max_length=None):
 
 
 @contextlib.contextmanager
-def _thread_mapper(maxsize):
+def _thread_mapper(maxsize: int) -> Generator[
+    Callable[[Callable[[TArg], TRet], Iterable[TArg]], Iterable[TRet]],
+    None, None,
+]:
     if maxsize == 1:
         yield map
     else:
@@ -95,7 +115,11 @@ def _thread_mapper(maxsize):
             yield ex.map
 
 
-def xargs(cmd, varargs, **kwargs):
+def xargs(
+        cmd: Tuple[str, ...],
+        varargs: Sequence[str],
+        **kwargs: Any,
+) -> Tuple[int, bytes]:
     """A simplified implementation of xargs.
 
     color: Make a pty if on a platform that supports it
@@ -115,7 +139,9 @@ def xargs(cmd, varargs, **kwargs):
 
     partitions = partition(cmd, varargs, target_concurrency, max_length)
 
-    def run_cmd_partition(run_cmd):
+    def run_cmd_partition(
+            run_cmd: Tuple[str, ...],
+    ) -> Tuple[int, bytes, Optional[bytes]]:
         return cmd_fn(
             *run_cmd, retcode=None, stderr=subprocess.STDOUT, **kwargs,
         )

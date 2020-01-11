@@ -1,5 +1,7 @@
 import argparse
 import re
+from typing import Optional
+from typing import Sequence
 
 from cfgv import apply_defaults
 
@@ -10,7 +12,11 @@ from pre_commit.clientlib import MANIFEST_HOOK_DICT
 from pre_commit.commands.run import Classifier
 
 
-def exclude_matches_any(filenames, include, exclude):
+def exclude_matches_any(
+        filenames: Sequence[str],
+        include: str,
+        exclude: str,
+) -> bool:
     if exclude == '^$':
         return True
     include_re, exclude_re = re.compile(include), re.compile(exclude)
@@ -20,7 +26,7 @@ def exclude_matches_any(filenames, include, exclude):
     return False
 
 
-def check_useless_excludes(config_file):
+def check_useless_excludes(config_file: str) -> int:
     config = load_config(config_file)
     classifier = Classifier(git.get_all_files())
     retv = 0
@@ -52,7 +58,7 @@ def check_useless_excludes(config_file):
     return retv
 
 
-def main(argv=None):
+def main(argv: Optional[Sequence[str]] = None) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument('filenames', nargs='*', default=[C.CONFIG_FILE])
     args = parser.parse_args(argv)

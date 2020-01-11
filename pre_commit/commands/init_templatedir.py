@@ -1,14 +1,21 @@
 import logging
 import os.path
+from typing import Sequence
 
 from pre_commit.commands.install_uninstall import install
+from pre_commit.store import Store
 from pre_commit.util import CalledProcessError
 from pre_commit.util import cmd_output
 
 logger = logging.getLogger('pre_commit')
 
 
-def init_templatedir(config_file, store, directory, hook_types):
+def init_templatedir(
+        config_file: str,
+        store: Store,
+        directory: str,
+        hook_types: Sequence[str],
+) -> int:
     install(
         config_file, store, hook_types=hook_types,
         overwrite=True, skip_on_missing_config=True, git_dir=directory,
@@ -25,3 +32,4 @@ def init_templatedir(config_file, store, directory, hook_types):
         logger.warning(
             f'maybe `git config --global init.templateDir {dest}`?',
         )
+    return 0
