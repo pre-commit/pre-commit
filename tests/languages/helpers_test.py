@@ -1,11 +1,8 @@
-from __future__ import absolute_import
-from __future__ import unicode_literals
-
 import multiprocessing
 import os
 import sys
+from unittest import mock
 
-import mock
 import pytest
 
 import pre_commit.constants as C
@@ -20,7 +17,7 @@ def test_basic_get_default_version():
 
 
 def test_basic_healthy():
-    assert helpers.basic_healthy(None, None) is True
+    assert helpers.basic_healthy(Prefix('.'), 'default') is True
 
 
 def test_failed_setup_command_does_not_unicode_error():
@@ -80,4 +77,6 @@ def test_target_concurrency_cpu_count_not_implemented():
 
 
 def test_shuffled_is_deterministic():
-    assert helpers._shuffled(range(10)) == [3, 7, 8, 2, 4, 6, 5, 1, 0, 9]
+    seq = [str(i) for i in range(10)]
+    expected = ['3', '7', '8', '2', '4', '6', '5', '1', '0', '9']
+    assert helpers._shuffled(seq) == expected

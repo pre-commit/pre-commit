@@ -1,27 +1,35 @@
-from __future__ import unicode_literals
-
 import contextlib
-import io
 import os.path
 import shutil
 import tarfile
+from typing import Generator
+from typing import Sequence
+from typing import Tuple
+from typing import TYPE_CHECKING
 
 import pre_commit.constants as C
 from pre_commit.envcontext import envcontext
+from pre_commit.envcontext import PatchesT
 from pre_commit.envcontext import Var
 from pre_commit.languages import helpers
+from pre_commit.prefix import Prefix
 from pre_commit.util import CalledProcessError
 from pre_commit.util import clean_path_on_failure
 from pre_commit.util import resource_bytesio
 
+if TYPE_CHECKING:
+    from pre_comit.repository import Hook
 
 ENVIRONMENT_DIR = 'rbenv'
 get_default_version = helpers.basic_get_default_version
 healthy = helpers.basic_healthy
 
 
-def get_env_patch(venv, language_version):  # pragma: windows no cover
-    patches = (
+def get_env_patch(
+        venv: str,
+        language_version: str,
+) -> PatchesT:  # pragma: windows no cover
+    patches: PatchesT = (
         ('GEM_HOME', os.path.join(venv, 'gems')),
         ('RBENV_ROOT', venv),
         ('BUNDLE_IGNORE_CONFIG', '1'),
@@ -38,8 +46,11 @@ def get_env_patch(venv, language_version):  # pragma: windows no cover
     return patches
 
 
-@contextlib.contextmanager
-def in_env(prefix, language_version):  # pragma: windows no cover
+@contextlib.contextmanager  # pragma: windows no cover
+def in_env(
+        prefix: Prefix,
+        language_version: str,
+) -> Generator[None, None, None]:
     envdir = prefix.path(
         helpers.environment_dir(ENVIRONMENT_DIR, language_version),
     )
@@ -47,13 +58,16 @@ def in_env(prefix, language_version):  # pragma: windows no cover
         yield
 
 
-def _extract_resource(filename, dest):
+def _extract_resource(filename: str, dest: str) -> None:
     with resource_bytesio(filename) as bio:
         with tarfile.open(fileobj=bio) as tf:
             tf.extractall(dest)
 
 
-def _install_rbenv(prefix, version=C.DEFAULT):  # pragma: windows no cover
+def _install_rbenv(
+        prefix: Prefix,
+        version: str = C.DEFAULT,
+) -> None:  # pragma: windows no cover
     directory = helpers.environment_dir(ENVIRONMENT_DIR, version)
 
     _extract_resource('rbenv.tar.gz', prefix.path('.'))
@@ -66,7 +80,7 @@ def _install_rbenv(prefix, version=C.DEFAULT):  # pragma: windows no cover
         _extract_resource('ruby-build.tar.gz', plugins_dir)
 
     activate_path = prefix.path(directory, 'bin', 'activate')
-    with io.open(activate_path, 'w') as activate_file:
+    with open(activate_path, 'w') as activate_file:
         # This is similar to how you would install rbenv to your home directory
         # However we do a couple things to make the executables exposed and
         # configure it to work in our directory.
@@ -86,10 +100,13 @@ def _install_rbenv(prefix, version=C.DEFAULT):  # pragma: windows no cover
 
         # If we aren't using the system ruby, add a version here
         if version != C.DEFAULT:
-            activate_file.write('export RBENV_VERSION="{}"\n'.format(version))
+            activate_file.write(f'export RBENV_VERSION="{version}"\n')
 
 
-def _install_ruby(prefix, version):  # pragma: windows no cover
+def _install_ruby(
+        prefix: Prefix,
+        version: str,
+) -> None:  # pragma: windows no cover
     try:
         helpers.run_setup_cmd(prefix, ('rbenv', 'download', version))
     except CalledProcessError:  # pragma: no cover (usually find with download)
@@ -98,8 +115,8 @@ def _install_ruby(prefix, version):  # pragma: windows no cover
 
 
 def install_environment(
-        prefix, version, additional_dependencies,
-):  # pragma: windows no cover
+        prefix: Prefix, version: str, additional_dependencies: Sequence[str],
+) -> None:  # pragma: windows no cover
     additional_dependencies = tuple(additional_dependencies)
     directory = helpers.environment_dir(ENVIRONMENT_DIR, version)
     with clean_path_on_failure(prefix.path(directory)):
@@ -124,6 +141,10 @@ def install_environment(
             )
 
 
-def run_hook(hook, file_args, color):  # pragma: windows no cover
+def run_hook(
+        hook: 'Hook',
+        file_args: Sequence[str],
+        color: bool,
+) -> Tuple[int, bytes]:  # pragma: windows no cover
     with in_env(hook.prefix, hook.language_version):
         return helpers.run_xargs(hook, hook.cmd, file_args, color=color)

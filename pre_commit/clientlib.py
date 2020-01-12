@@ -1,11 +1,12 @@
-from __future__ import absolute_import
-from __future__ import unicode_literals
-
 import argparse
 import functools
 import logging
 import pipes
 import sys
+from typing import Any
+from typing import Dict
+from typing import Optional
+from typing import Sequence
 
 import cfgv
 from aspy.yaml import ordered_load
@@ -21,7 +22,7 @@ logger = logging.getLogger('pre_commit')
 check_string_regex = cfgv.check_and(cfgv.check_string, cfgv.check_regex)
 
 
-def check_type_tag(tag):
+def check_type_tag(tag: str) -> None:
     if tag not in ALL_TAGS:
         raise cfgv.ValidationError(
             'Type tag {!r} is not recognized.  '
@@ -29,7 +30,7 @@ def check_type_tag(tag):
         )
 
 
-def check_min_version(version):
+def check_min_version(version: str) -> None:
     if parse_version(version) > parse_version(C.VERSION):
         raise cfgv.ValidationError(
             'pre-commit version {} is required but version {} is installed.  '
@@ -39,7 +40,7 @@ def check_min_version(version):
         )
 
 
-def _make_argparser(filenames_help):
+def _make_argparser(filenames_help: str) -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser()
     parser.add_argument('filenames', nargs='*', help=filenames_help)
     parser.add_argument('-V', '--version', action='version', version=C.VERSION)
@@ -89,7 +90,7 @@ load_manifest = functools.partial(
 )
 
 
-def validate_manifest_main(argv=None):
+def validate_manifest_main(argv: Optional[Sequence[str]] = None) -> int:
     parser = _make_argparser('Manifest filenames.')
     args = parser.parse_args(argv)
     ret = 0
@@ -106,11 +107,11 @@ LOCAL = 'local'
 META = 'meta'
 
 
-class MigrateShaToRev(object):
+class MigrateShaToRev:
     key = 'rev'
 
     @staticmethod
-    def _cond(key):
+    def _cond(key: str) -> cfgv.Conditional:
         return cfgv.Conditional(
             key, cfgv.check_string,
             condition_key='repo',
@@ -118,7 +119,7 @@ class MigrateShaToRev(object):
             ensure_absent=True,
         )
 
-    def check(self, dct):
+    def check(self, dct: Dict[str, Any]) -> None:
         if dct.get('repo') in {LOCAL, META}:
             self._cond('rev').check(dct)
             self._cond('sha').check(dct)
@@ -129,14 +130,14 @@ class MigrateShaToRev(object):
         else:
             self._cond('rev').check(dct)
 
-    def apply_default(self, dct):
+    def apply_default(self, dct: Dict[str, Any]) -> None:
         if 'sha' in dct:
             dct['rev'] = dct.pop('sha')
 
     remove_default = cfgv.Required.remove_default
 
 
-def _entry(modname):
+def _entry(modname: str) -> str:
     """the hook `entry` is passed through `shlex.split()` by the command
     runner, so to prevent issues with spaces and backslashes (on Windows)
     it must be quoted here.
@@ -146,13 +147,21 @@ def _entry(modname):
     )
 
 
-def warn_unknown_keys_root(extra, orig_keys, dct):
+def warn_unknown_keys_root(
+        extra: Sequence[str],
+        orig_keys: Sequence[str],
+        dct: Dict[str, str],
+) -> None:
     logger.warning(
         'Unexpected key(s) present at root: {}'.format(', '.join(extra)),
     )
 
 
-def warn_unknown_keys_repo(extra, orig_keys, dct):
+def warn_unknown_keys_repo(
+        extra: Sequence[str],
+        orig_keys: Sequence[str],
+        dct: Dict[str, str],
+) -> None:
     logger.warning(
         'Unexpected key(s) present on {}: {}'.format(
             dct['repo'], ', '.join(extra),
@@ -202,7 +211,7 @@ META_HOOK_DICT = cfgv.Map(
         if item.key in {'name', 'language', 'entry'} else
         item
         for item in MANIFEST_HOOK_DICT.items
-    ])
+    ]),
 )
 CONFIG_HOOK_DICT = cfgv.Map(
     'Hook', 'id',
@@ -217,7 +226,7 @@ CONFIG_HOOK_DICT = cfgv.Map(
         cfgv.OptionalNoDefault(item.key, item.check_fn)
         for item in MANIFEST_HOOK_DICT.items
         if item.key != 'id'
-    ]
+    ],
 )
 CONFIG_REPO_DICT = cfgv.Map(
     'Repository', 'repo',
@@ -243,7 +252,7 @@ CONFIG_REPO_DICT = cfgv.Map(
 DEFAULT_LANGUAGE_VERSION = cfgv.Map(
     'DefaultLanguageVersion', None,
     cfgv.NoAdditionalKeys(all_languages),
-    *[cfgv.Optional(x, cfgv.check_string, C.DEFAULT) for x in all_languages]
+    *[cfgv.Optional(x, cfgv.check_string, C.DEFAULT) for x in all_languages],
 )
 CONFIG_SCHEMA = cfgv.Map(
     'Config', None,
@@ -284,7 +293,7 @@ class InvalidConfigError(FatalError):
     pass
 
 
-def ordered_load_normalize_legacy_config(contents):
+def ordered_load_normalize_legacy_config(contents: str) -> Dict[str, Any]:
     data = ordered_load(contents)
     if isinstance(data, list):
         # TODO: Once happy, issue a deprecation warning and instructions
@@ -301,7 +310,7 @@ load_config = functools.partial(
 )
 
 
-def validate_config_main(argv=None):
+def validate_config_main(argv: Optional[Sequence[str]] = None) -> int:
     parser = _make_argparser('Config filenames.')
     args = parser.parse_args(argv)
     ret = 0

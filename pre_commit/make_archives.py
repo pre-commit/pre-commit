@@ -1,10 +1,8 @@
-from __future__ import absolute_import
-from __future__ import print_function
-from __future__ import unicode_literals
-
 import argparse
 import os.path
 import tarfile
+from typing import Optional
+from typing import Sequence
 
 from pre_commit import output
 from pre_commit.util import cmd_output_b
@@ -27,7 +25,7 @@ REPOS = (
 )
 
 
-def make_archive(name, repo, ref, destdir):
+def make_archive(name: str, repo: str, ref: str, destdir: str) -> str:
     """Makes an archive of a repository in the given destdir.
 
     :param text name: Name to give the archive.  For instance foo.  The file
@@ -53,15 +51,16 @@ def make_archive(name, repo, ref, destdir):
     return output_path
 
 
-def main(argv=None):
+def main(argv: Optional[Sequence[str]] = None) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument('--dest', default='pre_commit/resources')
     args = parser.parse_args(argv)
     for archive_name, repo, ref in REPOS:
         output.write_line(
-            'Making {}.tar.gz for {}@{}'.format(archive_name, repo, ref),
+            f'Making {archive_name}.tar.gz for {repo}@{ref}',
         )
         make_archive(archive_name, repo, ref, args.dest)
+    return 0
 
 
 if __name__ == '__main__':

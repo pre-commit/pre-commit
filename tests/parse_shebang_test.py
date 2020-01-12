@@ -1,9 +1,5 @@
-from __future__ import absolute_import
-from __future__ import unicode_literals
-
 import contextlib
 import distutils.spawn
-import io
 import os
 import sys
 
@@ -13,6 +9,12 @@ from pre_commit import parse_shebang
 from pre_commit.envcontext import envcontext
 from pre_commit.envcontext import Var
 from pre_commit.util import make_executable
+
+
+def _echo_exe() -> str:
+    exe = distutils.spawn.find_executable('echo')
+    assert exe is not None
+    return exe
 
 
 def test_file_doesnt_exist():
@@ -31,8 +33,7 @@ def test_find_executable_full_path():
 
 
 def test_find_executable_on_path():
-    expected = distutils.spawn.find_executable('echo')
-    assert parse_shebang.find_executable('echo') == expected
+    assert parse_shebang.find_executable('echo') == _echo_exe()
 
 
 def test_find_executable_not_found_none():
@@ -42,8 +43,8 @@ def test_find_executable_not_found_none():
 def write_executable(shebang, filename='run'):
     os.mkdir('bin')
     path = os.path.join('bin', filename)
-    with io.open(path, 'w') as f:
-        f.write('#!{}'.format(shebang))
+    with open(path, 'w') as f:
+        f.write(f'#!{shebang}')
     make_executable(path)
     return path
 
@@ -106,7 +107,7 @@ def test_normexe_is_a_directory(tmpdir):
         with pytest.raises(OSError) as excinfo:
             parse_shebang.normexe(exe)
         msg, = excinfo.value.args
-        assert msg == 'Executable `{}` is a directory'.format(exe)
+        assert msg == f'Executable `{exe}` is a directory'
 
 
 def test_normexe_already_full_path():
@@ -114,30 +115,29 @@ def test_normexe_already_full_path():
 
 
 def test_normexe_gives_full_path():
-    expected = distutils.spawn.find_executable('echo')
-    assert parse_shebang.normexe('echo') == expected
-    assert os.sep in expected
+    assert parse_shebang.normexe('echo') == _echo_exe()
+    assert os.sep in _echo_exe()
 
 
 def test_normalize_cmd_trivial():
-    cmd = (distutils.spawn.find_executable('echo'), 'hi')
+    cmd = (_echo_exe(), 'hi')
     assert parse_shebang.normalize_cmd(cmd) == cmd
 
 
 def test_normalize_cmd_PATH():
     cmd = ('echo', '--version')
-    expected = (distutils.spawn.find_executable('echo'), '--version')
+    expected = (_echo_exe(), '--version')
     assert parse_shebang.normalize_cmd(cmd) == expected
 
 
 def test_normalize_cmd_shebang(in_tmpdir):
-    echo = distutils.spawn.find_executable('echo').replace(os.sep, '/')
+    echo = _echo_exe().replace(os.sep, '/')
     path = write_executable(echo)
     assert parse_shebang.normalize_cmd((path,)) == (echo, path)
 
 
 def test_normalize_cmd_PATH_shebang_full_path(in_tmpdir):
-    echo = distutils.spawn.find_executable('echo').replace(os.sep, '/')
+    echo = _echo_exe().replace(os.sep, '/')
     path = write_executable(echo)
     with bin_on_path():
         ret = parse_shebang.normalize_cmd(('run',))
@@ -145,7 +145,7 @@ def test_normalize_cmd_PATH_shebang_full_path(in_tmpdir):
 
 
 def test_normalize_cmd_PATH_shebang_PATH(in_tmpdir):
-    echo = distutils.spawn.find_executable('echo')
+    echo = _echo_exe()
     path = write_executable('/usr/bin/env echo')
     with bin_on_path():
         ret = parse_shebang.normalize_cmd(('run',))

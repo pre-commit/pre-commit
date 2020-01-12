@@ -1,11 +1,13 @@
-from __future__ import print_function
-from __future__ import unicode_literals
-
-import collections
 import os.path
 import re
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import NamedTuple
+from typing import Optional
+from typing import Sequence
+from typing import Tuple
 
-import six
 from aspy.yaml import ordered_dump
 from aspy.yaml import ordered_load
 
@@ -18,20 +20,23 @@ from pre_commit.clientlib import load_manifest
 from pre_commit.clientlib import LOCAL
 from pre_commit.clientlib import META
 from pre_commit.commands.migrate_config import migrate_config
+from pre_commit.store import Store
 from pre_commit.util import CalledProcessError
 from pre_commit.util import cmd_output
 from pre_commit.util import cmd_output_b
 from pre_commit.util import tmpdir
 
 
-class RevInfo(collections.namedtuple('RevInfo', ('repo', 'rev', 'frozen'))):
-    __slots__ = ()
+class RevInfo(NamedTuple):
+    repo: str
+    rev: str
+    frozen: Optional[str]
 
     @classmethod
-    def from_config(cls, config):
+    def from_config(cls, config: Dict[str, Any]) -> 'RevInfo':
         return cls(config['repo'], config['rev'], None)
 
-    def update(self, tags_only, freeze):
+    def update(self, tags_only: bool, freeze: bool) -> 'RevInfo':
         if tags_only:
             tag_cmd = ('git', 'describe', 'FETCH_HEAD', '--tags', '--abbrev=0')
         else:
@@ -59,12 +64,16 @@ class RepositoryCannotBeUpdatedError(RuntimeError):
     pass
 
 
-def _check_hooks_still_exist_at_rev(repo_config, info, store):
+def _check_hooks_still_exist_at_rev(
+        repo_config: Dict[str, Any],
+        info: RevInfo,
+        store: Store,
+) -> None:
     try:
         path = store.clone(repo_config['repo'], info.rev)
         manifest = load_manifest(os.path.join(path, C.MANIFEST_FILE))
     except InvalidManifestError as e:
-        raise RepositoryCannotBeUpdatedError(six.text_type(e))
+        raise RepositoryCannotBeUpdatedError(str(e))
 
     # See if any of our hooks were deleted with the new commits
     hooks = {hook['id'] for hook in repo_config['hooks']}
@@ -80,7 +89,11 @@ REV_LINE_RE = re.compile(r'^(\s+)rev:(\s*)([^\s#]+)(.*)(\r?\n)$', re.DOTALL)
 REV_LINE_FMT = '{}rev:{}{}{}{}'
 
 
-def _original_lines(path, rev_infos, retry=False):
+def _original_lines(
+        path: str,
+        rev_infos: List[Optional[RevInfo]],
+        retry: bool = False,
+) -> Tuple[List[str], List[int]]:
     """detect `rev:` lines or reformat the file"""
     with open(path) as f:
         original = f.read()
@@ -97,7 +110,7 @@ def _original_lines(path, rev_infos, retry=False):
         return _original_lines(path, rev_infos, retry=True)
 
 
-def _write_new_config(path, rev_infos):
+def _write_new_config(path: str, rev_infos: List[Optional[RevInfo]]) -> None:
     lines, idxs = _original_lines(path, rev_infos)
 
     for idx, rev_info in zip(idxs, rev_infos):
@@ -108,7 +121,7 @@ def _write_new_config(path, rev_infos):
         new_rev_s = ordered_dump({'rev': rev_info.rev}, **C.YAML_DUMP_KWARGS)
         new_rev = new_rev_s.split(':', 1)[1].strip()
         if rev_info.frozen is not None:
-            comment = '  # frozen: {}'.format(rev_info.frozen)
+            comment = f'  # frozen: {rev_info.frozen}'
         elif match.group(4).strip().startswith('# frozen:'):
             comment = ''
         else:
@@ -121,11 +134,17 @@ def _write_new_config(path, rev_infos):
         f.write(''.join(lines))
 
 
-def autoupdate(config_file, store, tags_only, freeze, repos=()):
+def autoupdate(
+        config_file: str,
+        store: Store,
+        tags_only: bool,
+        freeze: bool,
+        repos: Sequence[str] = (),
+) -> int:
     """Auto-update the pre-commit config to the latest versions of repos."""
     migrate_config(config_file, quiet=True)
     retv = 0
-    rev_infos = []
+    rev_infos: List[Optional[RevInfo]] = []
     changed = False
 
     config = load_config(config_file)
@@ -138,7 +157,7 @@ def autoupdate(config_file, store, tags_only, freeze, repos=()):
             rev_infos.append(None)
             continue
 
-        output.write('Updating {} ... '.format(info.repo))
+        output.write(f'Updating {info.repo} ... ')
         new_info = info.update(tags_only=tags_only, freeze=freeze)
         try:
             _check_hooks_still_exist_at_rev(repo_config, new_info, store)
@@ -151,10 +170,10 @@ def autoupdate(config_file, store, tags_only, freeze, repos=()):
         if new_info.rev != info.rev:
             changed = True
             if new_info.frozen:
-                updated_to = '{} (frozen)'.format(new_info.frozen)
+                updated_to = f'{new_info.frozen} (frozen)'
             else:
                 updated_to = new_info.rev
-            msg = 'updating {} -> {}.'.format(info.rev, updated_to)
+            msg = f'updating {info.rev} -> {updated_to}.'
             output.write_line(msg)
             rev_infos.append(new_info)
         else:

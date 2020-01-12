@@ -1,11 +1,11 @@
-from __future__ import absolute_import
-from __future__ import unicode_literals
-
 import contextlib
 import errno
+import os
+from typing import Callable
+from typing import Generator
 
 
-try:  # pragma: no cover (windows)
+if os.name == 'nt':  # pragma: no cover (windows)
     import msvcrt
 
     # https://docs.microsoft.com/en-us/cpp/c-runtime-library/reference/locking
@@ -15,15 +15,20 @@ try:  # pragma: no cover (windows)
     _region = 0xffff
 
     @contextlib.contextmanager
-    def _locked(fileno, blocked_cb):
+    def _locked(
+            fileno: int,
+            blocked_cb: Callable[[], None],
+    ) -> Generator[None, None, None]:
         try:
-            msvcrt.locking(fileno, msvcrt.LK_NBLCK, _region)
-        except IOError:
+            # TODO: https://github.com/python/typeshed/pull/3607
+            msvcrt.locking(fileno, msvcrt.LK_NBLCK, _region)  # type: ignore
+        except OSError:
             blocked_cb()
             while True:
                 try:
-                    msvcrt.locking(fileno, msvcrt.LK_LOCK, _region)
-                except IOError as e:
+                    # TODO: https://github.com/python/typeshed/pull/3607
+                    msvcrt.locking(fileno, msvcrt.LK_LOCK, _region)  # type: ignore  # noqa: E501
+                except OSError as e:
                     # Locking violation. Returned when the _LK_LOCK or _LK_RLCK
                     # flag is specified and the file cannot be locked after 10
                     # attempts.
@@ -40,15 +45,19 @@ try:  # pragma: no cover (windows)
             # The documentation however states:
             # "Regions should be locked only briefly and should be unlocked
             # before closing a file or exiting the program."
-            msvcrt.locking(fileno, msvcrt.LK_UNLCK, _region)
-except ImportError:  # pragma: windows no cover
+            # TODO: https://github.com/python/typeshed/pull/3607
+            msvcrt.locking(fileno, msvcrt.LK_UNLCK, _region)  # type: ignore
+else:  # pragma: windows no cover
     import fcntl
 
     @contextlib.contextmanager
-    def _locked(fileno, blocked_cb):
+    def _locked(
+            fileno: int,
+            blocked_cb: Callable[[], None],
+    ) -> Generator[None, None, None]:
         try:
             fcntl.flock(fileno, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        except IOError:  # pragma: no cover (tests are single-threaded)
+        except OSError:  # pragma: no cover (tests are single-threaded)
             blocked_cb()
             fcntl.flock(fileno, fcntl.LOCK_EX)
         try:
@@ -58,7 +67,10 @@ except ImportError:  # pragma: windows no cover
 
 
 @contextlib.contextmanager
-def lock(path, blocked_cb):
+def lock(
+        path: str,
+        blocked_cb: Callable[[], None],
+) -> Generator[None, None, None]:
     with open(path, 'a+') as f:
         with _locked(f.fileno(), blocked_cb):
             yield

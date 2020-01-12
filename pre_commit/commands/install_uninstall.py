@@ -1,18 +1,18 @@
-from __future__ import print_function
-from __future__ import unicode_literals
-
-import io
 import itertools
 import logging
 import os.path
 import shutil
 import sys
+from typing import Optional
+from typing import Sequence
+from typing import Tuple
 
 from pre_commit import git
 from pre_commit import output
 from pre_commit.clientlib import load_config
 from pre_commit.repository import all_hooks
 from pre_commit.repository import install_hook_envs
+from pre_commit.store import Store
 from pre_commit.util import make_executable
 from pre_commit.util import mkdirp
 from pre_commit.util import resource_text
@@ -33,21 +33,24 @@ TEMPLATE_START = '# start templated\n'
 TEMPLATE_END = '# end templated\n'
 
 
-def _hook_paths(hook_type, git_dir=None):
+def _hook_paths(
+        hook_type: str,
+        git_dir: Optional[str] = None,
+) -> Tuple[str, str]:
     git_dir = git_dir if git_dir is not None else git.get_git_dir()
     pth = os.path.join(git_dir, 'hooks', hook_type)
-    return pth, '{}.legacy'.format(pth)
+    return pth, f'{pth}.legacy'
 
 
-def is_our_script(filename):
+def is_our_script(filename: str) -> bool:
     if not os.path.exists(filename):  # pragma: windows no cover (symlink)
         return False
-    with io.open(filename) as f:
+    with open(filename) as f:
         contents = f.read()
     return any(h in contents for h in (CURRENT_HASH,) + PRIOR_HASHES)
 
 
-def shebang():
+def shebang() -> str:
     if sys.platform == 'win32':
         py = 'python'
     else:
@@ -63,13 +66,16 @@ def shebang():
                 break
         else:
             py = 'python'
-    return '#!/usr/bin/env {}'.format(py)
+    return f'#!/usr/bin/env {py}'
 
 
 def _install_hook_script(
-        config_file, hook_type,
-        overwrite=False, skip_on_missing_config=False, git_dir=None,
-):
+        config_file: str,
+        hook_type: str,
+        overwrite: bool = False,
+        skip_on_missing_config: bool = False,
+        git_dir: Optional[str] = None,
+) -> None:
     hook_path, legacy_path = _hook_paths(hook_type, git_dir=git_dir)
 
     mkdirp(os.path.dirname(hook_path))
@@ -94,7 +100,7 @@ def _install_hook_script(
         'SKIP_ON_MISSING_CONFIG': skip_on_missing_config,
     }
 
-    with io.open(hook_path, 'w') as hook_file:
+    with open(hook_path, 'w') as hook_file:
         contents = resource_text('hook-tmpl')
         before, rest = contents.split(TEMPLATE_START)
         to_template, after = rest.split(TEMPLATE_END)
@@ -108,14 +114,18 @@ def _install_hook_script(
         hook_file.write(TEMPLATE_END + after)
     make_executable(hook_path)
 
-    output.write_line('pre-commit installed at {}'.format(hook_path))
+    output.write_line(f'pre-commit installed at {hook_path}')
 
 
 def install(
-        config_file, store, hook_types,
-        overwrite=False, hooks=False,
-        skip_on_missing_config=False, git_dir=None,
-):
+        config_file: str,
+        store: Store,
+        hook_types: Sequence[str],
+        overwrite: bool = False,
+        hooks: bool = False,
+        skip_on_missing_config: bool = False,
+        git_dir: Optional[str] = None,
+) -> int:
     if git.has_core_hookpaths_set():
         logger.error(
             'Cowardly refusing to install hooks with `core.hooksPath` set.\n'
@@ -137,11 +147,12 @@ def install(
     return 0
 
 
-def install_hooks(config_file, store):
+def install_hooks(config_file: str, store: Store) -> int:
     install_hook_envs(all_hooks(load_config(config_file), store), store)
+    return 0
 
 
-def _uninstall_hook_script(hook_type):  # type: (str) -> None
+def _uninstall_hook_script(hook_type: str) -> None:
     hook_path, legacy_path = _hook_paths(hook_type)
 
     # If our file doesn't exist or it isn't ours, gtfo.
@@ -149,14 +160,14 @@ def _uninstall_hook_script(hook_type):  # type: (str) -> None
         return
 
     os.remove(hook_path)
-    output.write_line('{} uninstalled'.format(hook_type))
+    output.write_line(f'{hook_type} uninstalled')
 
     if os.path.exists(legacy_path):
         os.rename(legacy_path, hook_path)
-        output.write_line('Restored previous hooks to {}'.format(hook_path))
+        output.write_line(f'Restored previous hooks to {hook_path}')
 
 
-def uninstall(hook_types):
+def uninstall(hook_types: Sequence[str]) -> int:
     for hook_type in hook_types:
         _uninstall_hook_script(hook_type)
     return 0

@@ -1,15 +1,11 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import
-from __future__ import unicode_literals
-
 import concurrent.futures
 import os
 import sys
 import time
+from typing import Tuple
+from unittest import mock
 
-import mock
 import pytest
-import six
 
 from pre_commit import parse_shebang
 from pre_commit import xargs
@@ -30,19 +26,10 @@ def test_environ_size(env, expected):
 
 
 @pytest.fixture
-def win32_py2_mock():
+def win32_mock():
     with mock.patch.object(sys, 'getfilesystemencoding', return_value='utf-8'):
         with mock.patch.object(sys, 'platform', 'win32'):
-            with mock.patch.object(six, 'PY2', True):
-                yield
-
-
-@pytest.fixture
-def win32_py3_mock():
-    with mock.patch.object(sys, 'getfilesystemencoding', return_value='utf-8'):
-        with mock.patch.object(sys, 'platform', 'win32'):
-            with mock.patch.object(six, 'PY2', False):
-                yield
+            yield
 
 
 @pytest.fixture
@@ -82,18 +69,11 @@ def test_partition_limits():
     )
 
 
-def test_partition_limit_win32_py3(win32_py3_mock):
+def test_partition_limit_win32(win32_mock):
     cmd = ('ninechars',)
     # counted as half because of utf-16 encode
     varargs = ('😑' * 5,)
     ret = xargs.partition(cmd, varargs, 1, _max_length=21)
-    assert ret == (cmd + varargs,)
-
-
-def test_partition_limit_win32_py2(win32_py2_mock):
-    cmd = ('ninechars',)
-    varargs = ('😑' * 5,)  # 4 bytes * 5
-    ret = xargs.partition(cmd, varargs, 1, _max_length=31)
     assert ret == (cmd + varargs,)
 
 
@@ -187,9 +167,8 @@ def test_xargs_concurrency():
 
 def test_thread_mapper_concurrency_uses_threadpoolexecutor_map():
     with xargs._thread_mapper(10) as thread_map:
-        assert isinstance(
-            thread_map.__self__, concurrent.futures.ThreadPoolExecutor,
-        ) is True
+        _self = thread_map.__self__  # type: ignore
+        assert isinstance(_self, concurrent.futures.ThreadPoolExecutor)
 
 
 def test_thread_mapper_concurrency_uses_regular_map():
@@ -199,7 +178,7 @@ def test_thread_mapper_concurrency_uses_regular_map():
 
 def test_xargs_propagate_kwargs_to_cmd():
     env = {'PRE_COMMIT_TEST_VAR': 'Pre commit is awesome'}
-    cmd = ('bash', '-c', 'echo $PRE_COMMIT_TEST_VAR', '--')
+    cmd: Tuple[str, ...] = ('bash', '-c', 'echo $PRE_COMMIT_TEST_VAR', '--')
     cmd = parse_shebang.normalize_cmd(cmd)
 
     ret, stdout = xargs.xargs(cmd, ('1',), env=env)

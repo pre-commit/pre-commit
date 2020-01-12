@@ -1,6 +1,5 @@
 -e .
 
 coverage
-mock
 pytest
 pytest-env

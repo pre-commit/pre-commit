@@ -1,10 +1,8 @@
-from __future__ import unicode_literals
-
 import contextlib
-import io
 import logging
 import os.path
 import time
+from typing import Generator
 
 from pre_commit import git
 from pre_commit.util import CalledProcessError
@@ -17,7 +15,7 @@ from pre_commit.xargs import xargs
 logger = logging.getLogger('pre_commit')
 
 
-def _git_apply(patch):
+def _git_apply(patch: str) -> None:
     args = ('apply', '--whitespace=nowarn', patch)
     try:
         cmd_output_b('git', *args)
@@ -27,7 +25,7 @@ def _git_apply(patch):
 
 
 @contextlib.contextmanager
-def _intent_to_add_cleared():
+def _intent_to_add_cleared() -> Generator[None, None, None]:
     intent_to_add = git.intent_to_add_files()
     if intent_to_add:
         logger.warning('Unstaged intent-to-add files detected.')
@@ -42,7 +40,7 @@ def _intent_to_add_cleared():
 
 
 @contextlib.contextmanager
-def _unstaged_changes_cleared(patch_dir):
+def _unstaged_changes_cleared(patch_dir: str) -> Generator[None, None, None]:
     tree = cmd_output('git', 'write-tree')[1].strip()
     retcode, diff_stdout_binary, _ = cmd_output_b(
         'git', 'diff-index', '--ignore-submodules', '--binary',
@@ -54,11 +52,11 @@ def _unstaged_changes_cleared(patch_dir):
         patch_filename = os.path.join(patch_dir, patch_filename)
         logger.warning('Unstaged files detected.')
         logger.info(
-            'Stashing unstaged files to {}.'.format(patch_filename),
+            f'Stashing unstaged files to {patch_filename}.',
         )
         # Save the current unstaged changes as a patch
         mkdirp(patch_dir)
-        with io.open(patch_filename, 'wb') as patch_file:
+        with open(patch_filename, 'wb') as patch_file:
             patch_file.write(diff_stdout_binary)
 
         # Clear the working directory of unstaged changes
@@ -79,7 +77,7 @@ def _unstaged_changes_cleared(patch_dir):
                 # Roll back the changes made by hooks.
                 cmd_output_b('git', 'checkout', '--', '.')
                 _git_apply(patch_filename)
-            logger.info('Restored changes from {}.'.format(patch_filename))
+            logger.info(f'Restored changes from {patch_filename}.')
     else:
         # There weren't any staged files so we don't need to do anything
         # special
@@ -87,7 +85,7 @@ def _unstaged_changes_cleared(patch_dir):
 
 
 @contextlib.contextmanager
-def staged_files_only(patch_dir):
+def staged_files_only(patch_dir: str) -> Generator[None, None, None]:
     """Clear any unstaged changes from the git working directory inside this
     context.
     """

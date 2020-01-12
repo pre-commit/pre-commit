@@ -1,8 +1,6 @@
-from __future__ import unicode_literals
-
 import os.path
+from unittest import mock
 
-import mock
 import pytest
 
 from pre_commit.commands.clean import clean

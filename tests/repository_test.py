@@ -1,13 +1,12 @@
-from __future__ import absolute_import
-from __future__ import unicode_literals
-
 import os.path
 import re
 import shutil
 import sys
+from typing import Any
+from typing import Dict
+from unittest import mock
 
 import cfgv
-import mock
 import pytest
 
 import pre_commit.constants as C
@@ -312,7 +311,7 @@ def test_golang_hook(tempdir_factory, store):
 
 def test_golang_hook_still_works_when_gobin_is_set(tempdir_factory, store):
     gobin_dir = tempdir_factory.get()
-    with envcontext([('GOBIN', gobin_dir)]):
+    with envcontext((('GOBIN', gobin_dir),)):
         test_golang_hook(tempdir_factory, store)
     assert os.listdir(gobin_dir) == []
 
@@ -473,7 +472,7 @@ def _norm_pwd(path):
     # Under windows bash's temp and windows temp is different.
     # This normalizes to the bash /tmp
     return cmd_output_b(
-        'bash', '-c', "cd '{}' && pwd".format(path),
+        'bash', '-c', f"cd '{path}' && pwd",
     )[1].strip()
 
 
@@ -766,7 +765,7 @@ def test_local_python_repo(store, local_python_config):
 
 
 def test_default_language_version(store, local_python_config):
-    config = {
+    config: Dict[str, Any] = {
         'default_language_version': {'python': 'fake'},
         'default_stages': ['commit'],
         'repos': [local_python_config],
@@ -783,7 +782,7 @@ def test_default_language_version(store, local_python_config):
 
 
 def test_default_stages(store, local_python_config):
-    config = {
+    config: Dict[str, Any] = {
         'default_language_version': {'python': C.DEFAULT},
         'default_stages': ['commit'],
         'repos': [local_python_config],
@@ -844,7 +843,7 @@ def test_manifest_hooks(tempdir_factory, store):
     hook = _get_hook(config, store, 'bash_hook')
 
     assert hook == Hook(
-        src='file://{}'.format(path),
+        src=f'file://{path}',
         prefix=Prefix(mock.ANY),
         additional_dependencies=[],
         alias='',

@@ -1,7 +1,4 @@
-from __future__ import absolute_import
-from __future__ import unicode_literals
-
-import mock
+from unittest import mock
 
 from pre_commit.languages import docker
 from pre_commit.util import CalledProcessError
@@ -10,7 +7,7 @@ from pre_commit.util import CalledProcessError
 def test_docker_is_running_process_error():
     with mock.patch(
         'pre_commit.languages.docker.cmd_output_b',
-        side_effect=CalledProcessError(None, None, None, None, None),
+        side_effect=CalledProcessError(1, (), 0, b'', None),
     ):
         assert docker.docker_is_running() is False
 

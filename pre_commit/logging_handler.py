@@ -1,11 +1,9 @@
-from __future__ import unicode_literals
-
 import contextlib
 import logging
+from typing import Generator
 
 from pre_commit import color
 from pre_commit import output
-
 
 logger = logging.getLogger('pre_commit')
 
@@ -18,15 +16,15 @@ LOG_LEVEL_COLORS = {
 
 
 class LoggingHandler(logging.Handler):
-    def __init__(self, use_color):
-        super(LoggingHandler, self).__init__()
+    def __init__(self, use_color: bool) -> None:
+        super().__init__()
         self.use_color = use_color
 
-    def emit(self, record):
+    def emit(self, record: logging.LogRecord) -> None:
         output.write_line(
             '{} {}'.format(
                 color.format_color(
-                    '[{}]'.format(record.levelname),
+                    f'[{record.levelname}]',
                     LOG_LEVEL_COLORS[record.levelname],
                     self.use_color,
                 ),
@@ -36,8 +34,8 @@ class LoggingHandler(logging.Handler):
 
 
 @contextlib.contextmanager
-def logging_handler(*args, **kwargs):
-    handler = LoggingHandler(*args, **kwargs)
+def logging_handler(use_color: bool) -> Generator[None, None, None]:
+    handler = LoggingHandler(use_color)
     logger.addHandler(handler)
     logger.setLevel(logging.INFO)
     try:

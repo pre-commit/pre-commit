@@ -1,9 +1,6 @@
-from __future__ import absolute_import
-from __future__ import unicode_literals
-
 import os
+from unittest import mock
 
-import mock
 import pytest
 
 from pre_commit.envcontext import envcontext
@@ -94,16 +91,16 @@ def test_exception_safety():
     class MyError(RuntimeError):
         pass
 
-    env = {}
+    env = {'hello': 'world'}
     with pytest.raises(MyError):
-        with envcontext([('foo', 'bar')], _env=env):
+        with envcontext((('foo', 'bar'),), _env=env):
             raise MyError()
-    assert env == {}
+    assert env == {'hello': 'world'}
 
 
 def test_integration_os_environ():
     with mock.patch.dict(os.environ, {'FOO': 'bar'}, clear=True):
         assert os.environ == {'FOO': 'bar'}
-        with envcontext([('HERP', 'derp')]):
+        with envcontext((('HERP', 'derp'),)):
             assert os.environ == {'FOO': 'bar', 'HERP': 'derp'}
         assert os.environ == {'FOO': 'bar'}

@@ -1,14 +1,12 @@
-from __future__ import unicode_literals
-
 import os
 import sys
 
 terminal_supports_color = True
-if os.name == 'nt':  # pragma: no cover (windows)
+if sys.platform == 'win32':  # pragma: no cover (windows)
     from pre_commit.color_windows import enable_virtual_terminal_processing
     try:
         enable_virtual_terminal_processing()
-    except WindowsError:
+    except OSError:
         terminal_supports_color = False
 
 RED = '\033[41m'
@@ -23,7 +21,7 @@ class InvalidColorSetting(ValueError):
     pass
 
 
-def format_color(text, color, use_color_setting):
+def format_color(text: str, color: str, use_color_setting: bool) -> str:
     """Format text with color.
 
     Args:
@@ -34,13 +32,13 @@ def format_color(text, color, use_color_setting):
     if not use_color_setting:
         return text
     else:
-        return '{}{}{}'.format(color, text, NORMAL)
+        return f'{color}{text}{NORMAL}'
 
 
 COLOR_CHOICES = ('auto', 'always', 'never')
 
 
-def use_color(setting):
+def use_color(setting: str) -> bool:
     """Choose whether to use color based on the command argument.
 
     Args:

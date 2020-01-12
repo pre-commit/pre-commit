@@ -1,25 +1,15 @@
-from __future__ import unicode_literals
-
 import os.path
-import sys
 
 from pre_commit.languages import python
 from pre_commit.util import CalledProcessError
 from pre_commit.util import cmd_output
 from pre_commit.util import cmd_output_b
 
-
 ENVIRONMENT_DIR = 'py_venv'
+get_default_version = python.get_default_version
 
 
-def get_default_version():  # pragma: no cover (version specific)
-    if sys.version_info < (3,):
-        return 'python3'
-    else:
-        return python.get_default_version()
-
-
-def orig_py_exe(exe):  # pragma: no cover (platform specific)
+def orig_py_exe(exe: str) -> str:  # pragma: no cover (platform specific)
     """A -mvenv virtualenv made from a -mvirtualenv virtualenv installs
     packages to the incorrect location.  Attempt to find the _original_ exe
     and invoke `-mvenv` from there.
@@ -48,7 +38,7 @@ def orig_py_exe(exe):  # pragma: no cover (platform specific)
         return exe
 
 
-def make_venv(envdir, python):
+def make_venv(envdir: str, python: str) -> None:
     cmd_output_b(orig_py_exe(python), '-mvenv', envdir, cwd='/')
 
 

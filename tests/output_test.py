@@ -1,6 +1,5 @@
-from __future__ import unicode_literals
+from unittest import mock
 
-import mock
 import pytest
 
 from pre_commit import color
@@ -23,7 +22,7 @@ from pre_commit import output
     ),
 )
 def test_get_hook_message_raises(kwargs):
-    with pytest.raises(ValueError):
+    with pytest.raises(AssertionError):
         output.get_hook_message('start', **kwargs)
 
 

@@ -1,10 +1,7 @@
-from __future__ import absolute_import
-from __future__ import unicode_literals
-
 import argparse
 import os.path
+from unittest import mock
 
-import mock
 import pytest
 
 import pre_commit.constants as C
@@ -27,25 +24,24 @@ def test_append_replace_default(argv, expected):
     assert parser.parse_args(argv).f == expected
 
 
-class Args(object):
-    def __init__(self, **kwargs):
-        kwargs.setdefault('command', 'help')
-        kwargs.setdefault('config', C.CONFIG_FILE)
-        self.__dict__.update(kwargs)
+def _args(**kwargs):
+    kwargs.setdefault('command', 'help')
+    kwargs.setdefault('config', C.CONFIG_FILE)
+    return argparse.Namespace(**kwargs)
 
 
 def test_adjust_args_and_chdir_not_in_git_dir(in_tmpdir):
     with pytest.raises(FatalError):
-        main._adjust_args_and_chdir(Args())
+        main._adjust_args_and_chdir(_args())
 
 
 def test_adjust_args_and_chdir_in_dot_git_dir(in_git_dir):
     with in_git_dir.join('.git').as_cwd(), pytest.raises(FatalError):
-        main._adjust_args_and_chdir(Args())
+        main._adjust_args_and_chdir(_args())
 
 
 def test_adjust_args_and_chdir_noop(in_git_dir):
-    args = Args(command='run', files=['f1', 'f2'])
+    args = _args(command='run', files=['f1', 'f2'])
     main._adjust_args_and_chdir(args)
     assert os.getcwd() == in_git_dir
     assert args.config == C.CONFIG_FILE
@@ -56,7 +52,7 @@ def test_adjust_args_and_chdir_relative_things(in_git_dir):
     in_git_dir.join('foo/cfg.yaml').ensure()
     in_git_dir.join('foo').chdir()
 
-    args = Args(command='run', files=['f1', 'f2'], config='cfg.yaml')
+    args = _args(command='run', files=['f1', 'f2'], config='cfg.yaml')
     main._adjust_args_and_chdir(args)
     assert os.getcwd() == in_git_dir
     assert args.config == os.path.join('foo', 'cfg.yaml')
@@ -66,7 +62,7 @@ def test_adjust_args_and_chdir_relative_things(in_git_dir):
 def test_adjust_args_and_chdir_non_relative_config(in_git_dir):
     in_git_dir.join('foo').ensure_dir().chdir()
 
-    args = Args()
+    args = _args()
     main._adjust_args_and_chdir(args)
     assert os.getcwd() == in_git_dir
     assert args.config == C.CONFIG_FILE
@@ -75,7 +71,8 @@ def test_adjust_args_and_chdir_non_relative_config(in_git_dir):
 def test_adjust_args_try_repo_repo_relative(in_git_dir):
     in_git_dir.join('foo').ensure_dir().chdir()
 
-    args = Args(command='try-repo', repo='../foo', files=[])
+    args = _args(command='try-repo', repo='../foo', files=[])
+    assert args.repo is not None
     assert os.path.exists(args.repo)
     main._adjust_args_and_chdir(args)
     assert os.getcwd() == in_git_dir
@@ -189,4 +186,4 @@ def test_expected_fatal_error_no_git_repo(in_tmpdir, cap_out, mock_store_dir):
         'An error has occurred: FatalError: git failed. '
         'Is it installed, and are you in a Git repository directory?'
     )
-    assert cap_out_lines[-1] == 'Check the log at {}'.format(log_file)
+    assert cap_out_lines[-1] == f'Check the log at {log_file}'

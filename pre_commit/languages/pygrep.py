@@ -1,14 +1,18 @@
-from __future__ import absolute_import
-from __future__ import unicode_literals
-
 import argparse
 import re
 import sys
+from typing import Optional
+from typing import Pattern
+from typing import Sequence
+from typing import Tuple
+from typing import TYPE_CHECKING
 
 from pre_commit import output
 from pre_commit.languages import helpers
 from pre_commit.xargs import xargs
 
+if TYPE_CHECKING:
+    from pre_commit.repository import Hook
 
 ENVIRONMENT_DIR = None
 get_default_version = helpers.basic_get_default_version
@@ -16,18 +20,18 @@ healthy = helpers.basic_healthy
 install_environment = helpers.no_install
 
 
-def _process_filename_by_line(pattern, filename):
+def _process_filename_by_line(pattern: Pattern[bytes], filename: str) -> int:
     retv = 0
     with open(filename, 'rb') as f:
         for line_no, line in enumerate(f, start=1):
             if pattern.search(line):
                 retv = 1
-                output.write('{}:{}:'.format(filename, line_no))
+                output.write(f'{filename}:{line_no}:')
                 output.write_line(line.rstrip(b'\r\n'))
     return retv
 
 
-def _process_filename_at_once(pattern, filename):
+def _process_filename_at_once(pattern: Pattern[bytes], filename: str) -> int:
     retv = 0
     with open(filename, 'rb') as f:
         contents = f.read()
@@ -44,12 +48,16 @@ def _process_filename_at_once(pattern, filename):
     return retv
 
 
-def run_hook(hook, file_args, color):
+def run_hook(
+        hook: 'Hook',
+        file_args: Sequence[str],
+        color: bool,
+) -> Tuple[int, bytes]:
     exe = (sys.executable, '-m', __name__) + tuple(hook.args) + (hook.entry,)
     return xargs(exe, file_args, color=color)
 
 
-def main(argv=None):
+def main(argv: Optional[Sequence[str]] = None) -> int:
     parser = argparse.ArgumentParser(
         description=(
             'grep-like finder using python regexes.  Unlike grep, this tool '

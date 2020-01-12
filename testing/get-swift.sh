@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
-# This is a script used in travis-ci to install swift
+# This is a script used in CI to install swift
 set -euxo pipefail
 
 . /etc/lsb-release
-if [ "$DISTRIB_CODENAME" = "trusty" ]; then
-    SWIFT_URL='https://swift.org/builds/swift-4.0.3-release/ubuntu1404/swift-4.0.3-RELEASE/swift-4.0.3-RELEASE-ubuntu14.04.tar.gz'
-    SWIFT_HASH="dddb40ec4956e4f6a3f4532d859691d5d1ba8822f6e8b4ec6c452172dbede5ae"
+if [ "$DISTRIB_CODENAME" = "bionic" ]; then
+    SWIFT_URL='https://swift.org/builds/swift-5.1.3-release/ubuntu1804/swift-5.1.3-RELEASE/swift-5.1.3-RELEASE-ubuntu18.04.tar.gz'
+    SWIFT_HASH='ac82ccd773fe3d586fc340814e31e120da1ff695c6a712f6634e9cc720769610'
 else
-    SWIFT_URL='https://swift.org/builds/swift-4.0.3-release/ubuntu1604/swift-4.0.3-RELEASE/swift-4.0.3-RELEASE-ubuntu16.04.tar.gz'
-    SWIFT_HASH="9adf64cabc7c02ea2d08f150b449b05e46bd42d6e542bf742b3674f5c37f0dbf"
+    echo "unknown dist: ${DISTRIB_CODENAME}" 1>&2
+    exit 1
 fi
 
 check() {

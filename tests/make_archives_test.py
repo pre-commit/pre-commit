@@ -1,6 +1,3 @@
-from __future__ import absolute_import
-from __future__ import unicode_literals
-
 import tarfile
 
 from pre_commit import git
@@ -46,4 +43,4 @@ def test_main(tmpdir):
     make_archives.main(('--dest', tmpdir.strpath))
 
     for archive, _, _ in make_archives.REPOS:
-        assert tmpdir.join('{}.tar.gz'.format(archive)).exists()
+        assert tmpdir.join(f'{archive}.tar.gz').exists()
