@@ -105,11 +105,9 @@ class CalledProcessError(RuntimeError):
                 return b' (none)'
 
         return b''.join((
-            'command: {!r}\n'
-            'return code: {}\n'
-            'expected return code: {}\n'.format(
-                self.cmd, self.returncode, self.expected_returncode,
-            ).encode(),
+            f'command: {self.cmd!r}\n'.encode(),
+            f'return code: {self.returncode}\n'.encode(),
+            f'expected return code: {self.expected_returncode}\n'.encode(),
             b'stdout:', _indent_or_none(self.stdout), b'\n',
             b'stderr:', _indent_or_none(self.stderr),
         ))

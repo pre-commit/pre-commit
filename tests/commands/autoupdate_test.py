@@ -1,4 +1,4 @@
-import pipes
+import shlex
 
 import pytest
 
@@ -118,12 +118,12 @@ def test_rev_info_update_does_not_freeze_if_already_sha(out_of_date):
 
 def test_autoupdate_up_to_date_repo(up_to_date, tmpdir, store):
     contents = (
-        'repos:\n'
-        '-   repo: {}\n'
-        '    rev: {}\n'
-        '    hooks:\n'
-        '    -   id: foo\n'
-    ).format(up_to_date, git.head_rev(up_to_date))
+        f'repos:\n'
+        f'-   repo: {up_to_date}\n'
+        f'    rev: {git.head_rev(up_to_date)}\n'
+        f'    hooks:\n'
+        f'    -   id: foo\n'
+    )
     cfg = tmpdir.join(C.CONFIG_FILE)
     cfg.write(contents)
 
@@ -278,7 +278,7 @@ def test_loses_formatting_when_not_detectable(out_of_date, store, tmpdir):
         '        ],\n'
         '    }}\n'
         ']\n'.format(
-            pipes.quote(out_of_date.path), out_of_date.original_rev,
+            shlex.quote(out_of_date.path), out_of_date.original_rev,
         )
     )
     cfg = tmpdir.join(C.CONFIG_FILE)
@@ -286,12 +286,12 @@ def test_loses_formatting_when_not_detectable(out_of_date, store, tmpdir):
 
     assert autoupdate(str(cfg), store, freeze=False, tags_only=False) == 0
     expected = (
-        'repos:\n'
-        '-   repo: {}\n'
-        '    rev: {}\n'
-        '    hooks:\n'
-        '    -   id: foo\n'
-    ).format(out_of_date.path, out_of_date.head_rev)
+        f'repos:\n'
+        f'-   repo: {out_of_date.path}\n'
+        f'    rev: {out_of_date.head_rev}\n'
+        f'    hooks:\n'
+        f'    -   id: foo\n'
+    )
     assert cfg.read() == expected
 
 
@@ -358,12 +358,12 @@ def test_hook_disppearing_repo_raises(hook_disappearing, store):
 
 def test_autoupdate_hook_disappearing_repo(hook_disappearing, tmpdir, store):
     contents = (
-        'repos:\n'
-        '-   repo: {}\n'
-        '    rev: {}\n'
-        '    hooks:\n'
-        '    -   id: foo\n'
-    ).format(hook_disappearing.path, hook_disappearing.original_rev)
+        f'repos:\n'
+        f'-   repo: {hook_disappearing.path}\n'
+        f'    rev: {hook_disappearing.original_rev}\n'
+        f'    hooks:\n'
+        f'    -   id: foo\n'
+    )
     cfg = tmpdir.join(C.CONFIG_FILE)
     cfg.write(contents)
 

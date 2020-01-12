@@ -89,8 +89,8 @@ def _install_hook_script(
         os.remove(legacy_path)
     elif os.path.exists(legacy_path):
         output.write_line(
-            'Running in migration mode with existing hooks at {}\n'
-            'Use -f to use only pre-commit.'.format(legacy_path),
+            f'Running in migration mode with existing hooks at {legacy_path}\n'
+            f'Use -f to use only pre-commit.',
         )
 
     params = {
@@ -110,7 +110,7 @@ def _install_hook_script(
         hook_file.write(before + TEMPLATE_START)
         for line in to_template.splitlines():
             var = line.split()[0]
-            hook_file.write('{} = {!r}\n'.format(var, params[var]))
+            hook_file.write(f'{var} = {params[var]!r}\n')
         hook_file.write(TEMPLATE_END + after)
     make_executable(hook_path)
 

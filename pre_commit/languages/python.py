@@ -47,10 +47,10 @@ def _find_by_py_launcher(
         version: str,
 ) -> Optional[str]:  # pragma: no cover (windows only)
     if version.startswith('python'):
+        num = version[len('python'):]
         try:
             return cmd_output(
-                'py', '-{}'.format(version[len('python'):]),
-                '-c', 'import sys; print(sys.executable)',
+                'py', f'-{num}', '-c', 'import sys; print(sys.executable)',
             )[1].strip()
         except CalledProcessError:
             pass
@@ -88,7 +88,7 @@ def get_default_version() -> str:  # pragma: no cover (platform dependent)
         return exe
 
     # Next try the `pythonX.X` executable
-    exe = 'python{}.{}'.format(*sys.version_info)
+    exe = f'python{sys.version_info[0]}.{sys.version_info[1]}'
     if find_executable(exe):
         return exe
 
@@ -96,7 +96,8 @@ def get_default_version() -> str:  # pragma: no cover (platform dependent)
         return exe
 
     # Give a best-effort try for windows
-    if os.path.exists(r'C:\{}\python.exe'.format(exe.replace('.', ''))):
+    default_folder_name = exe.replace('.', '')
+    if os.path.exists(fr'C:\{default_folder_name}\python.exe'):
         return exe
 
     # We tried!
@@ -135,7 +136,8 @@ def norm_version(version: str) -> str:
         # If it is in the form pythonx.x search in the default
         # place on windows
         if version.startswith('python'):
-            return r'C:\{}\python.exe'.format(version.replace('.', ''))
+            default_folder_name = version.replace('.', '')
+            return fr'C:\{default_folder_name}\python.exe'
 
     # Otherwise assume it is a path
     return os.path.expanduser(version)

@@ -80,13 +80,12 @@ def _check_hooks_still_exist_at_rev(
     hooks_missing = hooks - {hook['id'] for hook in manifest}
     if hooks_missing:
         raise RepositoryCannotBeUpdatedError(
-            'Cannot update because the tip of master is missing these hooks:\n'
-            '{}'.format(', '.join(sorted(hooks_missing))),
+            f'Cannot update because the tip of HEAD is missing these hooks:\n'
+            f'{", ".join(sorted(hooks_missing))}',
         )
 
 
 REV_LINE_RE = re.compile(r'^(\s+)rev:(\s*)([^\s#]+)(.*)(\r?\n)$', re.DOTALL)
-REV_LINE_FMT = '{}rev:{}{}{}{}'
 
 
 def _original_lines(
@@ -126,9 +125,7 @@ def _write_new_config(path: str, rev_infos: List[Optional[RevInfo]]) -> None:
             comment = ''
         else:
             comment = match.group(4)
-        lines[idx] = REV_LINE_FMT.format(
-            match.group(1), match.group(2), new_rev, comment, match.group(5),
-        )
+        lines[idx] = f'{match[1]}rev:{match[2]}{new_rev}{comment}{match[5]}'
 
     with open(path, 'w') as f:
         f.write(''.join(lines))

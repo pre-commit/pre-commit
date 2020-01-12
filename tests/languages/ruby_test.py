@@ -1,5 +1,5 @@
 import os.path
-import pipes
+import shlex
 
 from pre_commit.languages.ruby import _install_rbenv
 from pre_commit.prefix import Prefix
@@ -21,7 +21,7 @@ def test_install_rbenv(tempdir_factory):
     cmd_output(
         'bash', '-c',
         '. {} && rbenv --help'.format(
-            pipes.quote(prefix.path('rbenv-default', 'bin', 'activate')),
+            shlex.quote(prefix.path('rbenv-default', 'bin', 'activate')),
         ),
     )
 
@@ -35,6 +35,6 @@ def test_install_rbenv_with_version(tempdir_factory):
     cmd_output(
         'bash', '-c',
         '. {} && rbenv install --help'.format(
-            pipes.quote(prefix.path('rbenv-1.9.3p547', 'bin', 'activate')),
+            shlex.quote(prefix.path('rbenv-1.9.3p547', 'bin', 'activate')),
         ),
     )

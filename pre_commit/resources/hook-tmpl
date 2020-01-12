@@ -52,12 +52,11 @@ def _norm_exe(exe: str) -> Tuple[str, ...]:
 def _run_legacy() -> Tuple[int, bytes]:
     if __file__.endswith('.legacy'):
         raise SystemExit(
-            "bug: pre-commit's script is installed in migration mode\n"
-            'run `pre-commit install -f --hook-type {}` to fix this\n\n'
-            'Please report this bug at '
-            'https://github.com/pre-commit/pre-commit/issues'.format(
-                HOOK_TYPE,
-            ),
+            f"bug: pre-commit's script is installed in migration mode\n"
+            f'run `pre-commit install -f --hook-type {HOOK_TYPE}` to fix '
+            f'this\n\n'
+            f'Please report this bug at '
+            f'https://github.com/pre-commit/pre-commit/issues',
         )
 
     if HOOK_TYPE == 'pre-push':
@@ -82,20 +81,17 @@ def _validate_config() -> None:
     if os.path.isfile(cfg):
         pass
     elif SKIP_ON_MISSING_CONFIG or os.getenv('PRE_COMMIT_ALLOW_NO_CONFIG'):
-        print(
-            '`{}` config file not found. '
-            'Skipping `pre-commit`.'.format(CONFIG),
-        )
+        print(f'`{CONFIG}` config file not found. Skipping `pre-commit`.')
         raise EarlyExit()
     else:
         raise FatalError(
-            'No {} file was found\n'
-            '- To temporarily silence this, run '
-            '`PRE_COMMIT_ALLOW_NO_CONFIG=1 git ...`\n'
-            '- To permanently silence this, install pre-commit with the '
-            '--allow-missing-config option\n'
-            '- To uninstall pre-commit run '
-            '`pre-commit uninstall`'.format(CONFIG),
+            f'No {CONFIG} file was found\n'
+            f'- To temporarily silence this, run '
+            f'`PRE_COMMIT_ALLOW_NO_CONFIG=1 git ...`\n'
+            f'- To permanently silence this, install pre-commit with the '
+            f'--allow-missing-config option\n'
+            f'- To uninstall pre-commit run '
+            f'`pre-commit uninstall`',
         )
 
 

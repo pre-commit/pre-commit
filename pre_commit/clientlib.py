@@ -1,7 +1,7 @@
 import argparse
 import functools
 import logging
-import pipes
+import shlex
 import sys
 from typing import Any
 from typing import Dict
@@ -25,18 +25,17 @@ check_string_regex = cfgv.check_and(cfgv.check_string, cfgv.check_regex)
 def check_type_tag(tag: str) -> None:
     if tag not in ALL_TAGS:
         raise cfgv.ValidationError(
-            'Type tag {!r} is not recognized.  '
-            'Try upgrading identify and pre-commit?'.format(tag),
+            f'Type tag {tag!r} is not recognized.  '
+            f'Try upgrading identify and pre-commit?',
         )
 
 
 def check_min_version(version: str) -> None:
     if parse_version(version) > parse_version(C.VERSION):
         raise cfgv.ValidationError(
-            'pre-commit version {} is required but version {} is installed.  '
-            'Perhaps run `pip install --upgrade pre-commit`.'.format(
-                version, C.VERSION,
-            ),
+            f'pre-commit version {version} is required but version '
+            f'{C.VERSION} is installed.  '
+            f'Perhaps run `pip install --upgrade pre-commit`.',
         )
 
 
@@ -142,9 +141,7 @@ def _entry(modname: str) -> str:
     runner, so to prevent issues with spaces and backslashes (on Windows)
     it must be quoted here.
     """
-    return '{} -m pre_commit.meta_hooks.{}'.format(
-        pipes.quote(sys.executable), modname,
-    )
+    return f'{shlex.quote(sys.executable)} -m pre_commit.meta_hooks.{modname}'
 
 
 def warn_unknown_keys_root(
@@ -152,9 +149,7 @@ def warn_unknown_keys_root(
         orig_keys: Sequence[str],
         dct: Dict[str, str],
 ) -> None:
-    logger.warning(
-        'Unexpected key(s) present at root: {}'.format(', '.join(extra)),
-    )
+    logger.warning(f'Unexpected key(s) present at root: {", ".join(extra)}')
 
 
 def warn_unknown_keys_repo(
@@ -163,9 +158,7 @@ def warn_unknown_keys_repo(
         dct: Dict[str, str],
 ) -> None:
     logger.warning(
-        'Unexpected key(s) present on {}: {}'.format(
-            dct['repo'], ', '.join(extra),
-        ),
+        f'Unexpected key(s) present on {dct["repo"]}: {", ".join(extra)}',
     )
 
 

@@ -243,9 +243,10 @@ def _run_hooks(
         output.write_line('All changes made by hooks:')
         # args.color is a boolean.
         # See user_color function in color.py
+        git_color_opt = 'always' if args.color else 'never'
         subprocess.call((
             'git', '--no-pager', 'diff', '--no-ext-diff',
-            '--color={}'.format({True: 'always', False: 'never'}[args.color]),
+            f'--color={git_color_opt}',
         ))
 
     return retval
@@ -282,8 +283,8 @@ def run(
         return 1
     if _has_unstaged_config(config_file) and not no_stash:
         logger.error(
-            'Your pre-commit configuration is unstaged.\n'
-            '`git add {}` to fix this.'.format(config_file),
+            f'Your pre-commit configuration is unstaged.\n'
+            f'`git add {config_file}` to fix this.',
         )
         return 1
 
@@ -308,9 +309,7 @@ def run(
 
         if args.hook and not hooks:
             output.write_line(
-                'No hook with id `{}` in stage `{}`'.format(
-                    args.hook, args.hook_stage,
-                ),
+                f'No hook with id `{args.hook}` in stage `{args.hook_stage}`',
             )
             return 1
 

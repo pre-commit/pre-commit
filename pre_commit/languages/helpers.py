@@ -51,8 +51,8 @@ def assert_no_additional_deps(
 ) -> None:
     if additional_deps:
         raise AssertionError(
-            'For now, pre-commit does not support '
-            'additional_dependencies for {}'.format(lang),
+            f'For now, pre-commit does not support '
+            f'additional_dependencies for {lang}',
         )
 
 

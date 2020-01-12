@@ -33,7 +33,7 @@ def _envdir(prefix: Prefix, version: str) -> str:
 def get_env_patch(venv: str) -> PatchesT:  # pragma: windows no cover
     if sys.platform == 'cygwin':  # pragma: no cover
         _, win_venv, _ = cmd_output('cygpath', '-w', venv)
-        install_prefix = r'{}\bin'.format(win_venv.strip())
+        install_prefix = fr'{win_venv.strip()}\bin'
         lib_dir = 'lib'
     elif sys.platform == 'win32':  # pragma: no cover
         install_prefix = bin_dir(venv)

@@ -52,11 +52,11 @@ def test_shebang_posix_not_on_path():
 
 
 def test_shebang_posix_on_path(tmpdir):
-    tmpdir.join('python{}'.format(sys.version_info[0])).ensure()
+    tmpdir.join(f'python{sys.version_info[0]}').ensure()
 
     with mock.patch.object(sys, 'platform', 'posix'):
         with mock.patch.object(os, 'defpath', tmpdir.strpath):
-            expected = '#!/usr/bin/env python{}'.format(sys.version_info[0])
+            expected = f'#!/usr/bin/env python{sys.version_info[0]}'
             assert shebang() == expected
 
 

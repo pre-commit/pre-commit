@@ -54,12 +54,9 @@ def get_hook_message(
         assert end_msg is not None
         assert end_color is not None
         assert use_color is not None
-        return '{}{}{}{}\n'.format(
-            start,
-            '.' * (cols - len(start) - len(postfix) - len(end_msg) - 1),
-            postfix,
-            color.format_color(end_msg, end_color, use_color),
-        )
+        dots = '.' * (cols - len(start) - len(postfix) - len(end_msg) - 1)
+        end = color.format_color(end_msg, end_color, use_color)
+        return f'{start}{dots}{postfix}{end}\n'
 
 
 def write(s: str, stream: IO[bytes] = sys.stdout.buffer) -> None:

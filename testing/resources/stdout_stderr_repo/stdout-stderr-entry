@@ -1,13 +1,7 @@
-#!/usr/bin/env python
-import sys
-
-
-def main():
-    for i in range(6):
-        f = sys.stdout if i % 2 == 0 else sys.stderr
-        f.write(f'{i}\n')
-        f.flush()
-
-
-if __name__ == '__main__':
-    exit(main())
+#!/usr/bin/env bash
+echo 0
+echo 1 1>&2
+echo 2
+echo 3 1>&2
+echo 4
+echo 5 1>&2

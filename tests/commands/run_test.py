@@ -1,5 +1,5 @@
 import os.path
-import pipes
+import shlex
 import sys
 import time
 from unittest import mock
@@ -580,8 +580,7 @@ def test_lots_of_files(store, tempdir_factory):
 
         # Write a crap ton of files
         for i in range(400):
-            filename = '{}{}'.format('a' * 100, i)
-            open(filename, 'w').close()
+            open(f'{"a" * 100}{i}', 'w').close()
 
         cmd_output('git', 'add', '.')
         install(C.CONFIG_FILE, store, hook_types=['pre-commit'])
@@ -673,7 +672,7 @@ def test_local_hook_passes(cap_out, store, repo_with_passing_hook):
                 'id': 'identity-copy',
                 'name': 'identity-copy',
                 'entry': '{} -m pre_commit.meta_hooks.identity'.format(
-                    pipes.quote(sys.executable),
+                    shlex.quote(sys.executable),
                 ),
                 'language': 'system',
                 'files': r'\.py$',
@@ -893,7 +892,7 @@ def test_args_hook_only(cap_out, store, repo_with_passing_hook):
                 'id': 'identity-copy',
                 'name': 'identity-copy',
                 'entry': '{} -m pre_commit.meta_hooks.identity'.format(
-                    pipes.quote(sys.executable),
+                    shlex.quote(sys.executable),
                 ),
                 'language': 'system',
                 'files': r'\.py$',
