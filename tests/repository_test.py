@@ -32,7 +32,6 @@ from testing.util import cwd
 from testing.util import get_resource_path
 from testing.util import skipif_cant_run_docker
 from testing.util import skipif_cant_run_swift
-from testing.util import xfailif_broken_deep_listdir
 from testing.util import xfailif_no_venv
 from testing.util import xfailif_windows_no_ruby
 
@@ -230,7 +229,6 @@ def test_run_a_docker_image_hook(tempdir_factory, store, hook_id):
     )
 
 
-@xfailif_broken_deep_listdir
 def test_run_a_node_hook(tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'node_hooks_repo',
@@ -238,7 +236,6 @@ def test_run_a_node_hook(tempdir_factory, store):
     )
 
 
-@xfailif_broken_deep_listdir
 def test_run_versioned_node_hook(tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'node_versioned_hooks_repo',
@@ -521,7 +518,6 @@ def test_additional_ruby_dependencies_installed(tempdir_factory, store):
         assert 'tins' in output
 
 
-@xfailif_broken_deep_listdir  # pragma: windows no cover
 def test_additional_node_dependencies_installed(tempdir_factory, store):
     path = make_repo(tempdir_factory, 'node_hooks_repo')
     config = make_config_from_repo(path)
