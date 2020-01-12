@@ -10,7 +10,6 @@ import cfgv
 import pytest
 
 import pre_commit.constants as C
-from pre_commit import five
 from pre_commit.clientlib import CONFIG_SCHEMA
 from pre_commit.clientlib import load_manifest
 from pre_commit.envcontext import envcontext
@@ -119,7 +118,7 @@ def test_python_hook(tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'python_hooks_repo',
         'foo', [os.devnull],
-        b"['" + five.to_bytes(os.devnull) + b"']\nHello World\n",
+        f'[{os.devnull!r}]\nHello World\n'.encode(),
     )
 
 
@@ -154,7 +153,7 @@ def test_python_hook_weird_setup_cfg(in_git_dir, tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'python_hooks_repo',
         'foo', [os.devnull],
-        b"['" + five.to_bytes(os.devnull) + b"']\nHello World\n",
+        f'[{os.devnull!r}]\nHello World\n'.encode(),
     )
 
 
@@ -163,7 +162,7 @@ def test_python_venv(tempdir_factory, store):  # pragma: no cover (no venv)
     _test_hook_repo(
         tempdir_factory, store, 'python_venv_hooks_repo',
         'foo', [os.devnull],
-        b"['" + five.to_bytes(os.devnull) + b"']\nHello World\n",
+        f'[{os.devnull!r}]\nHello World\n'.encode(),
     )
 
 
@@ -188,7 +187,7 @@ def test_versioned_python_hook(tempdir_factory, store):
         tempdir_factory, store, 'python3_hooks_repo',
         'python3-hook',
         [os.devnull],
-        b"3\n['" + five.to_bytes(os.devnull) + b"']\nHello World\n",
+        f'3\n[{os.devnull!r}]\nHello World\n'.encode(),
     )
 
 

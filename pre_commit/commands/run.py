@@ -173,7 +173,7 @@ def _run_single_hook(
 
         if out.strip():
             output.write_line()
-            output.write_line(out.strip(), logfile_name=hook.log_file)
+            output.write_line_b(out.strip(), logfile_name=hook.log_file)
             output.write_line()
 
     return files_modified or bool(retcode)

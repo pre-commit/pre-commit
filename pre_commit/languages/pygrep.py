@@ -27,7 +27,7 @@ def _process_filename_by_line(pattern: Pattern[bytes], filename: str) -> int:
             if pattern.search(line):
                 retv = 1
                 output.write(f'{filename}:{line_no}:')
-                output.write_line(line.rstrip(b'\r\n'))
+                output.write_line_b(line.rstrip(b'\r\n'))
     return retv
 
 
@@ -44,7 +44,7 @@ def _process_filename_at_once(pattern: Pattern[bytes], filename: str) -> int:
             matched_lines = match[0].split(b'\n')
             matched_lines[0] = contents.split(b'\n')[line_no]
 
-            output.write_line(b'\n'.join(matched_lines))
+            output.write_line_b(b'\n'.join(matched_lines))
     return retv
 
 

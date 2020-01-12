@@ -17,7 +17,6 @@ from typing import Tuple
 from typing import Type
 from typing import Union
 
-from pre_commit import five
 from pre_commit import parse_shebang
 
 if sys.version_info >= (3, 7):  # pragma: no cover (PY37+)
@@ -116,19 +115,9 @@ class CalledProcessError(RuntimeError):
         return self.__bytes__().decode()
 
 
-def _cmd_kwargs(
-        *cmd: str,
-        **kwargs: Any,
-) -> Tuple[Tuple[str, ...], Dict[str, Any]]:
-    # py2/py3 on windows are more strict about the types here
-    cmd = tuple(five.n(arg) for arg in cmd)
-    kwargs['env'] = {
-        five.n(key): five.n(value)
-        for key, value in kwargs.pop('env', {}).items()
-    } or None
+def _setdefault_kwargs(kwargs: Dict[str, Any]) -> None:
     for arg in ('stdin', 'stdout', 'stderr'):
         kwargs.setdefault(arg, subprocess.PIPE)
-    return cmd, kwargs
 
 
 def cmd_output_b(
@@ -136,7 +125,7 @@ def cmd_output_b(
         **kwargs: Any,
 ) -> Tuple[int, bytes, Optional[bytes]]:
     retcode = kwargs.pop('retcode', 0)
-    cmd, kwargs = _cmd_kwargs(*cmd, **kwargs)
+    _setdefault_kwargs(kwargs)
 
     try:
         cmd = parse_shebang.normalize_cmd(cmd)
@@ -205,7 +194,7 @@ if os.name != 'nt':  # pragma: windows no cover
     ) -> Tuple[int, bytes, Optional[bytes]]:
         assert kwargs.pop('retcode') is None
         assert kwargs['stderr'] == subprocess.STDOUT, kwargs['stderr']
-        cmd, kwargs = _cmd_kwargs(*cmd, **kwargs)
+        _setdefault_kwargs(kwargs)
 
         try:
             cmd = parse_shebang.normalize_cmd(cmd)

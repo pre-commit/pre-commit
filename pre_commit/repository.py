@@ -12,7 +12,6 @@ from typing import Set
 from typing import Tuple
 
 import pre_commit.constants as C
-from pre_commit import five
 from pre_commit.clientlib import load_manifest
 from pre_commit.clientlib import LOCAL
 from pre_commit.clientlib import MANIFEST_HOOK_DICT
@@ -49,7 +48,7 @@ def _write_state(prefix: Prefix, venv: str, state: object) -> None:
     state_filename = _state_filename(prefix, venv)
     staging = state_filename + 'staging'
     with open(staging, 'w') as state_file:
-        state_file.write(five.to_text(json.dumps(state)))
+        state_file.write(json.dumps(state))
     # Move the file into place atomically to indicate we've installed
     os.rename(staging, state_filename)
 

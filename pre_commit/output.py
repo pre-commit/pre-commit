@@ -1,11 +1,10 @@
 import contextlib
 import sys
+from typing import Any
 from typing import IO
 from typing import Optional
-from typing import Union
 
 from pre_commit import color
-from pre_commit import five
 
 
 def get_hook_message(
@@ -60,12 +59,12 @@ def get_hook_message(
 
 
 def write(s: str, stream: IO[bytes] = sys.stdout.buffer) -> None:
-    stream.write(five.to_bytes(s))
+    stream.write(s.encode())
     stream.flush()
 
 
-def write_line(
-        s: Union[None, str, bytes] = None,
+def write_line_b(
+        s: Optional[bytes] = None,
         stream: IO[bytes] = sys.stdout.buffer,
         logfile_name: Optional[str] = None,
 ) -> None:
@@ -77,6 +76,10 @@ def write_line(
 
         for output_stream in output_streams:
             if s is not None:
-                output_stream.write(five.to_bytes(s))
+                output_stream.write(s)
             output_stream.write(b'\n')
             output_stream.flush()
+
+
+def write_line(s: Optional[str] = None, **kwargs: Any) -> None:
+    write_line_b(s.encode() if s is not None else s, **kwargs)
