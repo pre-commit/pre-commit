@@ -62,9 +62,8 @@ def resource_text(filename: str) -> str:
 
 def make_executable(filename: str) -> None:
     original_mode = os.stat(filename).st_mode
-    os.chmod(
-        filename, original_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH,
-    )
+    new_mode = original_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH
+    os.chmod(filename, new_mode)
 
 
 class CalledProcessError(RuntimeError):
