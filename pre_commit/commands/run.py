@@ -1,4 +1,5 @@
 import argparse
+import contextlib
 import functools
 import logging
 import os
@@ -27,7 +28,6 @@ from pre_commit.staged_files_only import staged_files_only
 from pre_commit.store import Store
 from pre_commit.util import cmd_output_b
 from pre_commit.util import EnvironT
-from pre_commit.util import noop_context
 
 
 logger = logging.getLogger('pre_commit')
@@ -272,7 +272,7 @@ def run(
         args: argparse.Namespace,
         environ: EnvironT = os.environ,
 ) -> int:
-    no_stash = args.all_files or bool(args.files)
+    stash = not args.all_files and not args.files
 
     # Check if we have unresolved merge conflict files and fail fast.
     if _has_unmerged_paths():
@@ -281,7 +281,7 @@ def run(
     if bool(args.source) != bool(args.origin):
         logger.error('Specify both --origin and --source.')
         return 1
-    if _has_unstaged_config(config_file) and not no_stash:
+    if stash and _has_unstaged_config(config_file):
         logger.error(
             f'Your pre-commit configuration is unstaged.\n'
             f'`git add {config_file}` to fix this.',
@@ -293,12 +293,10 @@ def run(
         environ['PRE_COMMIT_ORIGIN'] = args.origin
         environ['PRE_COMMIT_SOURCE'] = args.source
 
-    if no_stash:
-        ctx = noop_context()
-    else:
-        ctx = staged_files_only(store.directory)
+    with contextlib.ExitStack() as exit_stack:
+        if stash:
+            exit_stack.enter_context(staged_files_only(store.directory))
 
-    with ctx:
         config = load_config(config_file)
         hooks = [
             hook
@@ -316,3 +314,6 @@ def run(
         install_hook_envs(hooks, store)
 
         return _run_hooks(config, hooks, args, environ)
+
+    # https://github.com/python/mypy/issues/7726
+    raise AssertionError('unreachable')

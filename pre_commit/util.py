@@ -41,11 +41,6 @@ def clean_path_on_failure(path: str) -> Generator[None, None, None]:
 
 
 @contextlib.contextmanager
-def noop_context() -> Generator[None, None, None]:
-    yield
-
-
-@contextlib.contextmanager
 def tmpdir() -> Generator[str, None, None]:
     """Contextmanager to create a temporary directory.  It will be cleaned up
     afterwards.
