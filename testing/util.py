@@ -45,12 +45,6 @@ xfailif_windows_no_ruby = pytest.mark.xfail(
 xfailif_windows = pytest.mark.xfail(os.name == 'nt', reason='windows')
 
 
-xfailif_no_symlink = pytest.mark.xfail(
-    not hasattr(os, 'symlink'),
-    reason='Symlink is not supported on this platform',
-)
-
-
 def supports_venv():  # pragma: no cover (platform specific)
     try:
         __import__('ensurepip')

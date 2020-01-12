@@ -21,7 +21,6 @@ from testing.fixtures import remove_config_from_repo
 from testing.util import cmd_output_mocked_pre_commit_home
 from testing.util import cwd
 from testing.util import git_commit
-from testing.util import xfailif_no_symlink
 from testing.util import xfailif_windows
 
 
@@ -89,7 +88,6 @@ def test_install_refuses_core_hookspath(in_git_dir, store):
     assert install(C.CONFIG_FILE, store, hook_types=['pre-commit'])
 
 
-@xfailif_no_symlink  # pragma: windows no cover
 def test_install_hooks_dead_symlink(in_git_dir, store):
     hook = in_git_dir.join('.git/hooks').ensure_dir().join('pre-commit')
     os.symlink('/fake/baz', hook.strpath)

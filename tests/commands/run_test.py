@@ -27,7 +27,6 @@ from testing.util import cmd_output_mocked_pre_commit_home
 from testing.util import cwd
 from testing.util import git_commit
 from testing.util import run_opts
-from testing.util import xfailif_no_symlink
 
 
 @pytest.fixture
@@ -861,7 +860,6 @@ def test_include_exclude_base_case(some_filenames):
     ]
 
 
-@xfailif_no_symlink  # pragma: windows no cover
 def test_matches_broken_symlink(tmpdir):
     with tmpdir.as_cwd():
         os.symlink('does-not-exist', 'link')
