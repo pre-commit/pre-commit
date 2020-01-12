@@ -79,29 +79,6 @@ def _install_rbenv(
         _extract_resource('ruby-download.tar.gz', plugins_dir)
         _extract_resource('ruby-build.tar.gz', plugins_dir)
 
-    activate_path = prefix.path(directory, 'bin', 'activate')
-    with open(activate_path, 'w') as activate_file:
-        # This is similar to how you would install rbenv to your home directory
-        # However we do a couple things to make the executables exposed and
-        # configure it to work in our directory.
-        # We also modify the PS1 variable for manual debugging sake.
-        activate_file.write(
-            '#!/usr/bin/env bash\n'
-            "export RBENV_ROOT='{directory}'\n"
-            'export PATH="$RBENV_ROOT/bin:$PATH"\n'
-            'eval "$(rbenv init -)"\n'
-            'export PS1="(rbenv)$PS1"\n'
-            # This lets us install gems in an isolated and repeatable
-            # directory
-            "export GEM_HOME='{directory}/gems'\n"
-            'export PATH="$GEM_HOME/bin:$PATH"\n'
-            '\n'.format(directory=prefix.path(directory)),
-        )
-
-        # If we aren't using the system ruby, add a version here
-        if version != C.DEFAULT:
-            activate_file.write(f'export RBENV_VERSION="{version}"\n')
-
 
 def _install_ruby(
         prefix: Prefix,
