@@ -113,6 +113,7 @@ class Hook(NamedTuple):
         logger.info('This may take a few minutes...')
 
         lang = languages[self.language]
+        assert lang.ENVIRONMENT_DIR is not None
         venv = environment_dir(lang.ENVIRONMENT_DIR, self.language_version)
 
         # There's potentially incomplete cleanup from previous runs
