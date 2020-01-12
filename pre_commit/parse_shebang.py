@@ -9,7 +9,7 @@ from identify.identify import parse_shebang_from_file
 
 class ExecutableNotFoundError(OSError):
     def to_output(self) -> Tuple[int, bytes, None]:
-        return (1, self.args[0].encode('UTF-8'), None)
+        return (1, self.args[0].encode(), None)
 
 
 def parse_filename(filename: str) -> Tuple[str, ...]:

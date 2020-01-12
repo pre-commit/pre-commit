@@ -39,7 +39,7 @@ def _norm_exe(exe: str) -> Tuple[str, ...]:
         if f.read(2) != b'#!':
             return ()
         try:
-            first_line = f.readline().decode('UTF-8')
+            first_line = f.readline().decode()
         except UnicodeDecodeError:
             return ()
 
@@ -77,7 +77,7 @@ def _run_legacy() -> Tuple[int, bytes]:
 
 def _validate_config() -> None:
     cmd = ('git', 'rev-parse', '--show-toplevel')
-    top_level = subprocess.check_output(cmd).decode('UTF-8').strip()
+    top_level = subprocess.check_output(cmd).decode().strip()
     cfg = os.path.join(top_level, CONFIG)
     if os.path.isfile(cfg):
         pass
@@ -127,7 +127,7 @@ def _pre_push(stdin: bytes) -> Tuple[str, ...]:
     remote = sys.argv[1]
 
     opts: Tuple[str, ...] = ()
-    for line in stdin.decode('UTF-8').splitlines():
+    for line in stdin.decode().splitlines():
         _, local_sha, _, remote_sha = line.split()
         if local_sha == Z40:
             continue

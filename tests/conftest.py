@@ -249,7 +249,7 @@ class Fixture:
 
     def get(self):
         """Get the output assuming it was written as UTF-8 bytes"""
-        return self.get_bytes().decode('UTF-8')
+        return self.get_bytes().decode()
 
 
 @pytest.fixture

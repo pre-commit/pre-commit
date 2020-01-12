@@ -18,6 +18,6 @@ def run_hook(
         file_args: Sequence[str],
         color: bool,
 ) -> Tuple[int, bytes]:
-    out = hook.entry.encode('UTF-8') + b'\n\n'
-    out += b'\n'.join(f.encode('UTF-8') for f in file_args) + b'\n'
+    out = hook.entry.encode() + b'\n\n'
+    out += b'\n'.join(f.encode() for f in file_args) + b'\n'
     return 1, out

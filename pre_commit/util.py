@@ -109,13 +109,13 @@ class CalledProcessError(RuntimeError):
             'return code: {}\n'
             'expected return code: {}\n'.format(
                 self.cmd, self.returncode, self.expected_returncode,
-            ).encode('UTF-8'),
+            ).encode(),
             b'stdout:', _indent_or_none(self.stdout), b'\n',
             b'stderr:', _indent_or_none(self.stderr),
         ))
 
     def __str__(self) -> str:
-        return self.__bytes__().decode('UTF-8')
+        return self.__bytes__().decode()
 
 
 def _cmd_kwargs(
@@ -157,8 +157,8 @@ def cmd_output_b(
 
 def cmd_output(*cmd: str, **kwargs: Any) -> Tuple[int, str, Optional[str]]:
     returncode, stdout_b, stderr_b = cmd_output_b(*cmd, **kwargs)
-    stdout = stdout_b.decode('UTF-8') if stdout_b is not None else None
-    stderr = stderr_b.decode('UTF-8') if stderr_b is not None else None
+    stdout = stdout_b.decode() if stdout_b is not None else None
+    stderr = stderr_b.decode() if stderr_b is not None else None
     return returncode, stdout, stderr
 
 

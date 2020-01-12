@@ -16,7 +16,7 @@ class FatalError(RuntimeError):
 
 
 def _to_bytes(exc: BaseException) -> bytes:
-    return str(exc).encode('UTF-8')
+    return str(exc).encode()
 
 
 def _log_and_exit(msg: str, exc: BaseException, formatted: str) -> None:
