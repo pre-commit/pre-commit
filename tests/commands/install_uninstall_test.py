@@ -14,7 +14,6 @@ from pre_commit.commands.install_uninstall import uninstall
 from pre_commit.parse_shebang import find_executable
 from pre_commit.util import cmd_output
 from pre_commit.util import make_executable
-from pre_commit.util import mkdirp
 from pre_commit.util import resource_text
 from testing.fixtures import git_dir
 from testing.fixtures import make_consuming_repo
@@ -307,7 +306,7 @@ EXISTING_COMMIT_RUN = re.compile(
 
 
 def _write_legacy_hook(path):
-    mkdirp(os.path.join(path, '.git/hooks'))
+    os.makedirs(os.path.join(path, '.git/hooks'), exist_ok=True)
     with open(os.path.join(path, '.git/hooks/pre-commit'), 'w') as f:
         f.write('#!/usr/bin/env bash\necho "legacy hook"\n')
     make_executable(f.name)
@@ -370,7 +369,7 @@ def test_failing_existing_hook_returns_1(tempdir_factory, store):
     path = make_consuming_repo(tempdir_factory, 'script_hooks_repo')
     with cwd(path):
         # Write out a failing "old" hook
-        mkdirp(os.path.join(path, '.git/hooks'))
+        os.makedirs(os.path.join(path, '.git/hooks'), exist_ok=True)
         with open(os.path.join(path, '.git/hooks/pre-commit'), 'w') as f:
             f.write('#!/usr/bin/env bash\necho "fail!"\nexit 1\n')
         make_executable(f.name)
@@ -432,7 +431,7 @@ def test_replace_old_commit_script(tempdir_factory, store):
             CURRENT_HASH, PRIOR_HASHES[-1],
         )
 
-        mkdirp(os.path.join(path, '.git/hooks'))
+        os.makedirs(os.path.join(path, '.git/hooks'), exist_ok=True)
         with open(os.path.join(path, '.git/hooks/pre-commit'), 'w') as f:
             f.write(new_contents)
         make_executable(f.name)
@@ -609,7 +608,7 @@ def test_pre_push_legacy(tempdir_factory, store):
     path = tempdir_factory.get()
     cmd_output('git', 'clone', upstream, path)
     with cwd(path):
-        mkdirp(os.path.join(path, '.git/hooks'))
+        os.makedirs(os.path.join(path, '.git/hooks'), exist_ok=True)
         with open(os.path.join(path, '.git/hooks/pre-push'), 'w') as f:
             f.write(
                 '#!/usr/bin/env bash\n'
@@ -658,7 +657,7 @@ def test_commit_msg_integration_passing(
 
 def test_commit_msg_legacy(commit_msg_repo, tempdir_factory, store):
     hook_path = os.path.join(commit_msg_repo, '.git/hooks/commit-msg')
-    mkdirp(os.path.dirname(hook_path))
+    os.makedirs(os.path.dirname(hook_path), exist_ok=True)
     with open(hook_path, 'w') as hook_file:
         hook_file.write(
             '#!/usr/bin/env bash\n'
@@ -713,7 +712,7 @@ def test_prepare_commit_msg_legacy(
     hook_path = os.path.join(
         prepare_commit_msg_repo, '.git/hooks/prepare-commit-msg',
     )
-    mkdirp(os.path.dirname(hook_path))
+    os.makedirs(os.path.dirname(hook_path), exist_ok=True)
     with open(hook_path, 'w') as hook_file:
         hook_file.write(
             '#!/usr/bin/env bash\n'

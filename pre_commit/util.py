@@ -29,14 +29,6 @@ else:  # pragma: no cover (<PY37)
 EnvironT = Union[Dict[str, str], 'os._Environ']
 
 
-def mkdirp(path: str) -> None:
-    try:
-        os.makedirs(path)
-    except OSError:
-        if not os.path.exists(path):
-            raise
-
-
 @contextlib.contextmanager
 def clean_path_on_failure(path: str) -> Generator[None, None, None]:
     """Cleans up the directory on an exceptional failure."""

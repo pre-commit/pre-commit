@@ -14,7 +14,6 @@ from pre_commit.repository import all_hooks
 from pre_commit.repository import install_hook_envs
 from pre_commit.store import Store
 from pre_commit.util import make_executable
-from pre_commit.util import mkdirp
 from pre_commit.util import resource_text
 
 
@@ -78,7 +77,7 @@ def _install_hook_script(
 ) -> None:
     hook_path, legacy_path = _hook_paths(hook_type, git_dir=git_dir)
 
-    mkdirp(os.path.dirname(hook_path))
+    os.makedirs(os.path.dirname(hook_path), exist_ok=True)
 
     # If we have an existing hook, move it to pre-commit.legacy
     if os.path.lexists(hook_path) and not is_our_script(hook_path):
