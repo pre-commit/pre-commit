@@ -8,12 +8,7 @@ from pre_commit.envcontext import UNSET
 from pre_commit.envcontext import Var
 
 
-def _test(**kwargs):
-    before = kwargs.pop('before')
-    patch = kwargs.pop('patch')
-    expected = kwargs.pop('expected')
-    assert not kwargs
-
+def _test(*, before, patch, expected):
     env = before.copy()
     with envcontext(patch, _env=env):
         assert env == expected

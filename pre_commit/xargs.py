@@ -117,6 +117,10 @@ def _thread_mapper(maxsize: int) -> Generator[
 def xargs(
         cmd: Tuple[str, ...],
         varargs: Sequence[str],
+        *,
+        color: bool = False,
+        target_concurrency: int = 1,
+        _max_length: int = _get_platform_max_length(),
         **kwargs: Any,
 ) -> Tuple[int, bytes]:
     """A simplified implementation of xargs.
@@ -124,9 +128,6 @@ def xargs(
     color: Make a pty if on a platform that supports it
     target_concurrency: Target number of partitions to run concurrently
     """
-    color = kwargs.pop('color', False)
-    target_concurrency = kwargs.pop('target_concurrency', 1)
-    max_length = kwargs.pop('_max_length', _get_platform_max_length())
     cmd_fn = cmd_output_p if color else cmd_output_b
     retcode = 0
     stdout = b''
@@ -136,7 +137,7 @@ def xargs(
     except parse_shebang.ExecutableNotFoundError as e:
         return e.to_output()[:2]
 
-    partitions = partition(cmd, varargs, target_concurrency, max_length)
+    partitions = partition(cmd, varargs, target_concurrency, _max_length)
 
     def run_cmd_partition(
             run_cmd: Tuple[str, ...],

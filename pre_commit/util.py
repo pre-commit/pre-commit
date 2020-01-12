@@ -108,9 +108,9 @@ def _setdefault_kwargs(kwargs: Dict[str, Any]) -> None:
 
 def cmd_output_b(
         *cmd: str,
+        retcode: Optional[int] = 0,
         **kwargs: Any,
 ) -> Tuple[int, bytes, Optional[bytes]]:
-    retcode = kwargs.pop('retcode', 0)
     _setdefault_kwargs(kwargs)
 
     try:
@@ -176,9 +176,10 @@ if os.name != 'nt':  # pragma: windows no cover
 
     def cmd_output_p(
             *cmd: str,
+            retcode: Optional[int] = 0,
             **kwargs: Any,
     ) -> Tuple[int, bytes, Optional[bytes]]:
-        assert kwargs.pop('retcode') is None
+        assert retcode is None
         assert kwargs['stderr'] == subprocess.STDOUT, kwargs['stderr']
         _setdefault_kwargs(kwargs)
 
