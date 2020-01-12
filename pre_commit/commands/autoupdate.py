@@ -121,10 +121,10 @@ def _write_new_config(path: str, rev_infos: List[Optional[RevInfo]]) -> None:
         new_rev = new_rev_s.split(':', 1)[1].strip()
         if rev_info.frozen is not None:
             comment = f'  # frozen: {rev_info.frozen}'
-        elif match.group(4).strip().startswith('# frozen:'):
+        elif match[4].strip().startswith('# frozen:'):
             comment = ''
         else:
-            comment = match.group(4)
+            comment = match[4]
         lines[idx] = f'{match[1]}rev:{match[2]}{new_rev}{comment}{match[5]}'
 
     with open(path, 'w') as f:

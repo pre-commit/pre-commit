@@ -41,7 +41,7 @@ def _process_filename_at_once(pattern: Pattern[bytes], filename: str) -> int:
             line_no = contents[:match.start()].count(b'\n')
             output.write(f'{filename}:{line_no + 1}:')
 
-            matched_lines = match.group().split(b'\n')
+            matched_lines = match[0].split(b'\n')
             matched_lines[0] = contents.split(b'\n')[line_no]
 
             output.write_line(b'\n'.join(matched_lines))
