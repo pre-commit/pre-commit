@@ -138,6 +138,7 @@ def cmd_output_b(
         **kwargs: Any,
 ) -> Tuple[int, bytes, Optional[bytes]]:
     retcode = kwargs.pop('retcode', 0)
+    input_data = kwargs.pop('input_data', None)
     cmd, kwargs = _cmd_kwargs(*cmd, **kwargs)
 
     try:
@@ -146,7 +147,7 @@ def cmd_output_b(
         returncode, stdout_b, stderr_b = e.to_output()
     else:
         proc = subprocess.Popen(cmd, **kwargs)
-        stdout_b, stderr_b = proc.communicate()
+        stdout_b, stderr_b = proc.communicate(input_data)
         returncode = proc.returncode
 
     if retcode is not None and retcode != returncode:
@@ -207,6 +208,7 @@ if os.name != 'nt':  # pragma: windows no cover
     ) -> Tuple[int, bytes, Optional[bytes]]:
         assert kwargs.pop('retcode') is None
         assert kwargs['stderr'] == subprocess.STDOUT, kwargs['stderr']
+        input_data = kwargs.pop('input_data', None)
         cmd, kwargs = _cmd_kwargs(*cmd, **kwargs)
 
         try:
@@ -216,8 +218,12 @@ if os.name != 'nt':  # pragma: windows no cover
 
         with open(os.devnull) as devnull, Pty() as pty:
             assert pty.r is not None
-            kwargs.update({'stdin': devnull, 'stdout': pty.w, 'stderr': pty.w})
+            stdin = subprocess.PIPE if input_data else devnull
+            kwargs.update({'stdin': stdin, 'stdout': pty.w, 'stderr': pty.w})
             proc = subprocess.Popen(cmd, **kwargs)
+            if input_data:
+                proc.stdin.write(input_data)
+                proc.stdin.close()
             pty.close_w()
 
             buf = b''

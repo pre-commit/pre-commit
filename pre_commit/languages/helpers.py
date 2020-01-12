@@ -106,4 +106,8 @@ def run_xargs(
     # but do it deterministically in case a hook cares about ordering.
     file_args = _shuffled(file_args)
     kwargs['target_concurrency'] = target_concurrency(hook)
+    if hook.pass_diff:
+        input_data, = file_args
+        kwargs['input_data'] = input_data
+        file_args = ()
     return xargs(cmd, file_args, **kwargs)

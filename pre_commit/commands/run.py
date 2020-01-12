@@ -139,10 +139,14 @@ def _run_single_hook(
 
         diff_cmd = ('git', 'diff', '--no-ext-diff')
         diff_before = cmd_output_b(*diff_cmd, retcode=None)
-        if not hook.pass_filenames:
-            filenames = ()
+        if hook.pass_diff:
+            inputs = (diff_before[1],)
+        elif hook.pass_filenames:
+            inputs = filenames
+        else:
+            inputs = ()
         time_before = time.time()
-        retcode, out = hook.run(filenames, use_color)
+        retcode, out = hook.run(inputs, use_color)
         duration = round(time.time() - time_before, 2) or 0
         diff_after = cmd_output_b(*diff_cmd, retcode=None)
 
