@@ -8,7 +8,6 @@ from pre_commit import git
 from pre_commit.util import CalledProcessError
 from pre_commit.util import cmd_output
 from pre_commit.util import cmd_output_b
-from pre_commit.util import mkdirp
 from pre_commit.xargs import xargs
 
 
@@ -48,14 +47,14 @@ def _unstaged_changes_cleared(patch_dir: str) -> Generator[None, None, None]:
         retcode=None,
     )
     if retcode and diff_stdout_binary.strip():
-        patch_filename = 'patch{}'.format(int(time.time()))
+        patch_filename = f'patch{int(time.time())}'
         patch_filename = os.path.join(patch_dir, patch_filename)
         logger.warning('Unstaged files detected.')
         logger.info(
             f'Stashing unstaged files to {patch_filename}.',
         )
         # Save the current unstaged changes as a patch
-        mkdirp(patch_dir)
+        os.makedirs(patch_dir, exist_ok=True)
         with open(patch_filename, 'wb') as patch_file:
             patch_file.write(diff_stdout_binary)
 

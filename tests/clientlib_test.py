@@ -291,13 +291,11 @@ def test_minimum_pre_commit_version_failing():
         cfg = {'repos': [], 'minimum_pre_commit_version': '999'}
         cfgv.validate(cfg, CONFIG_SCHEMA)
     assert str(excinfo.value) == (
-        '\n'
-        '==> At Config()\n'
-        '==> At key: minimum_pre_commit_version\n'
-        '=====> pre-commit version 999 is required but version {} is '
-        'installed.  Perhaps run `pip install --upgrade pre-commit`.'.format(
-            C.VERSION,
-        )
+        f'\n'
+        f'==> At Config()\n'
+        f'==> At key: minimum_pre_commit_version\n'
+        f'=====> pre-commit version 999 is required but version {C.VERSION} '
+        f'is installed.  Perhaps run `pip install --upgrade pre-commit`.'
     )
 
 

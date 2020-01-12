@@ -30,10 +30,10 @@ def _envdir(prefix: Prefix, version: str) -> str:
     return prefix.path(directory)
 
 
-def get_env_patch(venv: str) -> PatchesT:  # pragma: windows no cover
+def get_env_patch(venv: str) -> PatchesT:
     if sys.platform == 'cygwin':  # pragma: no cover
         _, win_venv, _ = cmd_output('cygpath', '-w', venv)
-        install_prefix = r'{}\bin'.format(win_venv.strip())
+        install_prefix = fr'{win_venv.strip()}\bin'
         lib_dir = 'lib'
     elif sys.platform == 'win32':  # pragma: no cover
         install_prefix = bin_dir(venv)
@@ -54,14 +54,14 @@ def get_env_patch(venv: str) -> PatchesT:  # pragma: windows no cover
 def in_env(
         prefix: Prefix,
         language_version: str,
-) -> Generator[None, None, None]:  # pragma: windows no cover
+) -> Generator[None, None, None]:
     with envcontext(get_env_patch(_envdir(prefix, language_version))):
         yield
 
 
 def install_environment(
         prefix: Prefix, version: str, additional_dependencies: Sequence[str],
-) -> None:  # pragma: windows no cover
+) -> None:
     additional_dependencies = tuple(additional_dependencies)
     assert prefix.exists('package.json')
     envdir = _envdir(prefix, version)
@@ -91,6 +91,6 @@ def run_hook(
         hook: 'Hook',
         file_args: Sequence[str],
         color: bool,
-) -> Tuple[int, bytes]:  # pragma: windows no cover
+) -> Tuple[int, bytes]:
     with in_env(hook.prefix, hook.language_version):
         return helpers.run_xargs(hook, hook.cmd, file_args, color=color)

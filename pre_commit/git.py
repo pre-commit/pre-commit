@@ -69,7 +69,7 @@ def is_in_merge_conflict() -> bool:
 def parse_merge_msg_for_conflicts(merge_msg: bytes) -> List[str]:
     # Conflicted files start with tabs
     return [
-        line.lstrip(b'#').strip().decode('UTF-8')
+        line.lstrip(b'#').strip().decode()
         for line in merge_msg.splitlines()
         # '#\t' for git 2.4.1
         if line.startswith((b'\t', b'#\t'))
@@ -183,13 +183,11 @@ def check_for_cygwin_mismatch() -> None:
         if is_cygwin_python ^ is_cygwin_git:
             exe_type = {True: '(cygwin)', False: '(windows)'}
             logger.warn(
-                'pre-commit has detected a mix of cygwin python / git\n'
-                'This combination is not supported, it is likely you will '
-                'receive an error later in the program.\n'
-                'Make sure to use cygwin git+python while using cygwin\n'
-                'These can be installed through the cygwin installer.\n'
-                ' - python {}\n'
-                ' - git {}\n'.format(
-                    exe_type[is_cygwin_python], exe_type[is_cygwin_git],
-                ),
+                f'pre-commit has detected a mix of cygwin python / git\n'
+                f'This combination is not supported, it is likely you will '
+                f'receive an error later in the program.\n'
+                f'Make sure to use cygwin git+python while using cygwin\n'
+                f'These can be installed through the cygwin installer.\n'
+                f' - python {exe_type[is_cygwin_python]}\n'
+                f' - git {exe_type[is_cygwin_git]}\n',
             )

@@ -1,5 +1,4 @@
 import argparse
-import collections
 import logging
 import os.path
 from typing import Tuple
@@ -62,8 +61,7 @@ def try_repo(args: argparse.Namespace) -> int:
             manifest = sorted(manifest, key=lambda hook: hook['id'])
             hooks = [{'id': hook['id']} for hook in manifest]
 
-        items = (('repo', repo), ('rev', ref), ('hooks', hooks))
-        config = {'repos': [collections.OrderedDict(items)]}
+        config = {'repos': [{'repo': repo, 'rev': ref, 'hooks': hooks}]}
         config_s = ordered_dump(config, **C.YAML_DUMP_KWARGS)
 
         config_filename = os.path.join(tempdir, C.CONFIG_FILE)

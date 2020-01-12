@@ -10,7 +10,6 @@ import cfgv
 import pytest
 
 import pre_commit.constants as C
-from pre_commit import five
 from pre_commit.clientlib import CONFIG_SCHEMA
 from pre_commit.clientlib import load_manifest
 from pre_commit.envcontext import envcontext
@@ -33,7 +32,6 @@ from testing.util import cwd
 from testing.util import get_resource_path
 from testing.util import skipif_cant_run_docker
 from testing.util import skipif_cant_run_swift
-from testing.util import xfailif_broken_deep_listdir
 from testing.util import xfailif_no_venv
 from testing.util import xfailif_windows_no_ruby
 
@@ -119,7 +117,7 @@ def test_python_hook(tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'python_hooks_repo',
         'foo', [os.devnull],
-        b"['" + five.to_bytes(os.devnull) + b"']\nHello World\n",
+        f'[{os.devnull!r}]\nHello World\n'.encode(),
     )
 
 
@@ -154,7 +152,7 @@ def test_python_hook_weird_setup_cfg(in_git_dir, tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'python_hooks_repo',
         'foo', [os.devnull],
-        b"['" + five.to_bytes(os.devnull) + b"']\nHello World\n",
+        f'[{os.devnull!r}]\nHello World\n'.encode(),
     )
 
 
@@ -163,7 +161,7 @@ def test_python_venv(tempdir_factory, store):  # pragma: no cover (no venv)
     _test_hook_repo(
         tempdir_factory, store, 'python_venv_hooks_repo',
         'foo', [os.devnull],
-        b"['" + five.to_bytes(os.devnull) + b"']\nHello World\n",
+        f'[{os.devnull!r}]\nHello World\n'.encode(),
     )
 
 
@@ -188,7 +186,7 @@ def test_versioned_python_hook(tempdir_factory, store):
         tempdir_factory, store, 'python3_hooks_repo',
         'python3-hook',
         [os.devnull],
-        b"3\n['" + five.to_bytes(os.devnull) + b"']\nHello World\n",
+        f'3\n[{os.devnull!r}]\nHello World\n'.encode(),
     )
 
 
@@ -231,7 +229,6 @@ def test_run_a_docker_image_hook(tempdir_factory, store, hook_id):
     )
 
 
-@xfailif_broken_deep_listdir
 def test_run_a_node_hook(tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'node_hooks_repo',
@@ -239,7 +236,6 @@ def test_run_a_node_hook(tempdir_factory, store):
     )
 
 
-@xfailif_broken_deep_listdir
 def test_run_versioned_node_hook(tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'node_versioned_hooks_repo',
@@ -522,7 +518,6 @@ def test_additional_ruby_dependencies_installed(tempdir_factory, store):
         assert 'tins' in output
 
 
-@xfailif_broken_deep_listdir  # pragma: windows no cover
 def test_additional_node_dependencies_installed(tempdir_factory, store):
     path = make_repo(tempdir_factory, 'node_hooks_repo')
     config = make_config_from_repo(path)
@@ -805,9 +800,9 @@ def test_hook_id_not_present(tempdir_factory, store, fake_log_handler):
     with pytest.raises(SystemExit):
         _get_hook(config, store, 'i-dont-exist')
     assert fake_log_handler.handle.call_args[0][0].msg == (
-        '`i-dont-exist` is not present in repository file://{}.  '
-        'Typo? Perhaps it is introduced in a newer version?  '
-        'Often `pre-commit autoupdate` fixes this.'.format(path)
+        f'`i-dont-exist` is not present in repository file://{path}.  '
+        f'Typo? Perhaps it is introduced in a newer version?  '
+        f'Often `pre-commit autoupdate` fixes this.'
     )
 
 

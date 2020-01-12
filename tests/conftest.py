@@ -249,17 +249,16 @@ class Fixture:
 
     def get(self):
         """Get the output assuming it was written as UTF-8 bytes"""
-        return self.get_bytes().decode('UTF-8')
+        return self.get_bytes().decode()
 
 
 @pytest.fixture
 def cap_out():
     stream = FakeStream()
     write = functools.partial(output.write, stream=stream)
-    write_line = functools.partial(output.write_line, stream=stream)
-    with mock.patch.object(output, 'write', write):
-        with mock.patch.object(output, 'write_line', write_line):
-            yield Fixture(stream)
+    write_line_b = functools.partial(output.write_line_b, stream=stream)
+    with mock.patch.multiple(output, write=write, write_line_b=write_line_b):
+        yield Fixture(stream)
 
 
 @pytest.fixture

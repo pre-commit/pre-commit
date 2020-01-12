@@ -34,8 +34,7 @@ def check_useless_excludes(config_file: str) -> int:
     exclude = config['exclude']
     if not exclude_matches_any(classifier.filenames, '', exclude):
         print(
-            'The global exclude pattern {!r} does not match any files'
-            .format(exclude),
+            f'The global exclude pattern {exclude!r} does not match any files',
         )
         retv = 1
 
@@ -50,8 +49,8 @@ def check_useless_excludes(config_file: str) -> int:
             include, exclude = hook['files'], hook['exclude']
             if not exclude_matches_any(names, include, exclude):
                 print(
-                    'The exclude pattern {!r} for {} does not match any files'
-                    .format(exclude, hook['id']),
+                    f'The exclude pattern {exclude!r} for {hook["id"]} does '
+                    f'not match any files',
                 )
                 retv = 1
 

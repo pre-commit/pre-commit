@@ -99,9 +99,7 @@ def test_log_and_exit(cap_out, mock_store_dir):
 
     printed = cap_out.get()
     log_file = os.path.join(mock_store_dir, 'pre-commit.log')
-    assert printed == (
-        'msg: FatalError: hai\n' 'Check the log at {}\n'.format(log_file)
-    )
+    assert printed == f'msg: FatalError: hai\nCheck the log at {log_file}\n'
 
     assert os.path.exists(log_file)
     with open(log_file) as f:

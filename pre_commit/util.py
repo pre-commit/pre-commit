@@ -17,7 +17,6 @@ from typing import Tuple
 from typing import Type
 from typing import Union
 
-from pre_commit import five
 from pre_commit import parse_shebang
 
 if sys.version_info >= (3, 7):  # pragma: no cover (PY37+)
@@ -30,14 +29,6 @@ else:  # pragma: no cover (<PY37)
 EnvironT = Union[Dict[str, str], 'os._Environ']
 
 
-def mkdirp(path: str) -> None:
-    try:
-        os.makedirs(path)
-    except OSError:
-        if not os.path.exists(path):
-            raise
-
-
 @contextlib.contextmanager
 def clean_path_on_failure(path: str) -> Generator[None, None, None]:
     """Cleans up the directory on an exceptional failure."""
@@ -47,11 +38,6 @@ def clean_path_on_failure(path: str) -> Generator[None, None, None]:
         if os.path.exists(path):
             rmtree(path)
         raise
-
-
-@contextlib.contextmanager
-def noop_context() -> Generator[None, None, None]:
-    yield
 
 
 @contextlib.contextmanager
@@ -76,9 +62,8 @@ def resource_text(filename: str) -> str:
 
 def make_executable(filename: str) -> None:
     original_mode = os.stat(filename).st_mode
-    os.chmod(
-        filename, original_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH,
-    )
+    new_mode = original_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH
+    os.chmod(filename, new_mode)
 
 
 class CalledProcessError(RuntimeError):
@@ -105,40 +90,28 @@ class CalledProcessError(RuntimeError):
                 return b' (none)'
 
         return b''.join((
-            'command: {!r}\n'
-            'return code: {}\n'
-            'expected return code: {}\n'.format(
-                self.cmd, self.returncode, self.expected_returncode,
-            ).encode('UTF-8'),
+            f'command: {self.cmd!r}\n'.encode(),
+            f'return code: {self.returncode}\n'.encode(),
+            f'expected return code: {self.expected_returncode}\n'.encode(),
             b'stdout:', _indent_or_none(self.stdout), b'\n',
             b'stderr:', _indent_or_none(self.stderr),
         ))
 
     def __str__(self) -> str:
-        return self.__bytes__().decode('UTF-8')
+        return self.__bytes__().decode()
 
 
-def _cmd_kwargs(
-        *cmd: str,
-        **kwargs: Any,
-) -> Tuple[Tuple[str, ...], Dict[str, Any]]:
-    # py2/py3 on windows are more strict about the types here
-    cmd = tuple(five.n(arg) for arg in cmd)
-    kwargs['env'] = {
-        five.n(key): five.n(value)
-        for key, value in kwargs.pop('env', {}).items()
-    } or None
+def _setdefault_kwargs(kwargs: Dict[str, Any]) -> None:
     for arg in ('stdin', 'stdout', 'stderr'):
         kwargs.setdefault(arg, subprocess.PIPE)
-    return cmd, kwargs
 
 
 def cmd_output_b(
         *cmd: str,
+        retcode: Optional[int] = 0,
         **kwargs: Any,
 ) -> Tuple[int, bytes, Optional[bytes]]:
-    retcode = kwargs.pop('retcode', 0)
-    cmd, kwargs = _cmd_kwargs(*cmd, **kwargs)
+    _setdefault_kwargs(kwargs)
 
     try:
         cmd = parse_shebang.normalize_cmd(cmd)
@@ -157,8 +130,8 @@ def cmd_output_b(
 
 def cmd_output(*cmd: str, **kwargs: Any) -> Tuple[int, str, Optional[str]]:
     returncode, stdout_b, stderr_b = cmd_output_b(*cmd, **kwargs)
-    stdout = stdout_b.decode('UTF-8') if stdout_b is not None else None
-    stderr = stderr_b.decode('UTF-8') if stderr_b is not None else None
+    stdout = stdout_b.decode() if stdout_b is not None else None
+    stderr = stderr_b.decode() if stderr_b is not None else None
     return returncode, stdout, stderr
 
 
@@ -203,11 +176,12 @@ if os.name != 'nt':  # pragma: windows no cover
 
     def cmd_output_p(
             *cmd: str,
+            retcode: Optional[int] = 0,
             **kwargs: Any,
     ) -> Tuple[int, bytes, Optional[bytes]]:
-        assert kwargs.pop('retcode') is None
+        assert retcode is None
         assert kwargs['stderr'] == subprocess.STDOUT, kwargs['stderr']
-        cmd, kwargs = _cmd_kwargs(*cmd, **kwargs)
+        _setdefault_kwargs(kwargs)
 
         try:
             cmd = parse_shebang.normalize_cmd(cmd)

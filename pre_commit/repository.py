@@ -12,7 +12,6 @@ from typing import Set
 from typing import Tuple
 
 import pre_commit.constants as C
-from pre_commit import five
 from pre_commit.clientlib import load_manifest
 from pre_commit.clientlib import LOCAL
 from pre_commit.clientlib import MANIFEST_HOOK_DICT
@@ -49,7 +48,7 @@ def _write_state(prefix: Prefix, venv: str, state: object) -> None:
     state_filename = _state_filename(prefix, venv)
     staging = state_filename + 'staging'
     with open(staging, 'w') as state_file:
-        state_file.write(five.to_text(json.dumps(state)))
+        state_file.write(json.dumps(state))
     # Move the file into place atomically to indicate we've installed
     os.rename(staging, state_filename)
 
@@ -137,8 +136,8 @@ class Hook(NamedTuple):
         extra_keys = set(dct) - set(_KEYS)
         if extra_keys:
             logger.warning(
-                'Unexpected key(s) present on {} => {}: '
-                '{}'.format(src, dct['id'], ', '.join(sorted(extra_keys))),
+                f'Unexpected key(s) present on {src} => {dct["id"]}: '
+                f'{", ".join(sorted(extra_keys))}',
             )
         return cls(src=src, prefix=prefix, **{k: dct[k] for k in _KEYS})
 
@@ -154,11 +153,9 @@ def _hook(
     version = ret['minimum_pre_commit_version']
     if parse_version(version) > parse_version(C.VERSION):
         logger.error(
-            'The hook `{}` requires pre-commit version {} but version {} '
-            'is installed.  '
-            'Perhaps run `pip install --upgrade pre-commit`.'.format(
-                ret['id'], version, C.VERSION,
-            ),
+            f'The hook `{ret["id"]}` requires pre-commit version {version} '
+            f'but version {C.VERSION} is installed.  '
+            f'Perhaps run `pip install --upgrade pre-commit`.',
         )
         exit(1)
 
@@ -210,10 +207,9 @@ def _cloned_repository_hooks(
     for hook in repo_config['hooks']:
         if hook['id'] not in by_id:
             logger.error(
-                '`{}` is not present in repository {}.  '
-                'Typo? Perhaps it is introduced in a newer version?  '
-                'Often `pre-commit autoupdate` fixes this.'
-                .format(hook['id'], repo),
+                f'`{hook["id"]}` is not present in repository {repo}.  '
+                f'Typo? Perhaps it is introduced in a newer version?  '
+                f'Often `pre-commit autoupdate` fixes this.',
             )
             exit(1)
 

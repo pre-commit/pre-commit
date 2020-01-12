@@ -1,7 +1,6 @@
 import contextlib
 import os.path
 import subprocess
-import sys
 
 import pytest
 
@@ -18,13 +17,15 @@ def get_resource_path(path):
     return os.path.join(TESTING_DIR, 'resources', path)
 
 
-def cmd_output_mocked_pre_commit_home(*args, **kwargs):
-    # keyword-only argument
-    tempdir_factory = kwargs.pop('tempdir_factory')
-    pre_commit_home = kwargs.pop('pre_commit_home', tempdir_factory.get())
+def cmd_output_mocked_pre_commit_home(
+        *args, tempdir_factory, pre_commit_home=None, env=None, **kwargs,
+):
+    if pre_commit_home is None:
+        pre_commit_home = tempdir_factory.get()
+    env = env if env is not None else os.environ
     kwargs.setdefault('stderr', subprocess.STDOUT)
     # Don't want to write to the home directory
-    env = dict(kwargs.pop('env', os.environ), PRE_COMMIT_HOME=pre_commit_home)
+    env = dict(env, PRE_COMMIT_HOME=pre_commit_home)
     ret, out, _ = cmd_output(*args, env=env, **kwargs)
     return ret, out.replace('\r\n', '\n'), None
 
@@ -42,33 +43,6 @@ xfailif_windows_no_ruby = pytest.mark.xfail(
     reason='Ruby support not yet implemented on windows.',
 )
 xfailif_windows = pytest.mark.xfail(os.name == 'nt', reason='windows')
-
-
-def broken_deep_listdir():  # pragma: no cover (platform specific)
-    if sys.platform != 'win32':
-        return False
-    try:
-        os.listdir('\\\\?\\' + os.path.abspath('.'))
-    except OSError:
-        return True
-    try:
-        os.listdir(b'\\\\?\\C:' + b'\\' * 300)
-    except TypeError:
-        return True
-    except OSError:
-        return False
-
-
-xfailif_broken_deep_listdir = pytest.mark.xfail(
-    broken_deep_listdir(),
-    reason='Node on windows requires deep listdir',
-)
-
-
-xfailif_no_symlink = pytest.mark.xfail(
-    not hasattr(os, 'symlink'),
-    reason='Symlink is not supported on this platform',
-)
 
 
 def supports_venv():  # pragma: no cover (platform specific)
@@ -123,9 +97,7 @@ def cwd(path):
         os.chdir(original_cwd)
 
 
-def git_commit(*args, **kwargs):
-    fn = kwargs.pop('fn', cmd_output)
-    msg = kwargs.pop('msg', 'commit!')
+def git_commit(*args, fn=cmd_output, msg='commit!', **kwargs):
     kwargs.setdefault('stderr', subprocess.STDOUT)
 
     cmd = ('git', 'commit', '--allow-empty', '--no-gpg-sign', '-a') + args

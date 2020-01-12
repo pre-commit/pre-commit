@@ -1,4 +1,5 @@
 import argparse
+import contextlib
 import functools
 import logging
 import os
@@ -27,7 +28,6 @@ from pre_commit.staged_files_only import staged_files_only
 from pre_commit.store import Store
 from pre_commit.util import cmd_output_b
 from pre_commit.util import EnvironT
-from pre_commit.util import noop_context
 
 
 logger = logging.getLogger('pre_commit')
@@ -173,7 +173,7 @@ def _run_single_hook(
 
         if out.strip():
             output.write_line()
-            output.write_line(out.strip(), logfile_name=hook.log_file)
+            output.write_line_b(out.strip(), logfile_name=hook.log_file)
             output.write_line()
 
     return files_modified or bool(retcode)
@@ -243,9 +243,10 @@ def _run_hooks(
         output.write_line('All changes made by hooks:')
         # args.color is a boolean.
         # See user_color function in color.py
+        git_color_opt = 'always' if args.color else 'never'
         subprocess.call((
             'git', '--no-pager', 'diff', '--no-ext-diff',
-            '--color={}'.format({True: 'always', False: 'never'}[args.color]),
+            f'--color={git_color_opt}',
         ))
 
     return retval
@@ -271,7 +272,7 @@ def run(
         args: argparse.Namespace,
         environ: EnvironT = os.environ,
 ) -> int:
-    no_stash = args.all_files or bool(args.files)
+    stash = not args.all_files and not args.files
 
     # Check if we have unresolved merge conflict files and fail fast.
     if _has_unmerged_paths():
@@ -280,10 +281,10 @@ def run(
     if bool(args.source) != bool(args.origin):
         logger.error('Specify both --origin and --source.')
         return 1
-    if _has_unstaged_config(config_file) and not no_stash:
+    if stash and _has_unstaged_config(config_file):
         logger.error(
-            'Your pre-commit configuration is unstaged.\n'
-            '`git add {}` to fix this.'.format(config_file),
+            f'Your pre-commit configuration is unstaged.\n'
+            f'`git add {config_file}` to fix this.',
         )
         return 1
 
@@ -292,12 +293,10 @@ def run(
         environ['PRE_COMMIT_ORIGIN'] = args.origin
         environ['PRE_COMMIT_SOURCE'] = args.source
 
-    if no_stash:
-        ctx = noop_context()
-    else:
-        ctx = staged_files_only(store.directory)
+    with contextlib.ExitStack() as exit_stack:
+        if stash:
+            exit_stack.enter_context(staged_files_only(store.directory))
 
-    with ctx:
         config = load_config(config_file)
         hooks = [
             hook
@@ -308,12 +307,13 @@ def run(
 
         if args.hook and not hooks:
             output.write_line(
-                'No hook with id `{}` in stage `{}`'.format(
-                    args.hook, args.hook_stage,
-                ),
+                f'No hook with id `{args.hook}` in stage `{args.hook_stage}`',
             )
             return 1
 
         install_hook_envs(hooks, store)
 
         return _run_hooks(config, hooks, args, environ)
+
+    # https://github.com/python/mypy/issues/7726
+    raise AssertionError('unreachable')

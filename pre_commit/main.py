@@ -9,7 +9,6 @@ from typing import Union
 
 import pre_commit.constants as C
 from pre_commit import color
-from pre_commit import five
 from pre_commit import git
 from pre_commit.commands.autoupdate import autoupdate
 from pre_commit.commands.clean import clean
@@ -155,7 +154,6 @@ def _adjust_args_and_chdir(args: argparse.Namespace) -> None:
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
     argv = argv if argv is not None else sys.argv[1:]
-    argv = [five.to_text(arg) for arg in argv]
     parser = argparse.ArgumentParser(prog='pre-commit')
 
     # https://stackoverflow.com/a/8521644/812183

@@ -49,7 +49,6 @@ def _command_length(*cmd: str) -> int:
     # win32 uses the amount of characters, more details at:
     # https://github.com/pre-commit/pre-commit/pull/839
     if sys.platform == 'win32':
-        # the python2.x apis require bytes, we encode as UTF-8
         return len(full_cmd.encode('utf-16le')) // 2
     else:
         return len(full_cmd.encode(sys.getfilesystemencoding()))
@@ -118,6 +117,10 @@ def _thread_mapper(maxsize: int) -> Generator[
 def xargs(
         cmd: Tuple[str, ...],
         varargs: Sequence[str],
+        *,
+        color: bool = False,
+        target_concurrency: int = 1,
+        _max_length: int = _get_platform_max_length(),
         **kwargs: Any,
 ) -> Tuple[int, bytes]:
     """A simplified implementation of xargs.
@@ -125,9 +128,6 @@ def xargs(
     color: Make a pty if on a platform that supports it
     target_concurrency: Target number of partitions to run concurrently
     """
-    color = kwargs.pop('color', False)
-    target_concurrency = kwargs.pop('target_concurrency', 1)
-    max_length = kwargs.pop('_max_length', _get_platform_max_length())
     cmd_fn = cmd_output_p if color else cmd_output_b
     retcode = 0
     stdout = b''
@@ -137,7 +137,7 @@ def xargs(
     except parse_shebang.ExecutableNotFoundError as e:
         return e.to_output()[:2]
 
-    partitions = partition(cmd, varargs, target_concurrency, max_length)
+    partitions = partition(cmd, varargs, target_concurrency, _max_length)
 
     def run_cmd_partition(
             run_cmd: Tuple[str, ...],

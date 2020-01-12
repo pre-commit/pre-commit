@@ -23,7 +23,7 @@ def test_file_doesnt_exist():
 
 def test_simple_case(tmpdir):
     x = tmpdir.join('f')
-    x.write_text('#!/usr/bin/env echo', encoding='UTF-8')
+    x.write('#!/usr/bin/env echo')
     make_executable(x.strpath)
     assert parse_shebang.parse_filename(x.strpath) == ('echo',)
 

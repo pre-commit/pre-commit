@@ -14,7 +14,6 @@ from pre_commit.commands.install_uninstall import uninstall
 from pre_commit.parse_shebang import find_executable
 from pre_commit.util import cmd_output
 from pre_commit.util import make_executable
-from pre_commit.util import mkdirp
 from pre_commit.util import resource_text
 from testing.fixtures import git_dir
 from testing.fixtures import make_consuming_repo
@@ -22,7 +21,6 @@ from testing.fixtures import remove_config_from_repo
 from testing.util import cmd_output_mocked_pre_commit_home
 from testing.util import cwd
 from testing.util import git_commit
-from testing.util import xfailif_no_symlink
 from testing.util import xfailif_windows
 
 
@@ -52,11 +50,11 @@ def test_shebang_posix_not_on_path():
 
 
 def test_shebang_posix_on_path(tmpdir):
-    tmpdir.join('python{}'.format(sys.version_info[0])).ensure()
+    tmpdir.join(f'python{sys.version_info[0]}').ensure()
 
     with mock.patch.object(sys, 'platform', 'posix'):
         with mock.patch.object(os, 'defpath', tmpdir.strpath):
-            expected = '#!/usr/bin/env python{}'.format(sys.version_info[0])
+            expected = f'#!/usr/bin/env python{sys.version_info[0]}'
             assert shebang() == expected
 
 
@@ -90,7 +88,6 @@ def test_install_refuses_core_hookspath(in_git_dir, store):
     assert install(C.CONFIG_FILE, store, hook_types=['pre-commit'])
 
 
-@xfailif_no_symlink  # pragma: windows no cover
 def test_install_hooks_dead_symlink(in_git_dir, store):
     hook = in_git_dir.join('.git/hooks').ensure_dir().join('pre-commit')
     os.symlink('/fake/baz', hook.strpath)
@@ -307,7 +304,7 @@ EXISTING_COMMIT_RUN = re.compile(
 
 
 def _write_legacy_hook(path):
-    mkdirp(os.path.join(path, '.git/hooks'))
+    os.makedirs(os.path.join(path, '.git/hooks'), exist_ok=True)
     with open(os.path.join(path, '.git/hooks/pre-commit'), 'w') as f:
         f.write('#!/usr/bin/env bash\necho "legacy hook"\n')
     make_executable(f.name)
@@ -370,7 +367,7 @@ def test_failing_existing_hook_returns_1(tempdir_factory, store):
     path = make_consuming_repo(tempdir_factory, 'script_hooks_repo')
     with cwd(path):
         # Write out a failing "old" hook
-        mkdirp(os.path.join(path, '.git/hooks'))
+        os.makedirs(os.path.join(path, '.git/hooks'), exist_ok=True)
         with open(os.path.join(path, '.git/hooks/pre-commit'), 'w') as f:
             f.write('#!/usr/bin/env bash\necho "fail!"\nexit 1\n')
         make_executable(f.name)
@@ -432,7 +429,7 @@ def test_replace_old_commit_script(tempdir_factory, store):
             CURRENT_HASH, PRIOR_HASHES[-1],
         )
 
-        mkdirp(os.path.join(path, '.git/hooks'))
+        os.makedirs(os.path.join(path, '.git/hooks'), exist_ok=True)
         with open(os.path.join(path, '.git/hooks/pre-commit'), 'w') as f:
             f.write(new_contents)
         make_executable(f.name)
@@ -609,7 +606,7 @@ def test_pre_push_legacy(tempdir_factory, store):
     path = tempdir_factory.get()
     cmd_output('git', 'clone', upstream, path)
     with cwd(path):
-        mkdirp(os.path.join(path, '.git/hooks'))
+        os.makedirs(os.path.join(path, '.git/hooks'), exist_ok=True)
         with open(os.path.join(path, '.git/hooks/pre-push'), 'w') as f:
             f.write(
                 '#!/usr/bin/env bash\n'
@@ -658,7 +655,7 @@ def test_commit_msg_integration_passing(
 
 def test_commit_msg_legacy(commit_msg_repo, tempdir_factory, store):
     hook_path = os.path.join(commit_msg_repo, '.git/hooks/commit-msg')
-    mkdirp(os.path.dirname(hook_path))
+    os.makedirs(os.path.dirname(hook_path), exist_ok=True)
     with open(hook_path, 'w') as hook_file:
         hook_file.write(
             '#!/usr/bin/env bash\n'
@@ -713,7 +710,7 @@ def test_prepare_commit_msg_legacy(
     hook_path = os.path.join(
         prepare_commit_msg_repo, '.git/hooks/prepare-commit-msg',
     )
-    mkdirp(os.path.dirname(hook_path))
+    os.makedirs(os.path.dirname(hook_path), exist_ok=True)
     with open(hook_path, 'w') as hook_file:
         hook_file.write(
             '#!/usr/bin/env bash\n'
