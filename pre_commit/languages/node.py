@@ -68,7 +68,7 @@ def install_environment(
 
     # https://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx?f=255&MSPPError=-2147217396#maxpath
     if sys.platform == 'win32':  # pragma: no cover
-        envdir = '\\\\?\\' + os.path.normpath(envdir)
+        envdir = f'\\\\?\\{os.path.normpath(envdir)}'
     with clean_path_on_failure(envdir):
         cmd = [
             sys.executable, '-mnodeenv', '--prebuilt', '--clean-src', envdir,
@@ -83,7 +83,7 @@ def install_environment(
             helpers.run_setup_cmd(prefix, ('npm', 'install'))
             helpers.run_setup_cmd(
                 prefix,
-                ('npm', 'install', '-g', '.') + additional_dependencies,
+                ('npm', 'install', '-g', '.', *additional_dependencies),
             )
 
 

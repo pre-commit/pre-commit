@@ -1,24 +1,64 @@
 import os
 import sys
 
-terminal_supports_color = True
 if sys.platform == 'win32':  # pragma: no cover (windows)
-    from pre_commit.color_windows import enable_virtual_terminal_processing
+    def _enable() -> None:
+        from ctypes import POINTER
+        from ctypes import windll
+        from ctypes import WinError
+        from ctypes import WINFUNCTYPE
+        from ctypes.wintypes import BOOL
+        from ctypes.wintypes import DWORD
+        from ctypes.wintypes import HANDLE
+
+        STD_OUTPUT_HANDLE = -11
+        ENABLE_VIRTUAL_TERMINAL_PROCESSING = 4
+
+        def bool_errcheck(result, func, args):
+            if not result:
+                raise WinError()
+            return args
+
+        GetStdHandle = WINFUNCTYPE(HANDLE, DWORD)(
+            ('GetStdHandle', windll.kernel32), ((1, 'nStdHandle'),),
+        )
+
+        GetConsoleMode = WINFUNCTYPE(BOOL, HANDLE, POINTER(DWORD))(
+            ('GetConsoleMode', windll.kernel32),
+            ((1, 'hConsoleHandle'), (2, 'lpMode')),
+        )
+        GetConsoleMode.errcheck = bool_errcheck
+
+        SetConsoleMode = WINFUNCTYPE(BOOL, HANDLE, DWORD)(
+            ('SetConsoleMode', windll.kernel32),
+            ((1, 'hConsoleHandle'), (1, 'dwMode')),
+        )
+        SetConsoleMode.errcheck = bool_errcheck
+
+        # As of Windows 10, the Windows console supports (some) ANSI escape
+        # sequences, but it needs to be enabled using `SetConsoleMode` first.
+        #
+        # More info on the escape sequences supported:
+        # https://msdn.microsoft.com/en-us/library/windows/desktop/mt638032(v=vs.85).aspx
+        stdout = GetStdHandle(STD_OUTPUT_HANDLE)
+        flags = GetConsoleMode(stdout)
+        SetConsoleMode(stdout, flags | ENABLE_VIRTUAL_TERMINAL_PROCESSING)
+
     try:
-        enable_virtual_terminal_processing()
+        _enable()
     except OSError:
         terminal_supports_color = False
+    else:
+        terminal_supports_color = True
+else:  # pragma: windows no cover
+    terminal_supports_color = True
 
 RED = '\033[41m'
 GREEN = '\033[42m'
 YELLOW = '\033[43;30m'
 TURQUOISE = '\033[46;30m'
 SUBTLE = '\033[2m'
-NORMAL = '\033[0m'
-
-
-class InvalidColorSetting(ValueError):
-    pass
+NORMAL = '\033[m'
 
 
 def format_color(text: str, color: str, use_color_setting: bool) -> str:
@@ -29,10 +69,10 @@ def format_color(text: str, color: str, use_color_setting: bool) -> str:
         color - The color start string
         use_color_setting - Whether or not to color
     """
-    if not use_color_setting:
-        return text
-    else:
+    if use_color_setting:
         return f'{color}{text}{NORMAL}'
+    else:
+        return text
 
 
 COLOR_CHOICES = ('auto', 'always', 'never')
@@ -45,7 +85,7 @@ def use_color(setting: str) -> bool:
         setting - Either `auto`, `always`, or `never`
     """
     if setting not in COLOR_CHOICES:
-        raise InvalidColorSetting(setting)
+        raise ValueError(setting)
 
     return (
         setting == 'always' or (

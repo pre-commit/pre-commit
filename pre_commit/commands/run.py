@@ -20,7 +20,6 @@ from pre_commit import color
 from pre_commit import git
 from pre_commit import output
 from pre_commit.clientlib import load_config
-from pre_commit.output import get_hook_message
 from pre_commit.repository import all_hooks
 from pre_commit.repository import Hook
 from pre_commit.repository import install_hook_envs
@@ -31,6 +30,25 @@ from pre_commit.util import EnvironT
 
 
 logger = logging.getLogger('pre_commit')
+
+
+def _start_msg(*, start: str, cols: int, end_len: int) -> str:
+    dots = '.' * (cols - len(start) - end_len - 1)
+    return f'{start}{dots}'
+
+
+def _full_msg(
+        *,
+        start: str,
+        cols: int,
+        end_msg: str,
+        end_color: str,
+        use_color: bool,
+        postfix: str = '',
+) -> str:
+    dots = '.' * (cols - len(start) - len(postfix) - len(end_msg) - 1)
+    end = color.format_color(end_msg, end_color, use_color)
+    return f'{start}{dots}{postfix}{end}\n'
 
 
 def filter_by_include_exclude(
@@ -106,8 +124,8 @@ def _run_single_hook(
 
     if hook.id in skips or hook.alias in skips:
         output.write(
-            get_hook_message(
-                hook.name,
+            _full_msg(
+                start=hook.name,
                 end_msg=SKIPPED,
                 end_color=color.YELLOW,
                 use_color=use_color,
@@ -120,8 +138,8 @@ def _run_single_hook(
         out = b''
     elif not filenames and not hook.always_run:
         output.write(
-            get_hook_message(
-                hook.name,
+            _full_msg(
+                start=hook.name,
                 postfix=NO_FILES,
                 end_msg=SKIPPED,
                 end_color=color.TURQUOISE,
@@ -135,7 +153,7 @@ def _run_single_hook(
         out = b''
     else:
         # print hook and dots first in case the hook takes a while to run
-        output.write(get_hook_message(hook.name, end_len=6, cols=cols))
+        output.write(_start_msg(start=hook.name, end_len=6, cols=cols))
 
         diff_cmd = ('git', 'diff', '--no-ext-diff')
         diff_before = cmd_output_b(*diff_cmd, retcode=None)
@@ -218,9 +236,8 @@ def _run_hooks(
     """Actually run the hooks."""
     skips = _get_skips(environ)
     cols = _compute_cols(hooks)
-    filenames = _all_filenames(args)
     filenames = filter_by_include_exclude(
-        filenames, config['files'], config['exclude'],
+        _all_filenames(args), config['files'], config['exclude'],
     )
     classifier = Classifier(filenames)
     retval = 0

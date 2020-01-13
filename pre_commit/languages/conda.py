@@ -30,9 +30,9 @@ def get_env_patch(env: str) -> PatchesT:
     # seems to be used for python.exe.
     path: SubstitutionT = (os.path.join(env, 'bin'), os.pathsep, Var('PATH'))
     if os.name == 'nt':  # pragma: no cover (platform specific)
-        path = (env, os.pathsep) + path
-        path = (os.path.join(env, 'Scripts'), os.pathsep) + path
-        path = (os.path.join(env, 'Library', 'bin'), os.pathsep) + path
+        path = (env, os.pathsep, *path)
+        path = (os.path.join(env, 'Scripts'), os.pathsep, *path)
+        path = (os.path.join(env, 'Library', 'bin'), os.pathsep, *path)
 
     return (
         ('PYTHONHOME', UNSET),

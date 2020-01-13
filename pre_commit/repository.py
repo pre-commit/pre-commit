@@ -32,7 +32,7 @@ def _state(additional_deps: Sequence[str]) -> object:
 
 
 def _state_filename(prefix: Prefix, venv: str) -> str:
-    return prefix.path(venv, '.install_state_v' + C.INSTALLED_STATE_VERSION)
+    return prefix.path(venv, f'.install_state_v{C.INSTALLED_STATE_VERSION}')
 
 
 def _read_state(prefix: Prefix, venv: str) -> Optional[object]:
@@ -46,7 +46,7 @@ def _read_state(prefix: Prefix, venv: str) -> Optional[object]:
 
 def _write_state(prefix: Prefix, venv: str, state: object) -> None:
     state_filename = _state_filename(prefix, venv)
-    staging = state_filename + 'staging'
+    staging = f'{state_filename}staging'
     with open(staging, 'w') as state_file:
         state_file.write(json.dumps(state))
     # Move the file into place atomically to indicate we've installed

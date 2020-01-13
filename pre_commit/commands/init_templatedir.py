@@ -29,7 +29,5 @@ def init_templatedir(
     dest = os.path.realpath(directory)
     if configured_path != dest:
         logger.warning('`init.templateDir` not set to the target directory')
-        logger.warning(
-            f'maybe `git config --global init.templateDir {dest}`?',
-        )
+        logger.warning(f'maybe `git config --global init.templateDir {dest}`?')
     return 0

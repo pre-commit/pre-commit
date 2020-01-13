@@ -140,7 +140,6 @@ def test_error_handler_no_tty(tempdir_factory):
     ret, out, _ = cmd_output_mocked_pre_commit_home(
         sys.executable,
         '-c',
-        'from __future__ import unicode_literals\n'
         'from pre_commit.error_handler import error_handler\n'
         'with error_handler():\n'
         '    raise ValueError("\\u2603")\n',

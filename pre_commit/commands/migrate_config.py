@@ -28,18 +28,17 @@ def _migrate_map(contents: str) -> str:
         # If they are using the "default" flow style of yaml, this operation
         # will yield a valid configuration
         try:
-            trial_contents = header + 'repos:\n' + rest
+            trial_contents = f'{header}repos:\n{rest}'
             ordered_load(trial_contents)
             contents = trial_contents
         except yaml.YAMLError:
-            contents = header + 'repos:\n' + _indent(rest)
+            contents = f'{header}repos:\n{_indent(rest)}'
 
     return contents
 
 
 def _migrate_sha_to_rev(contents: str) -> str:
-    reg = re.compile(r'(\n\s+)sha:')
-    return reg.sub(r'\1rev:', contents)
+    return re.sub(r'(\n\s+)sha:', r'\1rev:', contents)
 
 
 def migrate_config(config_file: str, quiet: bool = False) -> int:

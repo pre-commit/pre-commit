@@ -141,7 +141,7 @@ def head_rev(remote: str) -> str:
 
 
 def has_diff(*args: str, repo: str = '.') -> bool:
-    cmd = ('git', 'diff', '--quiet', '--no-ext-diff') + args
+    cmd = ('git', 'diff', '--quiet', '--no-ext-diff', *args)
     return cmd_output_b(*cmd, cwd=repo, retcode=None)[0] == 1
 
 

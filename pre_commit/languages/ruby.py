@@ -109,12 +109,14 @@ def install_environment(
             # Need to call this after installing to set up the shims
             helpers.run_setup_cmd(prefix, ('rbenv', 'rehash'))
             helpers.run_setup_cmd(
-                prefix, ('gem', 'build') + prefix.star('.gemspec'),
+                prefix, ('gem', 'build', *prefix.star('.gemspec')),
             )
             helpers.run_setup_cmd(
                 prefix,
-                ('gem', 'install', '--no-document') +
-                prefix.star('.gem') + additional_dependencies,
+                (
+                    'gem', 'install', '--no-document',
+                    *prefix.star('.gem'), *additional_dependencies,
+                ),
             )
 
 

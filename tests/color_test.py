@@ -6,13 +6,12 @@ import pytest
 from pre_commit import envcontext
 from pre_commit.color import format_color
 from pre_commit.color import GREEN
-from pre_commit.color import InvalidColorSetting
 from pre_commit.color import use_color
 
 
 @pytest.mark.parametrize(
     ('in_text', 'in_color', 'in_use_color', 'expected'), (
-        ('foo', GREEN, True, f'{GREEN}foo\033[0m'),
+        ('foo', GREEN, True, f'{GREEN}foo\033[m'),
         ('foo', GREEN, False, 'foo'),
     ),
 )
@@ -56,5 +55,5 @@ def test_use_color_dumb_term():
 
 
 def test_use_color_raises_if_given_shenanigans():
-    with pytest.raises(InvalidColorSetting):
+    with pytest.raises(ValueError):
         use_color('herpaderp')

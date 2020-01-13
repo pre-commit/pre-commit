@@ -34,7 +34,7 @@ def test_is_script():
 
 def test_is_previous_pre_commit(tmpdir):
     f = tmpdir.join('foo')
-    f.write(PRIOR_HASHES[0] + '\n')
+    f.write(f'{PRIOR_HASHES[0]}\n')
     assert is_our_script(f.strpath)
 
 
@@ -129,11 +129,11 @@ FILES_CHANGED = (
 
 
 NORMAL_PRE_COMMIT_RUN = re.compile(
-    r'^\[INFO\] Initializing environment for .+\.\n'
-    r'Bash hook\.+Passed\n'
-    r'\[master [a-f0-9]{7}\] commit!\n' +
-    FILES_CHANGED +
-    r' create mode 100644 foo\n$',
+    fr'^\[INFO\] Initializing environment for .+\.\n'
+    fr'Bash hook\.+Passed\n'
+    fr'\[master [a-f0-9]{{7}}\] commit!\n'
+    fr'{FILES_CHANGED}'
+    fr' create mode 100644 foo\n$',
 )
 
 
@@ -296,10 +296,10 @@ def test_failing_hooks_returns_nonzero(tempdir_factory, store):
 
 
 EXISTING_COMMIT_RUN = re.compile(
-    r'^legacy hook\n'
-    r'\[master [a-f0-9]{7}\] commit!\n' +
-    FILES_CHANGED +
-    r' create mode 100644 baz\n$',
+    fr'^legacy hook\n'
+    fr'\[master [a-f0-9]{{7}}\] commit!\n'
+    fr'{FILES_CHANGED}'
+    fr' create mode 100644 baz\n$',
 )
 
 
@@ -453,10 +453,10 @@ def test_uninstall_doesnt_remove_not_our_hooks(in_git_dir):
 
 
 PRE_INSTALLED = re.compile(
-    r'Bash hook\.+Passed\n'
-    r'\[master [a-f0-9]{7}\] commit!\n' +
-    FILES_CHANGED +
-    r' create mode 100644 foo\n$',
+    fr'Bash hook\.+Passed\n'
+    fr'\[master [a-f0-9]{{7}}\] commit!\n'
+    fr'{FILES_CHANGED}'
+    fr' create mode 100644 foo\n$',
 )
 
 

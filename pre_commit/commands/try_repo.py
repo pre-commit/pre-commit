@@ -1,6 +1,7 @@
 import argparse
 import logging
 import os.path
+from typing import Optional
 from typing import Tuple
 
 from aspy.yaml import ordered_dump
@@ -18,9 +19,9 @@ from pre_commit.xargs import xargs
 logger = logging.getLogger(__name__)
 
 
-def _repo_ref(tmpdir: str, repo: str, ref: str) -> Tuple[str, str]:
+def _repo_ref(tmpdir: str, repo: str, ref: Optional[str]) -> Tuple[str, str]:
     # if `ref` is explicitly passed, use it
-    if ref:
+    if ref is not None:
         return repo, ref
 
     ref = git.head_rev(repo)

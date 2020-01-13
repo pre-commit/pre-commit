@@ -18,6 +18,5 @@ def run_hook(
         file_args: Sequence[str],
         color: bool,
 ) -> Tuple[int, bytes]:
-    cmd = hook.cmd
-    cmd = (hook.prefix.path(cmd[0]),) + cmd[1:]
+    cmd = (hook.prefix.path(hook.cmd[0]), *hook.cmd[1:])
     return helpers.run_xargs(hook, cmd, file_args, color=color)
