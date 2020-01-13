@@ -1,9 +1,9 @@
 import contextlib
+import functools
 import os.path
 import sys
 import traceback
 from typing import Generator
-from typing import Optional
 
 import pre_commit.constants as C
 from pre_commit import output
@@ -15,22 +15,13 @@ class FatalError(RuntimeError):
 
 
 def _log_and_exit(msg: str, exc: BaseException, formatted: str) -> None:
-    error_msg = b''.join((
-        msg.encode(), b': ',
-        type(exc).__name__.encode(), b': ',
-        str(exc).encode(),
-    ))
-    output.write_line_b(error_msg)
-    store = Store()
-    log_path = os.path.join(store.directory, 'pre-commit.log')
+    error_msg = f'{msg}: {type(exc).__name__}: {exc}'
+    output.write_line(error_msg)
+    log_path = os.path.join(Store().directory, 'pre-commit.log')
     output.write_line(f'Check the log at {log_path}')
 
     with open(log_path, 'wb') as log:
-        def _log_line(s: Optional[str] = None) -> None:
-            output.write_line(s, stream=log)
-
-        def _log_line_b(s: Optional[bytes] = None) -> None:
-            output.write_line_b(s, stream=log)
+        _log_line = functools.partial(output.write_line, stream=log)
 
         _log_line('### version information')
         _log_line()
@@ -48,7 +39,7 @@ def _log_and_exit(msg: str, exc: BaseException, formatted: str) -> None:
         _log_line('### error information')
         _log_line()
         _log_line('```')
-        _log_line_b(error_msg)
+        _log_line(error_msg)
         _log_line('```')
         _log_line()
         _log_line('```')

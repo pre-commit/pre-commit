@@ -27,10 +27,7 @@ healthy = helpers.basic_healthy
 
 def get_env_patch(target_dir: str) -> PatchesT:
     return (
-        (
-            'PATH',
-            (os.path.join(target_dir, 'bin'), os.pathsep, Var('PATH')),
-        ),
+        ('PATH', (os.path.join(target_dir, 'bin'), os.pathsep, Var('PATH'))),
     )
 
 

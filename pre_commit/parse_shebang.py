@@ -20,8 +20,7 @@ def parse_filename(filename: str) -> Tuple[str, ...]:
 
 
 def find_executable(
-        exe: str,
-        _environ: Optional[Mapping[str, str]] = None,
+        exe: str, _environ: Optional[Mapping[str, str]] = None,
 ) -> Optional[str]:
     exe = os.path.normpath(exe)
     if os.sep in exe:

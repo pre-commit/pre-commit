@@ -329,7 +329,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             return install(
                 args.config, store,
                 hook_types=args.hook_types,
-                overwrite=args.overwrite, hooks=args.install_hooks,
+                overwrite=args.overwrite,
+                hooks=args.install_hooks,
                 skip_on_missing_config=args.allow_missing_config,
             )
         elif args.command == 'init-templatedir':

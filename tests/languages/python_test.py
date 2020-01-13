@@ -16,7 +16,7 @@ def test_norm_version_expanduser():
         expected_path = fr'{home}\python343'
     else:  # pragma: windows no cover
         path = '~/.pyenv/versions/3.4.3/bin/python'
-        expected_path = home + '/.pyenv/versions/3.4.3/bin/python'
+        expected_path = f'{home}/.pyenv/versions/3.4.3/bin/python'
     result = python.norm_version(path)
     assert result == expected_path
 

@@ -192,19 +192,20 @@ META_HOOK_DICT = cfgv.Map(
     cfgv.Required('id', cfgv.check_one_of(tuple(k for k, _ in _meta))),
     # language must be system
     cfgv.Optional('language', cfgv.check_one_of({'system'}), 'system'),
-    *([
+    *(
         # default to the hook definition for the meta hooks
         cfgv.ConditionalOptional(key, cfgv.check_any, value, 'id', hook_id)
         for hook_id, values in _meta
         for key, value in values
-    ] + [
+    ),
+    *(
         # default to the "manifest" parsing
         cfgv.OptionalNoDefault(item.key, item.check_fn)
         # these will always be defaulted above
         if item.key in {'name', 'language', 'entry'} else
         item
         for item in MANIFEST_HOOK_DICT.items
-    ]),
+    ),
 )
 CONFIG_HOOK_DICT = cfgv.Map(
     'Hook', 'id',
@@ -215,11 +216,11 @@ CONFIG_HOOK_DICT = cfgv.Map(
     # are optional.
     # No defaults are provided here as the config is merged on top of the
     # manifest.
-    *[
+    *(
         cfgv.OptionalNoDefault(item.key, item.check_fn)
         for item in MANIFEST_HOOK_DICT.items
         if item.key != 'id'
-    ],
+    ),
 )
 CONFIG_REPO_DICT = cfgv.Map(
     'Repository', 'repo',
@@ -245,7 +246,7 @@ CONFIG_REPO_DICT = cfgv.Map(
 DEFAULT_LANGUAGE_VERSION = cfgv.Map(
     'DefaultLanguageVersion', None,
     cfgv.NoAdditionalKeys(all_languages),
-    *[cfgv.Optional(x, cfgv.check_string, C.DEFAULT) for x in all_languages],
+    *(cfgv.Optional(x, cfgv.check_string, C.DEFAULT) for x in all_languages),
 )
 CONFIG_SCHEMA = cfgv.Map(
     'Config', None,

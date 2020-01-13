@@ -7,10 +7,13 @@ from unittest import mock
 import pytest
 
 import pre_commit.constants as C
+from pre_commit import color
 from pre_commit.commands.install_uninstall import install
 from pre_commit.commands.run import _compute_cols
+from pre_commit.commands.run import _full_msg
 from pre_commit.commands.run import _get_skips
 from pre_commit.commands.run import _has_unmerged_paths
+from pre_commit.commands.run import _start_msg
 from pre_commit.commands.run import Classifier
 from pre_commit.commands.run import filter_by_include_exclude
 from pre_commit.commands.run import run
@@ -27,6 +30,62 @@ from testing.util import cmd_output_mocked_pre_commit_home
 from testing.util import cwd
 from testing.util import git_commit
 from testing.util import run_opts
+
+
+def test_start_msg():
+    ret = _start_msg(start='start', end_len=5, cols=15)
+    # 4 dots: 15 - 5 - 5 - 1
+    assert ret == 'start....'
+
+
+def test_full_msg():
+    ret = _full_msg(
+        start='start',
+        end_msg='end',
+        end_color='',
+        use_color=False,
+        cols=15,
+    )
+    # 6 dots: 15 - 5 - 3 - 1
+    assert ret == 'start......end\n'
+
+
+def test_full_msg_with_color():
+    ret = _full_msg(
+        start='start',
+        end_msg='end',
+        end_color=color.RED,
+        use_color=True,
+        cols=15,
+    )
+    # 6 dots: 15 - 5 - 3 - 1
+    assert ret == f'start......{color.RED}end{color.NORMAL}\n'
+
+
+def test_full_msg_with_postfix():
+    ret = _full_msg(
+        start='start',
+        postfix='post ',
+        end_msg='end',
+        end_color='',
+        use_color=False,
+        cols=20,
+    )
+    # 6 dots: 20 - 5 - 5 - 3 - 1
+    assert ret == 'start......post end\n'
+
+
+def test_full_msg_postfix_not_colored():
+    ret = _full_msg(
+        start='start',
+        postfix='post ',
+        end_msg='end',
+        end_color=color.RED,
+        use_color=True,
+        cols=20,
+    )
+    # 6 dots: 20 - 5 - 5 - 3 - 1
+    assert ret == f'start......post {color.RED}end{color.NORMAL}\n'
 
 
 @pytest.fixture
@@ -173,7 +232,7 @@ def test_global_exclude(cap_out, store, in_git_dir):
     ret, printed = _do_run(cap_out, store, str(in_git_dir), opts)
     assert ret == 0
     # Does not contain foo.py since it was excluded
-    assert printed.startswith(b'identity' + b'.' * 65 + b'Passed\n')
+    assert printed.startswith(f'identity{"." * 65}Passed\n'.encode())
     assert printed.endswith(b'\n\n.pre-commit-config.yaml\nbar.py\n\n')
 
 
@@ -190,7 +249,7 @@ def test_global_files(cap_out, store, in_git_dir):
     ret, printed = _do_run(cap_out, store, str(in_git_dir), opts)
     assert ret == 0
     # Does not contain foo.py since it was excluded
-    assert printed.startswith(b'identity' + b'.' * 65 + b'Passed\n')
+    assert printed.startswith(f'identity{"." * 65}Passed\n'.encode())
     assert printed.endswith(b'\n\nbar.py\n\n')
 
 

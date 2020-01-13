@@ -34,7 +34,7 @@ def make_archive(name: str, repo: str, ref: str, destdir: str) -> str:
     :param text ref: Tag/SHA/branch to check out.
     :param text destdir: Directory to place archives in.
     """
-    output_path = os.path.join(destdir, name + '.tar.gz')
+    output_path = os.path.join(destdir, f'{name}.tar.gz')
     with tmpdir() as tempdir:
         # Clone the repository to the temporary directory
         cmd_output_b('git', 'clone', repo, tempdir)
@@ -56,9 +56,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     parser.add_argument('--dest', default='pre_commit/resources')
     args = parser.parse_args(argv)
     for archive_name, repo, ref in REPOS:
-        output.write_line(
-            f'Making {archive_name}.tar.gz for {repo}@{ref}',
-        )
+        output.write_line(f'Making {archive_name}.tar.gz for {repo}@{ref}')
         make_archive(archive_name, repo, ref, args.dest)
     return 0
 

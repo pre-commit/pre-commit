@@ -18,6 +18,6 @@ def run_hook(
         file_args: Sequence[str],
         color: bool,
 ) -> Tuple[int, bytes]:
-    out = hook.entry.encode() + b'\n\n'
+    out = f'{hook.entry}\n\n'.encode()
     out += b'\n'.join(f.encode() for f in file_args) + b'\n'
     return 1, out

@@ -49,9 +49,8 @@ def _find_by_py_launcher(
     if version.startswith('python'):
         num = version[len('python'):]
         try:
-            return cmd_output(
-                'py', f'-{num}', '-c', 'import sys; print(sys.executable)',
-            )[1].strip()
+            cmd = ('py', f'-{num}', '-c', 'import sys; print(sys.executable)')
+            return cmd_output(*cmd)[1].strip()
         except CalledProcessError:
             pass
     return None

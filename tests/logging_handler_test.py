@@ -12,7 +12,7 @@ def test_logging_handler_color(cap_out):
     handler = LoggingHandler(True)
     handler.emit(_log_record('hi', logging.WARNING))
     ret = cap_out.get()
-    assert ret == color.YELLOW + '[WARNING]' + color.NORMAL + ' hi\n'
+    assert ret == f'{color.YELLOW}[WARNING]{color.NORMAL} hi\n'
 
 
 def test_logging_handler_no_color(cap_out):

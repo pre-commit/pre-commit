@@ -94,9 +94,9 @@ def test_foo_something_unstaged_diff_color_always(foo_staged, patch_dir):
 
 def test_foo_both_modify_non_conflicting(foo_staged, patch_dir):
     with open(foo_staged.foo_filename, 'w') as foo_file:
-        foo_file.write(FOO_CONTENTS + '9\n')
+        foo_file.write(f'{FOO_CONTENTS}9\n')
 
-    _test_foo_state(foo_staged, FOO_CONTENTS + '9\n', 'AM')
+    _test_foo_state(foo_staged, f'{FOO_CONTENTS}9\n', 'AM')
 
     with staged_files_only(patch_dir):
         _test_foo_state(foo_staged)
@@ -107,7 +107,7 @@ def test_foo_both_modify_non_conflicting(foo_staged, patch_dir):
 
         _test_foo_state(foo_staged, FOO_CONTENTS.replace('1', 'a'), 'AM')
 
-    _test_foo_state(foo_staged, FOO_CONTENTS.replace('1', 'a') + '9\n', 'AM')
+    _test_foo_state(foo_staged, f'{FOO_CONTENTS.replace("1", "a")}9\n', 'AM')
 
 
 def test_foo_both_modify_conflicting(foo_staged, patch_dir):
