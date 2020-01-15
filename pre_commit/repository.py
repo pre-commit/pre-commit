@@ -1,11 +1,9 @@
 import json
 import logging
 import os
-import shlex
 from typing import Any
 from typing import Dict
 from typing import List
-from typing import NamedTuple
 from typing import Optional
 from typing import Sequence
 from typing import Set
@@ -14,8 +12,8 @@ from typing import Tuple
 import pre_commit.constants as C
 from pre_commit.clientlib import load_manifest
 from pre_commit.clientlib import LOCAL
-from pre_commit.clientlib import MANIFEST_HOOK_DICT
 from pre_commit.clientlib import META
+from pre_commit.hook import Hook
 from pre_commit.languages.all import languages
 from pre_commit.languages.helpers import environment_dir
 from pre_commit.prefix import Prefix
@@ -53,93 +51,39 @@ def _write_state(prefix: Prefix, venv: str, state: object) -> None:
     os.rename(staging, state_filename)
 
 
-_KEYS = tuple(item.key for item in MANIFEST_HOOK_DICT.items)
-
-
-class Hook(NamedTuple):
-    src: str
-    prefix: Prefix
-    id: str
-    name: str
-    entry: str
-    language: str
-    alias: str
-    files: str
-    exclude: str
-    types: Sequence[str]
-    exclude_types: Sequence[str]
-    additional_dependencies: Sequence[str]
-    args: Sequence[str]
-    always_run: bool
-    pass_filenames: bool
-    description: str
-    language_version: str
-    log_file: str
-    minimum_pre_commit_version: str
-    require_serial: bool
-    stages: Sequence[str]
-    verbose: bool
-
-    @property
-    def cmd(self) -> Tuple[str, ...]:
-        return tuple(shlex.split(self.entry)) + tuple(self.args)
-
-    @property
-    def install_key(self) -> Tuple[Prefix, str, str, Tuple[str, ...]]:
-        return (
-            self.prefix,
-            self.language,
-            self.language_version,
-            tuple(self.additional_dependencies),
+def _hook_installed(hook: Hook) -> bool:
+    lang = languages[hook.language]
+    venv = environment_dir(lang.ENVIRONMENT_DIR, hook.language_version)
+    return (
+        venv is None or (
+            (
+                _read_state(hook.prefix, venv) ==
+                _state(hook.additional_dependencies)
+            ) and
+            lang.healthy(hook.prefix, hook.language_version)
         )
+    )
 
-    def installed(self) -> bool:
-        lang = languages[self.language]
-        venv = environment_dir(lang.ENVIRONMENT_DIR, self.language_version)
-        return (
-            venv is None or (
-                (
-                    _read_state(self.prefix, venv) ==
-                    _state(self.additional_dependencies)
-                ) and
-                lang.healthy(self.prefix, self.language_version)
-            )
-        )
 
-    def install(self) -> None:
-        logger.info(f'Installing environment for {self.src}.')
-        logger.info('Once installed this environment will be reused.')
-        logger.info('This may take a few minutes...')
+def _hook_install(hook: Hook) -> None:
+    logger.info(f'Installing environment for {hook.src}.')
+    logger.info('Once installed this environment will be reused.')
+    logger.info('This may take a few minutes...')
 
-        lang = languages[self.language]
-        assert lang.ENVIRONMENT_DIR is not None
-        venv = environment_dir(lang.ENVIRONMENT_DIR, self.language_version)
+    lang = languages[hook.language]
+    assert lang.ENVIRONMENT_DIR is not None
+    venv = environment_dir(lang.ENVIRONMENT_DIR, hook.language_version)
 
-        # There's potentially incomplete cleanup from previous runs
-        # Clean it up!
-        if self.prefix.exists(venv):
-            rmtree(self.prefix.path(venv))
+    # There's potentially incomplete cleanup from previous runs
+    # Clean it up!
+    if hook.prefix.exists(venv):
+        rmtree(hook.prefix.path(venv))
 
-        lang.install_environment(
-            self.prefix, self.language_version, self.additional_dependencies,
-        )
-        # Write our state to indicate we're installed
-        _write_state(self.prefix, venv, _state(self.additional_dependencies))
-
-    def run(self, file_args: Sequence[str], color: bool) -> Tuple[int, bytes]:
-        lang = languages[self.language]
-        return lang.run_hook(self, file_args, color)
-
-    @classmethod
-    def create(cls, src: str, prefix: Prefix, dct: Dict[str, Any]) -> 'Hook':
-        # TODO: have cfgv do this (?)
-        extra_keys = set(dct) - set(_KEYS)
-        if extra_keys:
-            logger.warning(
-                f'Unexpected key(s) present on {src} => {dct["id"]}: '
-                f'{", ".join(sorted(extra_keys))}',
-            )
-        return cls(src=src, prefix=prefix, **{k: dct[k] for k in _KEYS})
+    lang.install_environment(
+        hook.prefix, hook.language_version, hook.additional_dependencies,
+    )
+    # Write our state to indicate we're installed
+    _write_state(hook.prefix, venv, _state(hook.additional_dependencies))
 
 
 def _hook(
@@ -243,7 +187,7 @@ def install_hook_envs(hooks: Sequence[Hook], store: Store) -> None:
         seen: Set[Tuple[Prefix, str, str, Tuple[str, ...]]] = set()
         ret = []
         for hook in hooks:
-            if hook.install_key not in seen and not hook.installed():
+            if hook.install_key not in seen and not _hook_installed(hook):
                 ret.append(hook)
             seen.add(hook.install_key)
         return ret
@@ -253,7 +197,7 @@ def install_hook_envs(hooks: Sequence[Hook], store: Store) -> None:
     with store.exclusive_lock():
         # Another process may have already completed this work
         for hook in _need_installed():
-            hook.install()
+            _hook_install(hook)
 
 
 def all_hooks(root_config: Dict[str, Any], store: Store) -> Tuple[Hook, ...]:

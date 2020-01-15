@@ -4,21 +4,18 @@ import sys
 from typing import Generator
 from typing import Sequence
 from typing import Tuple
-from typing import TYPE_CHECKING
 
 import pre_commit.constants as C
 from pre_commit.envcontext import envcontext
 from pre_commit.envcontext import PatchesT
 from pre_commit.envcontext import Var
+from pre_commit.hook import Hook
 from pre_commit.languages import helpers
 from pre_commit.languages.python import bin_dir
 from pre_commit.prefix import Prefix
 from pre_commit.util import clean_path_on_failure
 from pre_commit.util import cmd_output
 from pre_commit.util import cmd_output_b
-
-if TYPE_CHECKING:
-    from pre_commit.repository import Hook
 
 ENVIRONMENT_DIR = 'node_env'
 get_default_version = helpers.basic_get_default_version

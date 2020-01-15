@@ -3,8 +3,8 @@ from typing import NamedTuple
 from typing import Optional
 from typing import Sequence
 from typing import Tuple
-from typing import TYPE_CHECKING
 
+from pre_commit.hook import Hook
 from pre_commit.languages import conda
 from pre_commit.languages import docker
 from pre_commit.languages import docker_image
@@ -20,9 +20,6 @@ from pre_commit.languages import script
 from pre_commit.languages import swift
 from pre_commit.languages import system
 from pre_commit.prefix import Prefix
-
-if TYPE_CHECKING:
-    from pre_commit.repository import Hook
 
 
 class Language(NamedTuple):
