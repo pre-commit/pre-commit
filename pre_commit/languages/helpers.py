@@ -8,15 +8,12 @@ from typing import Optional
 from typing import overload
 from typing import Sequence
 from typing import Tuple
-from typing import TYPE_CHECKING
 
 import pre_commit.constants as C
+from pre_commit.hook import Hook
 from pre_commit.prefix import Prefix
 from pre_commit.util import cmd_output_b
 from pre_commit.xargs import xargs
-
-if TYPE_CHECKING:
-    from pre_commit.repository import Hook
 
 FIXED_RANDOM_SEED = 1542676186
 

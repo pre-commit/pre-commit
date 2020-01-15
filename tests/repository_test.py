@@ -13,15 +13,16 @@ import pre_commit.constants as C
 from pre_commit.clientlib import CONFIG_SCHEMA
 from pre_commit.clientlib import load_manifest
 from pre_commit.envcontext import envcontext
+from pre_commit.hook import Hook
 from pre_commit.languages import golang
 from pre_commit.languages import helpers
 from pre_commit.languages import node
 from pre_commit.languages import python
 from pre_commit.languages import ruby
 from pre_commit.languages import rust
+from pre_commit.languages.all import languages
 from pre_commit.prefix import Prefix
 from pre_commit.repository import all_hooks
-from pre_commit.repository import Hook
 from pre_commit.repository import install_hook_envs
 from pre_commit.util import cmd_output
 from pre_commit.util import cmd_output_b
@@ -38,6 +39,10 @@ from testing.util import xfailif_windows_no_ruby
 
 def _norm_out(b):
     return b.replace(b'\r\n', b'\n')
+
+
+def _hook_run(hook, filenames, color):
+    return languages[hook.language].run_hook(hook, filenames, color)
 
 
 def _get_hook_no_install(repo_config, store, hook_id):
@@ -68,7 +73,8 @@ def _test_hook_repo(
 ):
     path = make_repo(tempdir_factory, repo_path)
     config = make_config_from_repo(path, **(config_kwargs or {}))
-    ret, out = _get_hook(config, store, hook_id).run(args, color=color)
+    hook = _get_hook(config, store, hook_id)
+    ret, out = _hook_run(hook, args, color=color)
     assert ret == expected_return_code
     assert _norm_out(out) == expected
 
@@ -108,7 +114,8 @@ def test_local_conda_additional_dependencies(store):
             'additional_dependencies': ['mccabe'],
         }],
     }
-    ret, out = _get_hook(config, store, 'local-conda').run((), color=False)
+    hook = _get_hook(config, store, 'local-conda')
+    ret, out = _hook_run(hook, (), color=False)
     assert ret == 0
     assert _norm_out(out) == b'OK\n'
 
@@ -173,7 +180,7 @@ def test_switch_language_versions_doesnt_clobber(tempdir_factory, store):
         config = make_config_from_repo(path)
         config['hooks'][0]['language_version'] = version
         hook = _get_hook(config, store, 'python3-hook')
-        ret, out = hook.run([], color=False)
+        ret, out = _hook_run(hook, [], color=False)
         assert ret == 0
         assert _norm_out(out) == expected_output
 
@@ -445,14 +452,14 @@ def greppable_files(tmpdir):
 
 def test_grep_hook_matching(greppable_files, store):
     hook = _make_grep_repo('ello', store)
-    ret, out = hook.run(('f1', 'f2', 'f3'), color=False)
+    ret, out = _hook_run(hook, ('f1', 'f2', 'f3'), color=False)
     assert ret == 1
     assert _norm_out(out) == b"f1:1:hello'hi\n"
 
 
 def test_grep_hook_case_insensitive(greppable_files, store):
     hook = _make_grep_repo('ELLO', store, args=['-i'])
-    ret, out = hook.run(('f1', 'f2', 'f3'), color=False)
+    ret, out = _hook_run(hook, ('f1', 'f2', 'f3'), color=False)
     assert ret == 1
     assert _norm_out(out) == b"f1:1:hello'hi\n"
 
@@ -460,7 +467,7 @@ def test_grep_hook_case_insensitive(greppable_files, store):
 @pytest.mark.parametrize('regex', ('nope', "foo'bar", r'^\[INFO\]'))
 def test_grep_hook_not_matching(regex, greppable_files, store):
     hook = _make_grep_repo(regex, store)
-    ret, out = hook.run(('f1', 'f2', 'f3'), color=False)
+    ret, out = _hook_run(hook, ('f1', 'f2', 'f3'), color=False)
     assert (ret, out) == (0, b'')
 
 
@@ -559,7 +566,8 @@ def test_local_golang_additional_dependencies(store):
             'additional_dependencies': ['github.com/golang/example/hello'],
         }],
     }
-    ret, out = _get_hook(config, store, 'hello').run((), color=False)
+    hook = _get_hook(config, store, 'hello')
+    ret, out = _hook_run(hook, (), color=False)
     assert ret == 0
     assert _norm_out(out) == b'Hello, Go examples!\n'
 
@@ -575,7 +583,8 @@ def test_local_rust_additional_dependencies(store):
             'additional_dependencies': ['cli:hello-cli:0.2.2'],
         }],
     }
-    ret, out = _get_hook(config, store, 'hello').run((), color=False)
+    hook = _get_hook(config, store, 'hello')
+    ret, out = _hook_run(hook, (), color=False)
     assert ret == 0
     assert _norm_out(out) == b'Hello World!\n'
 
@@ -592,7 +601,9 @@ def test_fail_hooks(store):
         }],
     }
     hook = _get_hook(config, store, 'fail')
-    ret, out = hook.run(('changelog/123.bugfix', 'changelog/wat'), color=False)
+    ret, out = _hook_run(
+        hook, ('changelog/123.bugfix', 'changelog/wat'), color=False,
+    )
     assert ret == 1
     assert out == (
         b'make sure to name changelogs as .rst!\n'
@@ -661,7 +672,7 @@ def test_control_c_control_c_on_install(tempdir_factory, store):
     # However, it should be perfectly runnable (reinstall after botched
     # install)
     install_hook_envs(hooks, store)
-    ret, out = hook.run((), color=False)
+    ret, out = _hook_run(hook, (), color=False)
     assert ret == 0
 
 
@@ -683,7 +694,8 @@ def test_invalidated_virtualenv(tempdir_factory, store):
     cmd_output_b('rm', '-rf', *paths)
 
     # pre-commit should rebuild the virtualenv and it should be runnable
-    ret, out = _get_hook(config, store, 'foo').run((), color=False)
+    hook = _get_hook(config, store, 'foo')
+    ret, out = _hook_run(hook, (), color=False)
     assert ret == 0
 
 
@@ -724,13 +736,13 @@ def test_tags_on_repositories(in_tmpdir, tempdir_factory, store):
 
     config1 = make_config_from_repo(git1, rev=tag)
     hook1 = _get_hook(config1, store, 'prints_cwd')
-    ret1, out1 = hook1.run(('-L',), color=False)
+    ret1, out1 = _hook_run(hook1, ('-L',), color=False)
     assert ret1 == 0
     assert out1.strip() == _norm_pwd(in_tmpdir)
 
     config2 = make_config_from_repo(git2, rev=tag)
     hook2 = _get_hook(config2, store, 'bash_hook')
-    ret2, out2 = hook2.run(('bar',), color=False)
+    ret2, out2 = _hook_run(hook2, ('bar',), color=False)
     assert ret2 == 0
     assert out2 == b'bar\nHello World\n'
 
@@ -754,7 +766,7 @@ def test_local_python_repo(store, local_python_config):
     hook = _get_hook(local_python_config, store, 'foo')
     # language_version should have been adjusted to the interpreter version
     assert hook.language_version != C.DEFAULT
-    ret, out = hook.run(('filename',), color=False)
+    ret, out = _hook_run(hook, ('filename',), color=False)
     assert ret == 0
     assert _norm_out(out) == b"['filename']\nHello World\n"
 

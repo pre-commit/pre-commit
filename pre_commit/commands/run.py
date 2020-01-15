@@ -20,8 +20,9 @@ from pre_commit import color
 from pre_commit import git
 from pre_commit import output
 from pre_commit.clientlib import load_config
+from pre_commit.hook import Hook
+from pre_commit.languages.all import languages
 from pre_commit.repository import all_hooks
-from pre_commit.repository import Hook
 from pre_commit.repository import install_hook_envs
 from pre_commit.staged_files_only import staged_files_only
 from pre_commit.store import Store
@@ -160,7 +161,8 @@ def _run_single_hook(
         if not hook.pass_filenames:
             filenames = ()
         time_before = time.time()
-        retcode, out = hook.run(filenames, use_color)
+        language = languages[hook.language]
+        retcode, out = language.run_hook(hook, filenames, use_color)
         duration = round(time.time() - time_before, 2) or 0
         diff_after = cmd_output_b(*diff_cmd, retcode=None)
 

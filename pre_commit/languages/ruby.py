@@ -5,20 +5,17 @@ import tarfile
 from typing import Generator
 from typing import Sequence
 from typing import Tuple
-from typing import TYPE_CHECKING
 
 import pre_commit.constants as C
 from pre_commit.envcontext import envcontext
 from pre_commit.envcontext import PatchesT
 from pre_commit.envcontext import Var
+from pre_commit.hook import Hook
 from pre_commit.languages import helpers
 from pre_commit.prefix import Prefix
 from pre_commit.util import CalledProcessError
 from pre_commit.util import clean_path_on_failure
 from pre_commit.util import resource_bytesio
-
-if TYPE_CHECKING:
-    from pre_comit.repository import Hook
 
 ENVIRONMENT_DIR = 'rbenv'
 get_default_version = helpers.basic_get_default_version
