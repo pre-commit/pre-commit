@@ -120,7 +120,8 @@ def _rev_exists(rev: str) -> bool:
 
 
 def _pre_push(stdin: bytes) -> Tuple[str, ...]:
-    remote = sys.argv[1]
+    remote_name = sys.argv[1]
+    remote_url = sys.argv[2]
 
     opts: Tuple[str, ...] = ()
     for line in stdin.decode().splitlines():
@@ -133,7 +134,7 @@ def _pre_push(stdin: bytes) -> Tuple[str, ...]:
             # ancestors not found in remote
             ancestors = subprocess.check_output((
                 'git', 'rev-list', local_sha, '--topo-order', '--reverse',
-                '--not', f'--remotes={remote}',
+                '--not', f'--remotes={remote_name}',
             )).decode().strip()
             if not ancestors:
                 continue
@@ -150,7 +151,10 @@ def _pre_push(stdin: bytes) -> Tuple[str, ...]:
                     opts = ('--origin', local_sha, '--source', source)
 
     if opts:
-        return opts
+        remote_opts = (
+            '--push-remote-name', remote_name, '--push-remote-url', remote_url,
+        )
+        return opts + remote_opts
     else:
         # An attempt to push an empty changeset
         raise EarlyExit()

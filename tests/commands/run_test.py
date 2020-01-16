@@ -687,6 +687,35 @@ def test_stages(cap_out, store, repo_with_passing_hook):
     assert _run_for_stage('commit-msg').startswith(b'hook 5...')
 
 
+def test_push_remote_environment(cap_out, store, repo_with_passing_hook):
+    config = {
+        'repo': 'local',
+        'hooks': [
+            {
+                'id': 'print-push-remote',
+                'name': 'Print push remote name',
+                'entry': 'entry: bash -c \'echo "$PRE_COMMIT_REMOTE_NAME"\'',
+                'language': 'system',
+                'verbose': bool(1),
+            },
+        ],
+    }
+    add_config_to_repo(repo_with_passing_hook, config)
+
+    _test_run(
+        cap_out,
+        store,
+        repo_with_passing_hook,
+        opts={
+            'push_remote_name': 'origin',
+            'push_remote_url': 'https://github.com/pre-commit/pre-commit',
+        },
+        expected_outputs=[b'Print push remote name', b'Passed'],
+        expected_ret=0,
+        stage=['push'],
+    )
+
+
 def test_commit_msg_hook(cap_out, store, commit_msg_repo):
     filename = '.git/COMMIT_EDITMSG'
     with open(filename, 'w') as f:
