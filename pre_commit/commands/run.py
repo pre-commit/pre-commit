@@ -312,6 +312,10 @@ def run(
         environ['PRE_COMMIT_ORIGIN'] = args.origin
         environ['PRE_COMMIT_SOURCE'] = args.source
 
+    if args.remote_name and args.remote_url:
+        environ['PRE_COMMIT_REMOTE_NAME'] = args.remote_name
+        environ['PRE_COMMIT_REMOTE_URL'] = args.remote_url
+
     with contextlib.ExitStack() as exit_stack:
         if stash:
             exit_stack.enter_context(staged_files_only(store.directory))

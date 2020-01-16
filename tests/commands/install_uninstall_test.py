@@ -15,6 +15,7 @@ from pre_commit.parse_shebang import find_executable
 from pre_commit.util import cmd_output
 from pre_commit.util import make_executable
 from pre_commit.util import resource_text
+from testing.fixtures import add_config_to_repo
 from testing.fixtures import git_dir
 from testing.fixtures import make_consuming_repo
 from testing.fixtures import remove_config_from_repo
@@ -512,9 +513,9 @@ def test_installed_from_venv(tempdir_factory, store):
         assert NORMAL_PRE_COMMIT_RUN.match(output)
 
 
-def _get_push_output(tempdir_factory, opts=()):
+def _get_push_output(tempdir_factory, remote='origin', opts=()):
     return cmd_output_mocked_pre_commit_home(
-        'git', 'push', 'origin', 'HEAD:new_branch', *opts,
+        'git', 'push', remote, 'HEAD:new_branch', *opts,
         tempdir_factory=tempdir_factory,
         retcode=None,
     )[:2]
@@ -587,6 +588,33 @@ def test_pre_push_new_upstream(tempdir_factory, store):
         assert retc == 0
         assert 'Bash hook' in output
         assert 'Passed' in output
+
+
+def test_pre_push_environment_variables(tempdir_factory, store):
+    config = {
+        'repo': 'local',
+        'hooks': [
+            {
+                'id': 'print-remote-info',
+                'name': 'print remote info',
+                'entry': 'bash -c "echo remote: $PRE_COMMIT_REMOTE_NAME"',
+                'language': 'system',
+                'verbose': True,
+            },
+        ],
+    }
+
+    upstream = git_dir(tempdir_factory)
+    clone = tempdir_factory.get()
+    cmd_output('git', 'clone', upstream, clone)
+    add_config_to_repo(clone, config)
+    with cwd(clone):
+        install(C.CONFIG_FILE, store, hook_types=['pre-push'])
+
+        cmd_output('git', 'remote', 'rename', 'origin', 'origin2')
+        retc, output = _get_push_output(tempdir_factory, remote='origin2')
+        assert retc == 0
+        assert '\nremote: origin2\n' in output
 
 
 def test_pre_push_integration_empty_push(tempdir_factory, store):

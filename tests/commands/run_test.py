@@ -456,8 +456,11 @@ def test_origin_source_error_msg_error(
     assert b'Specify both --origin and --source.' in printed
 
 
-def test_origin_source_both_ok(cap_out, store, repo_with_passing_hook):
-    args = run_opts(origin='master', source='master')
+def test_all_push_options_ok(cap_out, store, repo_with_passing_hook):
+    args = run_opts(
+        origin='master', source='master',
+        remote_name='origin', remote_url='https://example.com/repo',
+    )
     ret, printed = _do_run(cap_out, store, repo_with_passing_hook, args)
     assert ret == 0
     assert b'Specify both --origin and --source.' not in printed
