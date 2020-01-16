@@ -312,9 +312,9 @@ def run(
         environ['PRE_COMMIT_ORIGIN'] = args.origin
         environ['PRE_COMMIT_SOURCE'] = args.source
 
-    if args.push_remote_name and args.push_remote_url:
-        environ['PRE_COMMIT_REMOTE_NAME'] = args.push_remote_name
-        environ['PRE_COMMIT_REMOTE_URL'] = args.push_remote_url
+    if args.remote_name and args.remote_url:
+        environ['PRE_COMMIT_REMOTE_NAME'] = args.remote_name
+        environ['PRE_COMMIT_REMOTE_URL'] = args.remote_url
 
     with contextlib.ExitStack() as exit_stack:
         if stash:

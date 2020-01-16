@@ -102,11 +102,9 @@ def _add_run_options(parser: argparse.ArgumentParser) -> None:
         help='Filename to check when running during `commit-msg`',
     )
     parser.add_argument(
-        '--push-remote-name', help='Remote name used by `git push`.',
+        '--remote-name', help='Remote name used by `git push`.',
     )
-    parser.add_argument(
-        '--push-remote-url', help='Remote url used by `git push`.',
-    )
+    parser.add_argument('--remote-url', help='Remote url used by `git push`.')
     parser.add_argument(
         '--hook-stage', choices=C.STAGES, default='commit',
         help='The stage during which the hook is fired.  One of %(choices)s',
