@@ -29,10 +29,8 @@ def find_executable(
     environ = _environ if _environ is not None else os.environ
 
     if 'PATHEXT' in environ:
-        possible_exe_names = tuple(
-            exe + ext.lower() for ext in environ['PATHEXT'].split(os.pathsep)
-        ) + (exe,)
-
+        exts = environ['PATHEXT'].split(os.pathsep)
+        possible_exe_names = tuple(f'{exe}{ext}' for ext in exts) + (exe,)
     else:
         possible_exe_names = (exe,)
 

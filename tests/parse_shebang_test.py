@@ -1,6 +1,6 @@
 import contextlib
-import distutils.spawn
-import os
+import os.path
+import shutil
 import sys
 
 import pytest
@@ -12,7 +12,7 @@ from pre_commit.util import make_executable
 
 
 def _echo_exe() -> str:
-    exe = distutils.spawn.find_executable('echo')
+    exe = shutil.which('echo')
     assert exe is not None
     return exe
 

@@ -51,7 +51,8 @@ def test_shebang_posix_not_on_path():
 
 
 def test_shebang_posix_on_path(tmpdir):
-    tmpdir.join(f'python{sys.version_info[0]}').ensure()
+    exe = tmpdir.join(f'python{sys.version_info[0]}').ensure()
+    make_executable(exe)
 
     with mock.patch.object(sys, 'platform', 'posix'):
         with mock.patch.object(os, 'defpath', tmpdir.strpath):

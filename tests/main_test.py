@@ -81,8 +81,8 @@ def test_adjust_args_try_repo_repo_relative(in_git_dir):
 
 
 FNS = (
-    'autoupdate', 'clean', 'gc', 'install', 'install_hooks', 'migrate_config',
-    'run', 'sample_config', 'uninstall',
+    'autoupdate', 'clean', 'gc', 'hook_impl', 'install', 'install_hooks',
+    'migrate_config', 'run', 'sample_config', 'uninstall',
 )
 CMDS = tuple(fn.replace('_', '-') for fn in FNS)
 
