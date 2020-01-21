@@ -307,7 +307,7 @@ EXISTING_COMMIT_RUN = re.compile(
 def _write_legacy_hook(path):
     os.makedirs(os.path.join(path, '.git/hooks'), exist_ok=True)
     with open(os.path.join(path, '.git/hooks/pre-commit'), 'w') as f:
-        f.write('#!/usr/bin/env bash\necho "legacy hook"\n')
+        f.write(f'{shebang()}\nprint("legacy hook")\n')
     make_executable(f.name)
 
 
