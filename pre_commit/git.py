@@ -35,7 +35,10 @@ def no_git_env(_env: Optional[EnvironT] = None) -> Dict[str, str]:
     return {
         k: v for k, v in _env.items()
         if not k.startswith('GIT_') or
-        k in {'GIT_EXEC_PATH', 'GIT_SSH', 'GIT_SSH_COMMAND', 'GIT_SSL_CAINFO'}
+        k in {
+            'GIT_EXEC_PATH', 'GIT_SSH', 'GIT_SSH_COMMAND', 'GIT_SSL_CAINFO',
+            'GIT_SSL_NO_VERIFY',
+        }
     }
 
 
