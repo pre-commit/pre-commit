@@ -13,6 +13,7 @@ from pre_commit import git
 from pre_commit.commands.autoupdate import autoupdate
 from pre_commit.commands.clean import clean
 from pre_commit.commands.gc import gc
+from pre_commit.commands.hook_impl import hook_impl
 from pre_commit.commands.init_templatedir import init_templatedir
 from pre_commit.commands.install_uninstall import install
 from pre_commit.commands.install_uninstall import install_hooks
@@ -197,6 +198,16 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     _add_color_option(clean_parser)
     _add_config_option(clean_parser)
 
+    hook_impl_parser = subparsers.add_parser('hook-impl')
+    _add_color_option(hook_impl_parser)
+    _add_config_option(hook_impl_parser)
+    hook_impl_parser.add_argument('--hook-type')
+    hook_impl_parser.add_argument('--hook-dir')
+    hook_impl_parser.add_argument(
+        '--skip-on-missing-config', action='store_true',
+    )
+    hook_impl_parser.add_argument(dest='rest', nargs=argparse.REMAINDER)
+
     gc_parser = subparsers.add_parser('gc', help='Clean unused cached repos.')
     _add_color_option(gc_parser)
     _add_config_option(gc_parser)
@@ -329,6 +340,16 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             return clean(store)
         elif args.command == 'gc':
             return gc(store)
+        elif args.command == 'hook-impl':
+            return hook_impl(
+                store,
+                config=args.config,
+                color=args.color,
+                hook_type=args.hook_type,
+                hook_dir=args.hook_dir,
+                skip_on_missing_config=args.skip_on_missing_config,
+                args=args.rest[1:],
+            )
         elif args.command == 'install':
             return install(
                 args.config, store,

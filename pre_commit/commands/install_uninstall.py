@@ -60,7 +60,7 @@ def shebang() -> str:
             f'python{sys.version_info[0]}',
         ]
         for path, exe in itertools.product(path_choices, exe_choices):
-            if os.path.exists(os.path.join(path, exe)):
+            if os.access(os.path.join(path, exe), os.X_OK):
                 py = exe
                 break
         else:
@@ -92,12 +92,10 @@ def _install_hook_script(
             f'Use -f to use only pre-commit.',
         )
 
-    params = {
-        'CONFIG': config_file,
-        'HOOK_TYPE': hook_type,
-        'INSTALL_PYTHON': sys.executable,
-        'SKIP_ON_MISSING_CONFIG': skip_on_missing_config,
-    }
+    args = ['hook-impl', f'--config={config_file}', f'--hook-type={hook_type}']
+    if skip_on_missing_config:
+        args.append('--skip-on-missing-config')
+    params = {'INSTALL_PYTHON': sys.executable, 'ARGS': args}
 
     with open(hook_path, 'w') as hook_file:
         contents = resource_text('hook-tmpl')

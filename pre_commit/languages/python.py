@@ -57,7 +57,7 @@ def _find_by_sys_executable() -> Optional[str]:
     def _norm(path: str) -> Optional[str]:
         _, exe = os.path.split(path.lower())
         exe, _, _ = exe.partition('.exe')
-        if find_executable(exe) and exe not in {'python', 'pythonw'}:
+        if exe not in {'python', 'pythonw'} and find_executable(exe):
             return exe
         return None
 
