@@ -79,3 +79,14 @@ def test_init_templatedir_expanduser(tmpdir, tempdir_factory, store, cap_out):
     lines = cap_out.get().splitlines()
     assert len(lines) == 1
     assert lines[0].startswith('pre-commit installed at')
+
+
+def test_init_templatedir_hookspath_set(tmpdir, tempdir_factory, store):
+    target = tmpdir.join('tmpl')
+    tmp_git_dir = git_dir(tempdir_factory)
+    with cwd(tmp_git_dir):
+        cmd_output('git', 'config', '--local', 'core.hooksPath', 'hooks')
+        init_templatedir(
+            C.CONFIG_FILE, store, target, hook_types=['pre-commit'],
+        )
+    assert target.join('hooks/pre-commit').exists()

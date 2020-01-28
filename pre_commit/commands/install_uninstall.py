@@ -123,7 +123,7 @@ def install(
         skip_on_missing_config: bool = False,
         git_dir: Optional[str] = None,
 ) -> int:
-    if git.has_core_hookpaths_set():
+    if git_dir is None and git.has_core_hookpaths_set():
         logger.error(
             'Cowardly refusing to install hooks with `core.hooksPath` set.\n'
             'hint: `git config --unset-all core.hooksPath`',
