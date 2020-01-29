@@ -1,3 +1,44 @@
+2.0.0 - 2020-01-28
+==================
+
+### Features
+- Expose `PRE_COMMIT_REMOTE_NAME` and `PRE_COMMIT_REMOTE_URL` as environment
+  variables during `pre-push` hooks.
+    - #1274 issue by @dmbarreiro.
+    - #1288 PR by @dmbarreiro.
+
+### Fixes
+- Fix `python -m pre_commit --version` to mention `pre-commit` instead of
+  `__main__.py`.
+    - #1273 issue by @ssbarnea.
+    - #1276 PR by @orcutt989.
+- Don't filter `GIT_SSL_NO_VERIFY` from environment when cloning.
+    - #1293 PR by @schiermike.
+- Allow `pre-commit init-templatedir` to succeed even if `core.hooksPath` is
+  set.
+    - #1298 issue by @damienrj.
+    - #1299 PR by @asottile.
+
+### Misc
+- Fix changelog date for 1.21.0.
+    - #1275 PR by @flaudisio.
+
+### Updating
+- Removed `pcre` language, use `pygrep` instead.
+    - #1268 PR by @asottile.
+- Removed `--tags-only` argument to `pre-commit autoupdate` (it has done
+  nothing since 0.14.0).
+    - #1269 by @asottile.
+- Remove python2 / python3.5 support.  Note that pre-commit still supports
+  running hooks written in python2, but pre-commit itself requires python 3.6+.
+    - #1260 issue by @asottile.
+    - #1277 PR by @asottile.
+    - #1281 PR by @asottile.
+    - #1282 PR by @asottile.
+    - #1287 PR by @asottile.
+    - #1289 PR by @asottile.
+    - #1292 PR by @asottile.
+
 1.21.0 - 2020-01-02
 ===================
 
