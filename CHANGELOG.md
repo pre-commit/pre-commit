@@ -1,3 +1,10 @@
+2.0.1 - 2020-01-29
+==================
+
+### Fixes
+- Fix `ImportError` in python 3.6.0 / 3.6.1 for `typing.NoReturn`
+    - #1302 PR by @asottile.
+
 2.0.0 - 2020-01-28
 ==================
 
