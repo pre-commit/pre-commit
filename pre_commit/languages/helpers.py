@@ -3,17 +3,20 @@ import os
 import random
 from typing import Any
 from typing import List
-from typing import NoReturn
 from typing import Optional
 from typing import overload
 from typing import Sequence
 from typing import Tuple
+from typing import TYPE_CHECKING
 
 import pre_commit.constants as C
 from pre_commit.hook import Hook
 from pre_commit.prefix import Prefix
 from pre_commit.util import cmd_output_b
 from pre_commit.xargs import xargs
+
+if TYPE_CHECKING:
+    from typing import NoReturn
 
 FIXED_RANDOM_SEED = 1542676186
 
@@ -65,7 +68,7 @@ def no_install(
         prefix: Prefix,
         version: str,
         additional_dependencies: Sequence[str],
-) -> NoReturn:
+) -> 'NoReturn':
     raise AssertionError('This type is not installable')
 
 

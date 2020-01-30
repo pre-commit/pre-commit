@@ -1,10 +1,13 @@
 import os.path
 from typing import Mapping
-from typing import NoReturn
 from typing import Optional
 from typing import Tuple
+from typing import TYPE_CHECKING
 
 from identify.identify import parse_shebang_from_file
+
+if TYPE_CHECKING:
+    from typing import NoReturn
 
 
 class ExecutableNotFoundError(OSError):
@@ -44,7 +47,7 @@ def find_executable(
 
 
 def normexe(orig: str) -> str:
-    def _error(msg: str) -> NoReturn:
+    def _error(msg: str) -> 'NoReturn':
         raise ExecutableNotFoundError(f'Executable `{orig}` {msg}')
 
     if os.sep not in orig and (not os.altsep or os.altsep not in orig):
