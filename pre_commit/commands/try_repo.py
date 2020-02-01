@@ -4,8 +4,6 @@ import os.path
 from typing import Optional
 from typing import Tuple
 
-from aspy.yaml import ordered_dump
-
 import pre_commit.constants as C
 from pre_commit import git
 from pre_commit import output
@@ -14,6 +12,7 @@ from pre_commit.commands.run import run
 from pre_commit.store import Store
 from pre_commit.util import cmd_output_b
 from pre_commit.util import tmpdir
+from pre_commit.util import yaml_dump
 from pre_commit.xargs import xargs
 
 logger = logging.getLogger(__name__)
@@ -63,7 +62,7 @@ def try_repo(args: argparse.Namespace) -> int:
             hooks = [{'id': hook['id']} for hook in manifest]
 
         config = {'repos': [{'repo': repo, 'rev': ref, 'hooks': hooks}]}
-        config_s = ordered_dump(config, **C.YAML_DUMP_KWARGS)
+        config_s = yaml_dump(config)
 
         config_filename = os.path.join(tempdir, C.CONFIG_FILE)
         with open(config_filename, 'w') as cfg:

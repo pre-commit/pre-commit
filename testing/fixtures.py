@@ -2,8 +2,6 @@ import contextlib
 import os.path
 import shutil
 
-from aspy.yaml import ordered_dump
-from aspy.yaml import ordered_load
 from cfgv import apply_defaults
 from cfgv import validate
 
@@ -12,6 +10,8 @@ from pre_commit import git
 from pre_commit.clientlib import CONFIG_SCHEMA
 from pre_commit.clientlib import load_manifest
 from pre_commit.util import cmd_output
+from pre_commit.util import yaml_dump
+from pre_commit.util import yaml_load
 from testing.util import get_resource_path
 from testing.util import git_commit
 
@@ -55,10 +55,10 @@ def modify_manifest(path, commit=True):
     """
     manifest_path = os.path.join(path, C.MANIFEST_FILE)
     with open(manifest_path) as f:
-        manifest = ordered_load(f.read())
+        manifest = yaml_load(f.read())
     yield manifest
     with open(manifest_path, 'w') as manifest_file:
-        manifest_file.write(ordered_dump(manifest, **C.YAML_DUMP_KWARGS))
+        manifest_file.write(yaml_dump(manifest))
     if commit:
         git_commit(msg=modify_manifest.__name__, cwd=path)
 
@@ -70,10 +70,10 @@ def modify_config(path='.', commit=True):
     """
     config_path = os.path.join(path, C.CONFIG_FILE)
     with open(config_path) as f:
-        config = ordered_load(f.read())
+        config = yaml_load(f.read())
     yield config
     with open(config_path, 'w', encoding='UTF-8') as config_file:
-        config_file.write(ordered_dump(config, **C.YAML_DUMP_KWARGS))
+        config_file.write(yaml_dump(config))
     if commit:
         git_commit(msg=modify_config.__name__, cwd=path)
 
@@ -114,7 +114,7 @@ def make_config_from_repo(repo_path, rev=None, hooks=None, check=True):
 def read_config(directory, config_file=C.CONFIG_FILE):
     config_path = os.path.join(directory, config_file)
     with open(config_path) as f:
-        config = ordered_load(f.read())
+        config = yaml_load(f.read())
     return config
 
 
@@ -123,7 +123,7 @@ def write_config(directory, config, config_file=C.CONFIG_FILE):
         assert isinstance(config, dict), config
         config = {'repos': [config]}
     with open(os.path.join(directory, config_file), 'w') as outfile:
-        outfile.write(ordered_dump(config, **C.YAML_DUMP_KWARGS))
+        outfile.write(yaml_dump(config))
 
 
 def add_config_to_repo(git_path, config, config_file=C.CONFIG_FILE):

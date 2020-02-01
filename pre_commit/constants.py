@@ -8,8 +8,6 @@ else:  # pragma: no cover (PY38+)
 CONFIG_FILE = '.pre-commit-config.yaml'
 MANIFEST_FILE = '.pre-commit-hooks.yaml'
 
-YAML_DUMP_KWARGS = {'default_flow_style': False, 'indent': 4}
-
 # Bump when installation changes in a backwards / forwards incompatible way
 INSTALLED_STATE_VERSION = '1'
 # Bump when modifying `empty_template`

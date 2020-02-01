@@ -1,5 +1,6 @@
 import contextlib
 import errno
+import functools
 import os.path
 import shutil
 import stat
@@ -17,6 +18,8 @@ from typing import Tuple
 from typing import Type
 from typing import Union
 
+import yaml
+
 from pre_commit import parse_shebang
 
 if sys.version_info >= (3, 7):  # pragma: no cover (PY37+)
@@ -27,6 +30,17 @@ else:  # pragma: no cover (<PY37)
     from importlib_resources import read_text
 
 EnvironT = Union[Dict[str, str], 'os._Environ']
+
+Loader = getattr(yaml, 'CSafeLoader', yaml.SafeLoader)
+yaml_load = functools.partial(yaml.load, Loader=Loader)
+Dumper = getattr(yaml, 'CSafeDumper', yaml.SafeDumper)
+
+
+def yaml_dump(o: Any) -> str:
+    # when python/mypy#1484 is solved, this can be `functools.partial`
+    return yaml.dump(
+        o, Dumper=Dumper, default_flow_style=False, indent=4, sort_keys=False,
+    )
 
 
 @contextlib.contextmanager

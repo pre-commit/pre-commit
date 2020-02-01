@@ -8,9 +8,6 @@ from typing import Optional
 from typing import Sequence
 from typing import Tuple
 
-from aspy.yaml import ordered_dump
-from aspy.yaml import ordered_load
-
 import pre_commit.constants as C
 from pre_commit import git
 from pre_commit import output
@@ -25,6 +22,8 @@ from pre_commit.util import CalledProcessError
 from pre_commit.util import cmd_output
 from pre_commit.util import cmd_output_b
 from pre_commit.util import tmpdir
+from pre_commit.util import yaml_dump
+from pre_commit.util import yaml_load
 
 
 class RevInfo(NamedTuple):
@@ -105,7 +104,7 @@ def _original_lines(
         raise AssertionError('could not find rev lines')
     else:
         with open(path, 'w') as f:
-            f.write(ordered_dump(ordered_load(original), **C.YAML_DUMP_KWARGS))
+            f.write(yaml_dump(yaml_load(original)))
         return _original_lines(path, rev_infos, retry=True)
 
 
@@ -117,7 +116,7 @@ def _write_new_config(path: str, rev_infos: List[Optional[RevInfo]]) -> None:
             continue
         match = REV_LINE_RE.match(lines[idx])
         assert match is not None
-        new_rev_s = ordered_dump({'rev': rev_info.rev}, **C.YAML_DUMP_KWARGS)
+        new_rev_s = yaml_dump({'rev': rev_info.rev})
         new_rev = new_rev_s.split(':', 1)[1].strip()
         if rev_info.frozen is not None:
             comment = f'  # frozen: {rev_info.frozen}'
