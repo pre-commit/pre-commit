@@ -883,3 +883,20 @@ def test_perl_hook(tempdir_factory, store):
         tempdir_factory, store, 'perl_hooks_repo',
         'perl-hook', [], b'Hello from perl-commit Perl!\n',
     )
+
+
+def test_local_perl_additional_dependencies(store):
+    config = {
+        'repo': 'local',
+        'hooks': [{
+            'id': 'hello',
+            'name': 'hello',
+            'entry': 'perltidy --version',
+            'language': 'perl',
+            'additional_dependencies': ['SHANCOCK/Perl-Tidy-20200110.tar.gz'],
+        }],
+    }
+    hook = _get_hook(config, store, 'hello')
+    ret, out = _hook_run(hook, (), color=False)
+    assert ret == 0
+    assert _norm_out(out).startswith(b'This is perltidy, v20200110')
