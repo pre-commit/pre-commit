@@ -1,7 +1,8 @@
 import re
 
 import yaml
-from aspy.yaml import ordered_load
+
+from pre_commit.util import yaml_load
 
 
 def _indent(s: str) -> str:
@@ -24,12 +25,12 @@ def _migrate_map(contents: str) -> str:
     header = ''.join(lines[:i])
     rest = ''.join(lines[i:])
 
-    if isinstance(ordered_load(contents), list):
+    if isinstance(yaml_load(contents), list):
         # If they are using the "default" flow style of yaml, this operation
         # will yield a valid configuration
         try:
             trial_contents = f'{header}repos:\n{rest}'
-            ordered_load(trial_contents)
+            yaml_load(trial_contents)
             contents = trial_contents
         except yaml.YAMLError:
             contents = f'{header}repos:\n{_indent(rest)}'

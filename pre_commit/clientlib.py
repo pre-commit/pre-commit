@@ -9,13 +9,13 @@ from typing import Optional
 from typing import Sequence
 
 import cfgv
-from aspy.yaml import ordered_load
 from identify.identify import ALL_TAGS
 
 import pre_commit.constants as C
 from pre_commit.error_handler import FatalError
 from pre_commit.languages.all import all_languages
 from pre_commit.util import parse_version
+from pre_commit.util import yaml_load
 
 logger = logging.getLogger('pre_commit')
 
@@ -84,7 +84,7 @@ class InvalidManifestError(FatalError):
 load_manifest = functools.partial(
     cfgv.load_from_filename,
     schema=MANIFEST_SCHEMA,
-    load_strategy=ordered_load,
+    load_strategy=yaml_load,
     exc_tp=InvalidManifestError,
 )
 
@@ -288,7 +288,7 @@ class InvalidConfigError(FatalError):
 
 
 def ordered_load_normalize_legacy_config(contents: str) -> Dict[str, Any]:
-    data = ordered_load(contents)
+    data = yaml_load(contents)
     if isinstance(data, list):
         # TODO: Once happy, issue a deprecation warning and instructions
         return {'repos': data}
