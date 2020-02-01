@@ -876,3 +876,10 @@ def test_manifest_hooks(tempdir_factory, store):
         types=['file'],
         verbose=False,
     )
+
+
+def test_perl_hook(tempdir_factory, store):
+    _test_hook_repo(
+        tempdir_factory, store, 'perl_hooks_repo',
+        'perl-hook', [], b'Hello from perl-commit Perl!\n',
+    )
