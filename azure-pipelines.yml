@@ -24,6 +24,11 @@ jobs:
     pre_test:
     - powershell: Write-Host "##vso[task.prependpath]$env:CONDA\Scripts"
       displayName: Add conda to PATH
+    - powershell: |
+        Write-Host "##vso[task.prependpath]C:\Strawberry\perl\bin"
+        Write-Host "##vso[task.prependpath]C:\Strawberry\perl\site\bin"
+        Write-Host "##vso[task.prependpath]C:\Strawberry\c\bin"
+      displayName: Add strawberry perl to PATH
 - template: job--python-tox.yml@asottile
   parameters:
     toxenvs: [py37]
