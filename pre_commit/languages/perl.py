@@ -1,5 +1,6 @@
 import contextlib
 import os
+import shlex
 from typing import Generator
 from typing import Sequence
 from typing import Tuple
@@ -26,11 +27,11 @@ def get_env_patch(venv: str) -> PatchesT:
     return (
         ('PATH', (os.path.join(venv, 'bin'), os.pathsep, Var('PATH'))),
         ('PERL5LIB', os.path.join(venv, 'lib', 'perl5')),
-        ('PERL_MB_OPT', f'--install_base {venv}'),
+        ('PERL_MB_OPT', f'--install_base {shlex.quote(venv)}'),
         (
             'PERL_MM_OPT', (
-                f'INSTALL_BASE={venv}'
-                ' INSTALLSITEMAN1DIR=none INSTALLSITEMAN3DIR=none'
+                f'INSTALL_BASE={shlex.quote(venv)} '
+                f'INSTALLSITEMAN1DIR=none INSTALLSITEMAN3DIR=none'
             ),
         ),
     )
