@@ -1,0 +1,4 @@
+MANIFEST
+Makefile.PL
+bin/pre-commit-perl-hello
+lib/PreCommitHello.pm

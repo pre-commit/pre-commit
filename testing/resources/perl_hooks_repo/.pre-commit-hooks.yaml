@@ -1,0 +1,5 @@
+-   id: perl-hook
+    name: perl example hook
+    entry: pre-commit-perl-hello
+    language: perl
+    files: ''

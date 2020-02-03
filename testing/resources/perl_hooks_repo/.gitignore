@@ -1,0 +1,7 @@
+/MYMETA.json
+/MYMETA.yml
+/Makefile
+/PreCommitHello-*.tar.*
+/PreCommitHello-*/
+/blib/
+/pm_to_blib
