@@ -30,6 +30,10 @@ PRIOR_HASHES = (
 CURRENT_HASH = '138fd403232d2ddd5efb44317e38bf03'
 TEMPLATE_START = '# start templated\n'
 TEMPLATE_END = '# end templated\n'
+# Homebrew/homebrew-core#35825: be more timid about appropriate `PATH`
+# #1312 os.defpath is too restrictive on BSD
+POSIX_SEARCH_PATH = ('/usr/local/bin', '/usr/bin', '/bin')
+SYS_EXE = os.path.basename(os.path.realpath(sys.executable))
 
 
 def _hook_paths(
@@ -51,20 +55,21 @@ def is_our_script(filename: str) -> bool:
 
 def shebang() -> str:
     if sys.platform == 'win32':
-        py = 'python'
+        py = SYS_EXE
     else:
-        # Homebrew/homebrew-core#35825: be more timid about appropriate `PATH`
-        path_choices = [p for p in os.defpath.split(os.pathsep) if p]
         exe_choices = [
             f'python{sys.version_info[0]}.{sys.version_info[1]}',
             f'python{sys.version_info[0]}',
         ]
-        for path, exe in itertools.product(path_choices, exe_choices):
+        # avoid searching for bare `python` as it's likely to be python 2
+        if SYS_EXE != 'python':
+            exe_choices.append(SYS_EXE)
+        for path, exe in itertools.product(POSIX_SEARCH_PATH, exe_choices):
             if os.access(os.path.join(path, exe), os.X_OK):
                 py = exe
                 break
         else:
-            py = 'python'
+            py = SYS_EXE
     return f'#!/usr/bin/env {py}'
 
 
