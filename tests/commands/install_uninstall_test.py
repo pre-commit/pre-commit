@@ -4,6 +4,7 @@ import sys
 from unittest import mock
 
 import pre_commit.constants as C
+from pre_commit.commands import install_uninstall
 from pre_commit.commands.install_uninstall import CURRENT_HASH
 from pre_commit.commands.install_uninstall import install
 from pre_commit.commands.install_uninstall import install_hooks
@@ -39,25 +40,36 @@ def test_is_previous_pre_commit(tmpdir):
     assert is_our_script(f.strpath)
 
 
+def patch_platform(platform):
+    return mock.patch.object(sys, 'platform', platform)
+
+
+def patch_lookup_path(path):
+    return mock.patch.object(install_uninstall, 'POSIX_SEARCH_PATH', path)
+
+
+def patch_sys_exe(exe):
+    return mock.patch.object(install_uninstall, 'SYS_EXE', exe)
+
+
 def test_shebang_windows():
-    with mock.patch.object(sys, 'platform', 'win32'):
-        assert shebang() == '#!/usr/bin/env python'
+    with patch_platform('win32'), patch_sys_exe('python.exe'):
+        assert shebang() == '#!/usr/bin/env python.exe'
 
 
 def test_shebang_posix_not_on_path():
-    with mock.patch.object(sys, 'platform', 'posix'):
-        with mock.patch.object(os, 'defpath', ''):
-            assert shebang() == '#!/usr/bin/env python'
+    with patch_platform('posix'), patch_lookup_path(()):
+        with patch_sys_exe('python3.6'):
+            assert shebang() == '#!/usr/bin/env python3.6'
 
 
 def test_shebang_posix_on_path(tmpdir):
     exe = tmpdir.join(f'python{sys.version_info[0]}').ensure()
     make_executable(exe)
 
-    with mock.patch.object(sys, 'platform', 'posix'):
-        with mock.patch.object(os, 'defpath', tmpdir.strpath):
-            expected = f'#!/usr/bin/env python{sys.version_info[0]}'
-            assert shebang() == expected
+    with patch_platform('posix'), patch_lookup_path((tmpdir.strpath,)):
+        with patch_sys_exe('python'):
+            assert shebang() == f'#!/usr/bin/env python{sys.version_info[0]}'
 
 
 def test_install_pre_commit(in_git_dir, store):
@@ -250,9 +262,18 @@ def _path_without_us():
 def test_environment_not_sourced(tempdir_factory, store):
     path = make_consuming_repo(tempdir_factory, 'script_hooks_repo')
     with cwd(path):
-        # Patch the executable to simulate rming virtualenv
-        with mock.patch.object(sys, 'executable', '/does-not-exist'):
-            assert not install(C.CONFIG_FILE, store, hook_types=['pre-commit'])
+        assert not install(C.CONFIG_FILE, store, hook_types=['pre-commit'])
+        # simulate deleting the virtualenv by rewriting the exe
+        hook = os.path.join(path, '.git/hooks/pre-commit')
+        with open(hook) as f:
+            src = f.read()
+        src = re.sub(
+            '\nINSTALL_PYTHON =.*\n',
+            '\nINSTALL_PYTHON = "/dne"\n',
+            src,
+        )
+        with open(hook, 'w') as f:
+            f.write(src)
 
         # Use a specific homedir to ignore --user installs
         homedir = tempdir_factory.get()
