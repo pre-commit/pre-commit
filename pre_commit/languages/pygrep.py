@@ -46,7 +46,7 @@ def _process_filename_at_once(pattern: Pattern[bytes], filename: str) -> int:
 
 
 def run_hook(
-        hook: 'Hook',
+        hook: Hook,
         file_args: Sequence[str],
         color: bool,
 ) -> Tuple[int, bytes]:

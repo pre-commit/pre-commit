@@ -72,7 +72,7 @@ def no_install(
     raise AssertionError('This type is not installable')
 
 
-def target_concurrency(hook: 'Hook') -> int:
+def target_concurrency(hook: Hook) -> int:
     if hook.require_serial or 'PRE_COMMIT_NO_CONCURRENCY' in os.environ:
         return 1
     else:
@@ -97,7 +97,7 @@ def _shuffled(seq: Sequence[str]) -> List[str]:
 
 
 def run_xargs(
-        hook: 'Hook',
+        hook: Hook,
         cmd: Tuple[str, ...],
         file_args: Sequence[str],
         **kwargs: Any,

@@ -97,7 +97,7 @@ def docker_cmd() -> Tuple[str, ...]:  # pragma: windows no cover
 
 
 def run_hook(
-        hook: 'Hook',
+        hook: Hook,
         file_args: Sequence[str],
         color: bool,
 ) -> Tuple[int, bytes]:  # pragma: windows no cover

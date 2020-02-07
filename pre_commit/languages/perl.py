@@ -59,7 +59,7 @@ def install_environment(
 
 
 def run_hook(
-        hook: 'Hook',
+        hook: Hook,
         file_args: Sequence[str],
         color: bool,
 ) -> Tuple[int, bytes]:

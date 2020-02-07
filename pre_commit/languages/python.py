@@ -145,7 +145,7 @@ def py_interface(
 ) -> Tuple[
     Callable[[Prefix, str], ContextManager[None]],
     Callable[[Prefix, str], bool],
-    Callable[['Hook', Sequence[str], bool], Tuple[int, bytes]],
+    Callable[[Hook, Sequence[str], bool], Tuple[int, bytes]],
     Callable[[Prefix, str, Sequence[str]], None],
 ]:
     @contextlib.contextmanager
@@ -168,7 +168,7 @@ def py_interface(
         return retcode == 0
 
     def run_hook(
-            hook: 'Hook',
+            hook: Hook,
             file_args: Sequence[str],
             color: bool,
     ) -> Tuple[int, bytes]:
