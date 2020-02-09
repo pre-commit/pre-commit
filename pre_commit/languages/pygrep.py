@@ -17,13 +17,28 @@ healthy = helpers.basic_healthy
 install_environment = helpers.no_install
 
 
+def _column_marker(line: bytes, byte_offset: Optional[int]) -> str:
+    try:
+        char_offset = len(line[0:byte_offset].decode())
+    except UnicodeEncodeError:
+        retv = ''
+    else:
+        retv = f'{char_offset}:'
+
+    return retv
+
+
 def _process_filename_by_line(pattern: Pattern[bytes], filename: str) -> int:
     retv = 0
     with open(filename, 'rb') as f:
         for line_no, line in enumerate(f, start=1):
-            if pattern.search(line):
+            match = pattern.search(line)
+            if match:
                 retv = 1
-                output.write(f'{filename}:{line_no}:')
+                output.write(
+                    f'{filename}:{line_no}:' +
+                    _column_marker(line, match.start()),
+                )
                 output.write_line_b(line.rstrip(b'\r\n'))
     return retv
 
@@ -36,7 +51,11 @@ def _process_filename_at_once(pattern: Pattern[bytes], filename: str) -> int:
         if match:
             retv = 1
             line_no = contents[:match.start()].count(b'\n')
-            output.write(f'{filename}:{line_no + 1}:')
+            line_start = contents.rfind(b'\n', 0, match.start()) + 1
+            output.write(
+                f'{filename}:{line_no + 1}:' +
+                _column_marker(contents[line_start:match.start()], None),
+            )
 
             matched_lines = match[0].split(b'\n')
             matched_lines[0] = contents.split(b'\n')[line_no]

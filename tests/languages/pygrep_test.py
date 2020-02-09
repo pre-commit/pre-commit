@@ -17,10 +17,10 @@ def some_files(tmpdir):
     ('pattern', 'expected_retcode', 'expected_out'),
     (
         ('baz', 0, ''),
-        ('foo', 1, 'f1:1:foo\n'),
-        ('bar', 1, 'f1:2:bar\n'),
-        (r'(?i)\[info\]', 1, 'f2:1:[INFO] hi\n'),
-        ("h'q", 1, "f3:1:with'quotes\n"),
+        ('foo', 1, 'f1:1:0:foo\n'),
+        ('bar', 1, 'f1:2:0:bar\n'),
+        (r'(?i)\[info\]', 1, 'f2:1:0:[INFO] hi\n'),
+        ("h'q", 1, "f3:1:3:with'quotes\n"),
     ),
 )
 def test_main(some_files, cap_out, pattern, expected_retcode, expected_out):
@@ -34,32 +34,32 @@ def test_ignore_case(some_files, cap_out):
     ret = pygrep.main(('--ignore-case', 'info', 'f1', 'f2', 'f3'))
     out = cap_out.get()
     assert ret == 1
-    assert out == 'f2:1:[INFO] hi\n'
+    assert out == 'f2:1:1:[INFO] hi\n'
 
 
 def test_multiline(some_files, cap_out):
     ret = pygrep.main(('--multiline', r'foo\nbar', 'f1', 'f2', 'f3'))
     out = cap_out.get()
     assert ret == 1
-    assert out == 'f1:1:foo\nbar\n'
+    assert out == 'f1:1:0:foo\nbar\n'
 
 
 def test_multiline_line_number(some_files, cap_out):
     ret = pygrep.main(('--multiline', r'ar', 'f1', 'f2', 'f3'))
     out = cap_out.get()
     assert ret == 1
-    assert out == 'f1:2:bar\n'
+    assert out == 'f1:2:1:bar\n'
 
 
 def test_multiline_dotall_flag_is_enabled(some_files, cap_out):
     ret = pygrep.main(('--multiline', r'o.*bar', 'f1', 'f2', 'f3'))
     out = cap_out.get()
     assert ret == 1
-    assert out == 'f1:1:foo\nbar\n'
+    assert out == 'f1:1:1:foo\nbar\n'
 
 
 def test_multiline_multiline_flag_is_enabled(some_files, cap_out):
     ret = pygrep.main(('--multiline', r'foo$.*bar', 'f1', 'f2', 'f3'))
     out = cap_out.get()
     assert ret == 1
-    assert out == 'f1:1:foo\nbar\n'
+    assert out == 'f1:1:0:foo\nbar\n'
