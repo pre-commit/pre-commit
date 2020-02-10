@@ -133,7 +133,9 @@ FILES_CHANGED = (
 NORMAL_PRE_COMMIT_RUN = re.compile(
     fr'^\[INFO\] Initializing environment for .+\.\n'
     fr'Bash hook\.+Passed\n'
+    fr'(\n)?'
     fr'\[master [a-f0-9]{{7}}\] commit!\n'
+    fr'( Author: .*\n)?'
     fr'{FILES_CHANGED}'
     fr' create mode 100644 foo\n$',
 )
@@ -487,6 +489,35 @@ def test_install_hooks_command(tempdir_factory, store):
         assert PRE_INSTALLED.match(output)
 
 
+def get_environment_without_pre_commit():
+    return {
+        'HOME': os.path.expanduser('~'),
+        'PATH': _path_without_us(),
+        'TERM': os.environ.get('TERM', ''),
+        # Windows needs this to import `random`
+        'SYSTEMROOT': os.environ.get('SYSTEMROOT', ''),
+        # Windows needs this to resolve executables
+        'PATHEXT': os.environ.get('PATHEXT', ''),
+        # Git needs this to make a commit
+        'GIT_AUTHOR_NAME': os.getenv(
+            'GIT_AUTHOR_NAME',
+            'author_name',
+        ),
+        'GIT_COMMITTER_NAME': os.getenv(
+            'GIT_COMMITTER_NAME',
+            'committer_name',
+        ),
+        'GIT_AUTHOR_EMAIL': os.getenv(
+            'GIT_AUTHOR_EMAIL',
+            'author@his.email',
+        ),
+        'GIT_COMMITTER_EMAIL': os.getenv(
+            'GIT_COMMITTER_EMAIL',
+            'committer@his.email',
+        ),
+    }
+
+
 def test_installed_from_venv(tempdir_factory, store):
     path = make_consuming_repo(tempdir_factory, 'script_hooks_repo')
     with cwd(path):
@@ -495,20 +526,37 @@ def test_installed_from_venv(tempdir_factory, store):
         # Should still pick up the python from when we installed
         ret, output = _get_commit_output(
             tempdir_factory,
-            env={
-                'HOME': os.path.expanduser('~'),
-                'PATH': _path_without_us(),
-                'TERM': os.environ.get('TERM', ''),
-                # Windows needs this to import `random`
-                'SYSTEMROOT': os.environ.get('SYSTEMROOT', ''),
-                # Windows needs this to resolve executables
-                'PATHEXT': os.environ.get('PATHEXT', ''),
-                # Git needs this to make a commit
-                'GIT_AUTHOR_NAME': os.environ['GIT_AUTHOR_NAME'],
-                'GIT_COMMITTER_NAME': os.environ['GIT_COMMITTER_NAME'],
-                'GIT_AUTHOR_EMAIL': os.environ['GIT_AUTHOR_EMAIL'],
-                'GIT_COMMITTER_EMAIL': os.environ['GIT_COMMITTER_EMAIL'],
-            },
+            env=get_environment_without_pre_commit(),
+        )
+        assert ret == 0
+        assert NORMAL_PRE_COMMIT_RUN.match(output)
+
+
+def test_installed_from_conda_env(tempdir_factory, store):
+    path = make_consuming_repo(tempdir_factory, 'script_hooks_repo')
+    with cwd(path):
+        conda_environment = tempdir_factory.get()
+        # Create conda environment in tempdir and simulate environment
+        # variables CONDA_EXE/PREFIX as if install() were called with
+        # activated conda from tmpdir
+        cmd_output(
+            'conda', 'run', 'conda', 'create', '-p', conda_environment, '-y',
+            '-c', 'conda-forge', 'pre-commit',
+        )
+        os.environ['CONDA_EXE'] = cmd_output(
+            'conda', 'run', '-p', conda_environment,
+            'echo', '$CONDA_EXE',
+        )[1].strip()
+        os.environ['CONDA_PREFIX'] = conda_environment
+        install(
+            C.CONFIG_FILE, store, hook_types=['pre-commit'],
+            hooks_activate_conda=True,
+        )
+        # No environment so pre-commit is not on the path when running!
+        # Should still pick up the python from when we installed
+        ret, output = _get_commit_output(
+            tempdir_factory,
+            env=get_environment_without_pre_commit(),
         )
         assert ret == 0
         assert NORMAL_PRE_COMMIT_RUN.match(output)

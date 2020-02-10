@@ -250,6 +250,13 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             'or exit with a failure code.'
         ),
     )
+    install_parser.add_argument(
+        '--hooks-activate-conda', action='store_true', default=False,
+        help=(
+            'Whether to activate conda environment before calling pre-commit'
+            'within hooks.'
+        ),
+    )
 
     install_hooks_parser = subparsers.add_parser(
         'install-hooks',
@@ -357,6 +364,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                 overwrite=args.overwrite,
                 hooks=args.install_hooks,
                 skip_on_missing_config=args.allow_missing_config,
+                hooks_activate_conda=args.hooks_activate_conda,
             )
         elif args.command == 'init-templatedir':
             return init_templatedir(

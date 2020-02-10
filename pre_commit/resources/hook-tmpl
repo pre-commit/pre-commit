@@ -18,6 +18,8 @@ os.environ.pop('__PYVENV_LAUNCHER__', None)
 
 # start templated
 INSTALL_PYTHON = ''
+INSTALL_CONDA = ''
+INSTALL_CONDA_PREFIX = ''
 ARGS = ['hook-impl']
 # end templated
 ARGS.extend(('--hook-dir', os.path.realpath(os.path.dirname(__file__))))
@@ -25,7 +27,9 @@ ARGS.append('--')
 ARGS.extend(sys.argv[1:])
 
 DNE = '`pre-commit` not found.  Did you forget to activate your virtualenv?'
-if os.access(INSTALL_PYTHON, os.X_OK):
+if os.access(INSTALL_CONDA, os.X_OK):
+    CMD = [INSTALL_CONDA, 'run', '-p', INSTALL_CONDA_PREFIX, 'pre-commit']
+elif os.access(INSTALL_PYTHON, os.X_OK):
     CMD = [INSTALL_PYTHON, '-mpre_commit']
 elif which('pre-commit'):
     CMD = ['pre-commit']

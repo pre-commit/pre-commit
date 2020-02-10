@@ -73,6 +73,7 @@ def _install_hook_script(
         hook_type: str,
         overwrite: bool = False,
         skip_on_missing_config: bool = False,
+        hooks_activate_conda: bool = False,
         git_dir: Optional[str] = None,
 ) -> None:
     hook_path, legacy_path = _hook_paths(hook_type, git_dir=git_dir)
@@ -95,7 +96,20 @@ def _install_hook_script(
     args = ['hook-impl', f'--config={config_file}', f'--hook-type={hook_type}']
     if skip_on_missing_config:
         args.append('--skip-on-missing-config')
-    params = {'INSTALL_PYTHON': sys.executable, 'ARGS': args}
+    params = {
+        'INSTALL_PYTHON': sys.executable, 'INSTALL_CONDA': '',
+        'INSTALL_CONDA_PREFIX': '', 'ARGS': args,
+    }
+    if hooks_activate_conda:
+        if 'CONDA_EXE' in os.environ and 'CONDA_PREFIX' in os.environ:
+            params['INSTALL_PYTHON'] = ''  # conda will find correct python
+            params['INSTALL_CONDA'] = os.getenv('CONDA_EXE', '')
+            params['INSTALL_CONDA_PREFIX'] = os.getenv('CONDA_PREFIX', '')
+        else:
+            logger.warning(
+                'Failed to detect activated conda, '
+                'ignoring option --hooks_activate_conda.',
+            )
 
     with open(hook_path, 'w') as hook_file:
         contents = resource_text('hook-tmpl')
@@ -121,6 +135,7 @@ def install(
         overwrite: bool = False,
         hooks: bool = False,
         skip_on_missing_config: bool = False,
+        hooks_activate_conda: bool = False,
         git_dir: Optional[str] = None,
 ) -> int:
     if git_dir is None and git.has_core_hookpaths_set():
@@ -135,6 +150,7 @@ def install(
             config_file, hook_type,
             overwrite=overwrite,
             skip_on_missing_config=skip_on_missing_config,
+            hooks_activate_conda=hooks_activate_conda,
             git_dir=git_dir,
         )
 
