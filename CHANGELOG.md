@@ -1,8 +1,27 @@
+2.1.0 - 2020-02-18
+==================
+
+### Features
+- Replace `aspy.yaml` with `sort_keys=False`.
+    - #1306 PR by @asottile.
+- Add support for `perl`.
+    - #1303 PR by @scop.
+
+### Fixes
+- Improve `.git/hooks/*` shebang creation when pythons are in `/usr/local/bin`.
+    - #1312 issue by @kbsezginel.
+    - #1319 PR by @asottile.
+
+### Misc.
+- Add repository badge for pre-commit.
+    - [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
+    - #1334 PR by @ddelange.
+
 2.0.1 - 2020-01-29
 ==================
 
 ### Fixes
-- Fix `ImportError` in python 3.6.0 / 3.6.1 for `typing.NoReturn`
+- Fix `ImportError` in python 3.6.0 / 3.6.1 for `typing.NoReturn`.
     - #1302 PR by @asottile.
 
 2.0.0 - 2020-01-28
@@ -412,7 +431,7 @@
     - #881 issue by @henniss.
     - #912 PR by @asottile.
 
-### Misc
+### Misc.
 - Use `--no-gpg-sign` when running tests
     - #894 PR by @s0undt3ch.
 
@@ -443,7 +462,7 @@
   instead using `--no-document`.
     - #889 PR by @asottile.
 
-### Misc
+### Misc.
 - Use `--no-gpg-sign` when running tests
     - #885 PR by @s0undt3ch.
 
@@ -532,7 +551,7 @@
     - #772 issue by @asottile.
     - #803 PR by @mblayman.
 
-### Misc
+### Misc.
 - Improve travis-ci build times by caching rust / swift artifacts
     - #781 PR by @expobrain.
 - Test against python3.7
@@ -641,7 +660,7 @@
     - #590 issue by @coldnight.
     - #711 PR by @asottile.
 
-### Misc
+### Misc.
 - test against swift 4.x
     - #709 by @theresama.
 
@@ -685,7 +704,7 @@
     - #200 issue by @asottile.
     - #685 PR by @asottile.
 
-### Misc
+### Misc.
 - internal reorganization of `PrefixedCommandRunner` -> `Prefix`
     - #684 PR by @asottile.
 - https-ify links.
@@ -700,7 +719,7 @@
 - Fix `local` golang repositories with `additional_dependencies`.
     - #679 #680 issue and PR by @asottile.
 
-### Misc
+### Misc.
 - Replace some string literals with constants
     - #678 PR by @revolter.
 
