@@ -104,6 +104,16 @@ def test_run_ns_commit_msg():
     assert ns.commit_msg_filename == '.git/COMMIT_MSG'
 
 
+def test_run_ns_post_checkout():
+    ns = hook_impl._run_ns('post-checkout', True, ('a', 'b', 'c'), b'')
+    assert ns is not None
+    assert ns.hook_stage == 'post-checkout'
+    assert ns.color is True
+    assert ns.source == 'a'
+    assert ns.origin == 'b'
+    assert ns.checkout_type == 'c'
+
+
 @pytest.fixture
 def push_example(tempdir_factory):
     src = git_dir(tempdir_factory)

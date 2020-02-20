@@ -316,6 +316,9 @@ def run(
         environ['PRE_COMMIT_REMOTE_NAME'] = args.remote_name
         environ['PRE_COMMIT_REMOTE_URL'] = args.remote_url
 
+    if args.checkout_type:
+        environ['PRE_COMMIT_CHECKOUT_TYPE'] = args.checkout_type
+
     with contextlib.ExitStack() as exit_stack:
         if stash:
             exit_stack.enter_context(staged_files_only(store.directory))

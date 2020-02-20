@@ -20,6 +20,7 @@ from testing.fixtures import add_config_to_repo
 from testing.fixtures import git_dir
 from testing.fixtures import make_consuming_repo
 from testing.fixtures import remove_config_from_repo
+from testing.fixtures import write_config
 from testing.util import cmd_output_mocked_pre_commit_home
 from testing.util import cwd
 from testing.util import git_commit
@@ -723,6 +724,31 @@ def test_commit_msg_legacy(commit_msg_repo, tempdir_factory, store):
     first_line, second_line = out.splitlines()[:2]
     assert first_line == 'legacy'
     assert second_line.startswith('Must have "Signed off by:"...')
+
+
+def test_post_checkout_integration(tempdir_factory, store):
+    path = git_dir(tempdir_factory)
+    config = {
+        'repo': 'local',
+        'hooks': [{
+            'id': 'post-checkout',
+            'name': 'Post checkout',
+            'entry': 'bash -c "echo ${PRE_COMMIT_ORIGIN}"',
+            'language': 'system',
+            'always_run': True,
+            'verbose': True,
+            'stages': ['post-checkout'],
+        }],
+    }
+    write_config(path, config)
+    with cwd(path):
+        cmd_output('git', 'add', '.')
+        git_commit()
+        install(C.CONFIG_FILE, store, hook_types=['post-checkout'])
+        retc, _, stderr = cmd_output('git', 'checkout', '-b', 'feature')
+        assert retc == 0
+        _, head, _ = cmd_output('git', 'rev-parse', 'HEAD')
+        assert head in str(stderr)
 
 
 def test_prepare_commit_msg_integration_failing(
