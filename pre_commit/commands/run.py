@@ -306,6 +306,15 @@ def run(
             f'`git add {config_file}` to fix this.',
         )
         return 1
+    if (
+            args.hook_stage in {'prepare-commit-msg', 'commit-msg'} and
+            not args.commit_msg_filename
+    ):
+        logger.error(
+            f'`--commit-msg-filename` is required for '
+            f'`--hook-stage {args.hook_stage}`',
+        )
+        return 1
 
     # Expose origin / source as environment variables for hooks to consume
     if args.origin and args.source:

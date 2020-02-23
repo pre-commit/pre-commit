@@ -663,12 +663,7 @@ def test_stages(cap_out, store, repo_with_passing_hook):
                 'language': 'pygrep',
                 'stages': [stage],
             }
-            for i, stage in enumerate(
-                (
-                    'commit', 'push', 'manual', 'prepare-commit-msg',
-                    'commit-msg',
-                ), 1,
-            )
+            for i, stage in enumerate(('commit', 'push', 'manual'), 1)
         ],
     }
     add_config_to_repo(repo_with_passing_hook, config)
@@ -686,8 +681,6 @@ def test_stages(cap_out, store, repo_with_passing_hook):
     assert _run_for_stage('commit').startswith(b'hook 1...')
     assert _run_for_stage('push').startswith(b'hook 2...')
     assert _run_for_stage('manual').startswith(b'hook 3...')
-    assert _run_for_stage('prepare-commit-msg').startswith(b'hook 4...')
-    assert _run_for_stage('commit-msg').startswith(b'hook 5...')
 
 
 def test_commit_msg_hook(cap_out, store, commit_msg_repo):
@@ -817,6 +810,16 @@ def test_error_with_unstaged_config(cap_out, store, modified_config_repo):
     ret, printed = _do_run(cap_out, store, modified_config_repo, args)
     assert b'Your pre-commit configuration is unstaged.' in printed
     assert ret == 1
+
+
+def test_commit_msg_missing_filename(cap_out, store, repo_with_passing_hook):
+    args = run_opts(hook_stage='commit-msg')
+    ret, printed = _do_run(cap_out, store, repo_with_passing_hook, args)
+    assert ret == 1
+    assert printed == (
+        b'[ERROR] `--commit-msg-filename` is required for '
+        b'`--hook-stage commit-msg`\n'
+    )
 
 
 @pytest.mark.parametrize(
