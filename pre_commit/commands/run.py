@@ -215,10 +215,12 @@ def _compute_cols(hooks: Sequence[Hook]) -> int:
 
 
 def _all_filenames(args: argparse.Namespace) -> Collection[str]:
-    if args.from_ref and args.to_ref:
-        return git.get_changed_files(args.from_ref, args.to_ref)
+    if args.hook_stage == 'post-checkout':  # no files for post-checkout
+        return ()
     elif args.hook_stage in {'prepare-commit-msg', 'commit-msg'}:
         return (args.commit_msg_filename,)
+    elif args.from_ref and args.to_ref:
+        return git.get_changed_files(args.from_ref, args.to_ref)
     elif args.files:
         return args.files
     elif args.all_files:
