@@ -215,8 +215,8 @@ def _compute_cols(hooks: Sequence[Hook]) -> int:
 
 
 def _all_filenames(args: argparse.Namespace) -> Collection[str]:
-    if args.origin and args.source:
-        return git.get_changed_files(args.origin, args.source)
+    if args.from_ref and args.to_ref:
+        return git.get_changed_files(args.from_ref, args.to_ref)
     elif args.hook_stage in {'prepare-commit-msg', 'commit-msg'}:
         return (args.commit_msg_filename,)
     elif args.files:
@@ -297,8 +297,8 @@ def run(
     if _has_unmerged_paths():
         logger.error('Unmerged files.  Resolve before committing.')
         return 1
-    if bool(args.source) != bool(args.origin):
-        logger.error('Specify both --origin and --source.')
+    if bool(args.from_ref) != bool(args.to_ref):
+        logger.error('Specify both --from-ref and --to-ref.')
         return 1
     if stash and _has_unstaged_config(config_file):
         logger.error(
@@ -316,10 +316,14 @@ def run(
         )
         return 1
 
-    # Expose origin / source as environment variables for hooks to consume
-    if args.origin and args.source:
-        environ['PRE_COMMIT_ORIGIN'] = args.origin
-        environ['PRE_COMMIT_SOURCE'] = args.source
+    # Expose from-ref / to-ref as environment variables for hooks to consume
+    if args.from_ref and args.to_ref:
+        # legacy names
+        environ['PRE_COMMIT_ORIGIN'] = args.from_ref
+        environ['PRE_COMMIT_SOURCE'] = args.to_ref
+        # new names
+        environ['PRE_COMMIT_FROM_REF'] = args.from_ref
+        environ['PRE_COMMIT_TO_REF'] = args.to_ref
 
     if args.remote_name and args.remote_url:
         environ['PRE_COMMIT_REMOTE_NAME'] = args.remote_name

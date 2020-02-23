@@ -446,29 +446,29 @@ def test_hook_verbose_enabled(cap_out, store, repo_with_passing_hook):
 
 
 @pytest.mark.parametrize(
-    ('origin', 'source'), (('master', ''), ('', 'master')),
+    ('from_ref', 'to_ref'), (('master', ''), ('', 'master')),
 )
-def test_origin_source_error_msg_error(
-        cap_out, store, repo_with_passing_hook, origin, source,
+def test_from_ref_to_ref_error_msg_error(
+        cap_out, store, repo_with_passing_hook, from_ref, to_ref,
 ):
-    args = run_opts(origin=origin, source=source)
+    args = run_opts(from_ref=from_ref, to_ref=to_ref)
     ret, printed = _do_run(cap_out, store, repo_with_passing_hook, args)
     assert ret == 1
-    assert b'Specify both --origin and --source.' in printed
+    assert b'Specify both --from-ref and --to-ref.' in printed
 
 
 def test_all_push_options_ok(cap_out, store, repo_with_passing_hook):
     args = run_opts(
-        origin='master', source='master',
+        from_ref='master', to_ref='master',
         remote_name='origin', remote_url='https://example.com/repo',
     )
     ret, printed = _do_run(cap_out, store, repo_with_passing_hook, args)
     assert ret == 0
-    assert b'Specify both --origin and --source.' not in printed
+    assert b'Specify both --from-ref and --to-ref.' not in printed
 
 
 def test_checkout_type(cap_out, store, repo_with_passing_hook):
-    args = run_opts(origin='', source='', checkout_type='1')
+    args = run_opts(from_ref='', to_ref='', checkout_type='1')
     environ: EnvironT = {}
     ret, printed = _do_run(
         cap_out, store, repo_with_passing_hook, args, environ,

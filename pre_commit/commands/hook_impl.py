@@ -69,8 +69,8 @@ def _ns(
         color: bool,
         *,
         all_files: bool = False,
-        origin: Optional[str] = None,
-        source: Optional[str] = None,
+        from_ref: Optional[str] = None,
+        to_ref: Optional[str] = None,
         remote_name: Optional[str] = None,
         remote_url: Optional[str] = None,
         commit_msg_filename: Optional[str] = None,
@@ -79,8 +79,8 @@ def _ns(
     return argparse.Namespace(
         color=color,
         hook_stage=hook_type.replace('pre-', ''),
-        origin=origin,
-        source=source,
+        from_ref=from_ref,
+        to_ref=to_ref,
         remote_name=remote_name,
         remote_url=remote_url,
         commit_msg_filename=commit_msg_filename,
@@ -112,7 +112,7 @@ def _pre_push_ns(
         elif remote_sha != Z40 and _rev_exists(remote_sha):
             return _ns(
                 'pre-push', color,
-                origin=local_sha, source=remote_sha,
+                from_ref=remote_sha, to_ref=local_sha,
                 remote_name=remote_name, remote_url=remote_url,
             )
         else:
@@ -139,7 +139,7 @@ def _pre_push_ns(
                     source = subprocess.check_output(rev_cmd).decode().strip()
                     return _ns(
                         'pre-push', color,
-                        origin=local_sha, source=source,
+                        from_ref=source, to_ref=local_sha,
                         remote_name=remote_name, remote_url=remote_url,
                     )
 
@@ -161,8 +161,8 @@ def _run_ns(
         return _ns(hook_type, color)
     elif hook_type == 'post-checkout':
         return _ns(
-            hook_type, color, source=args[0], origin=args[1],
-            checkout_type=args[2],
+            hook_type, color,
+            from_ref=args[0], to_ref=args[1], checkout_type=args[2],
         )
     else:
         raise AssertionError(f'unexpected hook type: {hook_type}')
