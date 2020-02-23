@@ -4,6 +4,7 @@ import sys
 from unittest import mock
 
 import pre_commit.constants as C
+from pre_commit import git
 from pre_commit.commands import install_uninstall
 from pre_commit.commands.install_uninstall import CURRENT_HASH
 from pre_commit.commands.install_uninstall import install
@@ -728,27 +729,39 @@ def test_commit_msg_legacy(commit_msg_repo, tempdir_factory, store):
 
 def test_post_checkout_integration(tempdir_factory, store):
     path = git_dir(tempdir_factory)
-    config = {
-        'repo': 'local',
-        'hooks': [{
-            'id': 'post-checkout',
-            'name': 'Post checkout',
-            'entry': 'bash -c "echo ${PRE_COMMIT_ORIGIN}"',
-            'language': 'system',
-            'always_run': True,
-            'verbose': True,
-            'stages': ['post-checkout'],
-        }],
-    }
+    config = [
+        {
+            'repo': 'local',
+            'hooks': [{
+                'id': 'post-checkout',
+                'name': 'Post checkout',
+                'entry': 'bash -c "echo ${PRE_COMMIT_TO_REF}"',
+                'language': 'system',
+                'always_run': True,
+                'verbose': True,
+                'stages': ['post-checkout'],
+            }],
+        },
+        {'repo': 'meta', 'hooks': [{'id': 'identity'}]},
+    ]
     write_config(path, config)
     with cwd(path):
         cmd_output('git', 'add', '.')
         git_commit()
+
+        # add a file only on `feature`, it should not be passed to hooks
+        cmd_output('git', 'checkout', '-b', 'feature')
+        open('some_file', 'a').close()
+        cmd_output('git', 'add', '.')
+        git_commit()
+        cmd_output('git', 'checkout', 'master')
+
         install(C.CONFIG_FILE, store, hook_types=['post-checkout'])
-        retc, _, stderr = cmd_output('git', 'checkout', '-b', 'feature')
+        retc, _, stderr = cmd_output('git', 'checkout', 'feature')
+        assert stderr is not None
         assert retc == 0
-        _, head, _ = cmd_output('git', 'rev-parse', 'HEAD')
-        assert head in str(stderr)
+        assert git.head_rev(path) in stderr
+        assert 'some_file' not in stderr
 
 
 def test_prepare_commit_msg_integration_failing(
