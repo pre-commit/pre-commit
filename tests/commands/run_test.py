@@ -18,6 +18,7 @@ from pre_commit.commands.run import Classifier
 from pre_commit.commands.run import filter_by_include_exclude
 from pre_commit.commands.run import run
 from pre_commit.util import cmd_output
+from pre_commit.util import EnvironT
 from pre_commit.util import make_executable
 from testing.auto_namedtuple import auto_namedtuple
 from testing.fixtures import add_config_to_repo
@@ -464,6 +465,15 @@ def test_all_push_options_ok(cap_out, store, repo_with_passing_hook):
     ret, printed = _do_run(cap_out, store, repo_with_passing_hook, args)
     assert ret == 0
     assert b'Specify both --origin and --source.' not in printed
+
+
+def test_checkout_type(cap_out, store, repo_with_passing_hook):
+    args = run_opts(origin='', source='', checkout_type='1')
+    environ: EnvironT = {}
+    ret, printed = _do_run(
+        cap_out, store, repo_with_passing_hook, args, environ,
+    )
+    assert environ['PRE_COMMIT_CHECKOUT_TYPE'] == '1'
 
 
 def test_has_unmerged_paths(in_merge_conflict):

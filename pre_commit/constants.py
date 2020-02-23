@@ -18,7 +18,7 @@ VERSION = importlib_metadata.version('pre_commit')
 # `manual` is not invoked by any installed git hook.  See #719
 STAGES = (
     'commit', 'merge-commit', 'prepare-commit-msg', 'commit-msg', 'manual',
-    'push',
+    'post-checkout', 'push',
 )
 
 DEFAULT = 'default'

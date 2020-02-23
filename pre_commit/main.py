@@ -79,7 +79,7 @@ def _add_hook_type_option(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         '-t', '--hook-type', choices=(
             'pre-commit', 'pre-merge-commit', 'pre-push',
-            'prepare-commit-msg', 'commit-msg',
+            'prepare-commit-msg', 'commit-msg', 'post-checkout',
         ),
         action=AppendReplaceDefault,
         default=['pre-commit'],
@@ -92,11 +92,17 @@ def _add_run_options(parser: argparse.ArgumentParser) -> None:
     parser.add_argument('--verbose', '-v', action='store_true', default=False)
     parser.add_argument(
         '--origin', '-o',
-        help="The origin branch's commit_id when using `git push`.",
+        help=(
+            "The origin branch's commit_id when using `git push`.  "
+            'The ref of the previous HEAD when using `git checkout`.'
+        ),
     )
     parser.add_argument(
         '--source', '-s',
-        help="The remote branch's commit_id when using `git push`.",
+        help=(
+            "The remote branch's commit_id when using `git push`.  "
+            'The ref of the new HEAD when using `git checkout`.'
+        ),
     )
     parser.add_argument(
         '--commit-msg-filename',
@@ -122,6 +128,14 @@ def _add_run_options(parser: argparse.ArgumentParser) -> None:
     mutex_group.add_argument(
         '--files', nargs='*', default=[],
         help='Specific filenames to run hooks on.',
+    )
+    parser.add_argument(
+        '--checkout-type',
+        help=(
+            'Indicates whether the checkout was a branch checkout '
+            '(changing branches, flag=1) or a file checkout (retrieving a '
+            'file from the index, flag=0).'
+        ),
     )
 
 

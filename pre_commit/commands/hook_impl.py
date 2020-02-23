@@ -74,6 +74,7 @@ def _ns(
         remote_name: Optional[str] = None,
         remote_url: Optional[str] = None,
         commit_msg_filename: Optional[str] = None,
+        checkout_type: Optional[str] = None,
 ) -> argparse.Namespace:
     return argparse.Namespace(
         color=color,
@@ -84,6 +85,7 @@ def _ns(
         remote_url=remote_url,
         commit_msg_filename=commit_msg_filename,
         all_files=all_files,
+        checkout_type=checkout_type,
         files=(),
         hook=None,
         verbose=False,
@@ -157,6 +159,11 @@ def _run_ns(
         return _ns(hook_type, color, commit_msg_filename=args[0])
     elif hook_type in {'pre-merge-commit', 'pre-commit'}:
         return _ns(hook_type, color)
+    elif hook_type == 'post-checkout':
+        return _ns(
+            hook_type, color, source=args[0], origin=args[1],
+            checkout_type=args[2],
+        )
     else:
         raise AssertionError(f'unexpected hook type: {hook_type}')
 

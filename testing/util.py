@@ -72,6 +72,7 @@ def run_opts(
         hook_stage='commit',
         show_diff_on_failure=False,
         commit_msg_filename='',
+        checkout_type='',
 ):
     # These are mutually exclusive
     assert not (all_files and files)
@@ -88,6 +89,7 @@ def run_opts(
         hook_stage=hook_stage,
         show_diff_on_failure=show_diff_on_failure,
         commit_msg_filename=commit_msg_filename,
+        checkout_type=checkout_type,
     )
 
 
