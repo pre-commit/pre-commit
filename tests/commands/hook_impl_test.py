@@ -109,8 +109,8 @@ def test_run_ns_post_checkout():
     assert ns is not None
     assert ns.hook_stage == 'post-checkout'
     assert ns.color is True
-    assert ns.source == 'a'
-    assert ns.origin == 'b'
+    assert ns.from_ref == 'a'
+    assert ns.to_ref == 'b'
     assert ns.checkout_type == 'c'
 
 
@@ -140,8 +140,8 @@ def test_run_ns_pre_push_updating_branch(push_example):
     assert ns.color is False
     assert ns.remote_name == 'origin'
     assert ns.remote_url == src
-    assert ns.source == src_head
-    assert ns.origin == clone_head
+    assert ns.from_ref == src_head
+    assert ns.to_ref == clone_head
     assert ns.all_files is False
 
 
@@ -154,8 +154,8 @@ def test_run_ns_pre_push_new_branch(push_example):
         ns = hook_impl._run_ns('pre-push', False, args, stdin)
 
     assert ns is not None
-    assert ns.source == src_head
-    assert ns.origin == clone_head
+    assert ns.from_ref == src_head
+    assert ns.to_ref == clone_head
 
 
 def test_run_ns_pre_push_new_branch_existing_rev(push_example):

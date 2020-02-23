@@ -90,18 +90,42 @@ def _add_hook_type_option(parser: argparse.ArgumentParser) -> None:
 def _add_run_options(parser: argparse.ArgumentParser) -> None:
     parser.add_argument('hook', nargs='?', help='A single hook-id to run')
     parser.add_argument('--verbose', '-v', action='store_true', default=False)
+    mutex_group = parser.add_mutually_exclusive_group(required=False)
+    mutex_group.add_argument(
+        '--all-files', '-a', action='store_true', default=False,
+        help='Run on all the files in the repo.',
+    )
+    mutex_group.add_argument(
+        '--files', nargs='*', default=[],
+        help='Specific filenames to run hooks on.',
+    )
     parser.add_argument(
-        '--origin', '-o',
+        '--show-diff-on-failure', action='store_true',
+        help='When hooks fail, run `git diff` directly afterward.',
+    )
+    parser.add_argument(
+        '--hook-stage', choices=C.STAGES, default='commit',
+        help='The stage during which the hook is fired.  One of %(choices)s',
+    )
+    parser.add_argument(
+        '--from-ref', '--source', '-s',
         help=(
-            "The origin branch's commit_id when using `git push`.  "
-            'The ref of the previous HEAD when using `git checkout`.'
+            '(for usage with `--from-ref`) -- this option represents the '
+            'destination ref in a `from_ref...to_ref` diff expression.  '
+            'For `pre-push` hooks, this represents the branch being pushed.  '
+            'For `post-checkout` hooks, this represents the branch that is '
+            'now checked out.'
         ),
     )
     parser.add_argument(
-        '--source', '-s',
+        '--to-ref', '--origin', '-o',
         help=(
-            "The remote branch's commit_id when using `git push`.  "
-            'The ref of the new HEAD when using `git checkout`.'
+            '(for usage with `--to-ref`) -- this option represents the '
+            'original ref in a `from_ref...to_ref` diff expression.  '
+            'For `pre-push` hooks, this represents the branch you are pushing '
+            'to.  '
+            'For `post-checkout` hooks, this represents the branch which was '
+            'previously checked out.'
         ),
     )
     parser.add_argument(
@@ -112,23 +136,6 @@ def _add_run_options(parser: argparse.ArgumentParser) -> None:
         '--remote-name', help='Remote name used by `git push`.',
     )
     parser.add_argument('--remote-url', help='Remote url used by `git push`.')
-    parser.add_argument(
-        '--hook-stage', choices=C.STAGES, default='commit',
-        help='The stage during which the hook is fired.  One of %(choices)s',
-    )
-    parser.add_argument(
-        '--show-diff-on-failure', action='store_true',
-        help='When hooks fail, run `git diff` directly afterward.',
-    )
-    mutex_group = parser.add_mutually_exclusive_group(required=False)
-    mutex_group.add_argument(
-        '--all-files', '-a', action='store_true', default=False,
-        help='Run on all the files in the repo.',
-    )
-    mutex_group.add_argument(
-        '--files', nargs='*', default=[],
-        help='Specific filenames to run hooks on.',
-    )
     parser.add_argument(
         '--checkout-type',
         help=(

@@ -129,7 +129,7 @@ def get_all_files() -> List[str]:
     return zsplit(cmd_output('git', 'ls-files', '-z')[1])
 
 
-def get_changed_files(new: str, old: str) -> List[str]:
+def get_changed_files(old: str, new: str) -> List[str]:
     return zsplit(
         cmd_output(
             'git', 'diff', '--name-only', '--no-ext-diff', '-z',

@@ -100,11 +100,11 @@ def test_get_changed_files(in_git_dir):
     in_git_dir.join('b.txt').ensure()
     cmd_output('git', 'add', '.')
     git_commit()
-    files = git.get_changed_files('HEAD', 'HEAD^')
+    files = git.get_changed_files('HEAD^', 'HEAD')
     assert files == ['a.txt', 'b.txt']
 
     # files changed in source but not in origin should not be returned
-    files = git.get_changed_files('HEAD^', 'HEAD')
+    files = git.get_changed_files('HEAD', 'HEAD^')
     assert files == []
 
 
@@ -142,7 +142,7 @@ def test_staged_files_non_ascii(non_ascii_repo):
 
 
 def test_changed_files_non_ascii(non_ascii_repo):
-    ret = git.get_changed_files('HEAD', 'HEAD^')
+    ret = git.get_changed_files('HEAD^', 'HEAD')
     assert ret == ['интервью']
 
 
