@@ -22,6 +22,7 @@ from pre_commit.util import EnvironT
 from pre_commit.util import make_executable
 from testing.auto_namedtuple import auto_namedtuple
 from testing.fixtures import add_config_to_repo
+from testing.fixtures import git_dir
 from testing.fixtures import make_consuming_repo
 from testing.fixtures import modify_config
 from testing.fixtures import read_config
@@ -707,6 +708,27 @@ def test_commit_msg_hook(cap_out, store, commit_msg_repo):
         expected_ret=1,
         stage=False,
     )
+
+
+def test_post_checkout_hook(cap_out, store, tempdir_factory):
+    path = git_dir(tempdir_factory)
+    config = {
+        'repo': 'meta', 'hooks': [
+            {'id': 'identity', 'stages': ['post-checkout']},
+        ],
+    }
+    add_config_to_repo(path, config)
+
+    with cwd(path):
+        _test_run(
+            cap_out,
+            store,
+            path,
+            {'hook_stage': 'post-checkout'},
+            expected_outputs=[b'identity...'],
+            expected_ret=0,
+            stage=False,
+        )
 
 
 def test_prepare_commit_msg_hook(cap_out, store, prepare_commit_msg_repo):
