@@ -35,29 +35,38 @@ class Hook(NamedTuple):
     stages: Sequence[str]
     verbose: bool
 
-    @property
-    def cmd(self) -> Tuple[str, ...]:
-        return (*shlex.split(self.entry), *self.args)
 
-    @property
-    def install_key(self) -> Tuple[Prefix, str, str, Tuple[str, ...]]:
-        return (
-            self.prefix,
-            self.language,
-            self.language_version,
-            tuple(self.additional_dependencies),
+@property
+def Hook_cmd(self: Hook) -> Tuple[str, ...]:
+    return (*shlex.split(self.entry), *self.args)
+
+
+@property
+def Hook_install_key(self) -> Tuple[Prefix, str, str, Tuple[str, ...]]:
+    return (
+        self.prefix,
+        self.language,
+        self.language_version,
+        tuple(self.additional_dependencies),
+    )
+
+
+@classmethod
+def Hook_create(cls, src: str, prefix: Prefix, dct: Dict[str, Any]) -> 'Hook':
+    # TODO: have cfgv do this (?)
+    extra_keys = set(dct) - _KEYS
+    if extra_keys:
+        logger.warning(
+            f'Unexpected key(s) present on {src} => {dct["id"]}: '
+            f'{", ".join(sorted(extra_keys))}',
         )
+    return cls(src=src, prefix=prefix, **{k: dct[k] for k in _KEYS})
 
-    @classmethod
-    def create(cls, src: str, prefix: Prefix, dct: Dict[str, Any]) -> 'Hook':
-        # TODO: have cfgv do this (?)
-        extra_keys = set(dct) - _KEYS
-        if extra_keys:
-            logger.warning(
-                f'Unexpected key(s) present on {src} => {dct["id"]}: '
-                f'{", ".join(sorted(extra_keys))}',
-            )
-        return cls(src=src, prefix=prefix, **{k: dct[k] for k in _KEYS})
+
+# python 3.6.0 does not support methods on `typing.NamedTuple`
+Hook.cmd = Hook_cmd
+Hook.install_key = Hook_install_key
+Hook.create = Hook_create
 
 
 _KEYS = frozenset(set(Hook._fields) - {'src', 'prefix'})

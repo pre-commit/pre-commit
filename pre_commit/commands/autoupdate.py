@@ -31,32 +31,39 @@ class RevInfo(NamedTuple):
     rev: str
     frozen: Optional[str]
 
-    @classmethod
-    def from_config(cls, config: Dict[str, Any]) -> 'RevInfo':
-        return cls(config['repo'], config['rev'], None)
 
-    def update(self, tags_only: bool, freeze: bool) -> 'RevInfo':
-        if tags_only:
-            tag_cmd = ('git', 'describe', 'FETCH_HEAD', '--tags', '--abbrev=0')
-        else:
-            tag_cmd = ('git', 'describe', 'FETCH_HEAD', '--tags', '--exact')
+@classmethod
+def RevInfo_from_config(cls, config: Dict[str, Any]) -> 'RevInfo':
+    return cls(config['repo'], config['rev'], None)
 
-        with tmpdir() as tmp:
-            git.init_repo(tmp, self.repo)
-            cmd_output_b('git', 'fetch', 'origin', 'HEAD', '--tags', cwd=tmp)
 
-            try:
-                rev = cmd_output(*tag_cmd, cwd=tmp)[1].strip()
-            except CalledProcessError:
-                cmd = ('git', 'rev-parse', 'FETCH_HEAD')
-                rev = cmd_output(*cmd, cwd=tmp)[1].strip()
+def RevInfo_update(self, tags_only: bool, freeze: bool) -> 'RevInfo':
+    if tags_only:
+        tag_cmd = ('git', 'describe', 'FETCH_HEAD', '--tags', '--abbrev=0')
+    else:
+        tag_cmd = ('git', 'describe', 'FETCH_HEAD', '--tags', '--exact')
 
-            frozen = None
-            if freeze:
-                exact = cmd_output('git', 'rev-parse', rev, cwd=tmp)[1].strip()
-                if exact != rev:
-                    rev, frozen = exact, rev
-        return self._replace(rev=rev, frozen=frozen)
+    with tmpdir() as tmp:
+        git.init_repo(tmp, self.repo)
+        cmd_output_b('git', 'fetch', 'origin', 'HEAD', '--tags', cwd=tmp)
+
+        try:
+            rev = cmd_output(*tag_cmd, cwd=tmp)[1].strip()
+        except CalledProcessError:
+            cmd = ('git', 'rev-parse', 'FETCH_HEAD')
+            rev = cmd_output(*cmd, cwd=tmp)[1].strip()
+
+        frozen = None
+        if freeze:
+            exact = cmd_output('git', 'rev-parse', rev, cwd=tmp)[1].strip()
+            if exact != rev:
+                rev, frozen = exact, rev
+    return self._replace(rev=rev, frozen=frozen)
+
+
+# python 3.6.0 does not support methods on `typing.NamedTuple`
+RevInfo.from_config = RevInfo_from_config
+RevInfo.update = RevInfo_update
 
 
 class RepositoryCannotBeUpdatedError(RuntimeError):

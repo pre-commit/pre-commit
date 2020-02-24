@@ -19,7 +19,11 @@ UNSET = _Unset.UNSET
 
 class Var(NamedTuple):
     name: str
-    default: str = ''
+    default: str
+
+
+# python3.6.0: `typing.NamedTuple` did not support defaults
+Var.__new__.__defaults__ = ('',)
 
 
 SubstitutionT = Tuple[Union[str, Var], ...]
