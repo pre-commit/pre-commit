@@ -1,3 +1,11 @@
+2.1.1 - 2020-02-24
+==================
+
+### Fixes
+- Temporarily restore python 3.6.0 support (broken in 2.0.0)
+    - reported by @obestwalter.
+    - 081f3028 by @asottile.
+
 2.1.0 - 2020-02-18
 ==================
 
