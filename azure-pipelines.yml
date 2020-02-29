@@ -18,9 +18,6 @@ jobs:
   parameters:
     toxenvs: [py37]
     os: windows
-    additional_variables:
-      COVERAGE_IGNORE_WINDOWS: '# pragma: windows no cover'
-      TOX_TESTENV_PASSENV: COVERAGE_IGNORE_WINDOWS
     pre_test:
     - powershell: Write-Host "##vso[task.prependpath]$env:CONDA\Scripts"
       displayName: Add conda to PATH

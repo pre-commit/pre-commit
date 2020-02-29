@@ -50,7 +50,7 @@ if sys.platform == 'win32':  # pragma: no cover (windows)
         terminal_supports_color = False
     else:
         terminal_supports_color = True
-else:  # pragma: windows no cover
+else:  # pragma: win32 no cover
     terminal_supports_color = True
 
 RED = '\033[41m'

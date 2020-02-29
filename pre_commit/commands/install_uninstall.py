@@ -46,7 +46,7 @@ def _hook_paths(
 
 
 def is_our_script(filename: str) -> bool:
-    if not os.path.exists(filename):  # pragma: windows no cover (symlink)
+    if not os.path.exists(filename):  # pragma: win32 no cover (symlink)
         return False
     with open(filename) as f:
         contents = f.read()

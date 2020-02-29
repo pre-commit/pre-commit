@@ -47,7 +47,7 @@ if os.name == 'nt':  # pragma: no cover (windows)
             # before closing a file or exiting the program."
             # TODO: https://github.com/python/typeshed/pull/3607
             msvcrt.locking(fileno, msvcrt.LK_UNLCK, _region)  # type: ignore
-else:  # pragma: windows no cover
+else:  # pragma: win32 no cover
     import fcntl
 
     @contextlib.contextmanager

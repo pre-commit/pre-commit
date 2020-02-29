@@ -25,7 +25,6 @@ from testing.fixtures import write_config
 from testing.util import cmd_output_mocked_pre_commit_home
 from testing.util import cwd
 from testing.util import git_commit
-from testing.util import xfailif_windows
 
 
 def test_is_not_script():
@@ -823,7 +822,6 @@ def test_prepare_commit_msg_legacy(
         assert 'Signed off by: ' in f.read()
 
 
-@xfailif_windows  # pragma: windows no cover (once AP has git 2.24)
 def test_pre_merge_commit_integration(tempdir_factory, store):
     expected = re.compile(
         r'^\[INFO\] Initializing environment for .+\n'
