@@ -25,7 +25,7 @@ healthy = helpers.basic_healthy
 def get_env_patch(
         venv: str,
         language_version: str,
-) -> PatchesT:  # pragma: windows no cover
+) -> PatchesT:  # pragma: win32 no cover
     patches: PatchesT = (
         ('GEM_HOME', os.path.join(venv, 'gems')),
         ('RBENV_ROOT', venv),
@@ -43,7 +43,7 @@ def get_env_patch(
     return patches
 
 
-@contextlib.contextmanager  # pragma: windows no cover
+@contextlib.contextmanager  # pragma: win32 no cover
 def in_env(
         prefix: Prefix,
         language_version: str,
@@ -64,7 +64,7 @@ def _extract_resource(filename: str, dest: str) -> None:
 def _install_rbenv(
         prefix: Prefix,
         version: str = C.DEFAULT,
-) -> None:  # pragma: windows no cover
+) -> None:  # pragma: win32 no cover
     directory = helpers.environment_dir(ENVIRONMENT_DIR, version)
 
     _extract_resource('rbenv.tar.gz', prefix.path('.'))
@@ -80,7 +80,7 @@ def _install_rbenv(
 def _install_ruby(
         prefix: Prefix,
         version: str,
-) -> None:  # pragma: windows no cover
+) -> None:  # pragma: win32 no cover
     try:
         helpers.run_setup_cmd(prefix, ('rbenv', 'download', version))
     except CalledProcessError:  # pragma: no cover (usually find with download)
@@ -90,7 +90,7 @@ def _install_ruby(
 
 def install_environment(
         prefix: Prefix, version: str, additional_dependencies: Sequence[str],
-) -> None:  # pragma: windows no cover
+) -> None:  # pragma: win32 no cover
     additional_dependencies = tuple(additional_dependencies)
     directory = helpers.environment_dir(ENVIRONMENT_DIR, version)
     with clean_path_on_failure(prefix.path(directory)):
@@ -121,6 +121,6 @@ def run_hook(
         hook: Hook,
         file_args: Sequence[str],
         color: bool,
-) -> Tuple[int, bytes]:  # pragma: windows no cover
+) -> Tuple[int, bytes]:  # pragma: win32 no cover
     with in_env(hook.prefix, hook.language_version):
         return helpers.run_xargs(hook, hook.cmd, file_args, color=color)

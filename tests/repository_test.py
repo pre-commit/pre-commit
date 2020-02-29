@@ -197,7 +197,7 @@ def test_versioned_python_hook(tempdir_factory, store):
     )
 
 
-@skipif_cant_run_docker  # pragma: windows no cover
+@skipif_cant_run_docker  # pragma: win32 no cover
 def test_run_a_docker_hook(tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'docker_hooks_repo',
@@ -206,7 +206,7 @@ def test_run_a_docker_hook(tempdir_factory, store):
     )
 
 
-@skipif_cant_run_docker  # pragma: windows no cover
+@skipif_cant_run_docker  # pragma: win32 no cover
 def test_run_a_docker_hook_with_entry_args(tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'docker_hooks_repo',
@@ -215,7 +215,7 @@ def test_run_a_docker_hook_with_entry_args(tempdir_factory, store):
     )
 
 
-@skipif_cant_run_docker  # pragma: windows no cover
+@skipif_cant_run_docker  # pragma: win32 no cover
 def test_run_a_failing_docker_hook(tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'docker_hooks_repo',
@@ -226,7 +226,7 @@ def test_run_a_failing_docker_hook(tempdir_factory, store):
     )
 
 
-@skipif_cant_run_docker  # pragma: windows no cover
+@skipif_cant_run_docker  # pragma: win32 no cover
 @pytest.mark.parametrize('hook_id', ('echo-entrypoint', 'echo-cmd'))
 def test_run_a_docker_image_hook(tempdir_factory, store, hook_id):
     _test_hook_repo(
@@ -297,7 +297,7 @@ def test_system_hook_with_spaces(tempdir_factory, store):
     )
 
 
-@skipif_cant_run_swift  # pragma: windows no cover
+@skipif_cant_run_swift  # pragma: win32 no cover
 def test_swift_hook(tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'swift_hooks_repo',
@@ -514,7 +514,7 @@ def test_additional_dependencies_roll_forward(tempdir_factory, store):
         assert 'mccabe' not in cmd_output('pip', 'freeze', '-l')[1]
 
 
-@xfailif_windows_no_ruby  # pragma: windows no cover
+@xfailif_windows_no_ruby  # pragma: win32 no cover
 def test_additional_ruby_dependencies_installed(tempdir_factory, store):
     path = make_repo(tempdir_factory, 'ruby_hooks_repo')
     config = make_config_from_repo(path)
@@ -758,7 +758,7 @@ def local_python_config():
     return {'repo': 'local', 'hooks': hooks}
 
 
-@pytest.mark.xfail(  # pragma: windows no cover
+@pytest.mark.xfail(  # pragma: win32 no cover
     sys.platform == 'win32',
     reason='microsoft/azure-pipelines-image-generation#989',
 )

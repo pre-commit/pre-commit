@@ -1,5 +1,4 @@
--e .
-
+covdefaults
 coverage
 pytest
 pytest-env

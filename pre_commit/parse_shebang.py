@@ -59,7 +59,7 @@ def normexe(orig: str) -> str:
         _error('is a directory')
     elif not os.path.isfile(orig):
         _error('not found')
-    elif not os.access(orig, os.X_OK):  # pragma: windows no cover
+    elif not os.access(orig, os.X_OK):  # pragma: win32 no cover
         _error('is not executable')
     else:
         return orig

@@ -35,7 +35,7 @@ def get_env_patch(venv: str) -> PatchesT:
     elif sys.platform == 'win32':  # pragma: no cover
         install_prefix = bin_dir(venv)
         lib_dir = 'Scripts'
-    else:  # pragma: windows no cover
+    else:  # pragma: win32 no cover
         install_prefix = venv
         lib_dir = 'lib'
     return (

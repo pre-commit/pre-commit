@@ -16,7 +16,7 @@ def run_hook(
         hook: Hook,
         file_args: Sequence[str],
         color: bool,
-) -> Tuple[int, bytes]:  # pragma: windows no cover
+) -> Tuple[int, bytes]:  # pragma: win32 no cover
     assert_docker_available()
     cmd = docker_cmd() + hook.cmd
     return helpers.run_xargs(hook, cmd, file_args, color=color)

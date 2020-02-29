@@ -93,7 +93,7 @@ def test_normexe_does_not_exist_sep():
 
 
 @pytest.mark.xfail(os.name == 'nt', reason='posix only')
-def test_normexe_not_executable(tmpdir):  # pragma: windows no cover
+def test_normexe_not_executable(tmpdir):  # pragma: win32 no cover
     tmpdir.join('exe').ensure()
     with tmpdir.as_cwd(), pytest.raises(OSError) as excinfo:
         parse_shebang.normexe('./exe')

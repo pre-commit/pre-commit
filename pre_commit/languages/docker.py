@@ -17,16 +17,16 @@ get_default_version = helpers.basic_get_default_version
 healthy = helpers.basic_healthy
 
 
-def md5(s: str) -> str:  # pragma: windows no cover
+def md5(s: str) -> str:  # pragma: win32 no cover
     return hashlib.md5(s.encode()).hexdigest()
 
 
-def docker_tag(prefix: Prefix) -> str:  # pragma: windows no cover
+def docker_tag(prefix: Prefix) -> str:  # pragma: win32 no cover
     md5sum = md5(os.path.basename(prefix.prefix_dir)).lower()
     return f'pre-commit-{md5sum}'
 
 
-def docker_is_running() -> bool:  # pragma: windows no cover
+def docker_is_running() -> bool:  # pragma: win32 no cover
     try:
         cmd_output_b('docker', 'ps')
     except CalledProcessError:
@@ -35,7 +35,7 @@ def docker_is_running() -> bool:  # pragma: windows no cover
         return True
 
 
-def assert_docker_available() -> None:  # pragma: windows no cover
+def assert_docker_available() -> None:  # pragma: win32 no cover
     assert docker_is_running(), (
         'Docker is either not running or not configured in this environment'
     )
@@ -45,7 +45,7 @@ def build_docker_image(
         prefix: Prefix,
         *,
         pull: bool,
-) -> None:  # pragma: windows no cover
+) -> None:  # pragma: win32 no cover
     cmd: Tuple[str, ...] = (
         'docker', 'build',
         '--tag', docker_tag(prefix),
@@ -60,7 +60,7 @@ def build_docker_image(
 
 def install_environment(
         prefix: Prefix, version: str, additional_dependencies: Sequence[str],
-) -> None:  # pragma: windows no cover
+) -> None:  # pragma: win32 no cover
     helpers.assert_version_default('docker', version)
     helpers.assert_no_additional_deps('docker', additional_dependencies)
     assert_docker_available()
@@ -76,14 +76,14 @@ def install_environment(
         os.mkdir(directory)
 
 
-def get_docker_user() -> str:  # pragma: windows no cover
+def get_docker_user() -> str:  # pragma: win32 no cover
     try:
         return f'{os.getuid()}:{os.getgid()}'
     except AttributeError:
         return '1000:1000'
 
 
-def docker_cmd() -> Tuple[str, ...]:  # pragma: windows no cover
+def docker_cmd() -> Tuple[str, ...]:  # pragma: win32 no cover
     return (
         'docker', 'run',
         '--rm',
@@ -100,7 +100,7 @@ def run_hook(
         hook: Hook,
         file_args: Sequence[str],
         color: bool,
-) -> Tuple[int, bytes]:  # pragma: windows no cover
+) -> Tuple[int, bytes]:  # pragma: win32 no cover
     assert_docker_available()
     # Rebuild the docker image in case it has gone missing, as many people do
     # automated cleanup of docker images.
