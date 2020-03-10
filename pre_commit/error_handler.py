@@ -14,14 +14,24 @@ class FatalError(RuntimeError):
     pass
 
 
+def _exception_to_bytes(exc: BaseException) -> bytes:
+    with contextlib.suppress(TypeError):
+        return bytes(exc)  # type: ignore
+    with contextlib.suppress(Exception):
+        return str(exc).encode()
+    return f'<unprintable {type(exc).__name__} object>'.encode()
+
+
 def _log_and_exit(msg: str, exc: BaseException, formatted: str) -> None:
-    error_msg = f'{msg}: {type(exc).__name__}: {exc}'
-    output.write_line(error_msg)
+    error_msg = f'{msg}: {type(exc).__name__}: '.encode()
+    error_msg += _exception_to_bytes(exc)
+    output.write_line_b(error_msg)
     log_path = os.path.join(Store().directory, 'pre-commit.log')
     output.write_line(f'Check the log at {log_path}')
 
     with open(log_path, 'wb') as log:
         _log_line = functools.partial(output.write_line, stream=log)
+        _log_line_b = functools.partial(output.write_line_b, stream=log)
 
         _log_line('### version information')
         _log_line()
@@ -39,7 +49,7 @@ def _log_and_exit(msg: str, exc: BaseException, formatted: str) -> None:
         _log_line('### error information')
         _log_line()
         _log_line('```')
-        _log_line(error_msg)
+        _log_line_b(error_msg)
         _log_line('```')
         _log_line()
         _log_line('```')

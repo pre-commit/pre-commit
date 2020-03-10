@@ -6,6 +6,7 @@ from unittest import mock
 import pytest
 
 from pre_commit import error_handler
+from pre_commit.util import CalledProcessError
 from testing.util import cmd_output_mocked_pre_commit_home
 
 
@@ -133,6 +134,22 @@ def test_error_handler_non_ascii_exception(mock_store_dir):
     with pytest.raises(SystemExit):
         with error_handler.error_handler():
             raise ValueError('☃')
+
+
+def test_error_handler_non_utf8_exception(mock_store_dir):
+    with pytest.raises(SystemExit):
+        with error_handler.error_handler():
+            raise CalledProcessError(1, ('exe',), 0, b'error: \xa0\xe1', b'')
+
+
+def test_error_handler_non_stringable_exception(mock_store_dir):
+    class C(Exception):
+        def __str__(self):
+            raise RuntimeError('not today!')
+
+    with pytest.raises(SystemExit):
+        with error_handler.error_handler():
+            raise C()
 
 
 def test_error_handler_no_tty(tempdir_factory):
