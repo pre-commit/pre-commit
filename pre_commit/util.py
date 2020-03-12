@@ -43,6 +43,14 @@ def yaml_dump(o: Any) -> str:
     )
 
 
+def force_bytes(exc: Any) -> bytes:
+    with contextlib.suppress(TypeError):
+        return bytes(exc)
+    with contextlib.suppress(Exception):
+        return str(exc).encode()
+    return f'<unprintable {type(exc).__name__} object>'.encode()
+
+
 @contextlib.contextmanager
 def clean_path_on_failure(path: str) -> Generator[None, None, None]:
     """Cleans up the directory on an exceptional failure."""
@@ -120,6 +128,10 @@ def _setdefault_kwargs(kwargs: Dict[str, Any]) -> None:
         kwargs.setdefault(arg, subprocess.PIPE)
 
 
+def _oserror_to_output(e: OSError) -> Tuple[int, bytes, None]:
+    return 1, force_bytes(e).rstrip(b'\n') + b'\n', None
+
+
 def cmd_output_b(
         *cmd: str,
         retcode: Optional[int] = 0,
@@ -132,9 +144,13 @@ def cmd_output_b(
     except parse_shebang.ExecutableNotFoundError as e:
         returncode, stdout_b, stderr_b = e.to_output()
     else:
-        proc = subprocess.Popen(cmd, **kwargs)
-        stdout_b, stderr_b = proc.communicate()
-        returncode = proc.returncode
+        try:
+            proc = subprocess.Popen(cmd, **kwargs)
+        except OSError as e:
+            returncode, stdout_b, stderr_b = _oserror_to_output(e)
+        else:
+            stdout_b, stderr_b = proc.communicate()
+            returncode = proc.returncode
 
     if retcode is not None and retcode != returncode:
         raise CalledProcessError(returncode, cmd, retcode, stdout_b, stderr_b)
@@ -205,7 +221,11 @@ if os.name != 'nt':  # pragma: win32 no cover
         with open(os.devnull) as devnull, Pty() as pty:
             assert pty.r is not None
             kwargs.update({'stdin': devnull, 'stdout': pty.w, 'stderr': pty.w})
-            proc = subprocess.Popen(cmd, **kwargs)
+            try:
+                proc = subprocess.Popen(cmd, **kwargs)
+            except OSError as e:
+                return _oserror_to_output(e)
+
             pty.close_w()
 
             buf = b''
