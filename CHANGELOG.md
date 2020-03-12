@@ -1,3 +1,32 @@
+2.2.0 - 2020-03-12
+==================
+
+### Features
+- Add support for the `post-checkout` hook
+    - #1210 issue by @domenkozar.
+    - #1339 PR by @andrewhare.
+- Add more readable `--from-ref` / `--to-ref` aliases for `--source` /
+  `--origin`
+    - #1343 PR by @asottile.
+
+### Fixes
+- Make sure that `--commit-msg-filename` is passed for `commit-msg` /
+  `prepare-commit-msg`.
+    - #1336 PR by @particledecay.
+    - #1341 PR by @particledecay.
+- Fix crash when installation error is un-decodable bytes
+    - #1358 issue by @Guts.
+    - #1359 PR by @asottile.
+- Fix python `healthy()` check when `python` executable goes missing.
+    - #1363 PR by @asottile.
+- Fix crash when script executables are missing shebangs.
+    - #1350 issue by @chriselion.
+    - #1364 PR by @asottile.
+
+### Misc.
+- pre-commit now requires python>=3.6.1 (previously 3.6.0)
+    - #1346 PR by @asottile.
+
 2.1.1 - 2020-02-24
 ==================
 
