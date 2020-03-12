@@ -9,6 +9,7 @@ from pre_commit.util import clean_path_on_failure
 from pre_commit.util import cmd_output
 from pre_commit.util import cmd_output_b
 from pre_commit.util import cmd_output_p
+from pre_commit.util import make_executable
 from pre_commit.util import parse_version
 from pre_commit.util import rmtree
 from pre_commit.util import tmpdir
@@ -90,6 +91,18 @@ def test_cmd_output_exe_not_found_bytes(fn):
     ret, out, _ = fn('dne', retcode=None, stderr=subprocess.STDOUT)
     assert ret == 1
     assert out == b'Executable `dne` not found'
+
+
+@pytest.mark.parametrize('fn', (cmd_output_b, cmd_output_p))
+def test_cmd_output_no_shebang(tmpdir, fn):
+    f = tmpdir.join('f').ensure()
+    make_executable(f)
+
+    # previously this raised `OSError` -- the output is platform specific
+    ret, out, _ = fn(str(f), retcode=None, stderr=subprocess.STDOUT)
+    assert ret == 1
+    assert isinstance(out, bytes)
+    assert out.endswith(b'\n')
 
 
 def test_parse_version():

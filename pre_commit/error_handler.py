@@ -8,23 +8,15 @@ from typing import Generator
 import pre_commit.constants as C
 from pre_commit import output
 from pre_commit.store import Store
+from pre_commit.util import force_bytes
 
 
 class FatalError(RuntimeError):
     pass
 
 
-def _exception_to_bytes(exc: BaseException) -> bytes:
-    with contextlib.suppress(TypeError):
-        return bytes(exc)  # type: ignore
-    with contextlib.suppress(Exception):
-        return str(exc).encode()
-    return f'<unprintable {type(exc).__name__} object>'.encode()
-
-
 def _log_and_exit(msg: str, exc: BaseException, formatted: str) -> None:
-    error_msg = f'{msg}: {type(exc).__name__}: '.encode()
-    error_msg += _exception_to_bytes(exc)
+    error_msg = f'{msg}: {type(exc).__name__}: '.encode() + force_bytes(exc)
     output.write_line_b(error_msg)
     log_path = os.path.join(Store().directory, 'pre-commit.log')
     output.write_line(f'Check the log at {log_path}')
