@@ -59,3 +59,17 @@ def test_healthy_types_py_in_cwd(tmpdir):
         # even if a `types.py` file exists, should still be healthy
         tmpdir.join('types.py').ensure()
         assert python.healthy(prefix, C.DEFAULT) is True
+
+
+def test_healthy_python_goes_missing(tmpdir):
+    with tmpdir.as_cwd():
+        prefix = tmpdir.join('prefix').ensure_dir()
+        prefix.join('setup.py').write('import setuptools; setuptools.setup()')
+        prefix = Prefix(str(prefix))
+        python.install_environment(prefix, C.DEFAULT, ())
+
+        exe_name = 'python' if sys.platform != 'win32' else 'python.exe'
+        py_exe = prefix.path(python.bin_dir('py_env-default'), exe_name)
+        os.remove(py_exe)
+
+        assert python.healthy(prefix, C.DEFAULT) is False

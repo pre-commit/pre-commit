@@ -158,10 +158,12 @@ def py_interface(
             yield
 
     def healthy(prefix: Prefix, language_version: str) -> bool:
+        envdir = helpers.environment_dir(_dir, language_version)
+        exe_name = 'python.exe' if sys.platform == 'win32' else 'python'
+        py_exe = prefix.path(bin_dir(envdir), exe_name)
         with in_env(prefix, language_version):
             retcode, _, _ = cmd_output_b(
-                'python', '-c',
-                'import ctypes, datetime, io, os, ssl, weakref',
+                py_exe, '-c', 'import ctypes, datetime, io, os, ssl, weakref',
                 cwd='/',
                 retcode=None,
             )
