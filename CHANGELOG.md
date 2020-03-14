@@ -3,7 +3,7 @@
 
 ### Features
 - Add support for the `post-checkout` hook
-    - #1210 issue by @domenkozar.
+    - #1120 issue by @domenkozar.
     - #1339 PR by @andrewhare.
 - Add more readable `--from-ref` / `--to-ref` aliases for `--source` /
   `--origin`
