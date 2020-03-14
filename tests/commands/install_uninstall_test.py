@@ -530,6 +530,8 @@ def test_installed_from_venv(tempdir_factory, store):
                 'GIT_COMMITTER_NAME': os.environ['GIT_COMMITTER_NAME'],
                 'GIT_AUTHOR_EMAIL': os.environ['GIT_AUTHOR_EMAIL'],
                 'GIT_COMMITTER_EMAIL': os.environ['GIT_COMMITTER_EMAIL'],
+                # Pass PYTHONPATH to support running tests using pytest-runner
+                'PYTHONPATH': os.environ.get('PYTHONPATH', ''),
             },
         )
         assert ret == 0
