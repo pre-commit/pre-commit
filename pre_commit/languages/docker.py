@@ -76,18 +76,18 @@ def install_environment(
         os.mkdir(directory)
 
 
-def get_docker_user() -> str:  # pragma: win32 no cover
+def get_docker_user() -> Tuple[str, ...]:  # pragma: win32 no cover
     try:
-        return f'{os.getuid()}:{os.getgid()}'
+        return ('-u', f'{os.getuid()}:{os.getgid()}')
     except AttributeError:
-        return '1000:1000'
+        return ()
 
 
 def docker_cmd() -> Tuple[str, ...]:  # pragma: win32 no cover
     return (
         'docker', 'run',
         '--rm',
-        '-u', get_docker_user(),
+        *get_docker_user(),
         # https://docs.docker.com/engine/reference/commandline/run/#mount-volumes-from-container-volumes-from
         # The `Z` option tells Docker to label the content with a private
         # unshared label. Only the current container can use a private volume.
