@@ -20,4 +20,4 @@ def test_docker_fallback_user():
         getuid=invalid_attribute,
         getgid=invalid_attribute,
     ):
-        assert docker.get_docker_user() == '1000:1000'
+        assert docker.get_docker_user() == ()
