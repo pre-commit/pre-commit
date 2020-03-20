@@ -56,8 +56,10 @@ def _unstaged_changes_cleared(patch_dir: str) -> Generator[None, None, None]:
         with open(patch_filename, 'wb') as patch_file:
             patch_file.write(diff_stdout_binary)
 
-        # Clear the working directory of unstaged changes
-        cmd_output_b('git', 'checkout', '--', '.')
+        # prevent recursive post-checkout hooks (#1418)
+        no_checkout_env = dict(os.environ, _PRE_COMMIT_SKIP_POST_CHECKOUT='1')
+        cmd_output_b('git', 'checkout', '--', '.', env=no_checkout_env)
+
         try:
             yield
         finally:
@@ -72,8 +74,9 @@ def _unstaged_changes_cleared(patch_dir: str) -> Generator[None, None, None]:
                 # We failed to apply the patch, presumably due to fixes made
                 # by hooks.
                 # Roll back the changes made by hooks.
-                cmd_output_b('git', 'checkout', '--', '.')
+                cmd_output_b('git', 'checkout', '--', '.', env=no_checkout_env)
                 _git_apply(patch_filename)
+
             logger.info(f'Restored changes from {patch_filename}.')
     else:
         # There weren't any staged files so we don't need to do anything

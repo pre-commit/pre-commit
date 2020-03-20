@@ -103,10 +103,12 @@ def cwd(path):
         os.chdir(original_cwd)
 
 
-def git_commit(*args, fn=cmd_output, msg='commit!', **kwargs):
+def git_commit(*args, fn=cmd_output, msg='commit!', all_files=True, **kwargs):
     kwargs.setdefault('stderr', subprocess.STDOUT)
 
-    cmd = ('git', 'commit', '--allow-empty', '--no-gpg-sign', '-a') + args
+    cmd = ('git', 'commit', '--allow-empty', '--no-gpg-sign', *args)
+    if all_files:  # allow skipping `-a` with `all_files=False`
+        cmd += ('-a',)
     if msg is not None:  # allow skipping `-m` with `msg=None`
         cmd += ('-m', msg)
     ret, out, _ = fn(*cmd, **kwargs)

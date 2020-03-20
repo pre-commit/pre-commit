@@ -789,6 +789,37 @@ def test_post_checkout_integration(tempdir_factory, store):
         assert 'some_file' not in stderr
 
 
+def test_skips_post_checkout_unstaged_changes(tempdir_factory, store):
+    path = git_dir(tempdir_factory)
+    config = {
+        'repo': 'local',
+        'hooks': [{
+            'id': 'fail',
+            'name': 'fail',
+            'entry': 'fail',
+            'language': 'fail',
+            'always_run': True,
+            'stages': ['post-checkout'],
+        }],
+    }
+    write_config(path, config)
+    with cwd(path):
+        cmd_output('git', 'add', '.')
+        _get_commit_output(tempdir_factory)
+
+        install(C.CONFIG_FILE, store, hook_types=['pre-commit'])
+        install(C.CONFIG_FILE, store, hook_types=['post-checkout'])
+
+        # make an unstaged change so staged_files_only fires
+        open('file', 'a').close()
+        cmd_output('git', 'add', 'file')
+        with open('file', 'w') as f:
+            f.write('unstaged changes')
+
+        retc, out = _get_commit_output(tempdir_factory, all_files=False)
+        assert retc == 0
+
+
 def test_prepare_commit_msg_integration_failing(
         failing_prepare_commit_msg_repo, tempdir_factory, store,
 ):
