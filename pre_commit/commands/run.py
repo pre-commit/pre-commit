@@ -6,6 +6,7 @@ import os
 import re
 import subprocess
 import time
+from unicodedata import east_asian_width
 from typing import Any
 from typing import Collection
 from typing import Dict
@@ -33,8 +34,12 @@ from pre_commit.util import EnvironT
 logger = logging.getLogger('pre_commit')
 
 
+def _len_cjk(msg: str) -> int:
+    return len(msg) + len([c for c in msg if east_asian_width(c) in 'FW'])
+
+
 def _start_msg(*, start: str, cols: int, end_len: int) -> str:
-    dots = '.' * (cols - len(start) - end_len - 1)
+    dots = '.' * (cols - _len_cjk(start) - end_len - 1)
     return f'{start}{dots}'
 
 
@@ -47,7 +52,7 @@ def _full_msg(
         use_color: bool,
         postfix: str = '',
 ) -> str:
-    dots = '.' * (cols - len(start) - len(postfix) - len(end_msg) - 1)
+    dots = '.' * (cols - _len_cjk(start) - len(postfix) - len(end_msg) - 1)
     end = color.format_color(end_msg, end_color, use_color)
     return f'{start}{dots}{postfix}{end}\n'
 
