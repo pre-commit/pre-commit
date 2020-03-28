@@ -52,6 +52,18 @@ def test_full_msg():
     assert ret == 'start......end\n'
 
 
+def test_full_msg_with_cjk():
+    ret = _full_msg(
+        start='啊あ아',
+        end_msg='end',
+        end_color='',
+        use_color=False,
+        cols=15,
+    )
+    # 5 dots: 15 - 6 - 3 - 1
+    assert ret == '啊あ아.....end\n'
+
+
 def test_full_msg_with_color():
     ret = _full_msg(
         start='start',

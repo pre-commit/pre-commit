@@ -6,6 +6,7 @@ import os
 import re
 import subprocess
 import time
+import unicodedata
 from typing import Any
 from typing import Collection
 from typing import Dict
@@ -33,8 +34,13 @@ from pre_commit.util import EnvironT
 logger = logging.getLogger('pre_commit')
 
 
+def _len_cjk(msg: str) -> int:
+    widths = {'A': 1, 'F': 2, 'H': 1, 'N': 1, 'Na': 1, 'W': 2}
+    return sum(widths[unicodedata.east_asian_width(c)] for c in msg)
+
+
 def _start_msg(*, start: str, cols: int, end_len: int) -> str:
-    dots = '.' * (cols - len(start) - end_len - 1)
+    dots = '.' * (cols - _len_cjk(start) - end_len - 1)
     return f'{start}{dots}'
 
 
@@ -47,7 +53,7 @@ def _full_msg(
         use_color: bool,
         postfix: str = '',
 ) -> str:
-    dots = '.' * (cols - len(start) - len(postfix) - len(end_msg) - 1)
+    dots = '.' * (cols - _len_cjk(start) - len(postfix) - len(end_msg) - 1)
     end = color.format_color(end_msg, end_color, use_color)
     return f'{start}{dots}{postfix}{end}\n'
 
@@ -206,7 +212,7 @@ def _compute_cols(hooks: Sequence[Hook]) -> int:
         Hook name...(no files to check) Skipped
     """
     if hooks:
-        name_len = max(len(hook.name) for hook in hooks)
+        name_len = max(_len_cjk(hook.name) for hook in hooks)
     else:
         name_len = 0
 
