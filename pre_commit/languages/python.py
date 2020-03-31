@@ -202,7 +202,7 @@ def py_interface(
 
 def make_venv(envdir: str, python: str) -> None:
     env = dict(os.environ, VIRTUALENV_NO_DOWNLOAD='1')
-    cmd = (sys.executable, '-mvirtualenv', envdir, '-p', python)
+    cmd = (sys.executable, '-mvenv', envdir)
     cmd_output_b(*cmd, env=env, cwd='/')
 
 
