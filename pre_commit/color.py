@@ -11,7 +11,7 @@ if sys.platform == 'win32':  # pragma: no cover (windows)
         from ctypes.wintypes import DWORD
         from ctypes.wintypes import HANDLE
 
-        STD_OUTPUT_HANDLE = -11
+        STD_ERROR_HANDLE = -12
         ENABLE_VIRTUAL_TERMINAL_PROCESSING = 4
 
         def bool_errcheck(result, func, args):
@@ -40,9 +40,9 @@ if sys.platform == 'win32':  # pragma: no cover (windows)
         #
         # More info on the escape sequences supported:
         # https://msdn.microsoft.com/en-us/library/windows/desktop/mt638032(v=vs.85).aspx
-        stdout = GetStdHandle(STD_OUTPUT_HANDLE)
-        flags = GetConsoleMode(stdout)
-        SetConsoleMode(stdout, flags | ENABLE_VIRTUAL_TERMINAL_PROCESSING)
+        stderr = GetStdHandle(STD_ERROR_HANDLE)
+        flags = GetConsoleMode(stderr)
+        SetConsoleMode(stderr, flags | ENABLE_VIRTUAL_TERMINAL_PROCESSING)
 
     try:
         _enable()
@@ -90,7 +90,7 @@ def use_color(setting: str) -> bool:
     return (
         setting == 'always' or (
             setting == 'auto' and
-            sys.stdout.isatty() and
+            sys.stderr.isatty() and
             terminal_supports_color and
             os.getenv('TERM') != 'dumb'
         )
