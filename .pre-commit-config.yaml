@@ -17,34 +17,34 @@ repos:
     -   id: flake8
         additional_dependencies: [flake8-typing-imports==1.6.0]
 -   repo: https://github.com/pre-commit/mirrors-autopep8
-    rev: v1.5
+    rev: v1.5.1
     hooks:
     -   id: autopep8
 -   repo: https://github.com/pre-commit/pre-commit
-    rev: v2.1.1
+    rev: v2.2.0
     hooks:
     -   id: validate_manifest
 -   repo: https://github.com/asottile/pyupgrade
-    rev: v2.0.1
+    rev: v2.1.0
     hooks:
     -   id: pyupgrade
         args: [--py36-plus]
 -   repo: https://github.com/asottile/reorder_python_imports
-    rev: v1.9.0
+    rev: v2.1.0
     hooks:
     -   id: reorder-python-imports
         args: [--py3-plus]
 -   repo: https://github.com/asottile/add-trailing-comma
-    rev: v1.5.0
+    rev: v2.0.1
     hooks:
     -   id: add-trailing-comma
         args: [--py36-plus]
 -   repo: https://github.com/asottile/setup-cfg-fmt
-    rev: v1.6.0
+    rev: v1.8.2
     hooks:
     -   id: setup-cfg-fmt
 -   repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v0.761
+    rev: v0.770
     hooks:
     -   id: mypy
         exclude: ^testing/resources/

@@ -1,4 +1,5 @@
 import contextlib
+import functools
 import os
 import sys
 from typing import Generator
@@ -6,6 +7,7 @@ from typing import Sequence
 from typing import Tuple
 
 import pre_commit.constants as C
+from pre_commit import parse_shebang
 from pre_commit.envcontext import envcontext
 from pre_commit.envcontext import PatchesT
 from pre_commit.envcontext import Var
@@ -18,8 +20,20 @@ from pre_commit.util import cmd_output
 from pre_commit.util import cmd_output_b
 
 ENVIRONMENT_DIR = 'node_env'
-get_default_version = helpers.basic_get_default_version
 healthy = helpers.basic_healthy
+
+
+@functools.lru_cache(maxsize=1)
+def get_default_version() -> str:
+    # nodeenv does not yet support `-n system` on windows
+    if sys.platform == 'win32':
+        return C.DEFAULT
+    # if node is already installed, we can save a bunch of setup time by
+    # using the installed version
+    elif all(parse_shebang.find_executable(exe) for exe in ('node', 'npm')):
+        return 'system'
+    else:
+        return C.DEFAULT
 
 
 def _envdir(prefix: Prefix, version: str) -> str:
