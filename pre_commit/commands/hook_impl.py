@@ -147,15 +147,44 @@ def _pre_push_ns(
     return None
 
 
+_EXPECTED_ARG_LENGTH_BY_HOOK = {
+    'commit-msg': 1,
+    'post-checkout': 3,
+    'pre-commit': 0,
+    'pre-merge-commit': 0,
+    'pre-push': 2,
+}
+
+
+def _check_args_length(hook_type: str, args: Sequence[str]) -> None:
+    if hook_type == 'prepare-commit-msg':
+        if len(args) < 1 or len(args) > 3:
+            raise SystemExit(
+                f'hook-impl for {hook_type} expected 1, 2, or 3 arguments '
+                f'but got {len(args)}: {args}',
+            )
+    elif hook_type in _EXPECTED_ARG_LENGTH_BY_HOOK:
+        expected = _EXPECTED_ARG_LENGTH_BY_HOOK[hook_type]
+        if len(args) != expected:
+            arguments_s = 'argument' if expected == 1 else 'arguments'
+            raise SystemExit(
+                f'hook-impl for {hook_type} expected {expected} {arguments_s} '
+                f'but got {len(args)}: {args}',
+            )
+    else:
+        raise AssertionError(f'unexpected hook type: {hook_type}')
+
+
 def _run_ns(
         hook_type: str,
         color: bool,
         args: Sequence[str],
         stdin: bytes,
 ) -> Optional[argparse.Namespace]:
+    _check_args_length(hook_type, args)
     if hook_type == 'pre-push':
         return _pre_push_ns(color, args, stdin)
-    elif hook_type in {'prepare-commit-msg', 'commit-msg'}:
+    elif hook_type in {'commit-msg', 'prepare-commit-msg'}:
         return _ns(hook_type, color, commit_msg_filename=args[0])
     elif hook_type in {'pre-merge-commit', 'pre-commit'}:
         return _ns(hook_type, color)

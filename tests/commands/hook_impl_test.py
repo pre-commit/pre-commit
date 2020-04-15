@@ -89,6 +89,51 @@ def test_run_legacy_recursive(tmpdir):
             call()
 
 
+@pytest.mark.parametrize(
+    ('hook_type', 'args'),
+    (
+        ('pre-commit', []),
+        ('pre-merge-commit', []),
+        ('pre-push', ['branch_name', 'remote_name']),
+        ('commit-msg', ['.git/COMMIT_EDITMSG']),
+        ('post-checkout', ['old_head', 'new_head', '1']),
+        # multiple choices for commit-editmsg
+        ('prepare-commit-msg', ['.git/COMMIT_EDITMSG']),
+        ('prepare-commit-msg', ['.git/COMMIT_EDITMSG', 'message']),
+        ('prepare-commit-msg', ['.git/COMMIT_EDITMSG', 'commit', 'deadbeef']),
+    ),
+)
+def test_check_args_length_ok(hook_type, args):
+    hook_impl._check_args_length(hook_type, args)
+
+
+def test_check_args_length_error_too_many_plural():
+    with pytest.raises(SystemExit) as excinfo:
+        hook_impl._check_args_length('pre-commit', ['run', '--all-files'])
+    msg, = excinfo.value.args
+    assert msg == (
+        'hook-impl for pre-commit expected 0 arguments but got 2: '
+        "['run', '--all-files']"
+    )
+
+
+def test_check_args_length_error_too_many_singluar():
+    with pytest.raises(SystemExit) as excinfo:
+        hook_impl._check_args_length('commit-msg', [])
+    msg, = excinfo.value.args
+    assert msg == 'hook-impl for commit-msg expected 1 argument but got 0: []'
+
+
+def test_check_args_length_prepare_commit_msg_error():
+    with pytest.raises(SystemExit) as excinfo:
+        hook_impl._check_args_length('prepare-commit-msg', [])
+    msg, = excinfo.value.args
+    assert msg == (
+        'hook-impl for prepare-commit-msg expected 1, 2, or 3 arguments '
+        'but got 0: []'
+    )
+
+
 def test_run_ns_pre_commit():
     ns = hook_impl._run_ns('pre-commit', True, (), b'')
     assert ns is not None
