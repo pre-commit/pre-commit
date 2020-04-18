@@ -263,6 +263,45 @@ def test_does_not_reformat(tmpdir, out_of_date, store):
     assert cfg.read() == expected
 
 
+def test_does_not_change_mixed_endlines_read(up_to_date, tmpdir, store):
+    fmt = (
+        'repos:\n'
+        '-   repo: {}\n'
+        '    rev: {}  # definitely the version I want!\r\n'
+        '    hooks:\r\n'
+        '    -   id: foo\n'
+        '        # These args are because reasons!\r\n'
+        '        args: [foo, bar, baz]\r\n'
+    )
+    cfg = tmpdir.join(C.CONFIG_FILE)
+
+    expected = fmt.format(up_to_date, git.head_rev(up_to_date)).encode()
+    cfg.write_binary(expected)
+
+    assert autoupdate(str(cfg), store, freeze=False, tags_only=False) == 0
+    assert cfg.read_binary() == expected
+
+
+def test_does_not_change_mixed_endlines_write(tmpdir, out_of_date, store):
+    fmt = (
+        'repos:\n'
+        '-   repo: {}\n'
+        '    rev: {}  # definitely the version I want!\r\n'
+        '    hooks:\r\n'
+        '    -   id: foo\n'
+        '        # These args are because reasons!\r\n'
+        '        args: [foo, bar, baz]\r\n'
+    )
+    cfg = tmpdir.join(C.CONFIG_FILE)
+    cfg.write_binary(
+        fmt.format(out_of_date.path, out_of_date.original_rev).encode(),
+    )
+
+    assert autoupdate(str(cfg), store, freeze=False, tags_only=False) == 0
+    expected = fmt.format(out_of_date.path, out_of_date.head_rev).encode()
+    assert cfg.read_binary() == expected
+
+
 def test_loses_formatting_when_not_detectable(out_of_date, store, tmpdir):
     """A best-effort attempt is made at updating rev without rewriting
     formatting.  When the original formatting cannot be detected, this
