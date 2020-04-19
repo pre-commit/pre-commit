@@ -93,7 +93,7 @@ def _original_lines(
         retry: bool = False,
 ) -> Tuple[List[str], List[int]]:
     """detect `rev:` lines or reformat the file"""
-    with open(path) as f:
+    with open(path, newline='') as f:
         original = f.read()
 
     lines = original.splitlines(True)
@@ -126,7 +126,7 @@ def _write_new_config(path: str, rev_infos: List[Optional[RevInfo]]) -> None:
             comment = match[4]
         lines[idx] = f'{match[1]}rev:{match[2]}{new_rev}{comment}{match[5]}'
 
-    with open(path, 'w') as f:
+    with open(path, 'w', newline='') as f:
         f.write(''.join(lines))
 
 
