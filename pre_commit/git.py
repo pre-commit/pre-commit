@@ -158,8 +158,15 @@ def init_repo(path: str, remote: str) -> None:
         remote = os.path.abspath(remote)
 
     env = no_git_env()
-    cmd_output_b('git', 'init', path, env=env)
-    cmd_output_b('git', 'remote', 'add', 'origin', remote, cwd=path, env=env)
+
+    def _git(*cmd: str) -> None:
+        cmd_output_b('git', *cmd, cwd=path, env=env)
+
+    os.makedirs(path, exist_ok=True)
+    _git('init', '.')
+    origin = '_pre-commit-origin'
+    _git('remote', 'add', origin, remote)
+    _git('remote', 'rename', origin, 'origin')
 
 
 def commit(repo: str = '.') -> None:
