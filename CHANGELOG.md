@@ -1,3 +1,28 @@
+2.3.0 - 2020-04-22
+==================
+
+### Features
+- Calculate character width using `east_asian_width`
+    - #1378 PR by @sophgn.
+- Use `language_version: system` by default for `node` hooks if `node` / `npm`
+  are globally installed.
+    - #1388 PR by @asottile.
+
+### Fixes
+- No longer use a hard-coded user id for docker hooks on windows
+    - #1371 PR by @killuazhu.
+- Fix colors on windows during `git commit`
+    - #1381 issue by @Cielquan.
+    - #1382 PR by @asottile.
+- Produce readable error message for incorrect argument count to `hook-impl`
+    - #1394 issue by @pip9ball.
+    - #1395 PR by @asottile.
+- Fix installations which involve an upgrade of `pip` on windows
+    - #1398 issue by @xiaohuazi123.
+    - #1399 PR by @asottile.
+- Preserve line endings in `pre-commit autoupdate`
+    - #1402 PR by @utek.
+
 2.2.0 - 2020-03-12
 ==================
 
