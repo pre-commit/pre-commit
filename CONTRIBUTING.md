@@ -17,7 +17,8 @@ This is useful for running specific tests.  The easiest way to set this up
 is to run:
 
 1. `tox --devenv venv`  (note: requires tox>=3.13)
-2. `. venv/bin/activate`
+2. `. venv/bin/activate` (or follow the [activation instructions] for your
+   platform)
 
 This will create and put you into a virtualenv which has an editable
 installation of pre-commit.  Hack away!  Running `pre-commit` will reflect
@@ -144,3 +145,5 @@ This is usually the easiest to implement, most of them look the same as the
 `node` hook implementation:
 
 https://github.com/pre-commit/pre-commit/blob/160238220f022035c8ef869c9a8642f622c02118/pre_commit/languages/node.py#L72-L74
+
+[activation instructions]: https://virtualenv.pypa.io/en/latest/user_guide.html#activators
