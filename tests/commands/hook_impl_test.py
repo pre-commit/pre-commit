@@ -96,6 +96,7 @@ def test_run_legacy_recursive(tmpdir):
         ('pre-merge-commit', []),
         ('pre-push', ['branch_name', 'remote_name']),
         ('commit-msg', ['.git/COMMIT_EDITMSG']),
+        ('post-commit', []),
         ('post-checkout', ['old_head', 'new_head', '1']),
         # multiple choices for commit-editmsg
         ('prepare-commit-msg', ['.git/COMMIT_EDITMSG']),
@@ -147,6 +148,13 @@ def test_run_ns_commit_msg():
     assert ns.hook_stage == 'commit-msg'
     assert ns.color is False
     assert ns.commit_msg_filename == '.git/COMMIT_MSG'
+
+
+def test_run_ns_post_commit():
+    ns = hook_impl._run_ns('post-commit', True, (), b'')
+    assert ns is not None
+    assert ns.hook_stage == 'post-commit'
+    assert ns.color is True
 
 
 def test_run_ns_post_checkout():

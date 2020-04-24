@@ -150,6 +150,7 @@ def _pre_push_ns(
 _EXPECTED_ARG_LENGTH_BY_HOOK = {
     'commit-msg': 1,
     'post-checkout': 3,
+    'post-commit': 0,
     'pre-commit': 0,
     'pre-merge-commit': 0,
     'pre-push': 2,
@@ -186,7 +187,7 @@ def _run_ns(
         return _pre_push_ns(color, args, stdin)
     elif hook_type in {'commit-msg', 'prepare-commit-msg'}:
         return _ns(hook_type, color, commit_msg_filename=args[0])
-    elif hook_type in {'pre-merge-commit', 'pre-commit'}:
+    elif hook_type in {'post-commit', 'pre-merge-commit', 'pre-commit'}:
         return _ns(hook_type, color)
     elif hook_type == 'post-checkout':
         return _ns(

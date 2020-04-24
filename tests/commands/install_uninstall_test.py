@@ -726,6 +726,32 @@ def test_commit_msg_legacy(commit_msg_repo, tempdir_factory, store):
     assert second_line.startswith('Must have "Signed off by:"...')
 
 
+def test_post_commit_integration(tempdir_factory, store):
+    path = git_dir(tempdir_factory)
+    config = [
+        {
+            'repo': 'local',
+            'hooks': [{
+                'id': 'post-commit',
+                'name': 'Post commit',
+                'entry': 'touch post-commit.tmp',
+                'language': 'system',
+                'always_run': True,
+                'verbose': True,
+                'stages': ['post-commit'],
+            }],
+        },
+    ]
+    write_config(path, config)
+    with cwd(path):
+        _get_commit_output(tempdir_factory)
+        assert not os.path.exists('post-commit.tmp')
+
+        install(C.CONFIG_FILE, store, hook_types=['post-commit'])
+        _get_commit_output(tempdir_factory)
+        assert os.path.exists('post-commit.tmp')
+
+
 def test_post_checkout_integration(tempdir_factory, store):
     path = git_dir(tempdir_factory)
     config = [
