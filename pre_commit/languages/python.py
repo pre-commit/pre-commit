@@ -34,6 +34,7 @@ def bin_dir(venv: str) -> str:
 
 def get_env_patch(venv: str) -> PatchesT:
     return (
+        ('PIP_DISABLE_PIP_VERSION_CHECK', '1'),
         ('PYTHONHOME', UNSET),
         ('VIRTUAL_ENV', venv),
         ('PATH', (bin_dir(venv), os.pathsep, Var('PATH'))),
