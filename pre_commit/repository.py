@@ -10,9 +10,11 @@ from typing import Set
 from typing import Tuple
 
 import pre_commit.constants as C
+from pre_commit.clientlib import apply_manifest_defaults
 from pre_commit.clientlib import load_manifest
 from pre_commit.clientlib import LOCAL
 from pre_commit.clientlib import META
+from pre_commit.clientlib import validate_manifest
 from pre_commit.hook import Hook
 from pre_commit.languages.all import languages
 from pre_commit.languages.helpers import environment_dir
@@ -146,21 +148,37 @@ def _cloned_repository_hooks(
 ) -> Tuple[Hook, ...]:
     repo, rev = repo_config['repo'], repo_config['rev']
     manifest_path = os.path.join(store.clone(repo, rev), C.MANIFEST_FILE)
-    by_id = {hook['id']: hook for hook in load_manifest(manifest_path)}
+    if os.path.isfile(manifest_path):
+        by_id = {hook['id']: hook for hook in load_manifest(manifest_path)}
 
-    for hook in repo_config['hooks']:
-        if hook['id'] not in by_id:
-            logger.error(
-                f'`{hook["id"]}` is not present in repository {repo}.  '
-                f'Typo? Perhaps it is introduced in a newer version?  '
-                f'Often `pre-commit autoupdate` fixes this.',
-            )
-            exit(1)
+        for hook in repo_config['hooks']:
+            if hook['id'] not in by_id:
+                logger.error(
+                    f'`{hook["id"]}` is not present in repository {repo}.  '
+                    f'Typo? Perhaps it is introduced in a newer version?  '
+                    f'Often `pre-commit autoupdate` fixes this.',
+                )
+                exit(1)
+    else:
+        logger.info(
+            f'No {C.MANIFEST_FILE} found in repository {repo}.  '
+            'Proceeding with local repo config only.',
+        )
+        by_id = {
+            hook['id']: hook
+            for hook in apply_manifest_defaults([
+                {'id': repo_hook['id']}
+                for repo_hook in repo_config['hooks']
+            ])
+        }
 
     hook_dcts = [
         _hook(by_id[hook['id']], hook, root_config=root_config)
         for hook in repo_config['hooks']
     ]
+    if not by_id:
+        for hook_dct in hook_dcts:
+            validate_manifest(hook_dct)
     return tuple(
         Hook.create(
             repo_config['repo'],

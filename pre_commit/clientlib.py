@@ -5,8 +5,10 @@ import shlex
 import sys
 from typing import Any
 from typing import Dict
+from typing import Mapping
 from typing import Optional
 from typing import Sequence
+from typing import TypeVar
 
 import cfgv
 from identify.identify import ALL_TAGS
@@ -87,6 +89,18 @@ load_manifest = functools.partial(
     load_strategy=yaml_load,
     exc_tp=InvalidManifestError,
 )
+
+
+HOOK_CONFIG_T = TypeVar('HOOK_CONFIG_T', bound=Mapping[str, Any])
+
+
+def validate_manifest(data: HOOK_CONFIG_T) -> HOOK_CONFIG_T:
+    return cfgv.validate(data, MANIFEST_SCHEMA)
+
+
+def apply_manifest_defaults(data: Sequence[HOOK_CONFIG_T]) \
+        -> Sequence[HOOK_CONFIG_T]:
+    return cfgv.apply_defaults(data, MANIFEST_SCHEMA)
 
 
 def validate_manifest_main(argv: Optional[Sequence[str]] = None) -> int:
