@@ -182,9 +182,9 @@ class Store:
         return self._new_repo(repo, ref, deps, clone_strategy)
 
     LOCAL_RESOURCES = (
-        'Cargo.toml', 'main.go', 'main.rs', '.npmignore', 'package.json',
-        'pre_commit_dummy_package.gemspec', 'setup.py', 'environment.yml',
-        'Makefile.PL',
+        'Cargo.toml', 'main.go', 'go.mod', 'main.rs', '.npmignore',
+        'package.json', 'pre_commit_dummy_package.gemspec', 'setup.py',
+        'environment.yml', 'Makefile.PL',
     )
 
     def make_local(self, deps: Sequence[str]) -> str:
