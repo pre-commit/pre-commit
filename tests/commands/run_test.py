@@ -1022,3 +1022,9 @@ def test_args_hook_only(cap_out, store, repo_with_passing_hook):
         run_opts(hook='do_not_commit'),
     )
     assert b'identity-copy' not in printed
+
+
+def test_skipped_without_any_setup_for_post_checkout(in_git_dir, store):
+    environ = {'_PRE_COMMIT_SKIP_POST_CHECKOUT': '1'}
+    opts = run_opts(hook_stage='post-checkout')
+    assert run(C.CONFIG_FILE, store, opts, environ=environ) == 0

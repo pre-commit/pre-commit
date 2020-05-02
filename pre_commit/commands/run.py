@@ -324,6 +324,12 @@ def run(
             f'`--hook-stage {args.hook_stage}`',
         )
         return 1
+    # prevent recursive post-checkout hooks (#1418)
+    if (
+            args.hook_stage == 'post-checkout' and
+            environ.get('_PRE_COMMIT_SKIP_POST_CHECKOUT')
+    ):
+        return 0
 
     # Expose from-ref / to-ref as environment variables for hooks to consume
     if args.from_ref and args.to_ref:
