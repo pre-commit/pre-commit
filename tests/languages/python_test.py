@@ -5,8 +5,21 @@ from unittest import mock
 import pytest
 
 import pre_commit.constants as C
+from pre_commit.envcontext import envcontext
 from pre_commit.languages import python
 from pre_commit.prefix import Prefix
+
+
+def test_read_pyvenv_cfg(tmpdir):
+    pyvenv_cfg = tmpdir.join('pyvenv.cfg')
+    pyvenv_cfg.write(
+        '# I am a comment\n'
+        '\n'
+        'foo = bar\n'
+        'version-info=123\n',
+    )
+    expected = {'foo': 'bar', 'version-info': '123'}
+    assert python._read_pyvenv_cfg(pyvenv_cfg) == expected
 
 
 def test_norm_version_expanduser():
@@ -19,6 +32,10 @@ def test_norm_version_expanduser():
         expected_path = f'{home}/.pyenv/versions/3.4.3/bin/python'
     result = python.norm_version(path)
     assert result == expected_path
+
+
+def test_norm_version_of_default_is_sys_executable():
+    assert python.norm_version('default') == os.path.realpath(sys.executable)
 
 
 @pytest.mark.parametrize('v', ('python3.6', 'python3', 'python'))
@@ -49,27 +66,78 @@ def test_find_by_sys_executable(exe, realpath, expected):
                 assert python._find_by_sys_executable() == expected
 
 
-def test_healthy_types_py_in_cwd(tmpdir):
+@pytest.fixture
+def python_dir(tmpdir):
     with tmpdir.as_cwd():
         prefix = tmpdir.join('prefix').ensure_dir()
         prefix.join('setup.py').write('import setuptools; setuptools.setup()')
         prefix = Prefix(str(prefix))
+        yield prefix, tmpdir
+
+
+def test_healthy_default_creator(python_dir):
+    prefix, tmpdir = python_dir
+
+    python.install_environment(prefix, C.DEFAULT, ())
+
+    # should be healthy right after creation
+    assert python.healthy(prefix, C.DEFAULT) is True
+
+    # even if a `types.py` file exists, should still be healthy
+    tmpdir.join('types.py').ensure()
+    assert python.healthy(prefix, C.DEFAULT) is True
+
+
+def test_healthy_venv_creator(python_dir):
+    # venv creator produces slightly different pyvenv.cfg
+    prefix, tmpdir = python_dir
+
+    with envcontext((('VIRTUALENV_CREATOR', 'venv'),)):
         python.install_environment(prefix, C.DEFAULT, ())
 
-        # even if a `types.py` file exists, should still be healthy
-        tmpdir.join('types.py').ensure()
-        assert python.healthy(prefix, C.DEFAULT) is True
+    assert python.healthy(prefix, C.DEFAULT) is True
 
 
-def test_healthy_python_goes_missing(tmpdir):
-    with tmpdir.as_cwd():
-        prefix = tmpdir.join('prefix').ensure_dir()
-        prefix.join('setup.py').write('import setuptools; setuptools.setup()')
-        prefix = Prefix(str(prefix))
-        python.install_environment(prefix, C.DEFAULT, ())
+def test_unhealthy_python_goes_missing(python_dir):
+    prefix, tmpdir = python_dir
 
-        exe_name = 'python' if sys.platform != 'win32' else 'python.exe'
-        py_exe = prefix.path(python.bin_dir('py_env-default'), exe_name)
-        os.remove(py_exe)
+    python.install_environment(prefix, C.DEFAULT, ())
 
-        assert python.healthy(prefix, C.DEFAULT) is False
+    exe_name = 'python' if sys.platform != 'win32' else 'python.exe'
+    py_exe = prefix.path(python.bin_dir('py_env-default'), exe_name)
+    os.remove(py_exe)
+
+    assert python.healthy(prefix, C.DEFAULT) is False
+
+
+def test_unhealthy_with_version_change(python_dir):
+    prefix, tmpdir = python_dir
+
+    python.install_environment(prefix, C.DEFAULT, ())
+
+    with open(prefix.path('py_env-default/pyvenv.cfg'), 'w') as f:
+        f.write('version_info = 1.2.3\n')
+
+    assert python.healthy(prefix, C.DEFAULT) is False
+
+
+def test_unhealthy_system_version_changes(python_dir):
+    prefix, tmpdir = python_dir
+
+    python.install_environment(prefix, C.DEFAULT, ())
+
+    with open(prefix.path('py_env-default/pyvenv.cfg'), 'a') as f:
+        f.write('base-executable = /does/not/exist\n')
+
+    assert python.healthy(prefix, C.DEFAULT) is False
+
+
+def test_unhealthy_old_virtualenv(python_dir):
+    prefix, tmpdir = python_dir
+
+    python.install_environment(prefix, C.DEFAULT, ())
+
+    # simulate "old" virtualenv by deleting this file
+    os.remove(prefix.path('py_env-default/pyvenv.cfg'))
+
+    assert python.healthy(prefix, C.DEFAULT) is False

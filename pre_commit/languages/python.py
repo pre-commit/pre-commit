@@ -2,8 +2,7 @@ import contextlib
 import functools
 import os
 import sys
-from typing import Callable
-from typing import ContextManager
+from typing import Dict
 from typing import Generator
 from typing import Optional
 from typing import Sequence
@@ -24,6 +23,28 @@ from pre_commit.util import cmd_output
 from pre_commit.util import cmd_output_b
 
 ENVIRONMENT_DIR = 'py_env'
+
+
+@functools.lru_cache(maxsize=None)
+def _version_info(exe: str) -> str:
+    prog = 'import sys;print(".".join(str(p) for p in sys.version_info))'
+    try:
+        return cmd_output(exe, '-S', '-c', prog)[1].strip()
+    except CalledProcessError:
+        return f'<<error retrieving version from {exe}>>'
+
+
+def _read_pyvenv_cfg(filename: str) -> Dict[str, str]:
+    ret = {}
+    with open(filename) as f:
+        for line in f:
+            try:
+                k, v = line.split('=')
+            except ValueError:  # blank line / comment / etc.
+                continue
+            else:
+                ret[k.strip()] = v.strip()
+    return ret
 
 
 def bin_dir(venv: str) -> str:
@@ -116,6 +137,9 @@ def _sys_executable_matches(version: str) -> bool:
 
 
 def norm_version(version: str) -> str:
+    if version == C.DEFAULT:
+        return os.path.realpath(sys.executable)
+
     # first see if our current executable is appropriate
     if _sys_executable_matches(version):
         return sys.executable
@@ -140,70 +164,59 @@ def norm_version(version: str) -> str:
     return os.path.expanduser(version)
 
 
-def py_interface(
-        _dir: str,
-        _make_venv: Callable[[str, str], None],
-) -> Tuple[
-    Callable[[Prefix, str], ContextManager[None]],
-    Callable[[Prefix, str], bool],
-    Callable[[Hook, Sequence[str], bool], Tuple[int, bytes]],
-    Callable[[Prefix, str, Sequence[str]], None],
-]:
-    @contextlib.contextmanager
-    def in_env(
-            prefix: Prefix,
-            language_version: str,
-    ) -> Generator[None, None, None]:
-        envdir = prefix.path(helpers.environment_dir(_dir, language_version))
-        with envcontext(get_env_patch(envdir)):
-            yield
-
-    def healthy(prefix: Prefix, language_version: str) -> bool:
-        envdir = helpers.environment_dir(_dir, language_version)
-        exe_name = 'python.exe' if sys.platform == 'win32' else 'python'
-        py_exe = prefix.path(bin_dir(envdir), exe_name)
-        with in_env(prefix, language_version):
-            retcode, _, _ = cmd_output_b(
-                py_exe, '-c', 'import ctypes, datetime, io, os, ssl, weakref',
-                cwd='/',
-                retcode=None,
-            )
-        return retcode == 0
-
-    def run_hook(
-            hook: Hook,
-            file_args: Sequence[str],
-            color: bool,
-    ) -> Tuple[int, bytes]:
-        with in_env(hook.prefix, hook.language_version):
-            return helpers.run_xargs(hook, hook.cmd, file_args, color=color)
-
-    def install_environment(
-            prefix: Prefix,
-            version: str,
-            additional_dependencies: Sequence[str],
-    ) -> None:
-        directory = helpers.environment_dir(_dir, version)
-        install = ('python', '-mpip', 'install', '.', *additional_dependencies)
-
-        env_dir = prefix.path(directory)
-        with clean_path_on_failure(env_dir):
-            if version != C.DEFAULT:
-                python = norm_version(version)
-            else:
-                python = os.path.realpath(sys.executable)
-            _make_venv(env_dir, python)
-            with in_env(prefix, version):
-                helpers.run_setup_cmd(prefix, install)
-
-    return in_env, healthy, run_hook, install_environment
+@contextlib.contextmanager
+def in_env(
+        prefix: Prefix,
+        language_version: str,
+) -> Generator[None, None, None]:
+    directory = helpers.environment_dir(ENVIRONMENT_DIR, language_version)
+    envdir = prefix.path(directory)
+    with envcontext(get_env_patch(envdir)):
+        yield
 
 
-def make_venv(envdir: str, python: str) -> None:
-    env = dict(os.environ, VIRTUALENV_NO_DOWNLOAD='1')
-    cmd = (sys.executable, '-mvirtualenv', envdir, '-p', python)
-    cmd_output_b(*cmd, env=env, cwd='/')
+def healthy(prefix: Prefix, language_version: str) -> bool:
+    directory = helpers.environment_dir(ENVIRONMENT_DIR, language_version)
+    envdir = prefix.path(directory)
+    pyvenv_cfg = os.path.join(envdir, 'pyvenv.cfg')
+
+    # created with "old" virtualenv
+    if not os.path.exists(pyvenv_cfg):
+        return False
+
+    exe_name = 'python.exe' if sys.platform == 'win32' else 'python'
+    py_exe = prefix.path(bin_dir(envdir), exe_name)
+    cfg = _read_pyvenv_cfg(pyvenv_cfg)
+
+    return (
+        'version_info' in cfg and
+        _version_info(py_exe) == cfg['version_info'] and (
+            'base-executable' not in cfg or
+            _version_info(cfg['base-executable']) == cfg['version_info']
+        )
+    )
 
 
-_interface = py_interface(ENVIRONMENT_DIR, make_venv)
-in_env, healthy, run_hook, install_environment = _interface
+def install_environment(
+        prefix: Prefix,
+        version: str,
+        additional_dependencies: Sequence[str],
+) -> None:
+    envdir = prefix.path(helpers.environment_dir(ENVIRONMENT_DIR, version))
+    python = norm_version(version)
+    venv_cmd = (sys.executable, '-mvirtualenv', envdir, '-p', python)
+    install_cmd = ('python', '-mpip', 'install', '.', *additional_dependencies)
+
+    with clean_path_on_failure(envdir):
+        cmd_output_b(*venv_cmd, cwd='/')
+        with in_env(prefix, version):
+            helpers.run_setup_cmd(prefix, install_cmd)
+
+
+def run_hook(
+        hook: Hook,
+        file_args: Sequence[str],
+        color: bool,
+) -> Tuple[int, bytes]:
+    with in_env(hook.prefix, hook.language_version):
+        return helpers.run_xargs(hook, hook.cmd, file_args, color=color)

@@ -33,7 +33,6 @@ from testing.util import cwd
 from testing.util import get_resource_path
 from testing.util import skipif_cant_run_docker
 from testing.util import skipif_cant_run_swift
-from testing.util import xfailif_no_venv
 from testing.util import xfailif_windows_no_ruby
 
 
@@ -163,7 +162,6 @@ def test_python_hook_weird_setup_cfg(in_git_dir, tempdir_factory, store):
     )
 
 
-@xfailif_no_venv
 def test_python_venv(tempdir_factory, store):  # pragma: no cover (no venv)
     _test_hook_repo(
         tempdir_factory, store, 'python_venv_hooks_repo',

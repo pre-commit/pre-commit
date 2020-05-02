@@ -45,20 +45,6 @@ xfailif_windows_no_ruby = pytest.mark.xfail(
 xfailif_windows = pytest.mark.xfail(os.name == 'nt', reason='windows')
 
 
-def supports_venv():  # pragma: no cover (platform specific)
-    try:
-        __import__('ensurepip')
-        __import__('venv')
-        return True
-    except ImportError:
-        return False
-
-
-xfailif_no_venv = pytest.mark.xfail(
-    not supports_venv(), reason='Does not support venv module',
-)
-
-
 def run_opts(
         all_files=False,
         files=(),
