@@ -414,9 +414,9 @@ def test_autoupdate_local_hooks(in_git_dir, store):
     config = sample_local_config()
     add_config_to_repo('.', config)
     assert autoupdate(C.CONFIG_FILE, store, freeze=False, tags_only=False) == 0
-    new_config_writen = read_config('.')
-    assert len(new_config_writen['repos']) == 1
-    assert new_config_writen['repos'][0] == config
+    new_config_written = read_config('.')
+    assert len(new_config_written['repos']) == 1
+    assert new_config_written['repos'][0] == config
 
 
 def test_autoupdate_local_hooks_with_out_of_date_repo(
@@ -429,9 +429,9 @@ def test_autoupdate_local_hooks_with_out_of_date_repo(
     config = {'repos': [local_config, stale_config]}
     write_config('.', config)
     assert autoupdate(C.CONFIG_FILE, store, freeze=False, tags_only=False) == 0
-    new_config_writen = read_config('.')
-    assert len(new_config_writen['repos']) == 2
-    assert new_config_writen['repos'][0] == local_config
+    new_config_written = read_config('.')
+    assert len(new_config_written['repos']) == 2
+    assert new_config_written['repos'][0] == local_config
 
 
 def test_autoupdate_meta_hooks(tmpdir, store):
