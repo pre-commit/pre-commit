@@ -84,7 +84,9 @@ def _check_hooks_still_exist_at_rev(
         )
 
 
-REV_LINE_RE = re.compile(r'^(\s+)rev:(\s*)([^\s#]+)(.*)(\r?\n)$', re.DOTALL)
+REV_LINE_RE = re.compile(
+    r'^(\s+)rev:(\s*)([\'"]?)([^\s#]+)(.*)(\r?\n)$', re.DOTALL,
+)
 
 
 def _original_lines(
@@ -116,15 +118,15 @@ def _write_new_config(path: str, rev_infos: List[Optional[RevInfo]]) -> None:
             continue
         match = REV_LINE_RE.match(lines[idx])
         assert match is not None
-        new_rev_s = yaml_dump({'rev': rev_info.rev})
+        new_rev_s = yaml_dump({'rev': rev_info.rev}, default_style=match[3])
         new_rev = new_rev_s.split(':', 1)[1].strip()
         if rev_info.frozen is not None:
             comment = f'  # frozen: {rev_info.frozen}'
-        elif match[4].strip().startswith('# frozen:'):
+        elif match[5].strip().startswith('# frozen:'):
             comment = ''
         else:
-            comment = match[4]
-        lines[idx] = f'{match[1]}rev:{match[2]}{new_rev}{comment}{match[5]}'
+            comment = match[5]
+        lines[idx] = f'{match[1]}rev:{match[2]}{new_rev}{comment}{match[6]}'
 
     with open(path, 'w', newline='') as f:
         f.write(''.join(lines))
