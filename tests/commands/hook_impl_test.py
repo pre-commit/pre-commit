@@ -118,7 +118,7 @@ def test_check_args_length_error_too_many_plural():
     )
 
 
-def test_check_args_length_error_too_many_singluar():
+def test_check_args_length_error_too_many_singular():
     with pytest.raises(SystemExit) as excinfo:
         hook_impl._check_args_length('commit-msg', [])
     msg, = excinfo.value.args
