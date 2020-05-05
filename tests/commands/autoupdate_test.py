@@ -474,3 +474,23 @@ def test_updates_old_format_to_new_format(tmpdir, capsys, store):
     )
     out, _ = capsys.readouterr()
     assert out == 'Configuration has been migrated.\n'
+
+
+def test_maintains_rev_quoting_style(tmpdir, out_of_date, store):
+    fmt = (
+        'repos:\n'
+        '-   repo: {path}\n'
+        '    rev: "{rev}"\n'
+        '    hooks:\n'
+        '    -   id: foo\n'
+        '-   repo: {path}\n'
+        "    rev: '{rev}'\n"
+        '    hooks:\n'
+        '    -   id: foo\n'
+    )
+    cfg = tmpdir.join(C.CONFIG_FILE)
+    cfg.write(fmt.format(path=out_of_date.path, rev=out_of_date.original_rev))
+
+    assert autoupdate(str(cfg), store, freeze=False, tags_only=False) == 0
+    expected = fmt.format(path=out_of_date.path, rev=out_of_date.head_rev)
+    assert cfg.read() == expected
