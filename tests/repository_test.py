@@ -33,6 +33,7 @@ from testing.util import cwd
 from testing.util import get_resource_path
 from testing.util import skipif_cant_run_docker
 from testing.util import skipif_cant_run_swift
+from testing.util import xfailif_windows
 from testing.util import xfailif_windows_no_ruby
 
 
@@ -241,6 +242,7 @@ def test_run_a_node_hook(tempdir_factory, store):
     )
 
 
+@xfailif_windows  # pragma: win32 no cover
 def test_run_a_node_hook_default_version(tempdir_factory, store):
     # make sure that this continues to work for platforms where node is not
     # installed at the system
@@ -250,6 +252,7 @@ def test_run_a_node_hook_default_version(tempdir_factory, store):
         test_run_a_node_hook(tempdir_factory, store)
 
 
+@xfailif_windows  # pragma: win32 no cover
 def test_run_versioned_node_hook(tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'node_versioned_hooks_repo',
