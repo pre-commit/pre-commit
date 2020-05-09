@@ -347,6 +347,9 @@ def run(
     if args.checkout_type:
         environ['PRE_COMMIT_CHECKOUT_TYPE'] = args.checkout_type
 
+    if args.verbose:
+        environ['PRE_COMMIT_VERBOSE'] = '1'
+
     with contextlib.ExitStack() as exit_stack:
         if stash:
             exit_stack.enter_context(staged_files_only(store.directory))
