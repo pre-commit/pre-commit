@@ -9,6 +9,7 @@ from typing import Tuple
 import pre_commit.constants as C
 from pre_commit.envcontext import envcontext
 from pre_commit.envcontext import PatchesT
+from pre_commit.envcontext import UNSET
 from pre_commit.envcontext import Var
 from pre_commit.hook import Hook
 from pre_commit.languages import helpers
@@ -28,6 +29,7 @@ def get_env_patch(
 ) -> PatchesT:  # pragma: win32 no cover
     patches: PatchesT = (
         ('GEM_HOME', os.path.join(venv, 'gems')),
+        ('GEM_PATH', UNSET),
         ('RBENV_ROOT', venv),
         ('BUNDLE_IGNORE_CONFIG', '1'),
         (
