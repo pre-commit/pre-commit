@@ -535,7 +535,7 @@ def test_additional_ruby_dependencies_installed(tempdir_factory, store):
         assert 'tins' in output
 
 
-@xfailif_windows
+@xfailif_windows  # pragma: win32 no cover
 def test_additional_node_dependencies_installed(tempdir_factory, store):
     path = make_repo(tempdir_factory, 'node_hooks_repo')
     config = make_config_from_repo(path)
