@@ -1,3 +1,41 @@
+2.4.0 - 2020-05-11
+==================
+
+### Features
+- Add support for `post-commit` hooks
+    - #1415 PR by @ModischFabrications.
+    - #1411 issue by @ModischFabrications.
+- Silence pip version warning in python installation error
+    - #1412 PR by @asottile.
+- Improve python `healthy()` when upgrading operating systems.
+    - #1431 PR by @asottile.
+    - #1427 issue by @ahonnecke.
+- `language: python_venv` is now an alias to `language: python` (and will be
+  removed in a future version).
+    - #1431 PR by @asottile.
+- Speed up python `healthy()` check.
+    - #1431 PR by @asottile.
+- `pre-commit autoupdate` now tries to maintain quoting style of `rev`.
+    - #1435 PR by @marcjay.
+    - #1434 issue by @marcjay.
+
+### Fixes
+- Fix installation of go modules in `repo: local`.
+    - #1428 PR by @scop.
+- Fix committing with unstaged files and a failing `post-checkout` hook.
+    - #1422 PR by @domodwyer.
+    - #1418 issue by @domodwyer.
+- Fix installation of node hooks with system node installed on freebsd.
+    - #1443 PR by @asottile.
+    - #1440 issue by @jockej.
+- Fix ruby hooks when `GEM_PATH` is set globally.
+    - #1442 PR by @tdeo.
+- Improve error message when `pre-commit autoupdate` /
+  `pre-commit migrate-config` are run but the pre-commit configuration is not
+  valid yaml.
+    - #1448 PR by @asottile.
+    - #1447 issue by @rpdelaney.
+
 2.3.0 - 2020-04-22
 ==================
 
