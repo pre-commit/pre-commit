@@ -12,25 +12,25 @@ repos:
     -   id: requirements-txt-fixer
     -   id: double-quote-string-fixer
 -   repo: https://gitlab.com/pycqa/flake8
-    rev: 3.7.9
+    rev: 3.8.0
     hooks:
     -   id: flake8
         additional_dependencies: [flake8-typing-imports==1.6.0]
 -   repo: https://github.com/pre-commit/mirrors-autopep8
-    rev: v1.5.1
+    rev: v1.5.2
     hooks:
     -   id: autopep8
 -   repo: https://github.com/pre-commit/pre-commit
-    rev: v2.2.0
+    rev: v2.4.0
     hooks:
     -   id: validate_manifest
 -   repo: https://github.com/asottile/pyupgrade
-    rev: v2.1.0
+    rev: v2.4.1
     hooks:
     -   id: pyupgrade
         args: [--py36-plus]
 -   repo: https://github.com/asottile/reorder_python_imports
-    rev: v2.1.0
+    rev: v2.3.0
     hooks:
     -   id: reorder-python-imports
         args: [--py3-plus]
@@ -40,7 +40,7 @@ repos:
     -   id: add-trailing-comma
         args: [--py36-plus]
 -   repo: https://github.com/asottile/setup-cfg-fmt
-    rev: v1.8.2
+    rev: v1.9.0
     hooks:
     -   id: setup-cfg-fmt
 -   repo: https://github.com/pre-commit/mirrors-mypy
