@@ -2,6 +2,7 @@ import re
 
 import yaml
 
+from pre_commit.clientlib import load_config
 from pre_commit.util import yaml_load
 
 
@@ -43,6 +44,9 @@ def _migrate_sha_to_rev(contents: str) -> str:
 
 
 def migrate_config(config_file: str, quiet: bool = False) -> int:
+    # ensure that the configuration is a valid pre-commit configuration
+    load_config(config_file)
+
     with open(config_file) as f:
         orig_contents = contents = f.read()
 

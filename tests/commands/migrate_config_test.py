@@ -1,6 +1,7 @@
 import pytest
 
 import pre_commit.constants as C
+from pre_commit.clientlib import InvalidConfigError
 from pre_commit.commands.migrate_config import _indent
 from pre_commit.commands.migrate_config import migrate_config
 
@@ -147,10 +148,10 @@ def test_migrate_config_sha_to_rev(tmpdir):
 
 
 @pytest.mark.parametrize('contents', ('', '\n'))
-def test_empty_configuration_file_user_error(tmpdir, contents):
+def test_migrate_config_invalid_configuration(tmpdir, contents):
     cfg = tmpdir.join(C.CONFIG_FILE)
     cfg.write(contents)
-    with tmpdir.as_cwd():
-        assert not migrate_config(C.CONFIG_FILE)
+    with tmpdir.as_cwd(), pytest.raises(InvalidConfigError):
+        migrate_config(C.CONFIG_FILE)
     # even though the config is invalid, this should be a noop
     assert cfg.read() == contents
