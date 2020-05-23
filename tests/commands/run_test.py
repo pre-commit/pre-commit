@@ -1028,3 +1028,12 @@ def test_skipped_without_any_setup_for_post_checkout(in_git_dir, store):
     environ = {'_PRE_COMMIT_SKIP_POST_CHECKOUT': '1'}
     opts = run_opts(hook_stage='post-checkout')
     assert run(C.CONFIG_FILE, store, opts, environ=environ) == 0
+
+
+def test_pre_commit_env_variable_set(cap_out, store, repo_with_passing_hook):
+    args = run_opts()
+    environ: EnvironT = {}
+    ret, printed = _do_run(
+        cap_out, store, repo_with_passing_hook, args, environ,
+    )
+    assert environ['PRE_COMMIT'] == '1'
