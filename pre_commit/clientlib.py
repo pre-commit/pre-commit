@@ -297,9 +297,13 @@ CONFIG_SCHEMA = cfgv.Map(
             'exclude',
             'fail_fast',
             'minimum_pre_commit_version',
+            'ci',
         ),
         warn_unknown_keys_root,
     ),
+
+    # do not warn about configuration for pre-commit.ci
+    cfgv.OptionalNoDefault('ci', cfgv.check_type(dict)),
 )
 
 
