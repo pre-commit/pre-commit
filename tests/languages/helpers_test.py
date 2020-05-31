@@ -78,5 +78,5 @@ def test_target_concurrency_cpu_count_not_implemented():
 
 def test_shuffled_is_deterministic():
     seq = [str(i) for i in range(10)]
-    expected = ['3', '7', '8', '2', '4', '6', '5', '1', '0', '9']
+    expected = ['4', '0', '5', '1', '8', '6', '2', '3', '7', '9']
     assert helpers._shuffled(seq) == expected
