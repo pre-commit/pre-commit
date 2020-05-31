@@ -18,7 +18,7 @@ from pre_commit.xargs import xargs
 if TYPE_CHECKING:
     from typing import NoReturn
 
-FIXED_RANDOM_SEED = 1542676186
+FIXED_RANDOM_SEED = 1542676187
 
 
 def run_setup_cmd(prefix: Prefix, cmd: Tuple[str, ...]) -> None:
@@ -92,7 +92,7 @@ def _shuffled(seq: Sequence[str]) -> List[str]:
     fixed_random.seed(FIXED_RANDOM_SEED, version=1)
 
     seq = list(seq)
-    random.shuffle(seq, random=fixed_random.random)
+    fixed_random.shuffle(seq)
     return seq
 
 
