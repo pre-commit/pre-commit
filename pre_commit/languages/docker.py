@@ -1,5 +1,6 @@
 import hashlib
 import os
+import subprocess
 from typing import Sequence
 from typing import Tuple
 
@@ -78,7 +79,11 @@ def install_environment(
 
 def get_docker_user() -> Tuple[str, ...]:  # pragma: win32 no cover
     try:
-        return ('-u', f'{os.getuid()}:{os.getgid()}')
+        ver_cmd = 'docker', '--version'
+        if subprocess.check_output(ver_cmd).startswith(b'podman version '):
+            return ()
+        else:
+            return ('-u', f'{os.getuid()}:{os.getgid()}')
     except AttributeError:
         return ()
 
