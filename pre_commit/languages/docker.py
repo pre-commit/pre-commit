@@ -78,15 +78,21 @@ def install_environment(
 
 
 def get_docker_user() -> Tuple[str, ...]:  # pragma: win32 no cover
-    output = subprocess.check_output(('docker', 'system', 'info'), text=True)
-    for line in output.splitlines():
-        # rootless docker has "rootless"
-        # rootless podman has "rootless: true"
-        if line.strip().startswith('rootless'):
-            if not 'false' in line:
-                return ()  # no -u for rootless
-            break
-    return ('-u', f'{os.getuid()}:{os.getgid()}')
+    try:
+        output = subprocess.check_output(
+            ('docker', 'system', 'info'),
+            text=True,
+        )
+        for line in output.splitlines():
+            # rootless docker has "rootless"
+            # rootless podman has "rootless: true"
+            if line.strip().startswith('rootless'):
+                if 'false' not in line:
+                    return ()  # no -u for rootless
+                break
+        return ('-u', f'{os.getuid()}:{os.getgid()}')
+    except AttributeError:
+        return ()
 
 
 def docker_cmd() -> Tuple[str, ...]:  # pragma: win32 no cover
