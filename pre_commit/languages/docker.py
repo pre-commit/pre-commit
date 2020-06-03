@@ -79,11 +79,19 @@ def install_environment(
 
 def get_docker_user() -> Tuple[str, ...]:  # pragma: win32 no cover
     try:
-        ver_cmd = 'docker', '--version'
-        if subprocess.check_output(ver_cmd).startswith(b'podman version '):
-            return ()
-        else:
+        rootless = False
+        output = subprocess.check_output(('docker', 'system', 'info'), text=True)
+        for line in output.splitlines():
+            # rootless docker has "rootless"
+            # rootless podman has "rootless: true"
+            if line.strip().startswith('rootless'):
+                if not 'false' in line:
+                    rootless = True
+                break
+        if not rootless:
             return ('-u', f'{os.getuid()}:{os.getgid()}')
+        else:
+            return()
     except AttributeError:
         return ()
 
