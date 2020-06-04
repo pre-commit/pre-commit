@@ -78,11 +78,11 @@ def install_environment(
 
 
 def get_docker_user() -> Tuple[str, ...]:  # pragma: win32 no cover
+    output = subprocess.check_output(
+        ('docker', 'system', 'info'),
+        text=True,
+    )
     try:
-        output = subprocess.check_output(
-            ('docker', 'system', 'info'),
-            text=True,
-        )
         for line in output.splitlines():
             # rootless docker has "rootless"
             # rootless podman has "rootless: true"
