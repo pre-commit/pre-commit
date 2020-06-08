@@ -1,3 +1,24 @@
+2.5.0 - 2020-06-08
+==================
+
+### Features
+- Expose a `PRE_COMMIT=1` environment variable when running hooks
+    - #1467 PR by @tech-chad.
+    - #1426 issue by @lorenzwalthert.
+
+### Fixes
+- Fix `UnicodeDecodeError` on windows when using the `py` launcher to detect
+  executables with non-ascii characters in the path
+    - #1474 PR by @asottile.
+    - #1472 issue by DrFobos.
+- Fix `DeprecationWarning` on python3.9 for `random.shuffle` method
+    - #1480 PR by @asottile.
+    - #1479 issue by @isidentical.
+- Normalize slashes earlier such that global `files` / `exclude` use forward
+  slashes on windows as well.
+    - #1494 PR by @asottile.
+    - #1476 issue by @harrybiddle.
+
 2.4.0 - 2020-05-11
 ==================
 
