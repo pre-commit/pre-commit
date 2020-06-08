@@ -72,13 +72,7 @@ def filter_by_include_exclude(
 
 
 class Classifier:
-    def __init__(self, filenames: Sequence[str]) -> None:
-        # on windows we normalize all filenames to use forward slashes
-        # this makes it easier to filter using the `files:` regex
-        # this also makes improperly quoted shell-based hooks work better
-        # see #1173
-        if os.altsep == '/' and os.sep == '\\':
-            filenames = [f.replace(os.sep, os.altsep) for f in filenames]
+    def __init__(self, filenames: Collection[str]) -> None:
         self.filenames = [f for f in filenames if os.path.lexists(f)]
 
     @functools.lru_cache(maxsize=None)
@@ -104,6 +98,22 @@ class Classifier:
         names = filter_by_include_exclude(names, hook.files, hook.exclude)
         names = self.by_types(names, hook.types, hook.exclude_types)
         return tuple(names)
+
+    @classmethod
+    def from_config(
+            cls,
+            filenames: Collection[str],
+            include: str,
+            exclude: str,
+    ) -> 'Classifier':
+        # on windows we normalize all filenames to use forward slashes
+        # this makes it easier to filter using the `files:` regex
+        # this also makes improperly quoted shell-based hooks work better
+        # see #1173
+        if os.altsep == '/' and os.sep == '\\':
+            filenames = [f.replace(os.sep, os.altsep) for f in filenames]
+        filenames = filter_by_include_exclude(filenames, include, exclude)
+        return Classifier(filenames)
 
 
 def _get_skips(environ: EnvironT) -> Set[str]:
@@ -247,10 +257,9 @@ def _run_hooks(
     """Actually run the hooks."""
     skips = _get_skips(environ)
     cols = _compute_cols(hooks)
-    filenames = filter_by_include_exclude(
+    classifier = Classifier.from_config(
         _all_filenames(args), config['files'], config['exclude'],
     )
-    classifier = Classifier(filenames)
     retval = 0
     for hook in hooks:
         retval |= _run_single_hook(
