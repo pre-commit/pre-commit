@@ -939,7 +939,7 @@ def test_classifier_normalizes_filenames_on_windows_to_forward_slashes(tmpdir):
         tmpdir.join('a/b/c').ensure()
         with mock.patch.object(os, 'altsep', '/'):
             with mock.patch.object(os, 'sep', '\\'):
-                classifier = Classifier((r'a\b\c',))
+                classifier = Classifier.from_config((r'a\b\c',), '', '^$')
                 assert classifier.filenames == ['a/b/c']
 
 
@@ -947,7 +947,7 @@ def test_classifier_does_not_normalize_backslashes_non_windows(tmpdir):
     with mock.patch.object(os.path, 'lexists', return_value=True):
         with mock.patch.object(os, 'altsep', None):
             with mock.patch.object(os, 'sep', '/'):
-                classifier = Classifier((r'a/b\c',))
+                classifier = Classifier.from_config((r'a/b\c',), '', '^$')
                 assert classifier.filenames == [r'a/b\c']
 
 

@@ -28,11 +28,14 @@ def exclude_matches_any(
 
 def check_useless_excludes(config_file: str) -> int:
     config = load_config(config_file)
-    classifier = Classifier(git.get_all_files())
+    filenames = git.get_all_files()
+    classifier = Classifier.from_config(
+        filenames, config['files'], config['exclude'],
+    )
     retv = 0
 
     exclude = config['exclude']
-    if not exclude_matches_any(classifier.filenames, '', exclude):
+    if not exclude_matches_any(filenames, '', exclude):
         print(
             f'The global exclude pattern {exclude!r} does not match any files',
         )

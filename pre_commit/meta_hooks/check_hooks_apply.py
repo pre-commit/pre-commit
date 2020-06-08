@@ -11,10 +11,13 @@ from pre_commit.store import Store
 
 
 def check_all_hooks_match_files(config_file: str) -> int:
-    classifier = Classifier(git.get_all_files())
+    config = load_config(config_file)
+    classifier = Classifier.from_config(
+        git.get_all_files(), config['files'], config['exclude'],
+    )
     retv = 0
 
-    for hook in all_hooks(load_config(config_file), Store()):
+    for hook in all_hooks(config, Store()):
         if hook.always_run or hook.language == 'fail':
             continue
         elif not classifier.filenames_for_hook(hook):
