@@ -1,3 +1,11 @@
+2.5.1 - 2020-06-09
+==================
+
+### Fixes
+- Prevent infinite recursion of post-checkout on clone
+    - #1497 PR by @asottile.
+    - #1496 issue by @admorgan.
+
 2.5.0 - 2020-06-08
 ==================
 
