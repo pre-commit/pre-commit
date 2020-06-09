@@ -158,7 +158,8 @@ def init_repo(path: str, remote: str) -> None:
         remote = os.path.abspath(remote)
 
     env = no_git_env()
-    cmd_output_b('git', 'init', path, env=env)
+    # avoid the user's template so that hooks do not recurse
+    cmd_output_b('git', 'init', '--template=', path, env=env)
     cmd_output_b('git', 'remote', 'add', 'origin', remote, cwd=path, env=env)
 
 
