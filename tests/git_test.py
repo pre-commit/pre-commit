@@ -186,3 +186,8 @@ def test_no_git_env():
         'GIT_SSH': '/usr/bin/ssh',
         'GIT_SSH_COMMAND': 'ssh -o',
     }
+
+
+def test_init_repo_no_hooks(tmpdir):
+    git.init_repo(str(tmpdir), remote='dne')
+    assert not tmpdir.join('.git/hooks').exists()
