@@ -42,6 +42,10 @@ def no_git_env(_env: Optional[EnvironT] = None) -> Dict[str, str]:
     }
 
 
+def get_basename() -> str:
+    return cmd_output('basename', get_root())[1].strip()
+
+
 def get_root() -> str:
     return cmd_output('git', 'rev-parse', '--show-toplevel')[1].strip()
 
