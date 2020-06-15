@@ -1,6 +1,6 @@
+import functools
 import hashlib
 import os
-import subprocess
 from typing import Sequence
 from typing import Tuple
 
@@ -10,6 +10,7 @@ from pre_commit.languages import helpers
 from pre_commit.prefix import Prefix
 from pre_commit.util import CalledProcessError
 from pre_commit.util import clean_path_on_failure
+from pre_commit.util import cmd_output
 from pre_commit.util import cmd_output_b
 
 ENVIRONMENT_DIR = 'docker'
@@ -77,18 +78,24 @@ def install_environment(
         os.mkdir(directory)
 
 
-def get_docker_user() -> Tuple[str, ...]:  # pragma: win32 no cover
-    output = subprocess.check_output(
+@functools.lru_cache(maxsize=1)
+def docker_is_rootless() -> bool:
+    returncode, stdout, stderr = cmd_output(
         ('docker', 'system', 'info'),
-        text=True,
     )
-    for line in output.splitlines():
+    for line in stdout.splitlines():
         # rootless docker has "rootless"
         # rootless podman has "rootless: true"
         if line.strip().startswith('rootless'):
             if 'false' not in line:
-                return ()  # no -u for rootless
+                return True
             break
+    return False
+
+
+def get_docker_user() -> Tuple[str, ...]:  # pragma: win32 no cover
+    if: docker_is_rootless():
+        return ()
     try:
         return ('-u', f'{os.getuid()}:{os.getgid()}')
     except AttributeError:
