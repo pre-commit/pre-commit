@@ -78,7 +78,7 @@ def install_environment(
         os.mkdir(directory)
 
 
-def _docker_is_rootless() -> bool:
+def _docker_is_rootless() -> bool:  # pragma: win32 no cover
     returncode, stdout, stderr = cmd_output(
         'docker', 'system', 'info',
     )
@@ -93,7 +93,7 @@ def _docker_is_rootless() -> bool:
 
 
 @functools.lru_cache(maxsize=1)
-def docker_is_rootless() -> bool:
+def docker_is_rootless() -> bool:  # pragma: win32 no cover
     return _docker_is_rootless()
 
 
