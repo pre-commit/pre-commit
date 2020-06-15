@@ -38,10 +38,6 @@ skipif_cant_run_swift = pytest.mark.skipif(
     parse_shebang.find_executable('swift') is None,
     reason="swift isn't installed or can't be found",
 )
-xfailif_windows_no_ruby = pytest.mark.xfail(
-    os.name == 'nt',
-    reason='Ruby support not yet implemented on windows.',
-)
 xfailif_windows = pytest.mark.xfail(os.name == 'nt', reason='windows')
 
 
