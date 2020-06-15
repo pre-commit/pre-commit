@@ -34,7 +34,6 @@ from testing.util import get_resource_path
 from testing.util import skipif_cant_run_docker
 from testing.util import skipif_cant_run_swift
 from testing.util import xfailif_windows
-from testing.util import xfailif_windows_no_ruby
 
 
 def _norm_out(b):
@@ -260,7 +259,6 @@ def test_run_versioned_node_hook(tempdir_factory, store):
     )
 
 
-@xfailif_windows_no_ruby
 def test_run_a_ruby_hook(tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'ruby_hooks_repo',
@@ -268,7 +266,7 @@ def test_run_a_ruby_hook(tempdir_factory, store):
     )
 
 
-@xfailif_windows_no_ruby
+@xfailif_windows  # pragma: win32 no cover
 def test_run_versioned_ruby_hook(tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'ruby_versioned_hooks_repo',
@@ -278,7 +276,7 @@ def test_run_versioned_ruby_hook(tempdir_factory, store):
     )
 
 
-@xfailif_windows_no_ruby
+@xfailif_windows  # pragma: win32 no cover
 def test_run_ruby_hook_with_disable_shared_gems(
         tempdir_factory,
         store,
@@ -524,7 +522,6 @@ def test_additional_dependencies_roll_forward(tempdir_factory, store):
         assert 'mccabe' not in cmd_output('pip', 'freeze', '-l')[1]
 
 
-@xfailif_windows_no_ruby  # pragma: win32 no cover
 def test_additional_ruby_dependencies_installed(tempdir_factory, store):
     path = make_repo(tempdir_factory, 'ruby_hooks_repo')
     config = make_config_from_repo(path)
