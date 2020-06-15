@@ -87,7 +87,6 @@ def _docker_is_rootless() -> bool:
         # rootless podman has "rootless: true"
         if line.strip().startswith('rootless'):
             if 'false' not in line:
-                print(line)
                 return True
             break
     return False
