@@ -78,23 +78,28 @@ def install_environment(
         os.mkdir(directory)
 
 
-@functools.lru_cache(maxsize=1)
-def docker_is_rootless() -> bool:
+def _docker_is_rootless() -> bool:
     returncode, stdout, stderr = cmd_output(
-        ('docker', 'system', 'info'),
+        'docker', 'system', 'info',
     )
     for line in stdout.splitlines():
         # rootless docker has "rootless"
         # rootless podman has "rootless: true"
         if line.strip().startswith('rootless'):
             if 'false' not in line:
+                print(line)
                 return True
             break
     return False
 
 
+@functools.lru_cache(maxsize=1)
+def docker_is_rootless() -> bool:
+    return _docker_is_rootless()
+
+
 def get_docker_user() -> Tuple[str, ...]:  # pragma: win32 no cover
-    if: docker_is_rootless():
+    if docker_is_rootless():
         return ()
     try:
         return ('-u', f'{os.getuid()}:{os.getgid()}')

@@ -28,9 +28,9 @@ Server:
  Runtimes: runc
  Default Runtime: runc
  Init Binary: /usr/libexec/docker/docker-init
- containerd version: 
+ containerd version:
  runc version: fbdbaf85ecbc0e077f336c03062710435607dbf1
- init version: 
+ init version:
  Security Options:
   seccomp
    Profile: default
@@ -51,7 +51,7 @@ Server:
  Insecure Registries:
   127.0.0.0/8
  Live Restore Enabled: true
-'''
+'''  # noqa
 
 DOCKER_ROOTLESS_SYSTEM_INFO = '''
 Client:
@@ -99,7 +99,7 @@ Server:
   127.0.0.0/8
  Live Restore Enabled: false
  Product License: Community Engine
-'''
+'''  # noqa
 
 PODMAN_SYSTEM_INFO = '''
 host:
@@ -183,7 +183,9 @@ store:
     number: 23
   runRoot: /tmp/105971
   volumePath: /home/remote/user/.local/share/containers/storage/volumes
-'''
+'''  # noqa
+
+
 def test_docker_is_running_process_error():
     with mock.patch(
         'pre_commit.languages.docker.cmd_output_b',
@@ -204,16 +206,24 @@ def test_docker_fallback_user():
 
 
 def test_docker_is_not_rootless():
-    with mock.patch.object(docker, 'cmd_output', return_value=(0, DOCKER_NOT_ROOTLESS_SYSTEM_INFO, '')):
-        assert docker.docker_is_rootless() == False
+    with mock.patch.object(
+        docker, 'cmd_output',
+        return_value=(0, DOCKER_NOT_ROOTLESS_SYSTEM_INFO, ''),
+    ):
+        assert docker._docker_is_rootless() is False
 
 
 def test_docker_is_rootless():
-    with mock.patch.object(docker, 'cmd_output', return_value=(0, DOCKER_ROOTLESS_SYSTEM_INFO, '')):
-        assert docker.docker_is_rootless() == True
+    with mock.patch.object(
+        docker, 'cmd_output',
+        return_value=(0, DOCKER_ROOTLESS_SYSTEM_INFO, ''),
+    ):
+        assert docker._docker_is_rootless() is True
 
 
 def test_podman_is_rootless():
-    with mock.patch.object(docker, 'cmd_output', return_value=(0, PODMAN_SYSTEM_INFO, '')):
-        assert docker.docker_is_rootless() == True
-
+    with mock.patch.object(
+        docker, 'cmd_output',
+        return_value=(0, PODMAN_SYSTEM_INFO, ''),
+    ):
+        assert docker._docker_is_rootless() is True
