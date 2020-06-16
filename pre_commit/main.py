@@ -2,6 +2,7 @@ import argparse
 import logging
 import os
 import sys
+from pathlib import Path
 from typing import Any
 from typing import Optional
 from typing import Sequence
@@ -171,11 +172,17 @@ def _adjust_args_and_chdir(args: argparse.Namespace) -> None:
         else:
             os.chdir(toplevel)
 
-    args.config = os.path.relpath(args.config)
+    args.config = os.path.relpath(unc_path(args.config))
     if args.command in {'run', 'try-repo'}:
-        args.files = [os.path.relpath(filename) for filename in args.files]
-    if args.command == 'try-repo' and os.path.exists(args.repo):
-        args.repo = os.path.relpath(args.repo)
+        args.files = [
+            os.path.relpath(unc_path(filename)) for filename in args.files
+        ]
+    if args.command == 'try-repo' and os.path.exists(unc_path(args.repo)):
+        args.repo = os.path.relpath(unc_path(args.repo))
+
+
+def unc_path(file_path: str) -> str:
+    return str(Path(file_path).resolve())
 
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
