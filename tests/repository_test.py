@@ -234,6 +234,7 @@ def test_run_a_docker_image_hook(tempdir_factory, store, hook_id):
     )
 
 
+@xfailif_windows  # pragma: win32 no cover
 def test_run_a_node_hook(tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'node_hooks_repo',
