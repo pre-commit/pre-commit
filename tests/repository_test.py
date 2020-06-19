@@ -260,6 +260,14 @@ def test_run_versioned_node_hook(tempdir_factory, store):
     )
 
 
+@xfailif_windows  # pragma: win32 no cover
+def test_node_hook_with_npm_userconfig_set(tempdir_factory, store, tmpdir):
+    cfg = tmpdir.join('cfg')
+    cfg.write('cache=/dne\n')
+    with mock.patch.dict(os.environ, NPM_CONFIG_USERCONFIG=str(cfg)):
+        test_run_a_node_hook(tempdir_factory, store)
+
+
 def test_run_a_ruby_hook(tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'ruby_hooks_repo',

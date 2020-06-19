@@ -10,6 +10,7 @@ import pre_commit.constants as C
 from pre_commit import parse_shebang
 from pre_commit.envcontext import envcontext
 from pre_commit.envcontext import PatchesT
+from pre_commit.envcontext import UNSET
 from pre_commit.envcontext import Var
 from pre_commit.hook import Hook
 from pre_commit.languages import helpers
@@ -56,6 +57,8 @@ def get_env_patch(venv: str) -> PatchesT:
         ('NODE_VIRTUAL_ENV', venv),
         ('NPM_CONFIG_PREFIX', install_prefix),
         ('npm_config_prefix', install_prefix),
+        ('NPM_CONFIG_USERCONFIG', UNSET),
+        ('npm_config_userconfig', UNSET),
         ('NODE_PATH', os.path.join(venv, lib_dir, 'node_modules')),
         ('PATH', (bin_dir(venv), os.pathsep, Var('PATH'))),
     )
