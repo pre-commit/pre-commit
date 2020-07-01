@@ -1,3 +1,18 @@
+2.6.0 - 2020-07-01
+==================
+
+### Fixes
+- Fix node hooks when `NPM_CONFIG_USERCONFIG` is set
+    - #1521 PR by @asottile.
+    - #1516 issue by @rkm.
+
+### Features
+- Skip `rbenv` / `ruby-download` if system ruby is available
+    - #1509 PR by @asottile.
+- Partial support for ruby on windows (if system ruby is installed)
+    - #1509 PR by @asottile.
+    - #201 issue by @asottile.
+
 2.5.1 - 2020-06-09
 ==================
 
