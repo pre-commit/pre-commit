@@ -82,6 +82,12 @@ def _hook_install(hook: Hook) -> None:
     lang.install_environment(
         hook.prefix, hook.language_version, hook.additional_dependencies,
     )
+    if not lang.healthy(hook.prefix, hook.language_version):
+        raise AssertionError(
+            f'BUG: expected environment for {hook.language} to be healthy() '
+            f'immediately after install, please open an issue describing '
+            f'your environment',
+        )
     # Write our state to indicate we're installed
     _write_state(hook.prefix, venv, _state(hook.additional_dependencies))
 
