@@ -1,6 +1,8 @@
 import os.path
 from unittest import mock
 
+import pytest
+
 import pre_commit.constants as C
 from pre_commit.commands.init_templatedir import init_templatedir
 from pre_commit.envcontext import envcontext
@@ -90,3 +92,49 @@ def test_init_templatedir_hookspath_set(tmpdir, tempdir_factory, store):
             C.CONFIG_FILE, store, target, hook_types=['pre-commit'],
         )
     assert target.join('hooks/pre-commit').exists()
+
+
+@pytest.mark.parametrize(
+    ('skip', 'commit_retcode', 'commit_output_snippet'),
+    (
+        (True, 0, 'Skipping `pre-commit`.'),
+        (False, 1, f'No {C.CONFIG_FILE} file was found'),
+    ),
+)
+def test_init_templatedir_skip_on_missing_config(
+    tmpdir,
+    tempdir_factory,
+    store,
+    cap_out,
+    skip,
+    commit_retcode,
+    commit_output_snippet,
+):
+    target = str(tmpdir.join('tmpl'))
+    init_git_dir = git_dir(tempdir_factory)
+    with cwd(init_git_dir):
+        cmd_output('git', 'config', 'init.templateDir', target)
+        init_templatedir(
+            C.CONFIG_FILE,
+            store,
+            target,
+            hook_types=['pre-commit'],
+            skip_on_missing_config=skip,
+        )
+
+    lines = cap_out.get().splitlines()
+    assert len(lines) == 1
+    assert lines[0].startswith('pre-commit installed at')
+
+    with envcontext((('GIT_TEMPLATE_DIR', target),)):
+        verify_git_dir = git_dir(tempdir_factory)
+
+    with cwd(verify_git_dir):
+        retcode, output = git_commit(
+            fn=cmd_output_mocked_pre_commit_home,
+            tempdir_factory=tempdir_factory,
+            retcode=None,
+        )
+
+        assert retcode == commit_retcode
+        assert commit_output_snippet in output
