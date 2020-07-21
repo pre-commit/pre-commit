@@ -245,6 +245,12 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     init_templatedir_parser.add_argument(
         'directory', help='The directory in which to write the hook script.',
     )
+    init_templatedir_parser.add_argument(
+        '--no-allow-missing-config',
+        action='store_false',
+        dest='allow_missing_config',
+        help='Assume cloned repos should have a `pre-commit` config.',
+    )
     _add_hook_type_option(init_templatedir_parser)
 
     install_parser = subparsers.add_parser(
@@ -383,6 +389,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             return init_templatedir(
                 args.config, store, args.directory,
                 hook_types=args.hook_types,
+                skip_on_missing_config=args.allow_missing_config,
             )
         elif args.command == 'install-hooks':
             return install_hooks(args.config, store)

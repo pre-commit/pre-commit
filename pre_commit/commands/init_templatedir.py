@@ -15,10 +15,15 @@ def init_templatedir(
         store: Store,
         directory: str,
         hook_types: Sequence[str],
+        skip_on_missing_config: bool = True,
 ) -> int:
     install(
-        config_file, store, hook_types=hook_types,
-        overwrite=True, skip_on_missing_config=True, git_dir=directory,
+        config_file,
+        store,
+        hook_types=hook_types,
+        overwrite=True,
+        skip_on_missing_config=skip_on_missing_config,
+        git_dir=directory,
     )
     try:
         _, out, _ = cmd_output('git', 'config', 'init.templateDir')
