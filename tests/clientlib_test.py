@@ -30,6 +30,10 @@ def test_check_type_tag_failures(value):
         check_type_tag(value)
 
 
+def test_check_type_tag_success():
+    check_type_tag('file')
+
+
 @pytest.mark.parametrize(
     ('config_obj', 'expected'), (
         (
@@ -110,15 +114,18 @@ def test_validate_config_main_ok():
     assert not validate_config_main(('.pre-commit-config.yaml',))
 
 
-def test_validate_config_old_list_format_ok(tmpdir):
+def test_validate_config_old_list_format_ok(tmpdir, cap_out):
     f = tmpdir.join('cfg.yaml')
     f.write('-  {repo: meta, hooks: [{id: identity}]}')
     assert not validate_config_main((f.strpath,))
+    start = '[WARNING] normalizing pre-commit configuration to a top-level map'
+    assert cap_out.get().startswith(start)
 
 
 def test_validate_warn_on_unknown_keys_at_repo_level(tmpdir, caplog):
     f = tmpdir.join('cfg.yaml')
     f.write(
+        'repos:\n'
         '-   repo: https://gitlab.com/pycqa/flake8\n'
         '    rev: 3.7.7\n'
         '    hooks:\n'

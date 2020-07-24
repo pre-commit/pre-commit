@@ -8,8 +8,8 @@ from typing import Sequence
 from typing import Union
 
 import pre_commit.constants as C
-from pre_commit import color
 from pre_commit import git
+from pre_commit.color import add_color_option
 from pre_commit.commands.autoupdate import autoupdate
 from pre_commit.commands.clean import clean
 from pre_commit.commands.gc import gc
@@ -39,15 +39,6 @@ os.environ.pop('__PYVENV_LAUNCHER__', None)
 
 
 COMMANDS_NO_GIT = {'clean', 'gc', 'init-templatedir', 'sample-config'}
-
-
-def _add_color_option(parser: argparse.ArgumentParser) -> None:
-    parser.add_argument(
-        '--color', default=os.environ.get('PRE_COMMIT_COLOR', 'auto'),
-        type=color.use_color,
-        metavar='{' + ','.join(color.COLOR_CHOICES) + '}',
-        help='Whether to use color in output.  Defaults to `%(default)s`.',
-    )
 
 
 def _add_config_option(parser: argparse.ArgumentParser) -> None:
@@ -195,7 +186,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         'autoupdate',
         help="Auto-update pre-commit config to the latest repos' versions.",
     )
-    _add_color_option(autoupdate_parser)
+    add_color_option(autoupdate_parser)
     _add_config_option(autoupdate_parser)
     autoupdate_parser.add_argument(
         '--bleeding-edge', action='store_true',
@@ -216,11 +207,11 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     clean_parser = subparsers.add_parser(
         'clean', help='Clean out pre-commit files.',
     )
-    _add_color_option(clean_parser)
+    add_color_option(clean_parser)
     _add_config_option(clean_parser)
 
     hook_impl_parser = subparsers.add_parser('hook-impl')
-    _add_color_option(hook_impl_parser)
+    add_color_option(hook_impl_parser)
     _add_config_option(hook_impl_parser)
     hook_impl_parser.add_argument('--hook-type')
     hook_impl_parser.add_argument('--hook-dir')
@@ -230,7 +221,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     hook_impl_parser.add_argument(dest='rest', nargs=argparse.REMAINDER)
 
     gc_parser = subparsers.add_parser('gc', help='Clean unused cached repos.')
-    _add_color_option(gc_parser)
+    add_color_option(gc_parser)
     _add_config_option(gc_parser)
 
     init_templatedir_parser = subparsers.add_parser(
@@ -240,7 +231,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             '`git config init.templateDir`.'
         ),
     )
-    _add_color_option(init_templatedir_parser)
+    add_color_option(init_templatedir_parser)
     _add_config_option(init_templatedir_parser)
     init_templatedir_parser.add_argument(
         'directory', help='The directory in which to write the hook script.',
@@ -256,7 +247,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     install_parser = subparsers.add_parser(
         'install', help='Install the pre-commit script.',
     )
-    _add_color_option(install_parser)
+    add_color_option(install_parser)
     _add_config_option(install_parser)
     install_parser.add_argument(
         '-f', '--overwrite', action='store_true',
@@ -286,32 +277,32 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             'useful.'
         ),
     )
-    _add_color_option(install_hooks_parser)
+    add_color_option(install_hooks_parser)
     _add_config_option(install_hooks_parser)
 
     migrate_config_parser = subparsers.add_parser(
         'migrate-config',
         help='Migrate list configuration to new map configuration.',
     )
-    _add_color_option(migrate_config_parser)
+    add_color_option(migrate_config_parser)
     _add_config_option(migrate_config_parser)
 
     run_parser = subparsers.add_parser('run', help='Run hooks.')
-    _add_color_option(run_parser)
+    add_color_option(run_parser)
     _add_config_option(run_parser)
     _add_run_options(run_parser)
 
     sample_config_parser = subparsers.add_parser(
         'sample-config', help=f'Produce a sample {C.CONFIG_FILE} file',
     )
-    _add_color_option(sample_config_parser)
+    add_color_option(sample_config_parser)
     _add_config_option(sample_config_parser)
 
     try_repo_parser = subparsers.add_parser(
         'try-repo',
         help='Try the hooks in a repository, useful for developing new hooks.',
     )
-    _add_color_option(try_repo_parser)
+    add_color_option(try_repo_parser)
     _add_config_option(try_repo_parser)
     try_repo_parser.add_argument(
         'repo', help='Repository to source hooks from.',
@@ -328,7 +319,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     uninstall_parser = subparsers.add_parser(
         'uninstall', help='Uninstall the pre-commit script.',
     )
-    _add_color_option(uninstall_parser)
+    add_color_option(uninstall_parser)
     _add_config_option(uninstall_parser)
     _add_hook_type_option(uninstall_parser)
 
