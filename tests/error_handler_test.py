@@ -1,13 +1,16 @@
 import os.path
 import re
+import stat
 import sys
 from unittest import mock
 
 import pytest
 
 from pre_commit import error_handler
+from pre_commit.store import Store
 from pre_commit.util import CalledProcessError
 from testing.util import cmd_output_mocked_pre_commit_home
+from testing.util import xfailif_windows
 
 
 @pytest.fixture
@@ -168,3 +171,29 @@ def test_error_handler_no_tty(tempdir_factory):
     out_lines = out.splitlines()
     assert out_lines[-2] == 'An unexpected error has occurred: ValueError: ☃'
     assert out_lines[-1] == f'Check the log at {log_file}'
+
+
+@xfailif_windows  # pragma: win32 no cover
+def test_error_handler_read_only_filesystem(mock_store_dir, cap_out, capsys):
+    # a better scenario would be if even the Store crash would be handled
+    # but realistically we're only targetting systems where the Store has
+    # already been set up
+    Store()
+
+    write = (stat.S_IWGRP | stat.S_IWOTH | stat.S_IWUSR)
+    os.chmod(mock_store_dir, os.stat(mock_store_dir).st_mode & ~write)
+
+    with pytest.raises(SystemExit):
+        with error_handler.error_handler():
+            raise ValueError('ohai')
+
+    output = cap_out.get()
+    assert output.startswith(
+        'An unexpected error has occurred: ValueError: ohai\n'
+        'Failed to write to log at ',
+    )
+
+    # our cap_out mock is imperfect so the rest of the output goes to capsys
+    out, _ = capsys.readouterr()
+    # the things that normally go to the log file will end up here
+    assert '### version information' in out
