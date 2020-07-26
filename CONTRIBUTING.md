@@ -1,6 +1,6 @@
-# Contributing
+ Contributing
 
-## Local development
+Local development
 
 - The complete test suite depends on having at least the following installed
   (possibly not a complete list)
@@ -15,7 +15,7 @@
   - go (required by tests for go dependencies)
   - swift
 
-### Setting up an environment
+ Setting up an environment
 
 This is useful for running specific tests.  The easiest way to set this up
 is to run:
@@ -28,12 +28,12 @@ This will create and put you into a virtualenv which has an editable
 installation of pre-commit.  Hack away!  Running `pre-commit` will reflect
 your changes immediately.
 
-### Running a specific test
+ Running a specific test
 
 Running a specific test with the environment activated is as easy as:
 `pytest tests -k test_the_name_of_your_test`
 
-### Running all the tests
+ Running all the tests
 
 Running all the tests can be done by running `tox -e py37` (or your
 interpreter version of choice).  These often take a long time and consume
@@ -43,18 +43,18 @@ Alternatively, with the environment activated you can run all of the tests
 using:
 `pytest tests`
 
-### Setting up the hooks
+ Setting up the hooks
 
 With the environment activated simply run `pre-commit install`.
 
-## Documentation
+ Documentation
 
 Documentation is hosted at https://pre-commit.com
 
 This website is controlled through
 https://github.com/pre-commit/pre-commit.github.io
 
-## Adding support for a new hook language
+ Adding support for a new hook language
 
 pre-commit already supports many [programming languages](https://pre-commit.com/#supported-languages)
 to write hook executables with.
@@ -89,13 +89,13 @@ language, for example:
 - [fail](https://github.com/pre-commit/pre-commit/pull/812)
 - [swift](https://github.com/pre-commit/pre-commit/pull/467)
 
-### `language` api
+`language` api
 
 here are the apis that should be implemented for a language
 
 Note that these are also documented in [`pre_commit/languages/all.py`](https://github.com/pre-commit/pre-commit/blob/master/pre_commit/languages/all.py)
 
-#### `ENVIRONMENT_DIR`
+ `ENVIRONMENT_DIR`
 
 a short string which will be used for the prefix of where packages will be
 installed.  For example, python uses `py_env` and installs a `virtualenv` at
@@ -104,7 +104,7 @@ that location.
 this will be `None` for 0th / 3rd class languages as they don't have an install
 step.
 
-#### `get_default_version`
+ `get_default_version`
 
 This is used to retrieve the default `language_version` for a language.  If
 one cannot be determined, return `'default'`.
@@ -117,7 +117,7 @@ get_default_version = helpers.basic_default_version
 
 `python` is currently the only language which implements this api
 
-#### `healthy`
+ `healthy`
 
 This is used to check whether the installed environment is considered healthy.
 This function should return `True` or `False`.
@@ -131,7 +131,7 @@ healthy = helpers.basic_healthy
 `python` is currently the only language which implements this api, for python
 it is checking whether some common dlls are still available.
 
-#### `install_environment`
+ `install_environment`
 
 this is the trickiest one to implement and where all the smart parts happen.
 
@@ -143,7 +143,7 @@ this api should do the following things
 - (2nd class, optional): install packages listed in `additional_dependencies`
   into `ENVIRONMENT_DIR` (not a required feature for a first pass)
 
-#### `run_hook`
+ `run_hook`
 
 This is usually the easiest to implement, most of them look the same as the
 `node` hook implementation:
