@@ -140,30 +140,32 @@ def _run_single_hook(
     filenames = classifier.filenames_for_hook(hook)
 
     if hook.id in skips or hook.alias in skips:
-        output.write(
-            _full_msg(
-                start=hook.name,
-                end_msg=SKIPPED,
-                end_color=color.YELLOW,
-                use_color=use_color,
-                cols=cols,
-            ),
-        )
+        if verbose:
+            output.write(
+                _full_msg(
+                    start=hook.name,
+                    end_msg=SKIPPED,
+                    end_color=color.YELLOW,
+                    use_color=use_color,
+                    cols=cols,
+                ),
+            )
         duration = None
         retcode = 0
         files_modified = False
         out = b''
     elif not filenames and not hook.always_run:
-        output.write(
-            _full_msg(
-                start=hook.name,
-                postfix=NO_FILES,
-                end_msg=SKIPPED,
-                end_color=color.TURQUOISE,
-                use_color=use_color,
-                cols=cols,
-            ),
-        )
+        if verbose:
+            output.write(
+                _full_msg(
+                    start=hook.name,
+                    postfix=NO_FILES,
+                    end_msg=SKIPPED,
+                    end_color=color.TURQUOISE,
+                    use_color=use_color,
+                    cols=cols,
+                ),
+            )
         duration = None
         retcode = 0
         files_modified = False
