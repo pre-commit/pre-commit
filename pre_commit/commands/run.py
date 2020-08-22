@@ -298,6 +298,12 @@ def _run_hooks(
         retval |= current_retval
         if retval and config['fail_fast']:
             break
+    if (args.quiet or args.verbose) and not retval:
+        # Do not want success with --quiet to be absolutely silent
+        # (would not know if any checks have been made at all)
+        output.write_line(
+            f'All {len(hooks)} pre-commit hook(s) passed or skipped',
+        )
     if retval and args.show_diff_on_failure and prior_diff:
         if args.all_files:
             output.write_line(
