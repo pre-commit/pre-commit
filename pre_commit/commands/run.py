@@ -123,6 +123,7 @@ def _get_skips(environ: EnvironT) -> Set[str]:
 
 SKIPPED = 'Skipped'
 NO_FILES = '(no files to check)'
+FAILED = 'Failed'
 
 
 def _subtle_line(s: str, use_color: bool) -> None:
@@ -176,7 +177,8 @@ def _run_single_hook(
         out = b''
     else:
         # print hook and dots first in case the hook takes a while to run
-        output.write(_start_msg(start=hook.name, end_len=6, cols=cols))
+        if not quiet:
+            output.write(_start_msg(start=hook.name, end_len=6, cols=cols))
 
         if not hook.pass_filenames:
             filenames = ()
@@ -189,16 +191,32 @@ def _run_single_hook(
         # if the hook makes changes, fail the commit
         files_modified = diff_before != diff_after
 
-        if retcode or files_modified:
-            print_color = color.RED
-            status = 'Failed'
-        else:
-            print_color = color.GREEN
-            status = 'Passed'
-
-        output.write_line(color.format_color(status, print_color, use_color))
+        if not quiet:
+            # Finish the partial line of output...
+            if retcode or files_modified:
+                print_color = color.RED
+                status = FAILED
+            else:
+                print_color = color.GREEN
+                status = 'Passed'
+            output.write_line(
+                color.format_color(status, print_color, use_color),
+            )
 
     if verbose or hook.verbose or retcode or files_modified:
+        if quiet:
+            # Normal would have written this in two stages:
+            output.write(
+                _full_msg(
+                    start=hook.name,
+                    postfix=NO_FILES,
+                    end_msg=FAILED,
+                    end_color=color.RED,
+                    use_color=use_color,
+                    cols=cols,
+                ),
+            )
+
         _subtle_line(f'- hook id: {hook.id}', use_color)
 
         if (verbose or hook.verbose) and duration is not None:
