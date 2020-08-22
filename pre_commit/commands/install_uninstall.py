@@ -77,6 +77,7 @@ def _install_hook_script(
         config_file: str,
         hook_type: str,
         overwrite: bool = False,
+        quiet: bool = False,
         skip_on_missing_config: bool = False,
         git_dir: Optional[str] = None,
 ) -> None:
@@ -98,6 +99,8 @@ def _install_hook_script(
         )
 
     args = ['hook-impl', f'--config={config_file}', f'--hook-type={hook_type}']
+    if quiet:
+        args.append('--quiet')
     if skip_on_missing_config:
         args.append('--skip-on-missing-config')
     params = {'INSTALL_PYTHON': sys.executable, 'ARGS': args}
@@ -125,6 +128,7 @@ def install(
         hook_types: Sequence[str],
         overwrite: bool = False,
         hooks: bool = False,
+        quiet: bool = False,
         skip_on_missing_config: bool = False,
         git_dir: Optional[str] = None,
 ) -> int:
@@ -139,6 +143,7 @@ def install(
         _install_hook_script(
             config_file, hook_type,
             overwrite=overwrite,
+            quiet=quiet,
             skip_on_missing_config=skip_on_missing_config,
             git_dir=git_dir,
         )

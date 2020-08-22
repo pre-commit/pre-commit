@@ -223,7 +223,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         '--skip-on-missing-config', action='store_true',
     )
     hook_impl_parser.add_argument(
-        '--quiet', action='store_true', default=False,
+        '--quiet', '-q', action='store_true', default=False,
         help='Enable quiet mode (in post-commit, pre-merge-commit, '
         'pre-commit hooks).',
     )
@@ -270,6 +270,10 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         ),
     )
     _add_hook_type_option(install_parser)
+    install_parser.add_argument(
+        '--quiet', '-q', action='store_true', default=False,
+        help='Write hook script using quiet mode.',
+    )
     install_parser.add_argument(
         '--allow-missing-config', action='store_true', default=False,
         help=(
@@ -384,6 +388,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                 hook_types=args.hook_types,
                 overwrite=args.overwrite,
                 hooks=args.install_hooks,
+                quiet=args.quiet,
                 skip_on_missing_config=args.allow_missing_config,
             )
         elif args.command == 'init-templatedir':
