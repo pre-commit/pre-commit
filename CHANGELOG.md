@@ -1,3 +1,26 @@
+2.7.0 - 2020-08-22
+==================
+
+### Features
+- Produce error message if an environment is immediately unhealthy
+    - #1535 PR by @asottile.
+- Add --no-allow-missing-config option to init-templatedir
+    - #1539 PR by @singergr.
+- Add warning for old list-style configuration
+    - #1544 PR by @asottile.
+- Allow pre-commit to succeed on a readonly store.
+    - #1570 PR by @asottile.
+    - #1536 issue by @asottile.
+
+### Fixes
+- Fix error messaging when the store directory is readonly
+    - #1546 PR by @asottile.
+    - #1536 issue by @asottile.
+- Improve `diff` performance with many hooks
+    - #1566 PR by @jhenkens.
+    - #1564 issue by @jhenkens.
+
+
 2.6.0 - 2020-07-01
 ==================
 
