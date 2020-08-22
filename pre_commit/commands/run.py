@@ -134,9 +134,10 @@ def _run_single_hook(
         hook: Hook,
         skips: Set[str],
         cols: int,
+        diff_before: bytes,
         verbose: bool,
         use_color: bool,
-) -> bool:
+) -> Tuple[bool, bytes]:
     filenames = classifier.filenames_for_hook(hook)
 
     if hook.id in skips or hook.alias in skips:
@@ -151,6 +152,7 @@ def _run_single_hook(
         )
         duration = None
         retcode = 0
+        diff_after = diff_before
         files_modified = False
         out = b''
     elif not filenames and not hook.always_run:
@@ -166,21 +168,20 @@ def _run_single_hook(
         )
         duration = None
         retcode = 0
+        diff_after = diff_before
         files_modified = False
         out = b''
     else:
         # print hook and dots first in case the hook takes a while to run
         output.write(_start_msg(start=hook.name, end_len=6, cols=cols))
 
-        diff_cmd = ('git', 'diff', '--no-ext-diff')
-        diff_before = cmd_output_b(*diff_cmd, retcode=None)
         if not hook.pass_filenames:
             filenames = ()
         time_before = time.time()
         language = languages[hook.language]
         retcode, out = language.run_hook(hook, filenames, use_color)
         duration = round(time.time() - time_before, 2) or 0
-        diff_after = cmd_output_b(*diff_cmd, retcode=None)
+        diff_after = _get_diff()
 
         # if the hook makes changes, fail the commit
         files_modified = diff_before != diff_after
@@ -212,7 +213,7 @@ def _run_single_hook(
             output.write_line_b(out.strip(), logfile_name=hook.log_file)
             output.write_line()
 
-    return files_modified or bool(retcode)
+    return files_modified or bool(retcode), diff_after
 
 
 def _compute_cols(hooks: Sequence[Hook]) -> int:
@@ -248,6 +249,11 @@ def _all_filenames(args: argparse.Namespace) -> Collection[str]:
         return git.get_staged_files()
 
 
+def _get_diff() -> bytes:
+    _, out, _ = cmd_output_b('git', 'diff', '--no-ext-diff', retcode=None)
+    return out
+
+
 def _run_hooks(
         config: Dict[str, Any],
         hooks: Sequence[Hook],
@@ -261,14 +267,16 @@ def _run_hooks(
         _all_filenames(args), config['files'], config['exclude'],
     )
     retval = 0
+    prior_diff = _get_diff()
     for hook in hooks:
-        retval |= _run_single_hook(
-            classifier, hook, skips, cols,
+        current_retval, prior_diff = _run_single_hook(
+            classifier, hook, skips, cols, prior_diff,
             verbose=args.verbose, use_color=args.color,
         )
+        retval |= current_retval
         if retval and config['fail_fast']:
             break
-    if retval and args.show_diff_on_failure and git.has_diff():
+    if retval and args.show_diff_on_failure and prior_diff:
         if args.all_files:
             output.write_line(
                 'pre-commit hook(s) made changes.\n'
