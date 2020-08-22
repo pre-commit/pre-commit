@@ -1,3 +1,4 @@
+import functools
 import hashlib
 import os
 from typing import Sequence
@@ -26,6 +27,7 @@ def docker_tag(prefix: Prefix) -> str:  # pragma: win32 no cover
     return f'pre-commit-{md5sum}'
 
 
+@functools.lru_cache(maxsize=1)
 def docker_is_running() -> bool:  # pragma: win32 no cover
     try:
         cmd_output_b('docker', 'ps')
