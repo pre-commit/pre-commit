@@ -5,12 +5,11 @@ from pre_commit.util import CalledProcessError
 
 
 def test_docker_is_running_process_error():
-    docker.docker_is_running.cache_clear()
     with mock.patch(
         'pre_commit.languages.docker.cmd_output_b',
         side_effect=CalledProcessError(1, (), 0, b'', None),
     ):
-        assert docker.docker_is_running() is False
+        assert docker.docker_is_running.__wrapped__() is False
 
 
 def test_docker_fallback_user():
