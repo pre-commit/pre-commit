@@ -136,14 +136,16 @@ def test_check_args_length_prepare_commit_msg_error():
 
 
 def test_run_ns_pre_commit():
-    ns = hook_impl._run_ns('pre-commit', True, (), b'')
+    ns = hook_impl._run_ns('pre-commit', True, False, (), b'')
     assert ns is not None
     assert ns.hook_stage == 'commit'
     assert ns.color is True
 
 
 def test_run_ns_commit_msg():
-    ns = hook_impl._run_ns('commit-msg', False, ('.git/COMMIT_MSG',), b'')
+    ns = hook_impl._run_ns(
+        'commit-msg', False, False, ('.git/COMMIT_MSG',), b'',
+    )
     assert ns is not None
     assert ns.hook_stage == 'commit-msg'
     assert ns.color is False
@@ -151,14 +153,14 @@ def test_run_ns_commit_msg():
 
 
 def test_run_ns_post_commit():
-    ns = hook_impl._run_ns('post-commit', True, (), b'')
+    ns = hook_impl._run_ns('post-commit', True, False, (), b'')
     assert ns is not None
     assert ns.hook_stage == 'post-commit'
     assert ns.color is True
 
 
 def test_run_ns_post_checkout():
-    ns = hook_impl._run_ns('post-checkout', True, ('a', 'b', 'c'), b'')
+    ns = hook_impl._run_ns('post-checkout', True, False, ('a', 'b', 'c'), b'')
     assert ns is not None
     assert ns.hook_stage == 'post-checkout'
     assert ns.color is True
@@ -186,7 +188,7 @@ def test_run_ns_pre_push_updating_branch(push_example):
     with cwd(clone):
         args = ('origin', src)
         stdin = f'HEAD {clone_head} refs/heads/b {src_head}\n'.encode()
-        ns = hook_impl._run_ns('pre-push', False, args, stdin)
+        ns = hook_impl._run_ns('pre-push', False, False, args, stdin)
 
     assert ns is not None
     assert ns.hook_stage == 'push'
@@ -204,7 +206,7 @@ def test_run_ns_pre_push_new_branch(push_example):
     with cwd(clone):
         args = ('origin', src)
         stdin = f'HEAD {clone_head} refs/heads/b {hook_impl.Z40}\n'.encode()
-        ns = hook_impl._run_ns('pre-push', False, args, stdin)
+        ns = hook_impl._run_ns('pre-push', False, False, args, stdin)
 
     assert ns is not None
     assert ns.from_ref == src_head
@@ -217,7 +219,7 @@ def test_run_ns_pre_push_new_branch_existing_rev(push_example):
     with cwd(clone):
         args = ('origin', src)
         stdin = f'HEAD {src_head} refs/heads/b2 {hook_impl.Z40}\n'.encode()
-        ns = hook_impl._run_ns('pre-push', False, args, stdin)
+        ns = hook_impl._run_ns('pre-push', False, False, args, stdin)
 
     assert ns is None
 
@@ -232,7 +234,7 @@ def test_pushing_orphan_branch(push_example):
     with cwd(clone):
         args = ('origin', src)
         stdin = f'HEAD {clone_rev} refs/heads/b2 {hook_impl.Z40}\n'.encode()
-        ns = hook_impl._run_ns('pre-push', False, args, stdin)
+        ns = hook_impl._run_ns('pre-push', False, False, args, stdin)
 
     assert ns is not None
     assert ns.all_files is True
@@ -244,7 +246,7 @@ def test_run_ns_pre_push_deleting_branch(push_example):
     with cwd(clone):
         args = ('origin', src)
         stdin = f'(delete) {hook_impl.Z40} refs/heads/b {src_head}'.encode()
-        ns = hook_impl._run_ns('pre-push', False, args, stdin)
+        ns = hook_impl._run_ns('pre-push', False, False, args, stdin)
 
     assert ns is None
 
@@ -262,6 +264,7 @@ def test_hook_impl_main_noop_pre_push(cap_out, store, push_example):
                 color=False,
                 hook_type='pre-push',
                 hook_dir='.git/hooks',
+                quiet=False,
                 skip_on_missing_config=False,
                 args=('origin', src),
             )
@@ -278,6 +281,7 @@ def test_hook_impl_main_runs_hooks(cap_out, tempdir_factory, store):
             color=False,
             hook_type='pre-commit',
             hook_dir='.git/hooks',
+            quiet=False,
             skip_on_missing_config=False,
             args=(),
         )

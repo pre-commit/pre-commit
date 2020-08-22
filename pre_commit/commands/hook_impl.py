@@ -75,6 +75,7 @@ def _ns(
         remote_url: Optional[str] = None,
         commit_msg_filename: Optional[str] = None,
         checkout_type: Optional[str] = None,
+        quiet: bool = False,
 ) -> argparse.Namespace:
     return argparse.Namespace(
         color=color,
@@ -89,7 +90,7 @@ def _ns(
         files=(),
         hook=None,
         verbose=False,
-        quiet=False,
+        quiet=quiet,
         show_diff_on_failure=False,
     )
 
@@ -180,6 +181,7 @@ def _check_args_length(hook_type: str, args: Sequence[str]) -> None:
 def _run_ns(
         hook_type: str,
         color: bool,
+        quiet: bool,
         args: Sequence[str],
         stdin: bytes,
 ) -> Optional[argparse.Namespace]:
@@ -189,7 +191,7 @@ def _run_ns(
     elif hook_type in {'commit-msg', 'prepare-commit-msg'}:
         return _ns(hook_type, color, commit_msg_filename=args[0])
     elif hook_type in {'post-commit', 'pre-merge-commit', 'pre-commit'}:
-        return _ns(hook_type, color)
+        return _ns(hook_type, color, quiet=quiet)
     elif hook_type == 'post-checkout':
         return _ns(
             hook_type, color,
@@ -207,11 +209,12 @@ def hook_impl(
         hook_type: str,
         hook_dir: str,
         skip_on_missing_config: bool,
+        quiet: bool,
         args: Sequence[str],
 ) -> int:
     retv, stdin = _run_legacy(hook_type, hook_dir, args)
     _validate_config(retv, config, skip_on_missing_config)
-    ns = _run_ns(hook_type, color, args, stdin)
+    ns = _run_ns(hook_type, color, quiet, args, stdin)
     if ns is None:
         return retv
     else:

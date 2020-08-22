@@ -222,6 +222,11 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     hook_impl_parser.add_argument(
         '--skip-on-missing-config', action='store_true',
     )
+    hook_impl_parser.add_argument(
+        '--quiet', action='store_true', default=False,
+        help='Enable quiet mode (in post-commit, pre-merge-commit, '
+        'pre-commit hooks).',
+    )
     hook_impl_parser.add_argument(dest='rest', nargs=argparse.REMAINDER)
 
     gc_parser = subparsers.add_parser('gc', help='Clean unused cached repos.')
@@ -370,6 +375,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                 hook_type=args.hook_type,
                 hook_dir=args.hook_dir,
                 skip_on_missing_config=args.skip_on_missing_config,
+                quiet=args.quiet,
                 args=args.rest[1:],
             )
         elif args.command == 'install':
