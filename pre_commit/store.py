@@ -43,6 +43,10 @@ class Store:
     def __init__(self, directory: Optional[str] = None) -> None:
         self.directory = directory or Store.get_default_directory()
         self.db_path = os.path.join(self.directory, 'db.db')
+        self.readonly = (
+            os.path.exists(self.directory) and
+            not os.access(self.directory, os.W_OK)
+        )
 
         if not os.path.exists(self.directory):
             os.makedirs(self.directory, exist_ok=True)
@@ -218,6 +222,8 @@ class Store:
         )
 
     def mark_config_used(self, path: str) -> None:
+        if self.readonly:  # pragma: win32 no cover
+            return
         path = os.path.realpath(path)
         # don't insert config files that do not exist
         if not os.path.exists(path):
