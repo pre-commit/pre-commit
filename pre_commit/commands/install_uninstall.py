@@ -165,7 +165,7 @@ def _uninstall_hook_script(hook_type: str) -> None:
     output.write_line(f'{hook_type} uninstalled')
 
     if os.path.exists(legacy_path):
-        os.rename(legacy_path, hook_path)
+        os.replace(legacy_path, hook_path)
         output.write_line(f'Restored previous hooks to {hook_path}')
 
 

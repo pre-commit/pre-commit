@@ -79,7 +79,7 @@ class Store:
                 self._create_config_table(db)
 
             # Atomic file move
-            os.rename(tmpfile, self.db_path)
+            os.replace(tmpfile, self.db_path)
 
     @contextlib.contextmanager
     def exclusive_lock(self) -> Generator[None, None, None]:
