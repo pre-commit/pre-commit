@@ -5,12 +5,22 @@ import subprocess
 import pytest
 
 from pre_commit import parse_shebang
-from pre_commit.languages.docker import docker_is_running
+from pre_commit.util import CalledProcessError
 from pre_commit.util import cmd_output
+from pre_commit.util import cmd_output_b
 from testing.auto_namedtuple import auto_namedtuple
 
 
 TESTING_DIR = os.path.abspath(os.path.dirname(__file__))
+
+
+def docker_is_running() -> bool:  # pragma: win32 no cover
+    try:
+        cmd_output_b('docker', 'ps')
+    except CalledProcessError:  # pragma: no cover
+        return False
+    else:
+        return True
 
 
 def get_resource_path(path):
