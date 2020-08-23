@@ -1,3 +1,17 @@
+2.7.1 - 2020-08-23
+==================
+
+### Fixes
+- Improve performance of docker hooks by removing slow `ps` call
+    - #1572 PR by @rkm.
+    - #1569 issue by @asottile.
+- Fix un-`healthy()` invalidation followed by install being reported as
+  un-`healthy()`.
+    - #1576 PR by @asottile.
+    - #1575 issue by @jab.
+- Fix rare file race condition on windows with `os.replace()`
+    - #1577 PR by @asottile.
+
 2.7.0 - 2020-08-22
 ==================
 
