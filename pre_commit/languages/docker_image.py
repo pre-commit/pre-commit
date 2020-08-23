@@ -3,7 +3,6 @@ from typing import Tuple
 
 from pre_commit.hook import Hook
 from pre_commit.languages import helpers
-from pre_commit.languages.docker import assert_docker_available
 from pre_commit.languages.docker import docker_cmd
 
 ENVIRONMENT_DIR = None
@@ -17,6 +16,5 @@ def run_hook(
         file_args: Sequence[str],
         color: bool,
 ) -> Tuple[int, bytes]:  # pragma: win32 no cover
-    assert_docker_available()
     cmd = docker_cmd() + hook.cmd
     return helpers.run_xargs(hook, cmd, file_args, color=color)
