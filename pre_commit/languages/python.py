@@ -191,7 +191,8 @@ def healthy(prefix: Prefix, language_version: str) -> bool:
 
     return (
         'version_info' in cfg and
-        _version_info(py_exe) == cfg['version_info'] and (
+        # always use uncached lookup here in case we replaced an unhealthy env
+        _version_info.__wrapped__(py_exe) == cfg['version_info'] and (
             'base-executable' not in cfg or
             _version_info(cfg['base-executable']) == cfg['version_info']
         )
