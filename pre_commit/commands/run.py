@@ -142,16 +142,16 @@ def _run_single_hook(
     filenames = classifier.filenames_for_hook(hook)
 
     if hook.id in skips or hook.alias in skips:
-        if not quiet:
-            output.write(
-                _full_msg(
-                    start=hook.name,
-                    end_msg=SKIPPED,
-                    end_color=color.YELLOW,
-                    use_color=use_color,
-                    cols=cols,
-                ),
-            )
+        # The user specified to skip this, ignore quiet mode
+        output.write(
+            _full_msg(
+                start=hook.name,
+                end_msg=SKIPPED,
+                end_color=color.YELLOW,
+                use_color=use_color,
+                cols=cols,
+            ),
+        )
         duration = None
         retcode = 0
         diff_after = diff_before
