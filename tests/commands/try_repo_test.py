@@ -3,6 +3,8 @@ import re
 import time
 from unittest import mock
 
+import re_assert
+
 from pre_commit import git
 from pre_commit.commands.try_repo import try_repo
 from pre_commit.util import cmd_output
@@ -43,7 +45,7 @@ def test_try_repo_repo_only(cap_out, tempdir_factory):
         _run_try_repo(tempdir_factory, verbose=True)
     start, config, rest = _get_out(cap_out)
     assert start == ''
-    assert re.match(
+    config_pattern = re_assert.Matches(
         '^repos:\n'
         '-   repo: .+\n'
         '    rev: .+\n'
@@ -51,8 +53,8 @@ def test_try_repo_repo_only(cap_out, tempdir_factory):
         '    -   id: bash_hook\n'
         '    -   id: bash_hook2\n'
         '    -   id: bash_hook3\n$',
-        config,
     )
+    config_pattern.assert_matches(config)
     assert rest == '''\
 Bash hook............................................(no files to check)Skipped
 - hook id: bash_hook
@@ -71,14 +73,14 @@ def test_try_repo_with_specific_hook(cap_out, tempdir_factory):
     _run_try_repo(tempdir_factory, hook='bash_hook', verbose=True)
     start, config, rest = _get_out(cap_out)
     assert start == ''
-    assert re.match(
+    config_pattern = re_assert.Matches(
         '^repos:\n'
         '-   repo: .+\n'
         '    rev: .+\n'
         '    hooks:\n'
         '    -   id: bash_hook\n$',
-        config,
     )
+    config_pattern.assert_matches(config)
     assert rest == '''\
 Bash hook............................................(no files to check)Skipped
 - hook id: bash_hook
@@ -128,14 +130,14 @@ def test_try_repo_uncommitted_changes(cap_out, tempdir_factory):
 
     start, config, rest = _get_out(cap_out)
     assert start == '[WARNING] Creating temporary repo with uncommitted changes...\n'  # noqa: E501
-    assert re.match(
+    config_pattern = re_assert.Matches(
         '^repos:\n'
         '-   repo: .+shadow-repo\n'
         '    rev: .+\n'
         '    hooks:\n'
         '    -   id: bash_hook\n$',
-        config,
     )
+    config_pattern.assert_matches(config)
     assert rest == 'modified name!...........................................................Passed\n'  # noqa: E501
 
 

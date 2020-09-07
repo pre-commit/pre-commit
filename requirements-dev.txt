@@ -2,3 +2,4 @@ covdefaults
 coverage
 pytest
 pytest-env
+re-assert
