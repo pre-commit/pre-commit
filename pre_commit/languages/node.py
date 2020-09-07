@@ -21,7 +21,6 @@ from pre_commit.util import cmd_output
 from pre_commit.util import cmd_output_b
 
 ENVIRONMENT_DIR = 'node_env'
-healthy = helpers.basic_healthy
 
 
 @functools.lru_cache(maxsize=1)
@@ -71,6 +70,12 @@ def in_env(
 ) -> Generator[None, None, None]:
     with envcontext(get_env_patch(_envdir(prefix, language_version))):
         yield
+
+
+def healthy(prefix: Prefix, language_version: str) -> bool:
+    with in_env(prefix, language_version):
+        retcode, _, _ = cmd_output_b('node', '--version', retcode=None)
+        return retcode == 0
 
 
 def install_environment(
