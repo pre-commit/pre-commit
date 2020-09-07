@@ -52,7 +52,7 @@ def _log_and_exit(msg: str, exc: BaseException, formatted: str) -> None:
         _log_line('```')
         _log_line()
         _log_line('```')
-        _log_line(formatted)
+        _log_line(formatted.rstrip())
         _log_line('```')
     raise SystemExit(1)
 

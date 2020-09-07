@@ -1,10 +1,10 @@
 import os.path
-import re
 import stat
 import sys
 from unittest import mock
 
 import pytest
+import re_assert
 
 from pre_commit import error_handler
 from pre_commit.store import Store
@@ -37,7 +37,7 @@ def test_error_handler_fatal_error(mocked_log_and_exit):
         mock.ANY,
     )
 
-    assert re.match(
+    pattern = re_assert.Matches(
         r'Traceback \(most recent call last\):\n'
         r'  File ".+pre_commit.error_handler.py", line \d+, in error_handler\n'
         r'    yield\n'
@@ -45,8 +45,8 @@ def test_error_handler_fatal_error(mocked_log_and_exit):
         r'in test_error_handler_fatal_error\n'
         r'    raise exc\n'
         r'(pre_commit\.error_handler\.)?FatalError: just a test\n',
-        mocked_log_and_exit.call_args[0][2],
     )
+    pattern.assert_matches(mocked_log_and_exit.call_args[0][2])
 
 
 def test_error_handler_uncaught_error(mocked_log_and_exit):
@@ -60,7 +60,7 @@ def test_error_handler_uncaught_error(mocked_log_and_exit):
         # Tested below
         mock.ANY,
     )
-    assert re.match(
+    pattern = re_assert.Matches(
         r'Traceback \(most recent call last\):\n'
         r'  File ".+pre_commit.error_handler.py", line \d+, in error_handler\n'
         r'    yield\n'
@@ -68,8 +68,8 @@ def test_error_handler_uncaught_error(mocked_log_and_exit):
         r'in test_error_handler_uncaught_error\n'
         r'    raise exc\n'
         r'ValueError: another test\n',
-        mocked_log_and_exit.call_args[0][2],
     )
+    pattern.assert_matches(mocked_log_and_exit.call_args[0][2])
 
 
 def test_error_handler_keyboardinterrupt(mocked_log_and_exit):
@@ -83,7 +83,7 @@ def test_error_handler_keyboardinterrupt(mocked_log_and_exit):
         # Tested below
         mock.ANY,
     )
-    assert re.match(
+    pattern = re_assert.Matches(
         r'Traceback \(most recent call last\):\n'
         r'  File ".+pre_commit.error_handler.py", line \d+, in error_handler\n'
         r'    yield\n'
@@ -91,15 +91,19 @@ def test_error_handler_keyboardinterrupt(mocked_log_and_exit):
         r'in test_error_handler_keyboardinterrupt\n'
         r'    raise exc\n'
         r'KeyboardInterrupt\n',
-        mocked_log_and_exit.call_args[0][2],
     )
+    pattern.assert_matches(mocked_log_and_exit.call_args[0][2])
 
 
 def test_log_and_exit(cap_out, mock_store_dir):
+    tb = (
+        'Traceback (most recent call last):\n'
+        '  File "<stdin>", line 2, in <module>\n'
+        'pre_commit.error_handler.FatalError: hai\n'
+    )
+
     with pytest.raises(SystemExit):
-        error_handler._log_and_exit(
-            'msg', error_handler.FatalError('hai'), "I'm a stacktrace",
-        )
+        error_handler._log_and_exit('msg', error_handler.FatalError('hai'), tb)
 
     printed = cap_out.get()
     log_file = os.path.join(mock_store_dir, 'pre-commit.log')
@@ -108,7 +112,7 @@ def test_log_and_exit(cap_out, mock_store_dir):
     assert os.path.exists(log_file)
     with open(log_file) as f:
         logged = f.read()
-        expected = (
+        pattern = re_assert.Matches(
             r'^### version information\n'
             r'\n'
             r'```\n'
@@ -127,10 +131,12 @@ def test_log_and_exit(cap_out, mock_store_dir):
             r'```\n'
             r'\n'
             r'```\n'
-            r"I'm a stacktrace\n"
-            r'```\n'
+            r'Traceback \(most recent call last\):\n'
+            r'  File "<stdin>", line 2, in <module>\n'
+            r'pre_commit\.error_handler\.FatalError: hai\n'
+            r'```\n',
         )
-        assert re.match(expected, logged)
+        pattern.assert_matches(logged)
 
 
 def test_error_handler_non_ascii_exception(mock_store_dir):

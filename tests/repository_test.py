@@ -1,5 +1,4 @@
 import os.path
-import re
 import shutil
 import sys
 from typing import Any
@@ -8,6 +7,7 @@ from unittest import mock
 
 import cfgv
 import pytest
+import re_assert
 
 import pre_commit.constants as C
 from pre_commit.clientlib import CONFIG_SCHEMA
@@ -843,12 +843,12 @@ def test_too_new_version(tempdir_factory, store, fake_log_handler):
     with pytest.raises(SystemExit):
         _get_hook(config, store, 'bash_hook')
     msg = fake_log_handler.handle.call_args[0][0].msg
-    assert re.match(
+    pattern = re_assert.Matches(
         r'^The hook `bash_hook` requires pre-commit version 999\.0\.0 but '
         r'version \d+\.\d+\.\d+ is installed.  '
         r'Perhaps run `pip install --upgrade pre-commit`\.$',
-        msg,
     )
+    pattern.assert_matches(msg)
 
 
 @pytest.mark.parametrize('version', ('0.1.0', C.VERSION))
