@@ -234,7 +234,6 @@ def test_run_a_docker_image_hook(tempdir_factory, store, hook_id):
     )
 
 
-@xfailif_windows  # pragma: win32 no cover
 def test_run_a_node_hook(tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'node_hooks_repo',
@@ -260,7 +259,6 @@ def test_run_versioned_node_hook(tempdir_factory, store):
     )
 
 
-@xfailif_windows  # pragma: win32 no cover
 def test_node_hook_with_npm_userconfig_set(tempdir_factory, store, tmpdir):
     cfg = tmpdir.join('cfg')
     cfg.write('cache=/dne\n')
@@ -541,7 +539,6 @@ def test_additional_ruby_dependencies_installed(tempdir_factory, store):
         assert 'tins' in output
 
 
-@xfailif_windows  # pragma: win32 no cover
 def test_additional_node_dependencies_installed(tempdir_factory, store):
     path = make_repo(tempdir_factory, 'node_hooks_repo')
     config = make_config_from_repo(path)

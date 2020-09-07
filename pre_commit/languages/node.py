@@ -26,12 +26,9 @@ healthy = helpers.basic_healthy
 
 @functools.lru_cache(maxsize=1)
 def get_default_version() -> str:
-    # nodeenv does not yet support `-n system` on windows
-    if sys.platform == 'win32':
-        return C.DEFAULT
     # if node is already installed, we can save a bunch of setup time by
     # using the installed version
-    elif all(parse_shebang.find_executable(exe) for exe in ('node', 'npm')):
+    if all(parse_shebang.find_executable(exe) for exe in ('node', 'npm')):
         return 'system'
     else:
         return C.DEFAULT
@@ -84,12 +81,14 @@ def install_environment(
     if sys.platform == 'win32':  # pragma: no cover
         envdir = fr'\\?\{os.path.normpath(envdir)}'
     with clean_path_on_failure(envdir):
-        cmd = [
-            sys.executable, '-mnodeenv', '--prebuilt', '--clean-src', envdir,
-        ]
-        if version != C.DEFAULT:
-            cmd.extend(['-n', version])
-        cmd_output_b(*cmd)
+        if version != 'system':
+            cmd = [
+                sys.executable, '-mnodeenv', '--prebuilt', '--clean-src',
+                envdir,
+            ]
+            if version != C.DEFAULT:
+                cmd.extend(['--node', version])
+            cmd_output_b(*cmd)
 
         with in_env(prefix, version):
             # https://npm.community/t/npm-install-g-git-vs-git-clone-cd-npm-install-g/5449
