@@ -56,8 +56,13 @@ def patch_sys_exe(exe):
 
 
 def test_shebang_windows():
+    with patch_platform('win32'), patch_sys_exe('python'):
+        assert shebang() == '#!/usr/bin/env python'
+
+
+def test_shebang_windows_drop_ext():
     with patch_platform('win32'), patch_sys_exe('python.exe'):
-        assert shebang() == '#!/usr/bin/env python.exe'
+        assert shebang() == '#!/usr/bin/env python'
 
 
 def test_shebang_posix_not_on_path():
