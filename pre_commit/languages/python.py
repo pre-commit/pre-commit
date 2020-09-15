@@ -114,11 +114,6 @@ def get_default_version() -> str:  # pragma: no cover (platform dependent)
     if _find_by_py_launcher(exe):
         return exe
 
-    # Give a best-effort try for windows
-    default_folder_name = exe.replace('.', '')
-    if os.path.exists(fr'C:\{default_folder_name}\python.exe'):
-        return exe
-
     # We tried!
     return C.DEFAULT
 
@@ -154,12 +149,6 @@ def norm_version(version: str) -> str:
         version_exec = find_executable(version)
         if version_exec and version_exec != version:
             return version_exec
-
-        # If it is in the form pythonx.x search in the default
-        # place on windows
-        if version.startswith('python'):
-            default_folder_name = version.replace('.', '')
-            return fr'C:\{default_folder_name}\python.exe'
 
     # Otherwise assume it is a path
     return os.path.expanduser(version)
