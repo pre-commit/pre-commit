@@ -15,7 +15,12 @@ class FatalError(RuntimeError):
     pass
 
 
-def _log_and_exit(msg: str, exc: BaseException, formatted: str) -> None:
+def _log_and_exit(
+    msg: str,
+    code: int = 0,
+    exc: BaseException,
+    formatted: str,
+) -> None:
     error_msg = f'{msg}: {type(exc).__name__}: '.encode() + force_bytes(exc)
     output.write_line_b(error_msg)
     log_path = os.path.join(Store().directory, 'pre-commit.log')
@@ -47,7 +52,7 @@ def _log_and_exit(msg: str, exc: BaseException, formatted: str) -> None:
         _log_line('```')
         _log_line(formatted)
         _log_line('```')
-    raise SystemExit(1)
+    raise SystemExit(code)
 
 
 @contextlib.contextmanager
@@ -56,9 +61,9 @@ def error_handler() -> Generator[None, None, None]:
         yield
     except (Exception, KeyboardInterrupt) as e:
         if isinstance(e, FatalError):
-            msg = 'An error has occurred'
+            msg, code = 'An error has occurred', 1
         elif isinstance(e, KeyboardInterrupt):
-            msg = 'Interrupted (^C)'
+            msg, code = 'Interrupted (^C)', 130
         else:
-            msg = 'An unexpected error has occurred'
-        _log_and_exit(msg, e, traceback.format_exc())
+            msg, code = 'An unexpected error has occurred', 3
+        _log_and_exit(msg, code, e, traceback.format_exc())
