@@ -17,7 +17,7 @@ class FatalError(RuntimeError):
 
 def _log_and_exit(
     msg: str,
-    code: int = 0,
+    code: int,
     exc: BaseException,
     formatted: str,
 ) -> None:
