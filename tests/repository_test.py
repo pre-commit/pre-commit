@@ -1,5 +1,4 @@
 import os.path
-import re
 import shutil
 import sys
 from typing import Any
@@ -8,6 +7,7 @@ from unittest import mock
 
 import cfgv
 import pytest
+import re_assert
 
 import pre_commit.constants as C
 from pre_commit.clientlib import CONFIG_SCHEMA
@@ -34,7 +34,6 @@ from testing.util import get_resource_path
 from testing.util import skipif_cant_run_docker
 from testing.util import skipif_cant_run_swift
 from testing.util import xfailif_windows
-from testing.util import xfailif_windows_no_ruby
 
 
 def _norm_out(b):
@@ -235,6 +234,7 @@ def test_run_a_docker_image_hook(tempdir_factory, store, hook_id):
     )
 
 
+@xfailif_windows  # pragma: win32 no cover
 def test_run_a_node_hook(tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'node_hooks_repo',
@@ -260,7 +260,14 @@ def test_run_versioned_node_hook(tempdir_factory, store):
     )
 
 
-@xfailif_windows_no_ruby
+@xfailif_windows  # pragma: win32 no cover
+def test_node_hook_with_npm_userconfig_set(tempdir_factory, store, tmpdir):
+    cfg = tmpdir.join('cfg')
+    cfg.write('cache=/dne\n')
+    with mock.patch.dict(os.environ, NPM_CONFIG_USERCONFIG=str(cfg)):
+        test_run_a_node_hook(tempdir_factory, store)
+
+
 def test_run_a_ruby_hook(tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'ruby_hooks_repo',
@@ -268,7 +275,7 @@ def test_run_a_ruby_hook(tempdir_factory, store):
     )
 
 
-@xfailif_windows_no_ruby
+@xfailif_windows  # pragma: win32 no cover
 def test_run_versioned_ruby_hook(tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'ruby_versioned_hooks_repo',
@@ -278,7 +285,7 @@ def test_run_versioned_ruby_hook(tempdir_factory, store):
     )
 
 
-@xfailif_windows_no_ruby
+@xfailif_windows  # pragma: win32 no cover
 def test_run_ruby_hook_with_disable_shared_gems(
         tempdir_factory,
         store,
@@ -524,7 +531,6 @@ def test_additional_dependencies_roll_forward(tempdir_factory, store):
         assert 'mccabe' not in cmd_output('pip', 'freeze', '-l')[1]
 
 
-@xfailif_windows_no_ruby  # pragma: win32 no cover
 def test_additional_ruby_dependencies_installed(tempdir_factory, store):
     path = make_repo(tempdir_factory, 'ruby_hooks_repo')
     config = make_config_from_repo(path)
@@ -837,12 +843,12 @@ def test_too_new_version(tempdir_factory, store, fake_log_handler):
     with pytest.raises(SystemExit):
         _get_hook(config, store, 'bash_hook')
     msg = fake_log_handler.handle.call_args[0][0].msg
-    assert re.match(
+    pattern = re_assert.Matches(
         r'^The hook `bash_hook` requires pre-commit version 999\.0\.0 but '
         r'version \d+\.\d+\.\d+ is installed.  '
         r'Perhaps run `pip install --upgrade pre-commit`\.$',
-        msg,
     )
+    pattern.assert_matches(msg)
 
 
 @pytest.mark.parametrize('version', ('0.1.0', C.VERSION))

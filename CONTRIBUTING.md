@@ -4,12 +4,16 @@
 
 - The complete test suite depends on having at least the following installed
   (possibly not a complete list)
-  - git (A sufficiently newer version is required to run pre-push tests)
+  - git (Version 2.24.0 or above is required to run pre-merge-commit tests)
   - python2 (Required by a test which checks different python versions)
   - python3 (Required by a test which checks different python versions)
   - tox (or virtualenv)
   - ruby + gem
   - docker
+  - conda
+  - cargo (required by tests for rust dependencies)
+  - go (required by tests for go dependencies)
+  - swift
 
 ### Setting up an environment
 

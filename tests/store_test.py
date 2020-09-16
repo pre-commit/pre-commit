@@ -1,5 +1,6 @@
 import os.path
 import sqlite3
+import stat
 from unittest import mock
 
 import pytest
@@ -12,6 +13,7 @@ from pre_commit.util import cmd_output
 from testing.fixtures import git_dir
 from testing.util import cwd
 from testing.util import git_commit
+from testing.util import xfailif_windows
 
 
 def test_our_session_fixture_works():
@@ -217,3 +219,27 @@ def test_select_all_configs_roll_forward(store):
 def test_mark_config_as_used_roll_forward(store, tmpdir):
     _simulate_pre_1_14_0(store)
     test_mark_config_as_used(store, tmpdir)
+
+
+@xfailif_windows  # pragma: win32 no cover
+def test_mark_config_as_used_readonly(tmpdir):
+    cfg = tmpdir.join('f').ensure()
+    store_dir = tmpdir.join('store')
+    # make a store, then we'll convert its directory to be readonly
+    assert not Store(str(store_dir)).readonly  # directory didn't exist
+    assert not Store(str(store_dir)).readonly  # directory did exist
+
+    def _chmod_minus_w(p):
+        st = os.stat(p)
+        os.chmod(p, st.st_mode & ~(stat.S_IWUSR | stat.S_IWOTH | stat.S_IWGRP))
+
+    _chmod_minus_w(store_dir)
+    for fname in os.listdir(store_dir):
+        assert not os.path.isdir(fname)
+        _chmod_minus_w(os.path.join(store_dir, fname))
+
+    store = Store(str(store_dir))
+    assert store.readonly
+    # should be skipped due to readonly
+    store.mark_config_used(str(cfg))
+    assert store.select_all_configs() == []

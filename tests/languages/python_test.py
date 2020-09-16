@@ -8,6 +8,7 @@ import pre_commit.constants as C
 from pre_commit.envcontext import envcontext
 from pre_commit.languages import python
 from pre_commit.prefix import Prefix
+from pre_commit.util import make_executable
 
 
 def test_read_pyvenv_cfg(tmpdir):
@@ -141,3 +142,26 @@ def test_unhealthy_old_virtualenv(python_dir):
     os.remove(prefix.path('py_env-default/pyvenv.cfg'))
 
     assert python.healthy(prefix, C.DEFAULT) is False
+
+
+def test_unhealthy_then_replaced(python_dir):
+    prefix, tmpdir = python_dir
+
+    python.install_environment(prefix, C.DEFAULT, ())
+
+    # simulate an exe which returns an old version
+    exe_name = 'python.exe' if sys.platform == 'win32' else 'python'
+    py_exe = prefix.path(python.bin_dir('py_env-default'), exe_name)
+    os.rename(py_exe, f'{py_exe}.tmp')
+
+    with open(py_exe, 'w') as f:
+        f.write('#!/usr/bin/env bash\necho 1.2.3\n')
+    make_executable(py_exe)
+
+    # should be unhealthy due to version mismatch
+    assert python.healthy(prefix, C.DEFAULT) is False
+
+    # now put the exe back and it should be healthy again
+    os.replace(f'{py_exe}.tmp', py_exe)
+
+    assert python.healthy(prefix, C.DEFAULT) is True

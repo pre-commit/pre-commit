@@ -1,13 +1,16 @@
 import os.path
-import re
+import stat
 import sys
 from unittest import mock
 
 import pytest
+import re_assert
 
 from pre_commit import error_handler
+from pre_commit.store import Store
 from pre_commit.util import CalledProcessError
 from testing.util import cmd_output_mocked_pre_commit_home
+from testing.util import xfailif_windows
 
 
 @pytest.fixture
@@ -35,7 +38,7 @@ def test_error_handler_fatal_error(mocked_log_and_exit):
         1,
     )
 
-    assert re.match(
+    pattern = re_assert.Matches(
         r'Traceback \(most recent call last\):\n'
         r'  File ".+pre_commit.error_handler.py", line \d+, in error_handler\n'
         r'    yield\n'
@@ -43,8 +46,8 @@ def test_error_handler_fatal_error(mocked_log_and_exit):
         r'in test_error_handler_fatal_error\n'
         r'    raise exc\n'
         r'(pre_commit\.error_handler\.)?FatalError: just a test\n',
-        mocked_log_and_exit.call_args[0][2],
     )
+    pattern.assert_matches(mocked_log_and_exit.call_args[0][2])
 
 
 def test_error_handler_uncaught_error(mocked_log_and_exit):
@@ -59,7 +62,7 @@ def test_error_handler_uncaught_error(mocked_log_and_exit):
         mock.ANY,
         3,
     )
-    assert re.match(
+    pattern = re_assert.Matches(
         r'Traceback \(most recent call last\):\n'
         r'  File ".+pre_commit.error_handler.py", line \d+, in error_handler\n'
         r'    yield\n'
@@ -67,8 +70,8 @@ def test_error_handler_uncaught_error(mocked_log_and_exit):
         r'in test_error_handler_uncaught_error\n'
         r'    raise exc\n'
         r'ValueError: another test\n',
-        mocked_log_and_exit.call_args[0][2],
     )
+    pattern.assert_matches(mocked_log_and_exit.call_args[0][2])
 
 
 def test_error_handler_keyboardinterrupt(mocked_log_and_exit):
@@ -83,7 +86,7 @@ def test_error_handler_keyboardinterrupt(mocked_log_and_exit):
         mock.ANY,
         130,
     )
-    assert re.match(
+    pattern = re_assert.Matches(
         r'Traceback \(most recent call last\):\n'
         r'  File ".+pre_commit.error_handler.py", line \d+, in error_handler\n'
         r'    yield\n'
@@ -91,11 +94,17 @@ def test_error_handler_keyboardinterrupt(mocked_log_and_exit):
         r'in test_error_handler_keyboardinterrupt\n'
         r'    raise exc\n'
         r'KeyboardInterrupt\n',
-        mocked_log_and_exit.call_args[0][2],
     )
+    pattern.assert_matches(mocked_log_and_exit.call_args[0][2])
 
 
 def test_log_and_exit(cap_out, mock_store_dir):
+    tb = (
+        'Traceback (most recent call last):\n'
+        '  File "<stdin>", line 2, in <module>\n'
+        'pre_commit.error_handler.FatalError: hai\n'
+    )
+
     with pytest.raises(SystemExit):
         error_handler._log_and_exit(
             'msg', 1, error_handler.FatalError('hai'), "I'm a stacktrace",
@@ -108,7 +117,7 @@ def test_log_and_exit(cap_out, mock_store_dir):
     assert os.path.exists(log_file)
     with open(log_file) as f:
         logged = f.read()
-        expected = (
+        pattern = re_assert.Matches(
             r'^### version information\n'
             r'\n'
             r'```\n'
@@ -127,10 +136,12 @@ def test_log_and_exit(cap_out, mock_store_dir):
             r'```\n'
             r'\n'
             r'```\n'
-            r"I'm a stacktrace\n"
-            r'```\n'
+            r'Traceback \(most recent call last\):\n'
+            r'  File "<stdin>", line 2, in <module>\n'
+            r'pre_commit\.error_handler\.FatalError: hai\n'
+            r'```\n',
         )
-        assert re.match(expected, logged)
+        pattern.assert_matches(logged)
 
 
 def test_error_handler_non_ascii_exception(mock_store_dir):
@@ -171,3 +182,29 @@ def test_error_handler_no_tty(tempdir_factory):
     out_lines = out.splitlines()
     assert out_lines[-2] == 'An unexpected error has occurred: ValueError: ☃'
     assert out_lines[-1] == f'Check the log at {log_file}'
+
+
+@xfailif_windows  # pragma: win32 no cover
+def test_error_handler_read_only_filesystem(mock_store_dir, cap_out, capsys):
+    # a better scenario would be if even the Store crash would be handled
+    # but realistically we're only targetting systems where the Store has
+    # already been set up
+    Store()
+
+    write = (stat.S_IWGRP | stat.S_IWOTH | stat.S_IWUSR)
+    os.chmod(mock_store_dir, os.stat(mock_store_dir).st_mode & ~write)
+
+    with pytest.raises(SystemExit):
+        with error_handler.error_handler():
+            raise ValueError('ohai')
+
+    output = cap_out.get()
+    assert output.startswith(
+        'An unexpected error has occurred: ValueError: ohai\n'
+        'Failed to write to log at ',
+    )
+
+    # our cap_out mock is imperfect so the rest of the output goes to capsys
+    out, _ = capsys.readouterr()
+    # the things that normally go to the log file will end up here
+    assert '### version information' in out

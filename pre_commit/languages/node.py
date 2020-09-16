@@ -10,6 +10,7 @@ import pre_commit.constants as C
 from pre_commit import parse_shebang
 from pre_commit.envcontext import envcontext
 from pre_commit.envcontext import PatchesT
+from pre_commit.envcontext import UNSET
 from pre_commit.envcontext import Var
 from pre_commit.hook import Hook
 from pre_commit.languages import helpers
@@ -20,7 +21,6 @@ from pre_commit.util import cmd_output
 from pre_commit.util import cmd_output_b
 
 ENVIRONMENT_DIR = 'node_env'
-healthy = helpers.basic_healthy
 
 
 @functools.lru_cache(maxsize=1)
@@ -56,6 +56,8 @@ def get_env_patch(venv: str) -> PatchesT:
         ('NODE_VIRTUAL_ENV', venv),
         ('NPM_CONFIG_PREFIX', install_prefix),
         ('npm_config_prefix', install_prefix),
+        ('NPM_CONFIG_USERCONFIG', UNSET),
+        ('npm_config_userconfig', UNSET),
         ('NODE_PATH', os.path.join(venv, lib_dir, 'node_modules')),
         ('PATH', (bin_dir(venv), os.pathsep, Var('PATH'))),
     )
@@ -68,6 +70,12 @@ def in_env(
 ) -> Generator[None, None, None]:
     with envcontext(get_env_patch(_envdir(prefix, language_version))):
         yield
+
+
+def healthy(prefix: Prefix, language_version: str) -> bool:
+    with in_env(prefix, language_version):
+        retcode, _, _ = cmd_output_b('node', '--version', retcode=None)
+        return retcode == 0
 
 
 def install_environment(

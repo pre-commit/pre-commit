@@ -7,9 +7,7 @@ import pre_commit.constants as C
 from pre_commit.hook import Hook
 from pre_commit.languages import helpers
 from pre_commit.prefix import Prefix
-from pre_commit.util import CalledProcessError
 from pre_commit.util import clean_path_on_failure
-from pre_commit.util import cmd_output_b
 
 ENVIRONMENT_DIR = 'docker'
 PRE_COMMIT_LABEL = 'PRE_COMMIT'
@@ -24,21 +22,6 @@ def md5(s: str) -> str:  # pragma: win32 no cover
 def docker_tag(prefix: Prefix) -> str:  # pragma: win32 no cover
     md5sum = md5(os.path.basename(prefix.prefix_dir)).lower()
     return f'pre-commit-{md5sum}'
-
-
-def docker_is_running() -> bool:  # pragma: win32 no cover
-    try:
-        cmd_output_b('docker', 'ps')
-    except CalledProcessError:
-        return False
-    else:
-        return True
-
-
-def assert_docker_available() -> None:  # pragma: win32 no cover
-    assert docker_is_running(), (
-        'Docker is either not running or not configured in this environment'
-    )
 
 
 def build_docker_image(
@@ -63,7 +46,6 @@ def install_environment(
 ) -> None:  # pragma: win32 no cover
     helpers.assert_version_default('docker', version)
     helpers.assert_no_additional_deps('docker', additional_dependencies)
-    assert_docker_available()
 
     directory = prefix.path(
         helpers.environment_dir(ENVIRONMENT_DIR, C.DEFAULT),
@@ -101,7 +83,6 @@ def run_hook(
         file_args: Sequence[str],
         color: bool,
 ) -> Tuple[int, bytes]:  # pragma: win32 no cover
-    assert_docker_available()
     # Rebuild the docker image in case it has gone missing, as many people do
     # automated cleanup of docker images.
     build_docker_image(hook.prefix, pull=False)

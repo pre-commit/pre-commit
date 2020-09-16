@@ -12,8 +12,10 @@ import cfgv
 from identify.identify import ALL_TAGS
 
 import pre_commit.constants as C
+from pre_commit.color import add_color_option
 from pre_commit.error_handler import FatalError
 from pre_commit.languages.all import all_languages
+from pre_commit.logging_handler import logging_handler
 from pre_commit.util import parse_version
 from pre_commit.util import yaml_load
 
@@ -43,6 +45,7 @@ def _make_argparser(filenames_help: str) -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser()
     parser.add_argument('filenames', nargs='*', help=filenames_help)
     parser.add_argument('-V', '--version', action='version', version=C.VERSION)
+    add_color_option(parser)
     return parser
 
 
@@ -92,14 +95,16 @@ load_manifest = functools.partial(
 def validate_manifest_main(argv: Optional[Sequence[str]] = None) -> int:
     parser = _make_argparser('Manifest filenames.')
     args = parser.parse_args(argv)
-    ret = 0
-    for filename in args.filenames:
-        try:
-            load_manifest(filename)
-        except InvalidManifestError as e:
-            print(e)
-            ret = 1
-    return ret
+
+    with logging_handler(args.color):
+        ret = 0
+        for filename in args.filenames:
+            try:
+                load_manifest(filename)
+            except InvalidManifestError as e:
+                print(e)
+                ret = 1
+        return ret
 
 
 LOCAL = 'local'
@@ -290,7 +295,11 @@ class InvalidConfigError(FatalError):
 def ordered_load_normalize_legacy_config(contents: str) -> Dict[str, Any]:
     data = yaml_load(contents)
     if isinstance(data, list):
-        # TODO: Once happy, issue a deprecation warning and instructions
+        logger.warning(
+            'normalizing pre-commit configuration to a top-level map.  '
+            'support for top level list will be removed in a future version.  '
+            'run: `pre-commit migrate-config` to automatically fix this.',
+        )
         return {'repos': data}
     else:
         return data
@@ -307,11 +316,13 @@ load_config = functools.partial(
 def validate_config_main(argv: Optional[Sequence[str]] = None) -> int:
     parser = _make_argparser('Config filenames.')
     args = parser.parse_args(argv)
-    ret = 0
-    for filename in args.filenames:
-        try:
-            load_config(filename)
-        except InvalidConfigError as e:
-            print(e)
-            ret = 1
-    return ret
+
+    with logging_handler(args.color):
+        ret = 0
+        for filename in args.filenames:
+            try:
+                load_config(filename)
+            except InvalidConfigError as e:
+                print(e)
+                ret = 1
+        return ret

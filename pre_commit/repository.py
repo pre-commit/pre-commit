@@ -48,7 +48,7 @@ def _write_state(prefix: Prefix, venv: str, state: object) -> None:
     with open(staging, 'w') as state_file:
         state_file.write(json.dumps(state))
     # Move the file into place atomically to indicate we've installed
-    os.rename(staging, state_filename)
+    os.replace(staging, state_filename)
 
 
 def _hook_installed(hook: Hook) -> bool:
@@ -82,6 +82,12 @@ def _hook_install(hook: Hook) -> None:
     lang.install_environment(
         hook.prefix, hook.language_version, hook.additional_dependencies,
     )
+    if not lang.healthy(hook.prefix, hook.language_version):
+        raise AssertionError(
+            f'BUG: expected environment for {hook.language} to be healthy() '
+            f'immediately after install, please open an issue describing '
+            f'your environment',
+        )
     # Write our state to indicate we're installed
     _write_state(hook.prefix, venv, _state(hook.additional_dependencies))
 

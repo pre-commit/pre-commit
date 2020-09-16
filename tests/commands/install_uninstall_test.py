@@ -3,6 +3,8 @@ import re
 import sys
 from unittest import mock
 
+import re_assert
+
 import pre_commit.constants as C
 from pre_commit import git
 from pre_commit.commands import install_uninstall
@@ -54,8 +56,13 @@ def patch_sys_exe(exe):
 
 
 def test_shebang_windows():
+    with patch_platform('win32'), patch_sys_exe('python'):
+        assert shebang() == '#!/usr/bin/env python'
+
+
+def test_shebang_windows_drop_ext():
     with patch_platform('win32'), patch_sys_exe('python.exe'):
-        assert shebang() == '#!/usr/bin/env python.exe'
+        assert shebang() == '#!/usr/bin/env python'
 
 
 def test_shebang_posix_not_on_path():
@@ -143,7 +150,7 @@ FILES_CHANGED = (
 )
 
 
-NORMAL_PRE_COMMIT_RUN = re.compile(
+NORMAL_PRE_COMMIT_RUN = re_assert.Matches(
     fr'^\[INFO\] Initializing environment for .+\.\n'
     fr'Bash hook\.+Passed\n'
     fr'\[master [a-f0-9]{{7}}\] commit!\n'
@@ -159,7 +166,7 @@ def test_install_pre_commit_and_run(tempdir_factory, store):
 
         ret, output = _get_commit_output(tempdir_factory)
         assert ret == 0
-        assert NORMAL_PRE_COMMIT_RUN.match(output)
+        NORMAL_PRE_COMMIT_RUN.assert_matches(output)
 
 
 def test_install_pre_commit_and_run_custom_path(tempdir_factory, store):
@@ -171,7 +178,7 @@ def test_install_pre_commit_and_run_custom_path(tempdir_factory, store):
 
         ret, output = _get_commit_output(tempdir_factory)
         assert ret == 0
-        assert NORMAL_PRE_COMMIT_RUN.match(output)
+        NORMAL_PRE_COMMIT_RUN.assert_matches(output)
 
 
 def test_install_in_submodule_and_run(tempdir_factory, store):
@@ -185,7 +192,7 @@ def test_install_in_submodule_and_run(tempdir_factory, store):
         assert install(C.CONFIG_FILE, store, hook_types=['pre-commit']) == 0
         ret, output = _get_commit_output(tempdir_factory)
         assert ret == 0
-        assert NORMAL_PRE_COMMIT_RUN.match(output)
+        NORMAL_PRE_COMMIT_RUN.assert_matches(output)
 
 
 def test_install_in_worktree_and_run(tempdir_factory, store):
@@ -198,7 +205,7 @@ def test_install_in_worktree_and_run(tempdir_factory, store):
         assert install(C.CONFIG_FILE, store, hook_types=['pre-commit']) == 0
         ret, output = _get_commit_output(tempdir_factory)
         assert ret == 0
-        assert NORMAL_PRE_COMMIT_RUN.match(output)
+        NORMAL_PRE_COMMIT_RUN.assert_matches(output)
 
 
 def test_commit_am(tempdir_factory, store):
@@ -243,7 +250,7 @@ def test_install_idempotent(tempdir_factory, store):
 
         ret, output = _get_commit_output(tempdir_factory)
         assert ret == 0
-        assert NORMAL_PRE_COMMIT_RUN.match(output)
+        NORMAL_PRE_COMMIT_RUN.assert_matches(output)
 
 
 def _path_without_us():
@@ -297,7 +304,7 @@ def test_environment_not_sourced(tempdir_factory, store):
         )
 
 
-FAILING_PRE_COMMIT_RUN = re.compile(
+FAILING_PRE_COMMIT_RUN = re_assert.Matches(
     r'^\[INFO\] Initializing environment for .+\.\n'
     r'Failing hook\.+Failed\n'
     r'- hook id: failing_hook\n'
@@ -316,10 +323,10 @@ def test_failing_hooks_returns_nonzero(tempdir_factory, store):
 
         ret, output = _get_commit_output(tempdir_factory)
         assert ret == 1
-        assert FAILING_PRE_COMMIT_RUN.match(output)
+        FAILING_PRE_COMMIT_RUN.assert_matches(output)
 
 
-EXISTING_COMMIT_RUN = re.compile(
+EXISTING_COMMIT_RUN = re_assert.Matches(
     fr'^legacy hook\n'
     fr'\[master [a-f0-9]{{7}}\] commit!\n'
     fr'{FILES_CHANGED}'
@@ -342,7 +349,7 @@ def test_install_existing_hooks_no_overwrite(tempdir_factory, store):
         # Make sure we installed the "old" hook correctly
         ret, output = _get_commit_output(tempdir_factory, touch_file='baz')
         assert ret == 0
-        assert EXISTING_COMMIT_RUN.match(output)
+        EXISTING_COMMIT_RUN.assert_matches(output)
 
         # Now install pre-commit (no-overwrite)
         assert install(C.CONFIG_FILE, store, hook_types=['pre-commit']) == 0
@@ -351,7 +358,7 @@ def test_install_existing_hooks_no_overwrite(tempdir_factory, store):
         ret, output = _get_commit_output(tempdir_factory)
         assert ret == 0
         assert output.startswith('legacy hook\n')
-        assert NORMAL_PRE_COMMIT_RUN.match(output[len('legacy hook\n'):])
+        NORMAL_PRE_COMMIT_RUN.assert_matches(output[len('legacy hook\n'):])
 
 
 def test_legacy_overwriting_legacy_hook(tempdir_factory, store):
@@ -377,10 +384,10 @@ def test_install_existing_hook_no_overwrite_idempotent(tempdir_factory, store):
         ret, output = _get_commit_output(tempdir_factory)
         assert ret == 0
         assert output.startswith('legacy hook\n')
-        assert NORMAL_PRE_COMMIT_RUN.match(output[len('legacy hook\n'):])
+        NORMAL_PRE_COMMIT_RUN.assert_matches(output[len('legacy hook\n'):])
 
 
-FAIL_OLD_HOOK = re.compile(
+FAIL_OLD_HOOK = re_assert.Matches(
     r'fail!\n'
     r'\[INFO\] Initializing environment for .+\.\n'
     r'Bash hook\.+Passed\n',
@@ -401,7 +408,7 @@ def test_failing_existing_hook_returns_1(tempdir_factory, store):
         # We should get a failure from the legacy hook
         ret, output = _get_commit_output(tempdir_factory)
         assert ret == 1
-        assert FAIL_OLD_HOOK.match(output)
+        FAIL_OLD_HOOK.assert_matches(output)
 
 
 def test_install_overwrite_no_existing_hooks(tempdir_factory, store):
@@ -413,7 +420,7 @@ def test_install_overwrite_no_existing_hooks(tempdir_factory, store):
 
         ret, output = _get_commit_output(tempdir_factory)
         assert ret == 0
-        assert NORMAL_PRE_COMMIT_RUN.match(output)
+        NORMAL_PRE_COMMIT_RUN.assert_matches(output)
 
 
 def test_install_overwrite(tempdir_factory, store):
@@ -426,7 +433,7 @@ def test_install_overwrite(tempdir_factory, store):
 
         ret, output = _get_commit_output(tempdir_factory)
         assert ret == 0
-        assert NORMAL_PRE_COMMIT_RUN.match(output)
+        NORMAL_PRE_COMMIT_RUN.assert_matches(output)
 
 
 def test_uninstall_restores_legacy_hooks(tempdir_factory, store):
@@ -441,7 +448,7 @@ def test_uninstall_restores_legacy_hooks(tempdir_factory, store):
         # Make sure we installed the "old" hook correctly
         ret, output = _get_commit_output(tempdir_factory, touch_file='baz')
         assert ret == 0
-        assert EXISTING_COMMIT_RUN.match(output)
+        EXISTING_COMMIT_RUN.assert_matches(output)
 
 
 def test_replace_old_commit_script(tempdir_factory, store):
@@ -463,7 +470,7 @@ def test_replace_old_commit_script(tempdir_factory, store):
 
         ret, output = _get_commit_output(tempdir_factory)
         assert ret == 0
-        assert NORMAL_PRE_COMMIT_RUN.match(output)
+        NORMAL_PRE_COMMIT_RUN.assert_matches(output)
 
 
 def test_uninstall_doesnt_remove_not_our_hooks(in_git_dir):
@@ -476,7 +483,7 @@ def test_uninstall_doesnt_remove_not_our_hooks(in_git_dir):
     assert pre_commit.exists()
 
 
-PRE_INSTALLED = re.compile(
+PRE_INSTALLED = re_assert.Matches(
     fr'Bash hook\.+Passed\n'
     fr'\[master [a-f0-9]{{7}}\] commit!\n'
     fr'{FILES_CHANGED}'
@@ -493,7 +500,7 @@ def test_installs_hooks_with_hooks_True(tempdir_factory, store):
         )
 
         assert ret == 0
-        assert PRE_INSTALLED.match(output)
+        PRE_INSTALLED.assert_matches(output)
 
 
 def test_install_hooks_command(tempdir_factory, store):
@@ -506,7 +513,7 @@ def test_install_hooks_command(tempdir_factory, store):
         )
 
         assert ret == 0
-        assert PRE_INSTALLED.match(output)
+        PRE_INSTALLED.assert_matches(output)
 
 
 def test_installed_from_venv(tempdir_factory, store):
@@ -533,7 +540,7 @@ def test_installed_from_venv(tempdir_factory, store):
             },
         )
         assert ret == 0
-        assert NORMAL_PRE_COMMIT_RUN.match(output)
+        NORMAL_PRE_COMMIT_RUN.assert_matches(output)
 
 
 def _get_push_output(tempdir_factory, remote='origin', opts=()):
@@ -880,7 +887,7 @@ def test_prepare_commit_msg_legacy(
 
 
 def test_pre_merge_commit_integration(tempdir_factory, store):
-    expected = re.compile(
+    output_pattern = re_assert.Matches(
         r'^\[INFO\] Initializing environment for .+\n'
         r'Bash hook\.+Passed\n'
         r"Merge made by the 'recursive' strategy.\n"
@@ -902,7 +909,7 @@ def test_pre_merge_commit_integration(tempdir_factory, store):
             tempdir_factory=tempdir_factory,
         )
         assert ret == 0
-        assert expected.match(output)
+        output_pattern.assert_matches(output)
 
 
 def test_install_disallow_missing_config(tempdir_factory, store):

@@ -23,10 +23,17 @@ def _log_and_exit(
 ) -> None:
     error_msg = f'{msg}: {type(exc).__name__}: '.encode() + force_bytes(exc)
     output.write_line_b(error_msg)
-    log_path = os.path.join(Store().directory, 'pre-commit.log')
-    output.write_line(f'Check the log at {log_path}')
 
-    with open(log_path, 'wb') as log:
+    storedir = Store().directory
+    log_path = os.path.join(storedir, 'pre-commit.log')
+    with contextlib.ExitStack() as ctx:
+        if os.access(storedir, os.W_OK):
+            output.write_line(f'Check the log at {log_path}')
+            log = ctx.enter_context(open(log_path, 'wb'))
+        else:  # pragma: win32 no cover
+            output.write_line(f'Failed to write to log at {log_path}')
+            log = sys.stdout.buffer
+
         _log_line = functools.partial(output.write_line, stream=log)
         _log_line_b = functools.partial(output.write_line_b, stream=log)
 
@@ -50,7 +57,7 @@ def _log_and_exit(
         _log_line('```')
         _log_line()
         _log_line('```')
-        _log_line(formatted)
+        _log_line(formatted.rstrip())
         _log_line('```')
     raise SystemExit(code)
 

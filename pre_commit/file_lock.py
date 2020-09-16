@@ -21,13 +21,13 @@ if os.name == 'nt':  # pragma: no cover (windows)
     ) -> Generator[None, None, None]:
         try:
             # TODO: https://github.com/python/typeshed/pull/3607
-            msvcrt.locking(fileno, msvcrt.LK_NBLCK, _region)  # type: ignore
+            msvcrt.locking(fileno, msvcrt.LK_NBLCK, _region)
         except OSError:
             blocked_cb()
             while True:
                 try:
                     # TODO: https://github.com/python/typeshed/pull/3607
-                    msvcrt.locking(fileno, msvcrt.LK_LOCK, _region)  # type: ignore  # noqa: E501
+                    msvcrt.locking(fileno, msvcrt.LK_LOCK, _region)
                 except OSError as e:
                     # Locking violation. Returned when the _LK_LOCK or _LK_RLCK
                     # flag is specified and the file cannot be locked after 10
@@ -46,7 +46,7 @@ if os.name == 'nt':  # pragma: no cover (windows)
             # "Regions should be locked only briefly and should be unlocked
             # before closing a file or exiting the program."
             # TODO: https://github.com/python/typeshed/pull/3607
-            msvcrt.locking(fileno, msvcrt.LK_UNLCK, _region)  # type: ignore
+            msvcrt.locking(fileno, msvcrt.LK_UNLCK, _region)
 else:  # pragma: win32 no cover
     import fcntl
 

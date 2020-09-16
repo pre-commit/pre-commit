@@ -1,3 +1,84 @@
+2.7.1 - 2020-08-23
+==================
+
+### Fixes
+- Improve performance of docker hooks by removing slow `ps` call
+    - #1572 PR by @rkm.
+    - #1569 issue by @asottile.
+- Fix un-`healthy()` invalidation followed by install being reported as
+  un-`healthy()`.
+    - #1576 PR by @asottile.
+    - #1575 issue by @jab.
+- Fix rare file race condition on windows with `os.replace()`
+    - #1577 PR by @asottile.
+
+2.7.0 - 2020-08-22
+==================
+
+### Features
+- Produce error message if an environment is immediately unhealthy
+    - #1535 PR by @asottile.
+- Add --no-allow-missing-config option to init-templatedir
+    - #1539 PR by @singergr.
+- Add warning for old list-style configuration
+    - #1544 PR by @asottile.
+- Allow pre-commit to succeed on a readonly store.
+    - #1570 PR by @asottile.
+    - #1536 issue by @asottile.
+
+### Fixes
+- Fix error messaging when the store directory is readonly
+    - #1546 PR by @asottile.
+    - #1536 issue by @asottile.
+- Improve `diff` performance with many hooks
+    - #1566 PR by @jhenkens.
+    - #1564 issue by @jhenkens.
+
+
+2.6.0 - 2020-07-01
+==================
+
+### Fixes
+- Fix node hooks when `NPM_CONFIG_USERCONFIG` is set
+    - #1521 PR by @asottile.
+    - #1516 issue by @rkm.
+
+### Features
+- Skip `rbenv` / `ruby-download` if system ruby is available
+    - #1509 PR by @asottile.
+- Partial support for ruby on windows (if system ruby is installed)
+    - #1509 PR by @asottile.
+    - #201 issue by @asottile.
+
+2.5.1 - 2020-06-09
+==================
+
+### Fixes
+- Prevent infinite recursion of post-checkout on clone
+    - #1497 PR by @asottile.
+    - #1496 issue by @admorgan.
+
+2.5.0 - 2020-06-08
+==================
+
+### Features
+- Expose a `PRE_COMMIT=1` environment variable when running hooks
+    - #1467 PR by @tech-chad.
+    - #1426 issue by @lorenzwalthert.
+
+### Fixes
+- Fix `UnicodeDecodeError` on windows when using the `py` launcher to detect
+  executables with non-ascii characters in the path
+    - #1474 PR by @asottile.
+    - #1472 issue by DrFobos.
+- Fix `DeprecationWarning` on python3.9 for `random.shuffle` method
+    - #1480 PR by @asottile.
+    - #1479 issue by @isidentical.
+- Normalize slashes earlier such that global `files` / `exclude` use forward
+  slashes on windows as well.
+    - #1494 PR by @asottile.
+    - #1476 issue by @harrybiddle.
+
 2.4.0 - 2020-05-11
 ==================
 

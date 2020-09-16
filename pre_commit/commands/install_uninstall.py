@@ -55,7 +55,7 @@ def is_our_script(filename: str) -> bool:
 
 def shebang() -> str:
     if sys.platform == 'win32':
-        py = SYS_EXE
+        py, _ = os.path.splitext(SYS_EXE)
     else:
         exe_choices = [
             f'python{sys.version_info[0]}.{sys.version_info[1]}',
@@ -165,7 +165,7 @@ def _uninstall_hook_script(hook_type: str) -> None:
     output.write_line(f'{hook_type} uninstalled')
 
     if os.path.exists(legacy_path):
-        os.rename(legacy_path, hook_path)
+        os.replace(legacy_path, hook_path)
         output.write_line(f'Restored previous hooks to {hook_path}')
 
 

@@ -5,12 +5,22 @@ import subprocess
 import pytest
 
 from pre_commit import parse_shebang
-from pre_commit.languages.docker import docker_is_running
+from pre_commit.util import CalledProcessError
 from pre_commit.util import cmd_output
+from pre_commit.util import cmd_output_b
 from testing.auto_namedtuple import auto_namedtuple
 
 
 TESTING_DIR = os.path.abspath(os.path.dirname(__file__))
+
+
+def docker_is_running() -> bool:  # pragma: win32 no cover
+    try:
+        cmd_output_b('docker', 'ps')
+    except CalledProcessError:  # pragma: no cover
+        return False
+    else:
+        return True
 
 
 def get_resource_path(path):
@@ -37,10 +47,6 @@ skipif_cant_run_docker = pytest.mark.skipif(
 skipif_cant_run_swift = pytest.mark.skipif(
     parse_shebang.find_executable('swift') is None,
     reason="swift isn't installed or can't be found",
-)
-xfailif_windows_no_ruby = pytest.mark.xfail(
-    os.name == 'nt',
-    reason='Ruby support not yet implemented on windows.',
 )
 xfailif_windows = pytest.mark.xfail(os.name == 'nt', reason='windows')
 
