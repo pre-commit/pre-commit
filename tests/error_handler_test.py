@@ -107,7 +107,7 @@ def test_log_and_exit(cap_out, mock_store_dir):
 
     with pytest.raises(SystemExit):
         error_handler._log_and_exit(
-            'msg', 1, error_handler.FatalError('hai'), "I'm a stacktrace",
+            'msg', 1, error_handler.FatalError('hai'), tb,
         )
 
     printed = cap_out.get()
