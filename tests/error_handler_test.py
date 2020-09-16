@@ -32,6 +32,7 @@ def test_error_handler_fatal_error(mocked_log_and_exit):
         exc,
         # Tested below
         mock.ANY,
+        1,
     )
 
     assert re.match(
@@ -56,6 +57,7 @@ def test_error_handler_uncaught_error(mocked_log_and_exit):
         exc,
         # Tested below
         mock.ANY,
+        3,
     )
     assert re.match(
         r'Traceback \(most recent call last\):\n'
@@ -79,6 +81,7 @@ def test_error_handler_keyboardinterrupt(mocked_log_and_exit):
         exc,
         # Tested below
         mock.ANY,
+        130,
     )
     assert re.match(
         r'Traceback \(most recent call last\):\n'
