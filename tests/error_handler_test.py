@@ -32,10 +32,10 @@ def test_error_handler_fatal_error(mocked_log_and_exit):
 
     mocked_log_and_exit.assert_called_once_with(
         'An error has occurred',
+        1,
         exc,
         # Tested below
         mock.ANY,
-        1,
     )
 
     pattern = re_assert.Matches(
@@ -57,10 +57,10 @@ def test_error_handler_uncaught_error(mocked_log_and_exit):
 
     mocked_log_and_exit.assert_called_once_with(
         'An unexpected error has occurred',
+        3,
         exc,
         # Tested below
         mock.ANY,
-        3,
     )
     pattern = re_assert.Matches(
         r'Traceback \(most recent call last\):\n'
@@ -81,10 +81,10 @@ def test_error_handler_keyboardinterrupt(mocked_log_and_exit):
 
     mocked_log_and_exit.assert_called_once_with(
         'Interrupted (^C)',
+        130,
         exc,
         # Tested below
         mock.ANY,
-        130,
     )
     pattern = re_assert.Matches(
         r'Traceback \(most recent call last\):\n'
