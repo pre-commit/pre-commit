@@ -134,7 +134,8 @@ def install_environment(
             helpers.run_setup_cmd(
                 prefix,
                 (
-                    'gem', 'install', '--no-document',
+                    'gem', 'install',
+                    '--no-document', '--no-format-executable',
                     *prefix.star('.gem'), *additional_dependencies,
                 ),
             )
