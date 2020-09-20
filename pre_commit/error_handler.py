@@ -7,12 +7,9 @@ from typing import Generator
 
 import pre_commit.constants as C
 from pre_commit import output
+from pre_commit.errors import FatalError
 from pre_commit.store import Store
 from pre_commit.util import force_bytes
-
-
-class FatalError(RuntimeError):
-    pass
 
 
 def _log_and_exit(msg: str, exc: BaseException, formatted: str) -> None:

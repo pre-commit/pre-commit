@@ -6,7 +6,7 @@ import pytest
 
 import pre_commit.constants as C
 from pre_commit import main
-from pre_commit.error_handler import FatalError
+from pre_commit.errors import FatalError
 from testing.auto_namedtuple import auto_namedtuple
 
 
