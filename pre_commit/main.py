@@ -26,6 +26,7 @@ from pre_commit.error_handler import error_handler
 from pre_commit.error_handler import FatalError
 from pre_commit.logging_handler import logging_handler
 from pre_commit.store import Store
+from pre_commit.util import cmd_output
 from pre_commit.util import CalledProcessError
 
 
@@ -159,6 +160,9 @@ def _adjust_args_and_chdir(args: argparse.Namespace) -> None:
                 'git toplevel unexpectedly empty! make sure you are not '
                 'inside the `.git` directory of your repository.',
             )
+        elif os.name == 'nt' and toplevel.startswith('/'):
+            full_win_path = cmd_output("cygpath", "-w", toplevel)[1].strip()
+            os.chdir(full_win_path)
         else:
             os.chdir(toplevel)
 
