@@ -7,6 +7,7 @@ import pytest
 import re_assert
 
 from pre_commit import error_handler
+from pre_commit.errors import FatalError
 from pre_commit.store import Store
 from pre_commit.util import CalledProcessError
 from testing.util import cmd_output_mocked_pre_commit_home
@@ -26,7 +27,7 @@ def test_error_handler_no_exception(mocked_log_and_exit):
 
 
 def test_error_handler_fatal_error(mocked_log_and_exit):
-    exc = error_handler.FatalError('just a test')
+    exc = FatalError('just a test')
     with error_handler.error_handler():
         raise exc
 
@@ -44,7 +45,7 @@ def test_error_handler_fatal_error(mocked_log_and_exit):
         r'  File ".+tests.error_handler_test.py", line \d+, '
         r'in test_error_handler_fatal_error\n'
         r'    raise exc\n'
-        r'(pre_commit\.error_handler\.)?FatalError: just a test\n',
+        r'(pre_commit\.errors\.)?FatalError: just a test\n',
     )
     pattern.assert_matches(mocked_log_and_exit.call_args[0][2])
 
@@ -99,11 +100,11 @@ def test_log_and_exit(cap_out, mock_store_dir):
     tb = (
         'Traceback (most recent call last):\n'
         '  File "<stdin>", line 2, in <module>\n'
-        'pre_commit.error_handler.FatalError: hai\n'
+        'pre_commit.errors.FatalError: hai\n'
     )
 
     with pytest.raises(SystemExit):
-        error_handler._log_and_exit('msg', error_handler.FatalError('hai'), tb)
+        error_handler._log_and_exit('msg', FatalError('hai'), tb)
 
     printed = cap_out.get()
     log_file = os.path.join(mock_store_dir, 'pre-commit.log')
@@ -133,7 +134,7 @@ def test_log_and_exit(cap_out, mock_store_dir):
             r'```\n'
             r'Traceback \(most recent call last\):\n'
             r'  File "<stdin>", line 2, in <module>\n'
-            r'pre_commit\.error_handler\.FatalError: hai\n'
+            r'pre_commit\.errors\.FatalError: hai\n'
             r'```\n',
         )
         pattern.assert_matches(logged)

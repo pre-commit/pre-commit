@@ -6,6 +6,8 @@ from typing import List
 from typing import Optional
 from typing import Set
 
+from pre_commit.errors import FatalError
+from pre_commit.util import CalledProcessError
 from pre_commit.util import cmd_output
 from pre_commit.util import cmd_output_b
 from pre_commit.util import EnvironT
@@ -43,7 +45,21 @@ def no_git_env(_env: Optional[EnvironT] = None) -> Dict[str, str]:
 
 
 def get_root() -> str:
-    return cmd_output('git', 'rev-parse', '--show-toplevel')[1].strip()
+    try:
+        root = cmd_output('git', 'rev-parse', '--show-toplevel')[1].strip()
+    except CalledProcessError:
+        raise FatalError(
+            'git failed. Is it installed, and are you in a Git repository '
+            'directory?',
+        )
+    else:
+        if root == '':  # pragma: no cover (old git)
+            raise FatalError(
+                'git toplevel unexpectedly empty! make sure you are not '
+                'inside the `.git` directory of your repository.',
+            )
+        else:
+            return root
 
 
 def get_git_dir(git_root: str = '.') -> str:
@@ -181,7 +197,7 @@ def check_for_cygwin_mismatch() -> None:
     """See https://github.com/pre-commit/pre-commit/issues/354"""
     if sys.platform in ('cygwin', 'win32'):  # pragma: no cover (windows)
         is_cygwin_python = sys.platform == 'cygwin'
-        toplevel = cmd_output('git', 'rev-parse', '--show-toplevel')[1]
+        toplevel = get_root()
         is_cygwin_git = toplevel.startswith('/')
 
         if is_cygwin_python ^ is_cygwin_git:

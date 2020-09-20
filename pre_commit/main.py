@@ -23,10 +23,8 @@ from pre_commit.commands.run import run
 from pre_commit.commands.sample_config import sample_config
 from pre_commit.commands.try_repo import try_repo
 from pre_commit.error_handler import error_handler
-from pre_commit.error_handler import FatalError
 from pre_commit.logging_handler import logging_handler
 from pre_commit.store import Store
-from pre_commit.util import CalledProcessError
 
 
 logger = logging.getLogger('pre_commit')
@@ -146,21 +144,8 @@ def _adjust_args_and_chdir(args: argparse.Namespace) -> None:
     if args.command == 'try-repo' and os.path.exists(args.repo):
         args.repo = os.path.abspath(args.repo)
 
-    try:
-        toplevel = git.get_root()
-    except CalledProcessError:
-        raise FatalError(
-            'git failed. Is it installed, and are you in a Git repository '
-            'directory?',
-        )
-    else:
-        if toplevel == '':  # pragma: no cover (old git)
-            raise FatalError(
-                'git toplevel unexpectedly empty! make sure you are not '
-                'inside the `.git` directory of your repository.',
-            )
-        else:
-            os.chdir(toplevel)
+    toplevel = git.get_root()
+    os.chdir(toplevel)
 
     args.config = os.path.relpath(args.config)
     if args.command in {'run', 'try-repo'}:
@@ -339,10 +324,10 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         parser.parse_args(['--help'])
 
     with error_handler(), logging_handler(args.color):
+        git.check_for_cygwin_mismatch()
+
         if args.command not in COMMANDS_NO_GIT:
             _adjust_args_and_chdir(args)
-
-        git.check_for_cygwin_mismatch()
 
         store = Store()
         store.mark_config_used(args.config)

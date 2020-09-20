@@ -13,7 +13,7 @@ from identify.identify import ALL_TAGS
 
 import pre_commit.constants as C
 from pre_commit.color import add_color_option
-from pre_commit.error_handler import FatalError
+from pre_commit.errors import FatalError
 from pre_commit.languages.all import all_languages
 from pre_commit.logging_handler import logging_handler
 from pre_commit.util import parse_version
