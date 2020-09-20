@@ -182,7 +182,9 @@ def check_for_cygwin_mismatch() -> None:
     if sys.platform in ('cygwin', 'win32'):  # pragma: no cover (windows)
         is_cygwin_python = sys.platform == 'cygwin'
         toplevel = cmd_output('git', 'rev-parse', '--show-toplevel')[1]
-        is_cygwin_git = toplevel.startswith('/')
+        git_exec_path = cmd_output('git', '--exec-path')[1].strip()
+        is_msys2_git = git_exec_path == '/usr/lib/git-core'
+        is_cygwin_git = toplevel.startswith('/') and not is_msys2_git
 
         if is_cygwin_python ^ is_cygwin_git:
             exe_type = {True: '(cygwin)', False: '(windows)'}
