@@ -1108,7 +1108,7 @@ that have helped us get this far!
 0.18.1 - 2017-09-04
 ===================
 - Only mention locking when waiting for a lock.
-- Fix `IOError` during locking in timeout situtation on windows under python 2.
+- Fix `IOError` during locking in timeout situation on windows under python 2.
 
 0.18.0 - 2017-09-02
 ===================

@@ -77,7 +77,7 @@ def run_hook(
         color: bool,
 ) -> Tuple[int, bytes]:
     # TODO: Some rare commands need to be run using `conda run` but mostly we
-    #       can run them withot which is much quicker and produces a better
+    #       can run them without which is much quicker and produces a better
     #       output.
     # cmd = ('conda', 'run', '-p', env_dir) + hook.cmd
     with in_env(hook.prefix, hook.language_version):
