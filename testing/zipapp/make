@@ -1,0 +1,88 @@
+#!/usr/bin/env python3
+import argparse
+import base64
+import hashlib
+import os.path
+import shutil
+import subprocess
+import tempfile
+import zipapp
+import zipfile
+
+HERE = os.path.dirname(os.path.realpath(__file__))
+IMG = 'make-pre-commit-zipapp'
+
+
+def _msg(s: str) -> None:
+    print(f'\033[7m{s}\033[m')
+
+
+def _exit_if_retv(*cmd: str) -> None:
+    if subprocess.call(cmd):
+        raise SystemExit(1)
+
+
+def _check_no_shared_objects(wheeldir: str) -> None:
+    for zip_filename in os.listdir(wheeldir):
+        with zipfile.ZipFile(os.path.join(wheeldir, zip_filename)) as zipf:
+            for filename in zipf.namelist():
+                if filename.endswith('.so') or '.so.' in filename:
+                    raise AssertionError(zip_filename, filename)
+
+
+def _write_cache_key(version: str, wheeldir: str, dest: str) -> None:
+    cache_hash = hashlib.sha256(f'{version}\n'.encode())
+    for filename in sorted(os.listdir(wheeldir)):
+        cache_hash.update(f'{filename}\n'.encode())
+    with open(os.path.join(HERE, 'fakepython'), 'rb') as f:
+        cache_hash.update(f.read())
+    with open(os.path.join(dest, 'CACHE_KEY'), 'wb') as f:
+        f.write(base64.urlsafe_b64encode(cache_hash.digest()).rstrip(b'='))
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument('version')
+    args = parser.parse_args()
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        wheeldir = os.path.join(tmpdir, 'wheels')
+        os.mkdir(wheeldir)
+
+        _msg('building podman image...')
+        _exit_if_retv('podman', 'build', '-q', '-t', IMG, HERE)
+
+        _msg('populating wheels...')
+        _exit_if_retv(
+            'podman', 'run', '--rm', '--volume', f'{wheeldir}:/wheels:rw', IMG,
+            'pip', 'wheel', f'pre_commit=={args.version}',
+            '--wheel-dir', '/wheels',
+        )
+
+        _msg('validating wheels...')
+        _check_no_shared_objects(wheeldir)
+
+        _msg('adding fakepython / __main__.py...')
+        shutil.copy(os.path.join(HERE, 'fakepython'), tmpdir)
+        mainfile = os.path.join(tmpdir, '__main__.py')
+        shutil.copy(os.path.join(HERE, 'entry'), mainfile)
+
+        _msg('copying file_lock.py...')
+        file_lock_py = os.path.join(HERE, '../../pre_commit/file_lock.py')
+        file_lock_py_dest = os.path.join(tmpdir, 'pre_commit/file_lock.py')
+        os.makedirs(os.path.dirname(file_lock_py_dest))
+        shutil.copy(file_lock_py, file_lock_py_dest)
+
+        _msg('writing CACHE_KEY...')
+        _write_cache_key(args.version, wheeldir, tmpdir)
+
+        filename = f'pre-commit-{args.version}.pyz'
+        _msg(f'writing {filename}...')
+        shebang = '/usr/bin/env python3'
+        zipapp.create_archive(tmpdir, filename, interpreter=shebang)
+
+    return 0
+
+
+if __name__ == '__main__':
+    exit(main())
