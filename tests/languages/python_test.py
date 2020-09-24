@@ -36,13 +36,14 @@ def test_norm_version_expanduser():
 
 
 def test_norm_version_of_default_is_sys_executable():
-    assert python.norm_version('default') == os.path.realpath(sys.executable)
+    assert python.norm_version('default') is None
 
 
 @pytest.mark.parametrize('v', ('python3.6', 'python3', 'python'))
 def test_sys_executable_matches(v):
     with mock.patch.object(sys, 'version_info', (3, 6, 7)):
         assert python._sys_executable_matches(v)
+        assert python.norm_version(v) is None
 
 
 @pytest.mark.parametrize('v', ('notpython', 'python3.x'))

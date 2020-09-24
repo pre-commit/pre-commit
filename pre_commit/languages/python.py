@@ -132,13 +132,11 @@ def _sys_executable_matches(version: str) -> bool:
     return sys.version_info[:len(info)] == info
 
 
-def norm_version(version: str) -> str:
-    if version == C.DEFAULT:
-        return os.path.realpath(sys.executable)
-
-    # first see if our current executable is appropriate
-    if _sys_executable_matches(version):
-        return sys.executable
+def norm_version(version: str) -> Optional[str]:
+    if version == C.DEFAULT:  # use virtualenv's default
+        return None
+    elif _sys_executable_matches(version):  # virtualenv defaults to our exe
+        return None
 
     if os.name == 'nt':  # pragma: no cover (windows)
         version_exec = _find_by_py_launcher(version)
@@ -194,8 +192,10 @@ def install_environment(
         additional_dependencies: Sequence[str],
 ) -> None:
     envdir = prefix.path(helpers.environment_dir(ENVIRONMENT_DIR, version))
+    venv_cmd = [sys.executable, '-mvirtualenv', envdir]
     python = norm_version(version)
-    venv_cmd = (sys.executable, '-mvirtualenv', envdir, '-p', python)
+    if python is not None:
+        venv_cmd.extend(('-p', python))
     install_cmd = ('python', '-mpip', 'install', '.', *additional_dependencies)
 
     with clean_path_on_failure(envdir):
