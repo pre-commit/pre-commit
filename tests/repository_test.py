@@ -917,3 +917,17 @@ def test_local_perl_additional_dependencies(store):
     ret, out = _hook_run(hook, (), color=False)
     assert ret == 0
     assert _norm_out(out).startswith(b'This is perltidy, v20200110')
+
+
+@pytest.mark.parametrize(
+    'repo',
+    (
+        'dotnet_hooks_csproj_repo',
+        'dotnet_hooks_sln_repo',
+    ),
+)
+def test_dotnet_hook(tempdir_factory, store, repo):
+    _test_hook_repo(
+        tempdir_factory, store, repo,
+        'dotnet example hook', [], b'Hello from dotnet!\n',
+    )

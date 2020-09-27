@@ -6,3 +6,4 @@
 /.tox
 /dist
 /venv*
+.vscode/
