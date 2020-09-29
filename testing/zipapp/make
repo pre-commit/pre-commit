@@ -2,6 +2,8 @@
 import argparse
 import base64
 import hashlib
+import importlib.resources
+import io
 import os.path
 import shutil
 import subprocess
@@ -30,11 +32,25 @@ def _check_no_shared_objects(wheeldir: str) -> None:
                     raise AssertionError(zip_filename, filename)
 
 
+def _add_shim(dest: str) -> None:
+    shim = os.path.join(HERE, 'python')
+    shutil.copy(shim, dest)
+
+    bio = io.BytesIO()
+    with zipfile.ZipFile(bio, 'w') as zipf:
+        zipf.write(shim, arcname='__main__.py')
+
+    with open(os.path.join(dest, 'python.exe'), 'wb') as f:
+        f.write(importlib.resources.read_binary('distlib', 't32.exe'))
+        f.write(b'#!py.exe -3\n')
+        f.write(bio.getvalue())
+
+
 def _write_cache_key(version: str, wheeldir: str, dest: str) -> None:
     cache_hash = hashlib.sha256(f'{version}\n'.encode())
     for filename in sorted(os.listdir(wheeldir)):
         cache_hash.update(f'{filename}\n'.encode())
-    with open(os.path.join(HERE, 'fakepython'), 'rb') as f:
+    with open(os.path.join(HERE, 'python'), 'rb') as f:
         cache_hash.update(f.read())
     with open(os.path.join(dest, 'CACHE_KEY'), 'wb') as f:
         f.write(base64.urlsafe_b64encode(cache_hash.digest()).rstrip(b'='))
@@ -62,10 +78,12 @@ def main() -> int:
         _msg('validating wheels...')
         _check_no_shared_objects(wheeldir)
 
-        _msg('adding fakepython / __main__.py...')
-        shutil.copy(os.path.join(HERE, 'fakepython'), tmpdir)
+        _msg('adding __main__.py...')
         mainfile = os.path.join(tmpdir, '__main__.py')
         shutil.copy(os.path.join(HERE, 'entry'), mainfile)
+
+        _msg('adding shim...')
+        _add_shim(tmpdir)
 
         _msg('copying file_lock.py...')
         file_lock_py = os.path.join(HERE, '../../pre_commit/file_lock.py')

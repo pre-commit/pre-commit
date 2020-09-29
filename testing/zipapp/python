@@ -5,7 +5,10 @@ import os.path
 import runpy
 import sys
 
-HERE = os.path.dirname(os.path.realpath(__file__))
+# an exe-zipapp will have a __file__ of shim.exe/__main__.py
+EXE = __file__ if os.path.isfile(__file__) else os.path.dirname(__file__)
+EXE = os.path.realpath(EXE)
+HERE = os.path.dirname(EXE)
 WHEELDIR = os.path.join(HERE, 'wheels')
 SITE_DIRS = frozenset(('dist-packages', 'site-packages'))
 
@@ -24,7 +27,7 @@ def main() -> int:
         for wheel in sorted(os.listdir(WHEELDIR)):
             sys.path.append(os.path.join(WHEELDIR, wheel))
         if args.m == 'pre_commit' or args.m.startswith('pre_commit.'):
-            sys.executable = os.path.abspath(__file__)
+            sys.executable = EXE
         sys.argv[1:] = rest
         runpy.run_module(args.m, run_name='__main__', alter_sys=True)
         return 0

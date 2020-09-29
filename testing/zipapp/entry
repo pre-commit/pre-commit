@@ -33,7 +33,8 @@ def _ensure_cache(zipf: zipfile.ZipFile, cache_key: str) -> str:
         try:
             zipf.extractall(tmpdir)
             # zip doesn't maintain permissions
-            _make_executable(os.path.join(tmpdir, 'fakepython'))
+            _make_executable(os.path.join(tmpdir, 'python'))
+            _make_executable(os.path.join(tmpdir, 'python.exe'))
             os.rename(tmpdir, cache_dest)
         except BaseException:
             shutil.rmtree(tmpdir)
@@ -49,8 +50,12 @@ def main() -> int:
 
         cache_dest = _ensure_cache(zipf, cache_key)
 
-    fakepython = os.path.join(cache_dest, 'fakepython')
-    cmd = (sys.executable, fakepython, '-mpre_commit', *sys.argv[1:])
+    if sys.platform != 'win32':
+        exe = os.path.join(cache_dest, 'python')
+    else:
+        exe = os.path.join(cache_dest, 'python.exe')
+
+    cmd = (exe, '-mpre_commit', *sys.argv[1:])
     if sys.platform == 'win32':  # https://bugs.python.org/issue19124
         import subprocess
 
