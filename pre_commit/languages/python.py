@@ -196,7 +196,14 @@ def install_environment(
     python = norm_version(version)
     if python is not None:
         venv_cmd.extend(('-p', python))
-    install_cmd = ('python', '-mpip', 'install', '--isolated', '.', *additional_dependencies)
+    install_cmd = (
+        'python',
+        '-mpip',
+        'install',
+        '--isolated',
+        '.',
+        *additional_dependencies,
+    )
 
     with clean_path_on_failure(envdir):
         cmd_output_b(*venv_cmd, cwd='/')
