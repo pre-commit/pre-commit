@@ -2,7 +2,7 @@
 import sys
 
 LANGUAGES = [
-    'conda', 'docker', 'dotnet', 'docker_image', 'fail', 'golang',
+    'conda', 'coursier', 'docker', 'dotnet', 'docker_image', 'fail', 'golang',
     'node', 'perl', 'pygrep', 'python', 'ruby', 'rust', 'script', 'swift',
     'system',
 ]

@@ -35,6 +35,10 @@ jobs:
     - task: UseRubyVersion@0
     - template: step--git-install.yml
     - bash: |
+        testing/get-coursier.sh
+        echo '##vso[task.prependpath]/tmp/coursier'
+      displayName: install coursier
+    - bash: |
         testing/get-swift.sh
         echo '##vso[task.prependpath]/tmp/swift/usr/bin'
       displayName: install swift
@@ -44,6 +48,10 @@ jobs:
     os: linux
     pre_test:
     - task: UseRubyVersion@0
+    - bash: |
+        testing/get-coursier.sh
+        echo '##vso[task.prependpath]/tmp/coursier'
+      displayName: install coursier
     - bash: |
         testing/get-swift.sh
         echo '##vso[task.prependpath]/tmp/swift/usr/bin'
