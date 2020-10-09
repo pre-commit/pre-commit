@@ -87,9 +87,8 @@ def run_hook(
     # automated cleanup of docker images.
     build_docker_image(hook.prefix, pull=False)
 
-    hook_cmd = hook.cmd
-    entry_exe, cmd_rest = hook.cmd[0], hook_cmd[1:]
+    entry_exe, *cmd_rest = hook.cmd
 
     entry_tag = ('--entrypoint', entry_exe, docker_tag(hook.prefix))
-    cmd = docker_cmd() + entry_tag + cmd_rest
+    cmd = (*docker_cmd(), *entry_tag, *cmd_rest)
     return helpers.run_xargs(hook, cmd, file_args, color=color)
