@@ -94,8 +94,8 @@ def test_conda_with_additional_dependencies_hook(tempdir_factory, store):
         config_kwargs={
             'hooks': [{
                 'id': 'additional-deps',
-                'args': ['-c', 'import mccabe; print("OK")'],
-                'additional_dependencies': ['mccabe'],
+                'args': ['-c', 'import tzdata; print("OK")'],
+                'additional_dependencies': ['python-tzdata'],
             }],
         },
     )
@@ -109,8 +109,8 @@ def test_local_conda_additional_dependencies(store):
             'name': 'local-conda',
             'entry': 'python',
             'language': 'conda',
-            'args': ['-c', 'import mccabe; print("OK")'],
-            'additional_dependencies': ['mccabe'],
+            'args': ['-c', 'import tzdata; print("OK")'],
+            'additional_dependencies': ['python-tzdata'],
         }],
     }
     hook = _get_hook(config, store, 'local-conda')
