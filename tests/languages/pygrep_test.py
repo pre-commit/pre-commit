@@ -23,42 +23,47 @@ def some_files(tmpdir):
         ("h'q", 1, "f3:1:with'quotes\n"),
     ),
 )
-def test_main(some_files, cap_out, pattern, expected_retcode, expected_out):
+def test_main(cap_out, pattern, expected_retcode, expected_out):
     ret = pygrep.main((pattern, 'f1', 'f2', 'f3'))
     out = cap_out.get()
     assert ret == expected_retcode
     assert out == expected_out
 
 
-def test_ignore_case(some_files, cap_out):
+@pytest.mark.usefixtures('some_files')
+def test_ignore_case(cap_out):
     ret = pygrep.main(('--ignore-case', 'info', 'f1', 'f2', 'f3'))
     out = cap_out.get()
     assert ret == 1
     assert out == 'f2:1:[INFO] hi\n'
 
 
-def test_multiline(some_files, cap_out):
+@pytest.mark.usefixtures('some_files')
+def test_multiline(cap_out):
     ret = pygrep.main(('--multiline', r'foo\nbar', 'f1', 'f2', 'f3'))
     out = cap_out.get()
     assert ret == 1
     assert out == 'f1:1:foo\nbar\n'
 
 
-def test_multiline_line_number(some_files, cap_out):
+@pytest.mark.usefixtures('some_files')
+def test_multiline_line_number(cap_out):
     ret = pygrep.main(('--multiline', r'ar', 'f1', 'f2', 'f3'))
     out = cap_out.get()
     assert ret == 1
     assert out == 'f1:2:bar\n'
 
 
-def test_multiline_dotall_flag_is_enabled(some_files, cap_out):
+@pytest.mark.usefixtures('some_files')
+def test_multiline_dotall_flag_is_enabled(cap_out):
     ret = pygrep.main(('--multiline', r'o.*bar', 'f1', 'f2', 'f3'))
     out = cap_out.get()
     assert ret == 1
     assert out == 'f1:1:foo\nbar\n'
 
 
-def test_multiline_multiline_flag_is_enabled(some_files, cap_out):
+@pytest.mark.usefixtures('some_files')
+def test_multiline_multiline_flag_is_enabled(cap_out):
     ret = pygrep.main(('--multiline', r'foo$.*bar', 'f1', 'f2', 'f3'))
     out = cap_out.get()
     assert ret == 1
