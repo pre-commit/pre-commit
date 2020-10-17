@@ -1,0 +1,71 @@
+#!/usr/bin/env python3
+import os.path
+import shutil
+import stat
+import sys
+import tempfile
+import zipfile
+
+from pre_commit.file_lock import lock
+
+CACHE_DIR = os.path.expanduser('~/.cache/pre-commit-zipapp')
+
+
+def _make_executable(filename: str) -> None:
+    os.chmod(filename, os.stat(filename).st_mode | stat.S_IXUSR)
+
+
+def _ensure_cache(zipf: zipfile.ZipFile, cache_key: str) -> str:
+    os.makedirs(CACHE_DIR, exist_ok=True)
+
+    cache_dest = os.path.join(CACHE_DIR, cache_key)
+    lock_filename = os.path.join(CACHE_DIR, f'{cache_key}.lock')
+
+    if os.path.exists(cache_dest):
+        return cache_dest
+
+    with lock(lock_filename, blocked_cb=lambda: None):
+        # another process may have completed this work
+        if os.path.exists(cache_dest):
+            return cache_dest
+
+        tmpdir = tempfile.mkdtemp(prefix=os.path.join(CACHE_DIR, ''))
+        try:
+            zipf.extractall(tmpdir)
+            # zip doesn't maintain permissions
+            _make_executable(os.path.join(tmpdir, 'python'))
+            _make_executable(os.path.join(tmpdir, 'python.exe'))
+            os.rename(tmpdir, cache_dest)
+        except BaseException:
+            shutil.rmtree(tmpdir)
+            raise
+
+        return cache_dest
+
+
+def main() -> int:
+    with zipfile.ZipFile(os.path.dirname(__file__)) as zipf:
+        with zipf.open('CACHE_KEY') as f:
+            cache_key = f.read().decode().strip()
+
+        cache_dest = _ensure_cache(zipf, cache_key)
+
+    if sys.platform != 'win32':
+        exe = os.path.join(cache_dest, 'python')
+    else:
+        exe = os.path.join(cache_dest, 'python.exe')
+
+    cmd = (exe, '-mpre_commit', *sys.argv[1:])
+    if sys.platform == 'win32':  # https://bugs.python.org/issue19124
+        import subprocess
+
+        if sys.version_info < (3, 7):  # https://bugs.python.org/issue25942
+            return subprocess.Popen(cmd).wait()
+        else:
+            return subprocess.call(cmd)
+    else:
+        os.execvp(cmd[0], cmd)
+
+
+if __name__ == '__main__':
+    exit(main())

@@ -1,0 +1,48 @@
+#!/usr/bin/env python3
+"""A shim executable to put dependencies on sys.path"""
+import argparse
+import os.path
+import runpy
+import sys
+
+# an exe-zipapp will have a __file__ of shim.exe/__main__.py
+EXE = __file__ if os.path.isfile(__file__) else os.path.dirname(__file__)
+EXE = os.path.realpath(EXE)
+HERE = os.path.dirname(EXE)
+WHEELDIR = os.path.join(HERE, 'wheels')
+SITE_DIRS = frozenset(('dist-packages', 'site-packages'))
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(add_help=False)
+    parser.add_argument('-m')
+    args, rest = parser.parse_known_args()
+
+    if args.m:
+        # try and remove site-packages from sys.path so our packages win
+        sys.path[:] = [
+            p for p in sys.path
+            if os.path.split(p)[1] not in SITE_DIRS
+        ]
+        for wheel in sorted(os.listdir(WHEELDIR)):
+            sys.path.append(os.path.join(WHEELDIR, wheel))
+        if args.m == 'pre_commit' or args.m.startswith('pre_commit.'):
+            sys.executable = EXE
+        sys.argv[1:] = rest
+        runpy.run_module(args.m, run_name='__main__', alter_sys=True)
+        return 0
+    else:
+        cmd = (sys.executable, *sys.argv[1:])
+        if sys.platform == 'win32':  # https://bugs.python.org/issue19124
+            import subprocess
+
+            if sys.version_info < (3, 7):  # https://bugs.python.org/issue25942
+                return subprocess.Popen(cmd).wait()
+            else:
+                return subprocess.call(cmd)
+        else:
+            os.execvp(cmd[0], cmd)
+
+
+if __name__ == '__main__':
+    exit(main())
