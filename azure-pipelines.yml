@@ -13,7 +13,6 @@ resources:
       ref: refs/tags/v2.0.0
 
 jobs:
-- template: job--pre-commit.yml@asottile
 - template: job--python-tox.yml@asottile
   parameters:
     toxenvs: [py37]
