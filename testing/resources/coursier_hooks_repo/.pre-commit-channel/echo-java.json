@@ -1,0 +1,8 @@
+{
+  "repositories": [
+    "central"
+  ],
+  "dependencies": [
+    "io.get-coursier:echo:latest.stable"
+  ]
+}

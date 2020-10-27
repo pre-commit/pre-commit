@@ -1,0 +1,5 @@
+-   id: echo-java
+    name: echo-java
+    description: echo from java
+    entry: echo-java
+    language: coursier

@@ -31,6 +31,7 @@ from testing.fixtures import make_repo
 from testing.fixtures import modify_manifest
 from testing.util import cwd
 from testing.util import get_resource_path
+from testing.util import skipif_cant_run_coursier
 from testing.util import skipif_cant_run_docker
 from testing.util import skipif_cant_run_swift
 from testing.util import xfailif_windows
@@ -192,6 +193,15 @@ def test_versioned_python_hook(tempdir_factory, store):
         'python3-hook',
         [os.devnull],
         f'3\n[{os.devnull!r}]\nHello World\n'.encode(),
+    )
+
+
+@skipif_cant_run_coursier  # pragma: win32 no cover
+def test_run_a_coursier_hook(tempdir_factory, store):
+    _test_hook_repo(
+        tempdir_factory, store, 'coursier_hooks_repo',
+        'echo-java',
+        ['Hello World from coursier'], b'Hello World from coursier\n',
     )
 
 
