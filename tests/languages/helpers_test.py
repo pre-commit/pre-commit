@@ -1,15 +1,58 @@
 import multiprocessing
-import os
+import os.path
 import sys
 from unittest import mock
 
 import pytest
 
 import pre_commit.constants as C
+from pre_commit import parse_shebang
 from pre_commit.languages import helpers
 from pre_commit.prefix import Prefix
 from pre_commit.util import CalledProcessError
 from testing.auto_namedtuple import auto_namedtuple
+
+
+@pytest.fixture
+def find_exe_mck():
+    with mock.patch.object(parse_shebang, 'find_executable') as mck:
+        yield mck
+
+
+@pytest.fixture
+def homedir_mck():
+    def fake_expanduser(pth):
+        assert pth == '~'
+        return os.path.normpath('/home/me')
+
+    with mock.patch.object(os.path, 'expanduser', fake_expanduser):
+        yield
+
+
+def test_exe_exists_does_not_exist(find_exe_mck, homedir_mck):
+    find_exe_mck.return_value = None
+    assert helpers.exe_exists('ruby') is False
+
+
+def test_exe_exists_exists(find_exe_mck, homedir_mck):
+    find_exe_mck.return_value = os.path.normpath('/usr/bin/ruby')
+    assert helpers.exe_exists('ruby') is True
+
+
+def test_exe_exists_false_if_shim(find_exe_mck, homedir_mck):
+    find_exe_mck.return_value = os.path.normpath('/foo/shims/ruby')
+    assert helpers.exe_exists('ruby') is False
+
+
+def test_exe_exists_false_if_homedir(find_exe_mck, homedir_mck):
+    find_exe_mck.return_value = os.path.normpath('/home/me/somedir/ruby')
+    assert helpers.exe_exists('ruby') is False
+
+
+def test_exe_exists_commonpath_raises_ValueError(find_exe_mck, homedir_mck):
+    find_exe_mck.return_value = os.path.normpath('/usr/bin/ruby')
+    with mock.patch.object(os.path, 'commonpath', side_effect=ValueError):
+        assert helpers.exe_exists('ruby') is True
 
 
 def test_basic_get_default_version():

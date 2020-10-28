@@ -8,7 +8,6 @@ from typing import Sequence
 from typing import Tuple
 
 import pre_commit.constants as C
-from pre_commit import parse_shebang
 from pre_commit.envcontext import envcontext
 from pre_commit.envcontext import PatchesT
 from pre_commit.envcontext import UNSET
@@ -26,7 +25,7 @@ healthy = helpers.basic_healthy
 
 @functools.lru_cache(maxsize=1)
 def get_default_version() -> str:
-    if all(parse_shebang.find_executable(exe) for exe in ('ruby', 'gem')):
+    if all(helpers.exe_exists(exe) for exe in ('ruby', 'gem')):
         return 'system'
     else:
         return C.DEFAULT

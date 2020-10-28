@@ -7,7 +7,6 @@ from typing import Sequence
 from typing import Tuple
 
 import pre_commit.constants as C
-from pre_commit import parse_shebang
 from pre_commit.envcontext import envcontext
 from pre_commit.envcontext import PatchesT
 from pre_commit.envcontext import UNSET
@@ -31,7 +30,7 @@ def get_default_version() -> str:
         return C.DEFAULT
     # if node is already installed, we can save a bunch of setup time by
     # using the installed version
-    elif all(parse_shebang.find_executable(exe) for exe in ('node', 'npm')):
+    elif all(helpers.exe_exists(exe) for exe in ('node', 'npm')):
         return 'system'
     else:
         return C.DEFAULT

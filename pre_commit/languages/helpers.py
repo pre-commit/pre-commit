@@ -1,6 +1,7 @@
 import multiprocessing
 import os
 import random
+import re
 from typing import Any
 from typing import List
 from typing import Optional
@@ -10,6 +11,7 @@ from typing import Tuple
 from typing import TYPE_CHECKING
 
 import pre_commit.constants as C
+from pre_commit import parse_shebang
 from pre_commit.hook import Hook
 from pre_commit.prefix import Prefix
 from pre_commit.util import cmd_output_b
@@ -19,6 +21,25 @@ if TYPE_CHECKING:
     from typing import NoReturn
 
 FIXED_RANDOM_SEED = 1542676187
+
+SHIMS_RE = re.compile(r'[/\\]shims[/\\]')
+
+
+def exe_exists(exe: str) -> bool:
+    found = parse_shebang.find_executable(exe)
+    if found is None:  # exe exists
+        return False
+
+    homedir = os.path.expanduser('~')
+    try:
+        common: Optional[str] = os.path.commonpath((found, homedir))
+    except ValueError:  # on windows, different drives raises ValueError
+        common = None
+
+    return (
+        not SHIMS_RE.search(found) and  # it is not in a /shims/ directory
+        common != homedir  # it is not in the home directory
+    )
 
 
 def run_setup_cmd(prefix: Prefix, cmd: Tuple[str, ...]) -> None:
