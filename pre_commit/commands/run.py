@@ -11,6 +11,7 @@ from typing import Any
 from typing import Collection
 from typing import Dict
 from typing import List
+from typing import MutableMapping
 from typing import Sequence
 from typing import Set
 from typing import Tuple
@@ -28,7 +29,6 @@ from pre_commit.repository import install_hook_envs
 from pre_commit.staged_files_only import staged_files_only
 from pre_commit.store import Store
 from pre_commit.util import cmd_output_b
-from pre_commit.util import EnvironT
 
 
 logger = logging.getLogger('pre_commit')
@@ -116,7 +116,7 @@ class Classifier:
         return Classifier(filenames)
 
 
-def _get_skips(environ: EnvironT) -> Set[str]:
+def _get_skips(environ: MutableMapping[str, str]) -> Set[str]:
     skips = environ.get('SKIP', '')
     return {skip.strip() for skip in skips.split(',') if skip.strip()}
 
@@ -258,7 +258,7 @@ def _run_hooks(
         config: Dict[str, Any],
         hooks: Sequence[Hook],
         args: argparse.Namespace,
-        environ: EnvironT,
+        environ: MutableMapping[str, str],
 ) -> int:
     """Actually run the hooks."""
     skips = _get_skips(environ)
@@ -315,7 +315,7 @@ def run(
         config_file: str,
         store: Store,
         args: argparse.Namespace,
-        environ: EnvironT = os.environ,
+        environ: MutableMapping[str, str] = os.environ,
 ) -> int:
     stash = not args.all_files and not args.files
 

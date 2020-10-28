@@ -3,6 +3,7 @@ import os.path
 import sys
 from typing import Dict
 from typing import List
+from typing import MutableMapping
 from typing import Optional
 from typing import Set
 
@@ -10,7 +11,6 @@ from pre_commit.errors import FatalError
 from pre_commit.util import CalledProcessError
 from pre_commit.util import cmd_output
 from pre_commit.util import cmd_output_b
-from pre_commit.util import EnvironT
 
 
 logger = logging.getLogger(__name__)
@@ -24,7 +24,9 @@ def zsplit(s: str) -> List[str]:
         return []
 
 
-def no_git_env(_env: Optional[EnvironT] = None) -> Dict[str, str]:
+def no_git_env(
+        _env: Optional[MutableMapping[str, str]] = None,
+) -> Dict[str, str]:
     # Too many bugs dealing with environment variables and GIT:
     # https://github.com/pre-commit/pre-commit/issues/300
     # In git 2.6.3 (maybe others), git exports GIT_WORK_TREE while running

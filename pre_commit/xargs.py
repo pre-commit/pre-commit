@@ -9,6 +9,7 @@ from typing import Callable
 from typing import Generator
 from typing import Iterable
 from typing import List
+from typing import MutableMapping
 from typing import Optional
 from typing import Sequence
 from typing import Tuple
@@ -17,13 +18,12 @@ from typing import TypeVar
 from pre_commit import parse_shebang
 from pre_commit.util import cmd_output_b
 from pre_commit.util import cmd_output_p
-from pre_commit.util import EnvironT
 
 TArg = TypeVar('TArg')
 TRet = TypeVar('TRet')
 
 
-def _environ_size(_env: Optional[EnvironT] = None) -> int:
+def _environ_size(_env: Optional[MutableMapping[str, str]] = None) -> int:
     environ = _env if _env is not None else getattr(os, 'environb', os.environ)
     size = 8 * len(environ)  # number of pointers in `envp`
     for k, v in environ.items():

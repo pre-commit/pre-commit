@@ -2,12 +2,11 @@ import contextlib
 import enum
 import os
 from typing import Generator
+from typing import MutableMapping
 from typing import NamedTuple
 from typing import Optional
 from typing import Tuple
 from typing import Union
-
-from pre_commit.util import EnvironT
 
 
 class _Unset(enum.Enum):
@@ -27,7 +26,7 @@ ValueT = Union[str, _Unset, SubstitutionT]
 PatchesT = Tuple[Tuple[str, ValueT], ...]
 
 
-def format_env(parts: SubstitutionT, env: EnvironT) -> str:
+def format_env(parts: SubstitutionT, env: MutableMapping[str, str]) -> str:
     return ''.join(
         env.get(part.name, part.default) if isinstance(part, Var) else part
         for part in parts
@@ -37,7 +36,7 @@ def format_env(parts: SubstitutionT, env: EnvironT) -> str:
 @contextlib.contextmanager
 def envcontext(
         patch: PatchesT,
-        _env: Optional[EnvironT] = None,
+        _env: Optional[MutableMapping[str, str]] = None,
 ) -> Generator[None, None, None]:
     """In this context, `os.environ` is modified according to `patch`.
 
@@ -50,7 +49,7 @@ def envcontext(
               replaced with the previous environment
     """
     env = os.environ if _env is None else _env
-    before = env.copy()
+    before = dict(env)
 
     for k, v in patch:
         if v is UNSET:

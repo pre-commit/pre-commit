@@ -2,6 +2,7 @@ import os.path
 import shlex
 import sys
 import time
+from typing import MutableMapping
 from unittest import mock
 
 import pytest
@@ -18,7 +19,6 @@ from pre_commit.commands.run import Classifier
 from pre_commit.commands.run import filter_by_include_exclude
 from pre_commit.commands.run import run
 from pre_commit.util import cmd_output
-from pre_commit.util import EnvironT
 from pre_commit.util import make_executable
 from testing.auto_namedtuple import auto_namedtuple
 from testing.fixtures import add_config_to_repo
@@ -482,7 +482,7 @@ def test_all_push_options_ok(cap_out, store, repo_with_passing_hook):
 
 def test_checkout_type(cap_out, store, repo_with_passing_hook):
     args = run_opts(from_ref='', to_ref='', checkout_type='1')
-    environ: EnvironT = {}
+    environ: MutableMapping[str, str] = {}
     ret, printed = _do_run(
         cap_out, store, repo_with_passing_hook, args, environ,
     )
@@ -1032,7 +1032,7 @@ def test_skipped_without_any_setup_for_post_checkout(in_git_dir, store):
 
 def test_pre_commit_env_variable_set(cap_out, store, repo_with_passing_hook):
     args = run_opts()
-    environ: EnvironT = {}
+    environ: MutableMapping[str, str] = {}
     ret, printed = _do_run(
         cap_out, store, repo_with_passing_hook, args, environ,
     )
