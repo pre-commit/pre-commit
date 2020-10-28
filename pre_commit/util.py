@@ -16,7 +16,6 @@ from typing import IO
 from typing import Optional
 from typing import Tuple
 from typing import Type
-from typing import Union
 
 import yaml
 
@@ -28,8 +27,6 @@ if sys.version_info >= (3, 7):  # pragma: no cover (PY37+)
 else:  # pragma: no cover (<PY37)
     from importlib_resources import open_binary
     from importlib_resources import read_text
-
-EnvironT = Union[Dict[str, str], 'os._Environ']
 
 Loader = getattr(yaml, 'CSafeLoader', yaml.SafeLoader)
 yaml_load = functools.partial(yaml.load, Loader=Loader)
