@@ -19,6 +19,7 @@ from pre_commit.prefix import Prefix
 from pre_commit.util import clean_path_on_failure
 from pre_commit.util import cmd_output
 from pre_commit.util import cmd_output_b
+from pre_commit.util import rmtree
 
 ENVIRONMENT_DIR = 'node_env'
 
@@ -99,11 +100,23 @@ def install_environment(
         with in_env(prefix, version):
             # https://npm.community/t/npm-install-g-git-vs-git-clone-cd-npm-install-g/5449
             # install as if we installed from git
-            helpers.run_setup_cmd(prefix, ('npm', 'install'))
-            helpers.run_setup_cmd(
-                prefix,
-                ('npm', 'install', '-g', '.', *additional_dependencies),
+
+            local_install_cmd = (
+                'npm', 'install', '--dev', '--prod',
+                '--ignore-prepublish', '--no-progress', '--no-save',
             )
+            helpers.run_setup_cmd(prefix, local_install_cmd)
+
+            _, pkg, _ = cmd_output('npm', 'pack', cwd=prefix.prefix_dir)
+            pkg = prefix.path(pkg.strip())
+
+            install = ('npm', 'install', '-g', pkg, *additional_dependencies)
+            helpers.run_setup_cmd(prefix, install)
+
+            # clean these up after installation
+            if prefix.exists('node_modules'):  # pragma: win32 no cover
+                rmtree(prefix.path('node_modules'))
+            os.remove(pkg)
 
 
 def run_hook(
