@@ -1,3 +1,4 @@
+import json
 import os
 import shutil
 import sys
@@ -10,6 +11,7 @@ from pre_commit import envcontext
 from pre_commit import parse_shebang
 from pre_commit.languages import node
 from pre_commit.prefix import Prefix
+from pre_commit.util import cmd_output
 from testing.util import xfailif_windows
 
 
@@ -78,3 +80,29 @@ def test_unhealthy_if_system_node_goes_missing(tmpdir):
 
         node_bin.remove()
         assert not node.healthy(prefix, 'system')
+
+
+@xfailif_windows  # pragma: win32 no cover
+def test_installs_without_links_outside_env(tmpdir):
+    tmpdir.join('bin/main.js').ensure().write(
+        '#!/usr/bin/env node\n'
+        '_ = require("lodash"); console.log("success!")\n',
+    )
+    tmpdir.join('package.json').write(
+        json.dumps({
+            'name': 'foo',
+            'version': '0.0.1',
+            'bin': {'foo': './bin/main.js'},
+            'dependencies': {'lodash': '*'},
+        }),
+    )
+
+    prefix = Prefix(str(tmpdir))
+    node.install_environment(prefix, 'system', ())
+    assert node.healthy(prefix, 'system')
+
+    # this directory shouldn't exist, make sure we succeed without it existing
+    cmd_output('rm', '-rf', str(tmpdir.join('node_modules')))
+
+    with node.in_env(prefix, 'system'):
+        assert cmd_output('foo')[1] == 'success!\n'
