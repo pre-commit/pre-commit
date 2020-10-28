@@ -12,7 +12,12 @@ from pre_commit.store import Store
 from pre_commit.util import force_bytes
 
 
-def _log_and_exit(msg: str, exc: BaseException, formatted: str) -> None:
+def _log_and_exit(
+    msg: str,
+    ret_code: int,
+    exc: BaseException,
+    formatted: str,
+) -> None:
     error_msg = f'{msg}: {type(exc).__name__}: '.encode() + force_bytes(exc)
     output.write_line_b(error_msg)
 
@@ -51,7 +56,7 @@ def _log_and_exit(msg: str, exc: BaseException, formatted: str) -> None:
         _log_line('```')
         _log_line(formatted.rstrip())
         _log_line('```')
-    raise SystemExit(1)
+    raise SystemExit(ret_code)
 
 
 @contextlib.contextmanager
@@ -60,9 +65,9 @@ def error_handler() -> Generator[None, None, None]:
         yield
     except (Exception, KeyboardInterrupt) as e:
         if isinstance(e, FatalError):
-            msg = 'An error has occurred'
+            msg, ret_code = 'An error has occurred', 1
         elif isinstance(e, KeyboardInterrupt):
-            msg = 'Interrupted (^C)'
+            msg, ret_code = 'Interrupted (^C)', 130
         else:
-            msg = 'An unexpected error has occurred'
-        _log_and_exit(msg, e, traceback.format_exc())
+            msg, ret_code = 'An unexpected error has occurred', 3
+        _log_and_exit(msg, ret_code, e, traceback.format_exc())

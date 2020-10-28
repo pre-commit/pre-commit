@@ -33,6 +33,7 @@ def test_error_handler_fatal_error(mocked_log_and_exit):
 
     mocked_log_and_exit.assert_called_once_with(
         'An error has occurred',
+        1,
         exc,
         # Tested below
         mock.ANY,
@@ -47,7 +48,7 @@ def test_error_handler_fatal_error(mocked_log_and_exit):
         r'    raise exc\n'
         r'(pre_commit\.errors\.)?FatalError: just a test\n',
     )
-    pattern.assert_matches(mocked_log_and_exit.call_args[0][2])
+    pattern.assert_matches(mocked_log_and_exit.call_args[0][3])
 
 
 def test_error_handler_uncaught_error(mocked_log_and_exit):
@@ -57,6 +58,7 @@ def test_error_handler_uncaught_error(mocked_log_and_exit):
 
     mocked_log_and_exit.assert_called_once_with(
         'An unexpected error has occurred',
+        3,
         exc,
         # Tested below
         mock.ANY,
@@ -70,7 +72,7 @@ def test_error_handler_uncaught_error(mocked_log_and_exit):
         r'    raise exc\n'
         r'ValueError: another test\n',
     )
-    pattern.assert_matches(mocked_log_and_exit.call_args[0][2])
+    pattern.assert_matches(mocked_log_and_exit.call_args[0][3])
 
 
 def test_error_handler_keyboardinterrupt(mocked_log_and_exit):
@@ -80,6 +82,7 @@ def test_error_handler_keyboardinterrupt(mocked_log_and_exit):
 
     mocked_log_and_exit.assert_called_once_with(
         'Interrupted (^C)',
+        130,
         exc,
         # Tested below
         mock.ANY,
@@ -93,7 +96,7 @@ def test_error_handler_keyboardinterrupt(mocked_log_and_exit):
         r'    raise exc\n'
         r'KeyboardInterrupt\n',
     )
-    pattern.assert_matches(mocked_log_and_exit.call_args[0][2])
+    pattern.assert_matches(mocked_log_and_exit.call_args[0][3])
 
 
 def test_log_and_exit(cap_out, mock_store_dir):
@@ -103,8 +106,9 @@ def test_log_and_exit(cap_out, mock_store_dir):
         'pre_commit.errors.FatalError: hai\n'
     )
 
-    with pytest.raises(SystemExit):
-        error_handler._log_and_exit('msg', FatalError('hai'), tb)
+    with pytest.raises(SystemExit) as excinfo:
+        error_handler._log_and_exit('msg', 1, FatalError('hai'), tb)
+    assert excinfo.value.code == 1
 
     printed = cap_out.get()
     log_file = os.path.join(mock_store_dir, 'pre-commit.log')
@@ -170,7 +174,7 @@ def test_error_handler_no_tty(tempdir_factory):
         'from pre_commit.error_handler import error_handler\n'
         'with error_handler():\n'
         '    raise ValueError("\\u2603")\n',
-        retcode=1,
+        retcode=3,
         tempdir_factory=tempdir_factory,
         pre_commit_home=pre_commit_home,
     )
