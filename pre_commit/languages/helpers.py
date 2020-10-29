@@ -37,8 +37,14 @@ def exe_exists(exe: str) -> bool:
         common = None
 
     return (
-        not SHIMS_RE.search(found) and  # it is not in a /shims/ directory
-        common != homedir  # it is not in the home directory
+        # it is not in a /shims/ directory
+        not SHIMS_RE.search(found) and
+        (
+            # the homedir is / (docker, service user, etc.)
+            os.path.dirname(homedir) == homedir or
+            # the exe is not contained in the home directory
+            common != homedir
+        )
     )
 
 
