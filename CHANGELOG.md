@@ -1,3 +1,10 @@
+2.8.1 - 2020-10-28
+==================
+
+### Fixes
+- Allow default `language_version` of `system` when the homedir is `/`
+    - #1669 PR by @asottile.
+
 2.8.0 - 2020-10-28
 ==================
 
