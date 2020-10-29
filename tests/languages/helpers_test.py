@@ -55,6 +55,12 @@ def test_exe_exists_commonpath_raises_ValueError(find_exe_mck, homedir_mck):
         assert helpers.exe_exists('ruby') is True
 
 
+def test_exe_exists_true_when_homedir_is_slash(find_exe_mck):
+    find_exe_mck.return_value = os.path.normpath('/usr/bin/ruby')
+    with mock.patch.object(os.path, 'expanduser', return_value=os.sep):
+        assert helpers.exe_exists('ruby') is True
+
+
 def test_basic_get_default_version():
     assert helpers.basic_get_default_version() == C.DEFAULT
 
