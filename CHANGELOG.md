@@ -1,3 +1,57 @@
+2.8.0 - 2020-10-28
+==================
+
+### Fixes
+- Improve `healthy()` check for `language: node` + `language_version: system`
+  hooks when the system executable goes missing.
+    - pre-commit/action#45 issue by @KOliver94.
+    - #1589 issue by @asottile.
+    - #1590 PR by @asottile.
+- Fix excess whitespace in error log traceback
+    - #1592 PR by @asottile.
+- Fix posixlike shebang invocations with shim executables of the git hook
+  script on windows.
+    - #1593 issue by @Celeborn2BeAlive.
+    - #1595 PR by @Celeborn2BeAlive.
+- Remove hard-coded `C:\PythonXX\python.exe` path on windows as it caused
+  confusion (and `virtualenv` can sometimes do better)
+    - #1599 PR by @asottile.
+- Fix `language: ruby` hooks when `--format-executable` is present in a gemrc
+    - issue by `Rainbow Tux` (discord).
+    - #1603 PR by @asottile.
+- Move `cygwin` / `win32` mismatch error earlier to catch msys2 mismatches
+    - #1605 issue by @danyeaw.
+    - #1606 PR by @asottile.
+- Remove `-p` workaround for old `virtualenv`
+    - #1617 PR by @asottile.
+- Fix `language: node` installations to not symlink outside of the environment
+    - pre-commit-ci/issues#2 issue by @DanielJSottile.
+    - #1667 PR by @asottile.
+- Don't identify shim executables as valid `system` for defaulting
+  `language_version` for `language: node` / `language: ruby`
+    - #1658 issue by @adithyabsk.
+    - #1668 PR by @asottile.
+
+### Features
+- Update `rbenv` / `ruby-build`
+    - #1612 issue by @tdeo.
+    - #1614 PR by @asottile.
+- Update `sample-config` versions
+    - #1611 PR by @mcsitter.
+- Add new language: `dotnet`
+    - #1598 by @rkm.
+- Add `--negate` option to `language: pygrep` hooks
+    - #1643 PR by @MarcoGorelli.
+- Add zipapp support
+    - #1616 PR by @asottile.
+- Run pre-commit through https://pre-commit.ci
+    - #1662 PR by @asottile.
+- Add new language: `coursier` (a jvm-based package manager)
+    - #1633 PR by @JosephMoniz.
+- Exit with distinct codes: 1 (user error), 3 (unexpected error), 130 (^C)
+    - #1601 PR by @int3l.
+
+
 2.7.1 - 2020-08-23
 ==================
 
