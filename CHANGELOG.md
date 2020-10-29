@@ -1,6 +1,25 @@
 2.8.0 - 2020-10-28
 ==================
 
+### Features
+- Update `rbenv` / `ruby-build`
+    - #1612 issue by @tdeo.
+    - #1614 PR by @asottile.
+- Update `sample-config` versions
+    - #1611 PR by @mcsitter.
+- Add new language: `dotnet`
+    - #1598 by @rkm.
+- Add `--negate` option to `language: pygrep` hooks
+    - #1643 PR by @MarcoGorelli.
+- Add zipapp support
+    - #1616 PR by @asottile.
+- Run pre-commit through https://pre-commit.ci
+    - #1662 PR by @asottile.
+- Add new language: `coursier` (a jvm-based package manager)
+    - #1633 PR by @JosephMoniz.
+- Exit with distinct codes: 1 (user error), 3 (unexpected error), 130 (^C)
+    - #1601 PR by @int3l.
+
 ### Fixes
 - Improve `healthy()` check for `language: node` + `language_version: system`
   hooks when the system executable goes missing.
@@ -31,25 +50,6 @@
   `language_version` for `language: node` / `language: ruby`
     - #1658 issue by @adithyabsk.
     - #1668 PR by @asottile.
-
-### Features
-- Update `rbenv` / `ruby-build`
-    - #1612 issue by @tdeo.
-    - #1614 PR by @asottile.
-- Update `sample-config` versions
-    - #1611 PR by @mcsitter.
-- Add new language: `dotnet`
-    - #1598 by @rkm.
-- Add `--negate` option to `language: pygrep` hooks
-    - #1643 PR by @MarcoGorelli.
-- Add zipapp support
-    - #1616 PR by @asottile.
-- Run pre-commit through https://pre-commit.ci
-    - #1662 PR by @asottile.
-- Add new language: `coursier` (a jvm-based package manager)
-    - #1633 PR by @JosephMoniz.
-- Exit with distinct codes: 1 (user error), 3 (unexpected error), 130 (^C)
-    - #1601 PR by @int3l.
 
 
 2.7.1 - 2020-08-23
