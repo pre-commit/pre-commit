@@ -1,3 +1,11 @@
+2.8.2 - 2020-10-30
+==================
+
+### Fixes
+- Fix installation of ruby hooks with `language_version: default`
+    - #1671 issue by @aerickson.
+    - #1672 PR by @asottile.
+
 2.8.1 - 2020-10-28
 ==================
 
