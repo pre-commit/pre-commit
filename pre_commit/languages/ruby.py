@@ -121,8 +121,8 @@ def install_environment(
                 # Need to call this before installing so rbenv's directories
                 # are set up
                 helpers.run_setup_cmd(prefix, ('rbenv', 'init', '-'))
-                # XXX: this will *always* fail if `version == C.DEFAULT`
-                _install_ruby(prefix, version)
+                if version != C.DEFAULT:
+                    _install_ruby(prefix, version)
                 # Need to call this after installing to set up the shims
                 helpers.run_setup_cmd(prefix, ('rbenv', 'rehash'))
 
