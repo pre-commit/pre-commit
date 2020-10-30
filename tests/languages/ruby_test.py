@@ -30,23 +30,45 @@ def test_uses_system_if_both_gem_and_ruby_are_available(find_exe_mck):
     assert ACTUAL_GET_DEFAULT_VERSION() == 'system'
 
 
+@pytest.fixture
+def fake_gem_prefix(tmpdir):
+    gemspec = '''\
+Gem::Specification.new do |s|
+    s.name = 'pre_commit_dummy_package'
+    s.version = '0.0.0'
+    s.summary = 'dummy gem for pre-commit hooks'
+    s.authors = ['Anthony Sottile']
+end
+'''
+    tmpdir.join('dummy_gem.gemspec').write(gemspec)
+    yield Prefix(tmpdir)
+
+
 @xfailif_windows  # pragma: win32 no cover
-def test_install_rbenv(tempdir_factory):
-    prefix = Prefix(tempdir_factory.get())
-    ruby._install_rbenv(prefix, C.DEFAULT)
+def test_install_ruby_system(fake_gem_prefix):
+    ruby.install_environment(fake_gem_prefix, 'system', ())
+
+    # Should be able to activate and use rbenv install
+    with ruby.in_env(fake_gem_prefix, 'system'):
+        _, out, _ = cmd_output('gem', 'list')
+        assert 'pre_commit_dummy_package' in out
+
+
+@xfailif_windows  # pragma: win32 no cover
+def test_install_ruby_default(fake_gem_prefix):
+    ruby.install_environment(fake_gem_prefix, C.DEFAULT, ())
     # Should have created rbenv directory
-    assert os.path.exists(prefix.path('rbenv-default'))
+    assert os.path.exists(fake_gem_prefix.path('rbenv-default'))
 
     # Should be able to activate using our script and access rbenv
-    with ruby.in_env(prefix, 'default'):
+    with ruby.in_env(fake_gem_prefix, 'default'):
         cmd_output('rbenv', '--help')
 
 
 @xfailif_windows  # pragma: win32 no cover
-def test_install_rbenv_with_version(tempdir_factory):
-    prefix = Prefix(tempdir_factory.get())
-    ruby._install_rbenv(prefix, version='1.9.3p547')
+def test_install_ruby_with_version(fake_gem_prefix):
+    ruby.install_environment(fake_gem_prefix, '2.7.2', ())
 
     # Should be able to activate and use rbenv install
-    with ruby.in_env(prefix, '1.9.3p547'):
+    with ruby.in_env(fake_gem_prefix, '2.7.2'):
         cmd_output('rbenv', 'install', '--help')
