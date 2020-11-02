@@ -83,20 +83,28 @@ class Classifier:
             self,
             names: Sequence[str],
             types: Collection[str],
+            types_or: Collection[str],
             exclude_types: Collection[str],
     ) -> List[str]:
-        types, exclude_types = frozenset(types), frozenset(exclude_types)
+        types = frozenset(types)
+        types_or = frozenset(types_or)
+        exclude_types = frozenset(exclude_types)
         ret = []
         for filename in names:
             tags = self._types_for_file(filename)
-            if tags >= types and not tags & exclude_types:
+            if tags >= types and tags & types_or and not tags & exclude_types:
                 ret.append(filename)
         return ret
 
     def filenames_for_hook(self, hook: Hook) -> Tuple[str, ...]:
         names = self.filenames
         names = filter_by_include_exclude(names, hook.files, hook.exclude)
-        names = self.by_types(names, hook.types, hook.exclude_types)
+        names = self.by_types(
+            names,
+            hook.types,
+            hook.types_or,
+            hook.exclude_types,
+        )
         return tuple(names)
 
     @classmethod

@@ -219,6 +219,19 @@ def test_types_hook_repository(cap_out, store, tempdir_factory):
         assert b'bar.notpy' not in printed
 
 
+def test_types_or_hook_repository(cap_out, store, tempdir_factory):
+    git_path = make_consuming_repo(tempdir_factory, 'types_or_repo')
+    with cwd(git_path):
+        stage_a_file('bar.notpy')
+        stage_a_file('bar.pxd')
+        stage_a_file('bar.py')
+        ret, printed = _do_run(cap_out, store, git_path, run_opts())
+        assert ret == 1
+        assert b'bar.notpy' not in printed
+        assert b'bar.pxd' in printed
+        assert b'bar.py' in printed
+
+
 def test_exclude_types_hook_repository(cap_out, store, tempdir_factory):
     git_path = make_consuming_repo(tempdir_factory, 'exclude_types_repo')
     with cwd(git_path):

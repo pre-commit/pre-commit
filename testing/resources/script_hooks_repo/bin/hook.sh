@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 
-echo $@
+echo "$@"
 echo 'Hello World'
