@@ -22,6 +22,7 @@ class Hook(NamedTuple):
     files: str
     exclude: str
     types: Sequence[str]
+    types_or: Sequence[str]
     exclude_types: Sequence[str]
     additional_dependencies: Sequence[str]
     args: Sequence[str]

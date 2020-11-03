@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 echo 'Fail'
-echo $@
+echo "$@"
 exit 1

@@ -1,0 +1,6 @@
+-   id: python-cython-files
+    name: Python and Cython files
+    entry: bin/hook.sh
+    language: script
+    types: [file]
+    types_or: [python, cython]

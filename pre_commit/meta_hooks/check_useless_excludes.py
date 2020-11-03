@@ -47,8 +47,10 @@ def check_useless_excludes(config_file: str) -> int:
             # the defaults applied during runtime
             hook = apply_defaults(hook, MANIFEST_HOOK_DICT)
             names = classifier.filenames
-            types, exclude_types = hook['types'], hook['exclude_types']
-            names = classifier.by_types(names, types, exclude_types)
+            types = hook['types']
+            types_or = hook['types_or']
+            exclude_types = hook['exclude_types']
+            names = classifier.by_types(names, types, types_or, exclude_types)
             include, exclude = hook['files'], hook['exclude']
             if not exclude_matches_any(names, include, exclude):
                 print(
