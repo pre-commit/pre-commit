@@ -12,7 +12,6 @@ from pre_commit.hook import Hook
 from pre_commit.languages import helpers
 from pre_commit.prefix import Prefix
 from pre_commit.util import clean_path_on_failure
-from pre_commit.util import rmtree
 
 ENVIRONMENT_DIR = 'dotnetenv'
 BIN_DIR = 'bin'
@@ -76,9 +75,9 @@ def install_environment(
             ),
         )
 
-        # Cleanup build output
-        for d in ('bin', 'obj', build_dir):
-            rmtree(prefix.path(d))
+        # Clean the git dir, ignoring the environment dir
+        clean_cmd = ('git', 'clean', '-ffxd', '-e', f'{ENVIRONMENT_DIR}-*')
+        helpers.run_setup_cmd(prefix, clean_cmd)
 
 
 def run_hook(
