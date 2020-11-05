@@ -1,14 +1,10 @@
 import re
+import textwrap
 
 import yaml
 
 from pre_commit.clientlib import load_config
 from pre_commit.util import yaml_load
-
-
-def _indent(s: str) -> str:
-    lines = s.splitlines(True)
-    return ''.join(' ' * 4 + line if line.strip() else line for line in lines)
 
 
 def _is_header_line(line: str) -> bool:
@@ -34,7 +30,7 @@ def _migrate_map(contents: str) -> str:
             yaml_load(trial_contents)
             contents = trial_contents
         except yaml.YAMLError:
-            contents = f'{header}repos:\n{_indent(rest)}'
+            contents = f'{header}repos:\n{textwrap.indent(rest, " " * 4)}'
 
     return contents
 

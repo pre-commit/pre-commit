@@ -2,22 +2,7 @@ import pytest
 
 import pre_commit.constants as C
 from pre_commit.clientlib import InvalidConfigError
-from pre_commit.commands.migrate_config import _indent
 from pre_commit.commands.migrate_config import migrate_config
-
-
-@pytest.mark.parametrize(
-    ('s', 'expected'),
-    (
-        ('', ''),
-        ('a', '    a'),
-        ('foo\nbar', '    foo\n    bar'),
-        ('foo\n\nbar\n', '    foo\n\n    bar\n'),
-        ('\n\n\n', '\n\n\n'),
-    ),
-)
-def test_indent(s, expected):
-    assert _indent(s) == expected
 
 
 def test_migrate_config_normal_format(tmpdir, capsys):
