@@ -16,17 +16,17 @@ def _is_header_line(line: str) -> bool:
 
 
 def _migrate_map(contents: str) -> str:
-    # Find the first non-header line
-    lines = contents.splitlines(True)
-    i = 0
-    # Only loop on non empty configuration file
-    while i < len(lines) and _is_header_line(lines[i]):
-        i += 1
-
-    header = ''.join(lines[:i])
-    rest = ''.join(lines[i:])
-
     if isinstance(yaml_load(contents), list):
+        # Find the first non-header line
+        lines = contents.splitlines(True)
+        i = 0
+        # Only loop on non empty configuration file
+        while i < len(lines) and _is_header_line(lines[i]):
+            i += 1
+
+        header = ''.join(lines[:i])
+        rest = ''.join(lines[i:])
+
         # If they are using the "default" flow style of yaml, this operation
         # will yield a valid configuration
         try:
