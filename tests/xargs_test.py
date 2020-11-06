@@ -195,3 +195,12 @@ def test_xargs_color_true_makes_tty():
     )
     assert retcode == 0
     assert out == b'True\n'
+
+
+@pytest.mark.xfail(os.name == 'posix', reason='nt only')
+@pytest.mark.parametrize('filename', ('t.bat', 't.cmd', 'T.CMD'))
+def test_xargs_with_batch_files(tmpdir, filename):
+    f = tmpdir.join(filename)
+    f.write('echo it works\n')
+    retcode, out = xargs.xargs((str(f),), ('x',) * 8192)
+    assert retcode == 0, (retcode, out)
