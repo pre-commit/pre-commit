@@ -205,6 +205,15 @@ def test_run_a_coursier_hook(tempdir_factory, store):
     )
 
 
+@skipif_cant_run_coursier  # pragma: win32 no cover
+def test_run_a_coursier_launch_hook(tempdir_factory, store, hook_id):
+    _test_hook_repo(
+        tempdir_factory, store, 'coursier_hooks_repo',
+        'echo-java',
+        ['Hello World from coursier'], b'Hello World from coursier\n',
+    )
+
+
 @skipif_cant_run_docker  # pragma: win32 no cover
 def test_run_a_docker_hook(tempdir_factory, store):
     _test_hook_repo(

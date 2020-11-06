@@ -7,6 +7,7 @@ from typing import Tuple
 from pre_commit.hook import Hook
 from pre_commit.languages import conda
 from pre_commit.languages import coursier
+from pre_commit.languages import coursier_launch
 from pre_commit.languages import docker
 from pre_commit.languages import docker_image
 from pre_commit.languages import dotnet
@@ -43,9 +44,10 @@ languages = {
     # BEGIN GENERATED (testing/gen-languages-all)
     'conda': Language(name='conda', ENVIRONMENT_DIR=conda.ENVIRONMENT_DIR, get_default_version=conda.get_default_version, healthy=conda.healthy, install_environment=conda.install_environment, run_hook=conda.run_hook),  # noqa: E501
     'coursier': Language(name='coursier', ENVIRONMENT_DIR=coursier.ENVIRONMENT_DIR, get_default_version=coursier.get_default_version, healthy=coursier.healthy, install_environment=coursier.install_environment, run_hook=coursier.run_hook),  # noqa: E501
+    'coursier_launch': Language(name='coursier_launch', ENVIRONMENT_DIR=coursier_launch.ENVIRONMENT_DIR, get_default_version=coursier_launch.get_default_version, healthy=coursier_launch.healthy, install_environment=coursier_launch.install_environment, run_hook=coursier_launch.run_hook),  # noqa: E501
     'docker': Language(name='docker', ENVIRONMENT_DIR=docker.ENVIRONMENT_DIR, get_default_version=docker.get_default_version, healthy=docker.healthy, install_environment=docker.install_environment, run_hook=docker.run_hook),  # noqa: E501
-    'docker_image': Language(name='docker_image', ENVIRONMENT_DIR=docker_image.ENVIRONMENT_DIR, get_default_version=docker_image.get_default_version, healthy=docker_image.healthy, install_environment=docker_image.install_environment, run_hook=docker_image.run_hook),  # noqa: E501
     'dotnet': Language(name='dotnet', ENVIRONMENT_DIR=dotnet.ENVIRONMENT_DIR, get_default_version=dotnet.get_default_version, healthy=dotnet.healthy, install_environment=dotnet.install_environment, run_hook=dotnet.run_hook),  # noqa: E501
+    'docker_image': Language(name='docker_image', ENVIRONMENT_DIR=docker_image.ENVIRONMENT_DIR, get_default_version=docker_image.get_default_version, healthy=docker_image.healthy, install_environment=docker_image.install_environment, run_hook=docker_image.run_hook),  # noqa: E501
     'fail': Language(name='fail', ENVIRONMENT_DIR=fail.ENVIRONMENT_DIR, get_default_version=fail.get_default_version, healthy=fail.healthy, install_environment=fail.install_environment, run_hook=fail.run_hook),  # noqa: E501
     'golang': Language(name='golang', ENVIRONMENT_DIR=golang.ENVIRONMENT_DIR, get_default_version=golang.get_default_version, healthy=golang.healthy, install_environment=golang.install_environment, run_hook=golang.run_hook),  # noqa: E501
     'node': Language(name='node', ENVIRONMENT_DIR=node.ENVIRONMENT_DIR, get_default_version=node.get_default_version, healthy=node.healthy, install_environment=node.install_environment, run_hook=node.run_hook),  # noqa: E501
