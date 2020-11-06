@@ -137,6 +137,16 @@ def xargs(
     except parse_shebang.ExecutableNotFoundError as e:
         return e.to_output()[:2]
 
+    # on windows, batch files have a separate length limit than windows itself
+    if (
+            sys.platform == 'win32' and
+            cmd[0].lower().endswith(('.bat', '.cmd'))
+    ):  # pragma: win32 cover
+        # this is implementation details but the command gets translated into
+        # full/path/to/cmd.exe /c *cmd
+        cmd_exe = parse_shebang.find_executable('cmd.exe')
+        _max_length = 8192 - len(cmd_exe) - len(' /c ')
+
     partitions = partition(cmd, varargs, target_concurrency, _max_length)
 
     def run_cmd_partition(
