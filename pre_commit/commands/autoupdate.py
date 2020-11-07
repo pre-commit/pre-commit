@@ -84,9 +84,7 @@ def _check_hooks_still_exist_at_rev(
         )
 
 
-REV_LINE_RE = re.compile(
-    r'^(\s+)rev:(\s*)([\'"]?)([^\s#]+)(.*)(\r?\n)$', re.DOTALL,
-)
+REV_LINE_RE = re.compile(r'^(\s+)rev:(\s*)([\'"]?)([^\s#]+)(.*)(\r?\n)$')
 
 
 def _original_lines(
