@@ -1,9 +1,12 @@
 import shlex
+from unittest import mock
 
 import pytest
+import yaml
 
 import pre_commit.constants as C
 from pre_commit import git
+from pre_commit import util
 from pre_commit.commands.autoupdate import _check_hooks_still_exist_at_rev
 from pre_commit.commands.autoupdate import autoupdate
 from pre_commit.commands.autoupdate import RepositoryCannotBeUpdatedError
@@ -171,6 +174,11 @@ def test_autoupdate_out_of_date_repo(out_of_date, tmpdir, store):
 
     assert autoupdate(str(cfg), store, freeze=False, tags_only=False) == 0
     assert cfg.read() == fmt.format(out_of_date.path, out_of_date.head_rev)
+
+
+def test_autoupdate_pure_yaml(out_of_date, tmpdir, store):
+    with mock.patch.object(util, 'Dumper', yaml.SafeDumper):
+        test_autoupdate_out_of_date_repo(out_of_date, tmpdir, store)
 
 
 def test_autoupdate_only_one_to_update(up_to_date, out_of_date, tmpdir, store):
