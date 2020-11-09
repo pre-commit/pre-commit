@@ -8,11 +8,7 @@ from typing import Optional
 from typing import Tuple
 from typing import Union
 
-
-class _Unset(enum.Enum):
-    UNSET = 1
-
-
+_Unset = enum.Enum('_Unset', 'UNSET')
 UNSET = _Unset.UNSET
 
 
