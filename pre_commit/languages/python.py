@@ -197,10 +197,17 @@ def install_environment(
     if python is not None:
         venv_cmd.extend(('-p', python))
     install_cmd = ('python', '-mpip', 'install', '.', *additional_dependencies)
+    setup_dependencies_env = os.environ.get('PYTHON_SETUP_DEPENDENCIES')
+    if setup_dependencies_env:
+        setup_dependencies = setup_dependencies_env.split(':')
+    else:
+        setup_dependencies = []
 
     with clean_path_on_failure(envdir):
         cmd_output_b(*venv_cmd, cwd='/')
         with in_env(prefix, version):
+            for dep in setup_dependencies:
+                cmd_output_b('python', '-mpip', 'install', dep)
             helpers.run_setup_cmd(prefix, install_cmd)
 
 
