@@ -258,7 +258,9 @@ def _all_filenames(args: argparse.Namespace) -> Collection[str]:
 
 
 def _get_diff() -> bytes:
-    _, out, _ = cmd_output_b('git', 'diff', '--no-ext-diff', retcode=None)
+    _, out, _ = cmd_output_b(
+        'git', 'diff', '--no-ext-diff', '--ignore-submodules', retcode=None,
+    )
     return out
 
 

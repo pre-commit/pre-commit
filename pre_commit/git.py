@@ -130,7 +130,9 @@ def get_staged_files(cwd: Optional[str] = None) -> List[str]:
 
 
 def intent_to_add_files() -> List[str]:
-    _, stdout, _ = cmd_output('git', 'status', '--porcelain', '-z')
+    _, stdout, _ = cmd_output(
+        'git', 'status', '--ignore-submodules', '--porcelain', '-z',
+    )
     parts = list(reversed(zsplit(stdout)))
     intent_to_add = []
     while parts:
