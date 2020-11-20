@@ -52,7 +52,6 @@ def get_env_patch(
     else:  # pragma: win32 no cover
         patches += (
             ('RBENV_ROOT', venv),
-            ('RBENV_VERSION', language_version),
             (
                 'PATH', (
                     os.path.join(venv, 'gems', 'bin'), os.pathsep,
@@ -61,6 +60,9 @@ def get_env_patch(
                 ),
             ),
         )
+    if language_version not in {'system', 'default'}:  # pragma: win32 no cover
+        patches += (('RBENV_VERSION', language_version),)
+
     return patches
 
 
