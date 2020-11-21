@@ -1,3 +1,29 @@
+2.9.0 - 2020-11-21
+==================
+
+### Features
+- Add `types_or` which allows matching multiple disparate `types` in a hook
+    - #1677 by @MarcoGorelli.
+    - #607 by @asottile.
+- Add Github Sponsors / Open Collective links
+    - https://github.com/sponsors/asottile
+    - https://opencollective.com/pre-commit
+
+### Fixes
+- Improve cleanup for `language: dotnet`
+    - #1678 by @rkm.
+- Fix "xargs" when running windows batch files
+    - #1686 PR by @asottile.
+    - #1604 issue by @apietrzak.
+    - #1604 issue by @ufwtlsb.
+- Fix conflict with external `rbenv` and `language_version: default`
+    - #1700 PR by @asottile.
+    - #1699 issue by @abuxton.
+- Improve performance of `git status` / `git diff` commands by ignoring
+  submodules
+    - #1704 PR by @Vynce.
+    - #1701 issue by @Vynce.
+
 2.8.2 - 2020-10-30
 ==================
 
