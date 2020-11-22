@@ -79,8 +79,8 @@ def _check_hooks_still_exist_at_rev(
     hooks_missing = hooks - {hook['id'] for hook in manifest}
     if hooks_missing:
         raise RepositoryCannotBeUpdatedError(
-            f'Cannot update because the tip of HEAD is missing these hooks:\n'
-            f'{", ".join(sorted(hooks_missing))}',
+            f'Cannot update because the update target is missing these '
+            f'hooks:\n{", ".join(sorted(hooks_missing))}',
         )
 
 
