@@ -112,6 +112,18 @@ LOCAL = 'local'
 META = 'meta'
 
 
+class OptionalSensibleRegex(cfgv.OptionalNoDefault):
+    def check(self, dct: Dict[str, Any]) -> None:
+        super().check(dct)
+
+        if '/*' in dct.get(self.key, ''):
+            logger.warning(
+                f'The {self.key!r} field in hook {dct.get("id")!r} is a '
+                f"regex, not a glob -- matching '/*' probably isn't what you "
+                f'want here',
+            )
+
+
 class MigrateShaToRev:
     key = 'rev'
 
@@ -227,6 +239,8 @@ CONFIG_HOOK_DICT = cfgv.Map(
         for item in MANIFEST_HOOK_DICT.items
         if item.key != 'id'
     ),
+    OptionalSensibleRegex('files', cfgv.check_string),
+    OptionalSensibleRegex('exclude', cfgv.check_string),
 )
 CONFIG_REPO_DICT = cfgv.Map(
     'Repository', 'repo',

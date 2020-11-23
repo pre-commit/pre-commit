@@ -166,6 +166,23 @@ def test_validate_warn_on_unknown_keys_at_top_level(tmpdir, caplog):
     ]
 
 
+def test_validate_optional_sensible_regex(caplog):
+    config_obj = {
+        'id': 'flake8',
+        'files': 'dir/*.py',
+    }
+    cfgv.validate(config_obj, CONFIG_HOOK_DICT)
+
+    assert caplog.record_tuples == [
+        (
+            'pre_commit',
+            logging.WARNING,
+            "The 'files' field in hook 'flake8' is a regex, not a glob -- "
+            "matching '/*' probably isn't what you want here",
+        ),
+    ]
+
+
 @pytest.mark.parametrize('fn', (validate_config_main, validate_manifest_main))
 def test_mains_not_ok(tmpdir, fn):
     not_yaml = tmpdir.join('f.notyaml')
