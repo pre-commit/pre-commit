@@ -1,3 +1,18 @@
+2.9.1 - 2020-11-25
+==================
+
+### Fixes
+- Improve error message for "hook goes missing"
+    - #1709 PR by @paulhfischer.
+    - #1708 issue by @theod07.
+- Add warning for `/*` in `files` / `exclude` regexes
+    - #1707 PR by @paulhfischer.
+    - #1702 issue by @asottile.
+- Fix `healthy()` check for `language: python` on windows when the base
+  executable has non-ascii characters.
+    - #1713 PR by @asottile.
+    - #1711 issue by @Najiva.
+
 2.9.0 - 2020-11-21
 ==================
 
