@@ -99,6 +99,9 @@ def main() -> int:
         shebang = '/usr/bin/env python3'
         zipapp.create_archive(tmpdir, filename, interpreter=shebang)
 
+    with open(f'{filename}.sha256sum', 'w') as f:
+        subprocess.check_call(('sha256sum', filename), stdout=f)
+
     return 0
 
 
