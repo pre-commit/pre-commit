@@ -23,6 +23,13 @@ def test_read_pyvenv_cfg(tmpdir):
     assert python._read_pyvenv_cfg(pyvenv_cfg) == expected
 
 
+def test_read_pyvenv_cfg_non_utf8(tmpdir):
+    pyvenv_cfg = tmpdir.join('pyvenv_cfg')
+    pyvenv_cfg.write_binary('hello = hello john.š\n'.encode())
+    expected = {'hello': 'hello john.š'}
+    assert python._read_pyvenv_cfg(pyvenv_cfg) == expected
+
+
 def test_norm_version_expanduser():
     home = os.path.expanduser('~')
     if os.name == 'nt':  # pragma: nt cover
