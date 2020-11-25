@@ -36,7 +36,7 @@ def _version_info(exe: str) -> str:
 
 def _read_pyvenv_cfg(filename: str) -> Dict[str, str]:
     ret = {}
-    with open(filename) as f:
+    with open(filename, encoding='UTF-8') as f:
         for line in f:
             try:
                 k, v = line.split('=')
