@@ -966,7 +966,7 @@ def test_classifier_does_not_normalize_backslashes_non_windows(tmpdir):
 
 def test_classifier_empty_types_or(tmpdir):
     tmpdir.join('bar').ensure()
-    tmpdir.join('foo').mksymlinkto('bar')
+    os.symlink(tmpdir.join('bar'), tmpdir.join('foo'))
     with tmpdir.as_cwd():
         classifier = Classifier(('foo', 'bar'))
         for_symlink = classifier.by_types(
