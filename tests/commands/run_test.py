@@ -964,6 +964,27 @@ def test_classifier_does_not_normalize_backslashes_non_windows(tmpdir):
                 assert classifier.filenames == [r'a/b\c']
 
 
+def test_classifier_empty_types_or(tmpdir):
+    tmpdir.join('bar').ensure()
+    tmpdir.join('foo').mksymlinkto('bar')
+    with tmpdir.as_cwd():
+        classifier = Classifier(('foo', 'bar'))
+        for_symlink = classifier.by_types(
+            classifier.filenames,
+            types=['symlink'],
+            types_or=[],
+            exclude_types=[],
+        )
+        for_file = classifier.by_types(
+            classifier.filenames,
+            types=['file'],
+            types_or=[],
+            exclude_types=[],
+        )
+        assert for_symlink == ['foo']
+        assert for_file == ['bar']
+
+
 @pytest.fixture
 def some_filenames():
     return (

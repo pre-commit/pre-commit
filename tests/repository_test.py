@@ -901,7 +901,7 @@ def test_manifest_hooks(tempdir_factory, store):
             'post-commit', 'manual', 'post-checkout', 'push',
         ),
         types=['file'],
-        types_or=['file'],
+        types_or=[],
         verbose=False,
     )
 

@@ -92,7 +92,11 @@ class Classifier:
         ret = []
         for filename in names:
             tags = self._types_for_file(filename)
-            if tags >= types and tags & types_or and not tags & exclude_types:
+            if (
+                    tags >= types and
+                    (not types_or or tags & types_or) and
+                    not tags & exclude_types
+            ):
                 ret.append(filename)
         return ret
 
