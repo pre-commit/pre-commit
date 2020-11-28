@@ -4,7 +4,7 @@
 ### Fixes
 - Fix default value for `types_or` so `symlink` and `directory` can be matched
     - #1716 PR by @asottile.
-    - issue by code_bleu in [twitch chat](https://twitch.tv/anthonywritescode)
+    - #1718 issue by @CodeBleu.
 
 2.9.1 - 2020-11-25
 ==================
