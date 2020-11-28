@@ -201,7 +201,10 @@ def check_for_cygwin_mismatch() -> None:
     """See https://github.com/pre-commit/pre-commit/issues/354"""
     if sys.platform in ('cygwin', 'win32'):  # pragma: no cover (windows)
         is_cygwin_python = sys.platform == 'cygwin'
-        toplevel = get_root()
+        try:
+            toplevel = get_root()
+        except FatalError:  # skip the check if we're not in a git repo
+            return
         is_cygwin_git = toplevel.startswith('/')
 
         if is_cygwin_python ^ is_cygwin_git:
