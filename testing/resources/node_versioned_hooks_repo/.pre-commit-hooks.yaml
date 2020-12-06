@@ -1,6 +1,8 @@
--   id: versioned-node-hook
-    name: Versioned node hook
-    entry: versioned-node-hook
-    language: node
-    language_version: 9.3.0
-    files: \.js$
+---
+
+- id: versioned-node-hook
+  name: Versioned node hook
+  entry: versioned-node-hook
+  language: node
+  language_version: 9.3.0
+  files: \.js$

@@ -1,3 +1,5 @@
+---
+
 trigger:
   branches:
     include: [master, test-me-*]
@@ -13,46 +15,46 @@ resources:
       ref: refs/tags/v2.0.0
 
 jobs:
-- template: job--python-tox.yml@asottile
-  parameters:
-    toxenvs: [py37]
-    os: windows
-    pre_test:
-    - task: UseRubyVersion@0
-    - powershell: Write-Host "##vso[task.prependpath]$env:CONDA\Scripts"
-      displayName: Add conda to PATH
-    - powershell: |
-        Write-Host "##vso[task.prependpath]C:\Strawberry\perl\bin"
-        Write-Host "##vso[task.prependpath]C:\Strawberry\perl\site\bin"
-        Write-Host "##vso[task.prependpath]C:\Strawberry\c\bin"
-      displayName: Add strawberry perl to PATH
-- template: job--python-tox.yml@asottile
-  parameters:
-    toxenvs: [py37]
-    os: linux
-    name_postfix: _latest_git
-    pre_test:
-    - task: UseRubyVersion@0
-    - template: step--git-install.yml
-    - bash: |
-        testing/get-coursier.sh
-        echo '##vso[task.prependpath]/tmp/coursier'
-      displayName: install coursier
-    - bash: |
-        testing/get-swift.sh
-        echo '##vso[task.prependpath]/tmp/swift/usr/bin'
-      displayName: install swift
-- template: job--python-tox.yml@asottile
-  parameters:
-    toxenvs: [pypy3, py36, py37, py38, py39]
-    os: linux
-    pre_test:
-    - task: UseRubyVersion@0
-    - bash: |
-        testing/get-coursier.sh
-        echo '##vso[task.prependpath]/tmp/coursier'
-      displayName: install coursier
-    - bash: |
-        testing/get-swift.sh
-        echo '##vso[task.prependpath]/tmp/swift/usr/bin'
-      displayName: install swift
+  - template: job--python-tox.yml@asottile
+    parameters:
+      toxenvs: [py37]
+      os: windows
+      pre_test:
+        - task: UseRubyVersion@0
+        - powershell: Write-Host "##vso[task.prependpath]$env:CONDA\Scripts"
+          displayName: Add conda to PATH
+        - powershell: |
+            Write-Host "##vso[task.prependpath]C:\Strawberry\perl\bin"
+            Write-Host "##vso[task.prependpath]C:\Strawberry\perl\site\bin"
+            Write-Host "##vso[task.prependpath]C:\Strawberry\c\bin"
+          displayName: Add strawberry perl to PATH
+  - template: job--python-tox.yml@asottile
+    parameters:
+      toxenvs: [py37]
+      os: linux
+      name_postfix: _latest_git
+      pre_test:
+        - task: UseRubyVersion@0
+        - template: step--git-install.yml
+        - bash: |
+            testing/get-coursier.sh
+            echo '##vso[task.prependpath]/tmp/coursier'
+          displayName: install coursier
+        - bash: |
+            testing/get-swift.sh
+            echo '##vso[task.prependpath]/tmp/swift/usr/bin'
+          displayName: install swift
+  - template: job--python-tox.yml@asottile
+    parameters:
+      toxenvs: [pypy3, py36, py37, py38, py39]
+      os: linux
+      pre_test:
+        - task: UseRubyVersion@0
+        - bash: |
+            testing/get-coursier.sh
+            echo '##vso[task.prependpath]/tmp/coursier'
+          displayName: install coursier
+        - bash: |
+            testing/get-swift.sh
+            echo '##vso[task.prependpath]/tmp/swift/usr/bin'
+          displayName: install swift

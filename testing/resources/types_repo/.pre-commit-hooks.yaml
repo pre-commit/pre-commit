@@ -1,5 +1,7 @@
--   id: python-files
-    name: Python files
-    entry: bin/hook.sh
-    language: script
-    types: [python]
+---
+
+- id: python-files
+  name: Python files
+  entry: bin/hook.sh
+  language: script
+  types: [python]

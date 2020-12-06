@@ -1,6 +1,8 @@
--   id: arg-per-line
-    name: Args per line hook
-    entry: bin/hook.sh
-    language: script
-    files: ''
-    args: [hello, world]
+---
+
+- id: arg-per-line
+  name: Args per line hook
+  entry: bin/hook.sh
+  language: script
+  files: ''
+  args: [hello, world]

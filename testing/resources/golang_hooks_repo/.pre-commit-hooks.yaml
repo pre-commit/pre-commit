@@ -1,5 +1,7 @@
--   id: golang-hook
-    name: golang example hook
-    entry: golang-hello-world
-    language: golang
-    files: ''
+---
+
+- id: golang-hook
+  name: golang example hook
+  entry: golang-hello-world
+  language: golang
+  files: ''

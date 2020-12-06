@@ -1,6 +1,8 @@
--   id: ruby_hook
-    name: Ruby Hook
-    entry: ruby_hook
-    language: ruby
-    language_version: 2.5.1
-    files: \.rb$
+---
+
+- id: ruby_hook
+  name: Ruby Hook
+  entry: ruby_hook
+  language: ruby
+  language_version: 2.5.1
+  files: \.rb$

@@ -1,8 +1,10 @@
--   id: stdout-stderr
-    name: stdout-stderr
-    language: script
-    entry: ./stdout-stderr-entry
--   id: tty-check
-    name: tty-check
-    language: script
-    entry: ./tty-check-entry
+---
+
+- id: stdout-stderr
+  name: stdout-stderr
+  language: script
+  entry: ./stdout-stderr-entry
+- id: tty-check
+  name: tty-check
+  language: script
+  entry: ./tty-check-entry

@@ -1,5 +1,7 @@
--   id: dotnet example hook
-    name: dotnet example hook
-    entry: testeroni
-    language: dotnet
-    files: ''
+---
+
+- id: dotnet example hook
+  name: dotnet example hook
+  entry: testeroni
+  language: dotnet
+  files: ''

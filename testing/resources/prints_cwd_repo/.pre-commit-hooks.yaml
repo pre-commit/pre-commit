@@ -1,5 +1,7 @@
--   id: prints_cwd
-    name: Prints Cwd
-    entry: pwd
-    language: system
-    files: \.sh$
+---
+
+- id: prints_cwd
+  name: Prints Cwd
+  entry: pwd
+  language: system
+  files: \.sh$
