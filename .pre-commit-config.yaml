@@ -1,54 +1,61 @@
+---
+
 repos:
--   repo: https://github.com/pre-commit/pre-commit-hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v3.3.0
     hooks:
-    -   id: trailing-whitespace
-    -   id: end-of-file-fixer
-    -   id: check-docstring-first
-    -   id: check-json
-    -   id: check-yaml
-    -   id: debug-statements
-    -   id: name-tests-test
-    -   id: requirements-txt-fixer
-    -   id: double-quote-string-fixer
--   repo: https://gitlab.com/pycqa/flake8
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-docstring-first
+      - id: check-json
+      - id: check-yaml
+      - id: debug-statements
+      - id: name-tests-test
+      - id: requirements-txt-fixer
+      - id: double-quote-string-fixer
+  - repo: https://gitlab.com/pycqa/flake8
     rev: 3.8.4
     hooks:
-    -   id: flake8
+      - id: flake8
         additional_dependencies: [flake8-typing-imports==1.10.0]
--   repo: https://github.com/pre-commit/mirrors-autopep8
+  - repo: https://github.com/pre-commit/mirrors-autopep8
     rev: v1.5.4
     hooks:
-    -   id: autopep8
--   repo: https://github.com/pre-commit/pre-commit
+      - id: autopep8
+  - repo: https://github.com/pre-commit/pre-commit
     rev: v2.9.2
     hooks:
-    -   id: validate_manifest
--   repo: https://github.com/asottile/pyupgrade
+      - id: validate_manifest
+  - repo: https://github.com/asottile/pyupgrade
     rev: v2.7.4
     hooks:
-    -   id: pyupgrade
+      - id: pyupgrade
         args: [--py36-plus]
--   repo: https://github.com/asottile/reorder_python_imports
+  - repo: https://github.com/asottile/reorder_python_imports
     rev: v2.3.6
     hooks:
-    -   id: reorder-python-imports
+      - id: reorder-python-imports
         args: [--py3-plus]
--   repo: https://github.com/asottile/add-trailing-comma
+  - repo: https://github.com/asottile/add-trailing-comma
     rev: v2.0.1
     hooks:
-    -   id: add-trailing-comma
+      - id: add-trailing-comma
         args: [--py36-plus]
--   repo: https://github.com/asottile/setup-cfg-fmt
+  - repo: https://github.com/asottile/setup-cfg-fmt
     rev: v1.15.1
     hooks:
-    -   id: setup-cfg-fmt
--   repo: https://github.com/pre-commit/mirrors-mypy
+      - id: setup-cfg-fmt
+  - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v0.790
     hooks:
-    -   id: mypy
+      - id: mypy
         exclude: ^testing/resources/
--   repo: meta
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.25.0
     hooks:
-    -   id: check-hooks-apply
-    -   id: check-useless-excludes
+      - id: yamllint
+        args: ['-d {extends: default, rules: {line-length: disable}}', '-s']
+  - repo: meta
+    hooks:
+      - id: check-hooks-apply
+      - id: check-useless-excludes
