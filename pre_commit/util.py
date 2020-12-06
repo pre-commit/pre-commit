@@ -255,7 +255,7 @@ def rmtree(path: str) -> None:
         excvalue = exc[1]
         if (
                 func in (os.rmdir, os.remove, os.unlink) and
-                excvalue.errno == errno.EACCES
+                excvalue.errno in (errno.EACCES, errno.EPERM)
         ):
             for p in (path, os.path.dirname(path)):
                 os.chmod(p, os.stat(p).st_mode | stat.S_IWUSR)
