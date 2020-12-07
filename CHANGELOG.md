@@ -1,3 +1,16 @@
+2.9.3 - 2020-12-07
+==================
+
+### Fixes
+- Fix crash on cygwin mismatch check outside of a git directory
+    - #1721 PR by @asottile.
+    - #1720 issue by @chronoB.
+- Fix cleanup code on docker volumes for go
+    - #1725 PR by @fsouza.
+- Fix working directory detection on SUBST drives on windows
+    - #1727 PR by mrogaski.
+    - #1610 issue by @jcameron73.
+
 2.9.2 - 2020-11-25
 ==================
 
