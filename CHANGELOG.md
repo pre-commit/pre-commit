@@ -8,7 +8,7 @@
 - Fix cleanup code on docker volumes for go
     - #1725 PR by @fsouza.
 - Fix working directory detection on SUBST drives on windows
-    - #1727 PR by mrogaski.
+    - #1727 PR by @mrogaski.
     - #1610 issue by @jcameron73.
 
 2.9.2 - 2020-11-25
