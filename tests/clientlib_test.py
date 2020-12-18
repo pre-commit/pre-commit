@@ -166,6 +166,20 @@ def test_validate_warn_on_unknown_keys_at_top_level(tmpdir, caplog):
     ]
 
 
+def test_ci_map_key_allowed_at_top_level(caplog):
+    cfg = {
+        'ci': {'skip': ['foo']},
+        'repos': [{'repo': 'meta', 'hooks': [{'id': 'identity'}]}],
+    }
+    cfgv.validate(cfg, CONFIG_SCHEMA)
+    assert not caplog.record_tuples
+
+
+def test_ci_key_must_be_map():
+    with pytest.raises(cfgv.ValidationError):
+        cfgv.validate({'ci': 'invalid', 'repos': []}, CONFIG_SCHEMA)
+
+
 def test_validate_optional_sensible_regex(caplog):
     config_obj = {
         'id': 'flake8',
