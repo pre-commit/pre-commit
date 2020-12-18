@@ -180,6 +180,70 @@ def test_ci_key_must_be_map():
         cfgv.validate({'ci': 'invalid', 'repos': []}, CONFIG_SCHEMA)
 
 
+@pytest.mark.parametrize(
+    'rev',
+    (
+        'v0.12.4',
+        'b27f281',
+        'b27f281eb9398fc8504415d7fbdabf119ea8c5e1',
+        '19.10b0',
+        '4.3.21-2',
+    ),
+)
+def test_warn_mutable_rev_ok(caplog, rev):
+    config_obj = {
+        'repo': 'https://gitlab.com/pycqa/flake8',
+        'rev': rev,
+        'hooks': [{'id': 'flake8'}],
+    }
+    cfgv.validate(config_obj, CONFIG_REPO_DICT)
+
+    assert caplog.record_tuples == []
+
+
+@pytest.mark.parametrize(
+    'rev',
+    (
+        '',
+        'HEAD',
+        'stable',
+        'master',
+        'some_branch_name',
+    ),
+)
+def test_warn_mutable_rev_invalid(caplog, rev):
+    config_obj = {
+        'repo': 'https://gitlab.com/pycqa/flake8',
+        'rev': rev,
+        'hooks': [{'id': 'flake8'}],
+    }
+    cfgv.validate(config_obj, CONFIG_REPO_DICT)
+
+    assert caplog.record_tuples == [
+        (
+            'pre_commit',
+            logging.WARNING,
+            "The 'rev' field of repo 'https://gitlab.com/pycqa/flake8' "
+            'appears to be a mutable reference (moving tag / branch).  '
+            'Mutable references are never updated after first install and are '
+            'not supported.  '
+            'See https://pre-commit.com/#using-the-latest-version-for-a-repository '  # noqa: E501
+            'for more details.',
+        ),
+    ]
+
+
+def test_warn_mutable_rev_conditional():
+    config_obj = {
+        'repo': 'meta',
+        'rev': '3.7.7',
+        'hooks': [{'id': 'flake8'}],
+    }
+
+    with pytest.raises(cfgv.ValidationError):
+        cfgv.validate(config_obj, CONFIG_REPO_DICT)
+
+
 def test_validate_optional_sensible_regex(caplog):
     config_obj = {
         'id': 'flake8',

@@ -1,6 +1,7 @@
 import argparse
 import functools
 import logging
+import re
 import shlex
 import sys
 from typing import Any
@@ -110,6 +111,25 @@ def validate_manifest_main(argv: Optional[Sequence[str]] = None) -> int:
 
 LOCAL = 'local'
 META = 'meta'
+
+
+# should inherit from cfgv.Conditional if sha support is dropped
+class WarnMutableRev(cfgv.ConditionalOptional):
+    def check(self, dct: Dict[str, Any]) -> None:
+        super().check(dct)
+
+        if self.key in dct:
+            rev = dct[self.key]
+
+            if '.' not in rev and not re.match(r'^[a-fA-F0-9]+$', rev):
+                logger.warning(
+                    f'The {self.key!r} field of repo {dct["repo"]!r} '
+                    f'appears to be a mutable reference '
+                    f'(moving tag / branch).  Mutable references are never '
+                    f'updated after first install and are not supported.  '
+                    f'See https://pre-commit.com/#using-the-latest-version-for-a-repository '  # noqa: E501
+                    f'for more details.',
+                )
 
 
 class OptionalSensibleRegex(cfgv.OptionalNoDefault):
@@ -261,6 +281,14 @@ CONFIG_REPO_DICT = cfgv.Map(
     ),
 
     MigrateShaToRev(),
+    WarnMutableRev(
+        'rev',
+        cfgv.check_string,
+        '',
+        'repo',
+        cfgv.NotIn(LOCAL, META),
+        True,
+    ),
     cfgv.WarnAdditionalKeys(('repo', 'rev', 'hooks'), warn_unknown_keys_repo),
 )
 DEFAULT_LANGUAGE_VERSION = cfgv.Map(
