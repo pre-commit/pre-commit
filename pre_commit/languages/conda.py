@@ -80,7 +80,8 @@ def install_environment(
                 tmp_env_file.name, cwd=prefix.prefix_dir,
             )
         finally:
-            os.remove(tmp_env_file.name)
+            if os.path.exists(tmp_env_file.name):
+                os.remove(tmp_env_file.name)
 
 
 def run_hook(
