@@ -1,5 +1,6 @@
 import contextlib
 import os
+from tempfile import NamedTemporaryFile
 from typing import Generator
 from typing import Sequence
 from typing import Tuple
@@ -14,6 +15,8 @@ from pre_commit.languages import helpers
 from pre_commit.prefix import Prefix
 from pre_commit.util import clean_path_on_failure
 from pre_commit.util import cmd_output_b
+from pre_commit.util import yaml_dump
+from pre_commit.util import yaml_load
 
 ENVIRONMENT_DIR = 'conda'
 get_default_version = helpers.basic_get_default_version
@@ -59,16 +62,25 @@ def install_environment(
     directory = helpers.environment_dir(ENVIRONMENT_DIR, version)
 
     env_dir = prefix.path(directory)
+    env_yaml_path = prefix.path('environment.yml')
     with clean_path_on_failure(env_dir):
-        cmd_output_b(
-            'conda', 'env', 'create', '-p', env_dir, '--file',
-            'environment.yml', cwd=prefix.prefix_dir,
-        )
-        if additional_dependencies:
+        with open(env_yaml_path) as env_file:
+            env_yaml = yaml_load(env_file)
+        env_yaml['dependencies'] += additional_dependencies
+        try:
+            with NamedTemporaryFile(
+                suffix='.yml',
+                mode='w',
+                delete=False,
+            ) as tmp_env_file:
+                yaml_dump(env_yaml, stream=tmp_env_file)
+
             cmd_output_b(
-                'conda', 'install', '-p', env_dir, *additional_dependencies,
-                cwd=prefix.prefix_dir,
+                'conda', 'env', 'create', '-p', env_dir, '--file',
+                tmp_env_file.name, cwd=prefix.prefix_dir,
             )
+        finally:
+            os.remove(tmp_env_file.name)
 
 
 def run_hook(
