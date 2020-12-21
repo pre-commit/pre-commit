@@ -69,6 +69,7 @@ def _ns(
         color: bool,
         *,
         all_files: bool = False,
+        remote_branch: Optional[str] = None,
         from_ref: Optional[str] = None,
         to_ref: Optional[str] = None,
         remote_name: Optional[str] = None,
@@ -79,6 +80,7 @@ def _ns(
     return argparse.Namespace(
         color=color,
         hook_stage=hook_type.replace('pre-', ''),
+        remote_branch=remote_branch,
         from_ref=from_ref,
         to_ref=to_ref,
         remote_name=remote_name,
@@ -106,13 +108,14 @@ def _pre_push_ns(
     remote_url = args[1]
 
     for line in stdin.decode().splitlines():
-        _, local_sha, _, remote_sha = line.split()
+        _, local_sha, remote_branch, remote_sha = line.split()
         if local_sha == Z40:
             continue
         elif remote_sha != Z40 and _rev_exists(remote_sha):
             return _ns(
                 'pre-push', color,
                 from_ref=remote_sha, to_ref=local_sha,
+                remote_branch=remote_branch,
                 remote_name=remote_name, remote_url=remote_url,
             )
         else:
@@ -133,6 +136,7 @@ def _pre_push_ns(
                         'pre-push', color,
                         all_files=True,
                         remote_name=remote_name, remote_url=remote_url,
+                        remote_branch=remote_branch,
                     )
                 else:
                     rev_cmd = ('git', 'rev-parse', f'{first_ancestor}^')
@@ -141,6 +145,7 @@ def _pre_push_ns(
                         'pre-push', color,
                         from_ref=source, to_ref=local_sha,
                         remote_name=remote_name, remote_url=remote_url,
+                        remote_branch=remote_branch,
                     )
 
     # nothing to push
