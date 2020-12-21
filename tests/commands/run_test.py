@@ -486,6 +486,7 @@ def test_from_ref_to_ref_error_msg_error(
 def test_all_push_options_ok(cap_out, store, repo_with_passing_hook):
     args = run_opts(
         from_ref='master', to_ref='master',
+        remote_branch='master',
         remote_name='origin', remote_url='https://example.com/repo',
     )
     ret, printed = _do_run(cap_out, store, repo_with_passing_hook, args)
