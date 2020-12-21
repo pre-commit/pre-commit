@@ -67,6 +67,7 @@ def install_environment(
         with open(env_yaml_path) as env_file:
             env_yaml = yaml_load(env_file)
         env_yaml['dependencies'] += additional_dependencies
+        tmp_env_file = None
         try:
             with NamedTemporaryFile(
                 suffix='.yml',
@@ -80,7 +81,7 @@ def install_environment(
                 tmp_env_file.name, cwd=prefix.prefix_dir,
             )
         finally:
-            if os.path.exists(tmp_env_file.name):
+            if tmp_env_file and os.path.exists(tmp_env_file.name):
                 os.remove(tmp_env_file.name)
 
 

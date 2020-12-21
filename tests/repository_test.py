@@ -1,6 +1,7 @@
 import os.path
 import shutil
 import sys
+from tempfile import NamedTemporaryFile
 from typing import Any
 from typing import Dict
 from unittest import mock
@@ -87,7 +88,19 @@ def test_conda_hook(tempdir_factory, store):
     )
 
 
-def test_conda_with_additional_dependencies_hook(tempdir_factory, store):
+def test_conda_with_additional_dependencies_hook(
+        tempdir_factory, store, monkeypatch,
+):
+    remove = mock.Mock()
+    monkeypatch.setattr('pre_commit.languages.conda.os.remove', remove)
+    temp_file = NamedTemporaryFile(mode='w', suffix='.yml', delete=False)
+
+    def named_tmp_file_mock(**kwargs):
+        return temp_file
+    monkeypatch.setattr(
+        'pre_commit.languages.conda.NamedTemporaryFile',
+        named_tmp_file_mock,
+    )
     _test_hook_repo(
         tempdir_factory, store, 'conda_hooks_repo',
         'additional-deps', [os.devnull],
@@ -100,6 +113,39 @@ def test_conda_with_additional_dependencies_hook(tempdir_factory, store):
             }],
         },
     )
+
+    # check proper tmp_env.yml removal
+    remove.assert_called_once_with(temp_file.name)
+    os.remove(temp_file.name)
+
+
+def test_conda_tmp_file_fail(tempdir_factory, store, monkeypatch):
+    temp_file = NamedTemporaryFile(mode='w', suffix='.yml', delete=True)
+    temp_file.close()  # deletes the file
+
+    def named_tmp_file_mock(**kwargs):
+        return temp_file
+
+    monkeypatch.setattr(
+        'pre_commit.languages.conda.NamedTemporaryFile',
+        named_tmp_file_mock,
+    )
+    monkeypatch.delattr('pre_commit.languages.conda.os.remove')
+    with pytest.raises(ValueError) as closed_file_error:
+        _test_hook_repo(
+            tempdir_factory, store, 'conda_hooks_repo',
+            'additional-deps', [os.devnull],
+            b'OK\n',
+            config_kwargs={
+                'hooks': [{
+                    'id': 'additional-deps',
+                    'args': ['-c', 'import tzdata; print("OK")'],
+                    'additional_dependencies': ['python-tzdata'],
+                }],
+            },
+        )
+    # check raises only one error, the 'closed file' one
+    assert 'closed file' in str(closed_file_error)
 
 
 def test_local_conda_additional_dependencies(store):
