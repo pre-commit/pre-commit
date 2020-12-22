@@ -379,7 +379,6 @@ def run(
     if args.remote_name and args.remote_url:
         environ['PRE_COMMIT_REMOTE_NAME'] = args.remote_name
         environ['PRE_COMMIT_REMOTE_URL'] = args.remote_url
-        print(environ['PRE_COMMIT_REMOTE_NAME'])
 
     if args.checkout_type:
         environ['PRE_COMMIT_CHECKOUT_TYPE'] = args.checkout_type
