@@ -52,3 +52,8 @@ repos:
     hooks:
     -   id: check-hooks-apply
     -   id: check-useless-excludes
+- repo: https://github.com/clumio-code/pre-push-hooks
+  rev: v0.1.0
+  hooks:
+  - id: check-branch-for-push
+    args: ['--pattern', '^user/.*', '--pattern', '^team/.*', '--pattern', '^revert-[0-9]+-user/.*']
