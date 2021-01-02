@@ -244,7 +244,7 @@ def test_warn_mutable_rev_conditional():
         cfgv.validate(config_obj, CONFIG_REPO_DICT)
 
 
-def test_validate_optional_sensible_regex(caplog):
+def test_validate_optional_sensible_regex_at_hook_level(caplog):
     config_obj = {
         'id': 'flake8',
         'files': 'dir/*.py',
@@ -257,6 +257,23 @@ def test_validate_optional_sensible_regex(caplog):
             logging.WARNING,
             "The 'files' field in hook 'flake8' is a regex, not a glob -- "
             "matching '/*' probably isn't what you want here",
+        ),
+    ]
+
+
+def test_validate_optional_sensible_regex_at_top_level(caplog):
+    config_obj = {
+        'files': 'dir/*.py',
+        'repos': [],
+    }
+    cfgv.validate(config_obj, CONFIG_SCHEMA)
+
+    assert caplog.record_tuples == [
+        (
+            'pre_commit',
+            logging.WARNING,
+            "The top-level 'files' field is a regex, not a glob -- matching "
+            "'/*' probably isn't what you want here",
         ),
     ]
 
