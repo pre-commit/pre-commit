@@ -70,6 +70,7 @@ def run_opts(
         show_diff_on_failure=False,
         commit_msg_filename='',
         checkout_type='',
+        is_squash_merge='',
 ):
     # These are mutually exclusive
     assert not (all_files and files)
@@ -88,6 +89,7 @@ def run_opts(
         show_diff_on_failure=show_diff_on_failure,
         commit_msg_filename=commit_msg_filename,
         checkout_type=checkout_type,
+        is_squash_merge=is_squash_merge,
     )
 
 

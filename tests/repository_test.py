@@ -953,7 +953,7 @@ def test_manifest_hooks(tempdir_factory, store):
         require_serial=False,
         stages=(
             'commit', 'merge-commit', 'prepare-commit-msg', 'commit-msg',
-            'post-commit', 'manual', 'post-checkout', 'push',
+            'post-commit', 'manual', 'post-checkout', 'push', 'post-merge',
         ),
         types=['file'],
         types_or=[],
