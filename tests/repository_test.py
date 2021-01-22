@@ -640,7 +640,7 @@ def test_fail_hooks(store):
     )
 
 
-def test_unknown_keys(store, fake_log_handler):
+def test_unknown_keys(store, caplog):
     config = {
         'repo': 'local',
         'hooks': [{
@@ -653,8 +653,8 @@ def test_unknown_keys(store, fake_log_handler):
         }],
     }
     _get_hook(config, store, 'too-much')
-    expected = 'Unexpected key(s) present on local => too-much: foo, hello'
-    assert fake_log_handler.handle.call_args[0][0].msg == expected
+    msg, = caplog.messages
+    assert msg == 'Unexpected key(s) present on local => too-much: foo, hello'
 
 
 def test_reinstall(tempdir_factory, store, log_info_mock):
@@ -832,27 +832,28 @@ def test_default_stages(store, local_python_config):
     assert hook.stages == ['push']
 
 
-def test_hook_id_not_present(tempdir_factory, store, fake_log_handler):
+def test_hook_id_not_present(tempdir_factory, store, caplog):
     path = make_repo(tempdir_factory, 'script_hooks_repo')
     config = make_config_from_repo(path)
     config['hooks'][0]['id'] = 'i-dont-exist'
     with pytest.raises(SystemExit):
         _get_hook(config, store, 'i-dont-exist')
-    assert fake_log_handler.handle.call_args[0][0].msg == (
+    _, msg = caplog.messages
+    assert msg == (
         f'`i-dont-exist` is not present in repository file://{path}.  '
         f'Typo? Perhaps it is introduced in a newer version?  '
         f'Often `pre-commit autoupdate` fixes this.'
     )
 
 
-def test_too_new_version(tempdir_factory, store, fake_log_handler):
+def test_too_new_version(tempdir_factory, store, caplog):
     path = make_repo(tempdir_factory, 'script_hooks_repo')
     with modify_manifest(path) as manifest:
         manifest[0]['minimum_pre_commit_version'] = '999.0.0'
     config = make_config_from_repo(path)
     with pytest.raises(SystemExit):
         _get_hook(config, store, 'bash_hook')
-    msg = fake_log_handler.handle.call_args[0][0].msg
+    _, msg = caplog.messages
     pattern = re_assert.Matches(
         r'^The hook `bash_hook` requires pre-commit version 999\.0\.0 but '
         r'version \d+\.\d+\.\d+ is installed.  '
