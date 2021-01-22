@@ -942,3 +942,49 @@ def test_dotnet_hook(tempdir_factory, store, repo):
         tempdir_factory, store, repo,
         'dotnet example hook', [], b'Hello from dotnet!\n',
     )
+
+
+def test_non_installable_hook_error_for_language_version(store, caplog):
+    config = {
+        'repo': 'local',
+        'hooks': [{
+            'id': 'system-hook',
+            'name': 'system-hook',
+            'language': 'system',
+            'entry': 'python3 -c "import sys; print(sys.version)"',
+            'language_version': 'python3.10',
+        }],
+    }
+    with pytest.raises(SystemExit) as excinfo:
+        _get_hook(config, store, 'system-hook')
+    assert excinfo.value.code == 1
+
+    msg, = caplog.messages
+    assert msg == (
+        'The hook `system-hook` specifies `language_version` but is using '
+        'language `system` which does not install an environment.  '
+        'Perhaps you meant to use a specific language?'
+    )
+
+
+def test_non_installable_hook_error_for_additional_dependencies(store, caplog):
+    config = {
+        'repo': 'local',
+        'hooks': [{
+            'id': 'system-hook',
+            'name': 'system-hook',
+            'language': 'system',
+            'entry': 'python3 -c "import sys; print(sys.version)"',
+            'additional_dependencies': ['astpretty'],
+        }],
+    }
+    with pytest.raises(SystemExit) as excinfo:
+        _get_hook(config, store, 'system-hook')
+    assert excinfo.value.code == 1
+
+    msg, = caplog.messages
+    assert msg == (
+        'The hook `system-hook` specifies `additional_dependencies` but is '
+        'using language `system` which does not install an environment.  '
+        'Perhaps you meant to use a specific language?'
+    )

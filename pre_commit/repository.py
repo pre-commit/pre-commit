@@ -118,6 +118,24 @@ def _hook(
     if not ret['stages']:
         ret['stages'] = root_config['default_stages']
 
+    if languages[lang].ENVIRONMENT_DIR is None:
+        if ret['language_version'] != C.DEFAULT:
+            logger.error(
+                f'The hook `{ret["id"]}` specifies `language_version` but is '
+                f'using language `{lang}` which does not install an '
+                f'environment.  '
+                f'Perhaps you meant to use a specific language?',
+            )
+            exit(1)
+        if ret['additional_dependencies']:
+            logger.error(
+                f'The hook `{ret["id"]}` specifies `additional_dependencies` '
+                f'but is using language `{lang}` which does not install an '
+                f'environment.  '
+                f'Perhaps you meant to use a specific language?',
+            )
+            exit(1)
+
     return ret
 
 
