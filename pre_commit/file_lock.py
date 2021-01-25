@@ -1,11 +1,11 @@
 import contextlib
 import errno
-import os
+import sys
 from typing import Callable
 from typing import Generator
 
 
-if os.name == 'nt':  # pragma: no cover (windows)
+if sys.platform == 'win32':  # pragma: no cover (windows)
     import msvcrt
 
     # https://docs.microsoft.com/en-us/cpp/c-runtime-library/reference/locking
