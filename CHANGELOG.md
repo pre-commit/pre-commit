@@ -1,3 +1,27 @@
+2.10.0 - 2021-01-27
+===================
+
+### Features
+- Allow `ci` as a top-level map for configuration for https://pre-commit.ci
+    - #1735 PR by @asottile.
+- Add warning for mutable `rev` in configuration
+    - #1715 PR by @paulhfischer.
+    - #974 issue by @asottile.
+- Add warning for `/*` in top-level `files` / `exclude` regexes
+    - #1750 PR by @paulhfischer.
+    - #1702 issue by @asottile.
+- Expose `PRE_COMMIT_REMOTE_BRANCH` environment variable during `pre-push`
+  hooks
+    - #1770 PR by @surafelabebe.
+- Produce error message for `language` / `language_version` for non-installable
+  languages
+    - #1771 PR by @asottile.
+
+### Fixes
+- Fix execution in worktrees in subdirectories of bare repositories
+    - #1778 PR by @asottile.
+    - #1777 issue by @s0undt3ch.
+
 2.9.3 - 2020-12-07
 ==================
 
