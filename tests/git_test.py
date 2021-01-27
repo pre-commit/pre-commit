@@ -3,6 +3,7 @@ import os.path
 import pytest
 
 from pre_commit import git
+from pre_commit.error_handler import FatalError
 from pre_commit.util import cmd_output
 from testing.util import git_commit
 
@@ -16,6 +17,25 @@ def test_get_root_deeper(in_git_dir):
     expected = os.path.normcase(in_git_dir.strpath)
     with in_git_dir.join('foo').ensure_dir().as_cwd():
         assert os.path.normcase(git.get_root()) == expected
+
+
+def test_in_exactly_dot_git(in_git_dir):
+    with in_git_dir.join('.git').as_cwd(), pytest.raises(FatalError):
+        git.get_root()
+
+
+def test_get_root_bare_worktree(tmpdir):
+    src = tmpdir.join('src').ensure_dir()
+    cmd_output('git', 'init', str(src))
+    git_commit(cwd=str(src))
+
+    bare = tmpdir.join('bare.git').ensure_dir()
+    cmd_output('git', 'clone', '--bare', str(src), str(bare))
+
+    cmd_output('git', 'worktree', 'add', 'foo', 'HEAD', cwd=bare)
+
+    with bare.join('foo').as_cwd():
+        assert git.get_root() == os.path.abspath('.')
 
 
 def test_get_staged_files_deleted(in_git_dir):

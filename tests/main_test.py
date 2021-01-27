@@ -35,11 +35,6 @@ def test_adjust_args_and_chdir_not_in_git_dir(in_tmpdir):
         main._adjust_args_and_chdir(_args())
 
 
-def test_adjust_args_and_chdir_in_dot_git_dir(in_git_dir):
-    with in_git_dir.join('.git').as_cwd(), pytest.raises(FatalError):
-        main._adjust_args_and_chdir(_args())
-
-
 def test_adjust_args_and_chdir_noop(in_git_dir):
     args = _args(command='run', files=['f1', 'f2'])
     main._adjust_args_and_chdir(args)

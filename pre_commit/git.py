@@ -61,7 +61,7 @@ def get_root() -> str:
             'git failed. Is it installed, and are you in a Git repository '
             'directory?',
         )
-    if os.path.commonpath((root, git_dir)) == git_dir:
+    if os.path.samefile(root, git_dir):
         raise FatalError(
             'git toplevel unexpectedly empty! make sure you are not '
             'inside the `.git` directory of your repository.',
