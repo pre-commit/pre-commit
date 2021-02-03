@@ -2,9 +2,9 @@
 import sys
 
 LANGUAGES = [
-    'conda', 'coursier', 'docker', 'dotnet', 'docker_image', 'fail', 'golang',
-    'node', 'perl', 'pygrep', 'python', 'ruby', 'rust', 'script', 'swift',
-    'system',
+    'conda', 'coursier', 'docker', 'docker_image', 'dotnet', 'fail', 'golang',
+    'node', 'perl', 'pygrep', 'python', 'r', 'ruby', 'rust', 'script',
+    'swift', 'system',
 ]
 FIELDS = [
     'ENVIRONMENT_DIR', 'get_default_version', 'healthy', 'install_environment',

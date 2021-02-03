@@ -26,6 +26,10 @@ jobs:
         Write-Host "##vso[task.prependpath]C:\Strawberry\perl\site\bin"
         Write-Host "##vso[task.prependpath]C:\Strawberry\c\bin"
       displayName: Add strawberry perl to PATH
+    - task: PowerShell@2
+      inputs:
+        filePath: "testing/get-r.ps1"
+      displayName: install R
 - template: job--python-tox.yml@asottile
   parameters:
     toxenvs: [py37]
@@ -42,6 +46,8 @@ jobs:
         testing/get-swift.sh
         echo '##vso[task.prependpath]/tmp/swift/usr/bin'
       displayName: install swift
+    - bash: testing/get-r.sh
+      displayName: install R
 - template: job--python-tox.yml@asottile
   parameters:
     toxenvs: [pypy3, py36, py37, py38, py39]
@@ -56,3 +62,5 @@ jobs:
         testing/get-swift.sh
         echo '##vso[task.prependpath]/tmp/swift/usr/bin'
       displayName: install swift
+    - bash: testing/get-r.sh
+      displayName: install R
