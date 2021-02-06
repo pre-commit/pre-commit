@@ -1,3 +1,11 @@
+2.10.1 - 2021-02-06
+===================
+
+### Fixes
+- Fix `language: golang` repositories containing recursive submodules
+    - #1788 issue by @gaurav517.
+    - #1789 PR by @paulhfischer.
+
 2.10.0 - 2021-01-27
 ===================
 
