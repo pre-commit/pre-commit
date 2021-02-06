@@ -69,7 +69,8 @@ def install_environment(
         repo_src_dir = os.path.join(directory, 'src', guess_go_dir(remote))
 
         # Clone into the goenv we'll create
-        helpers.run_setup_cmd(prefix, ('git', 'clone', '.', repo_src_dir))
+        cmd = ('git', 'clone', '--recursive', '.', repo_src_dir)
+        helpers.run_setup_cmd(prefix, cmd)
 
         if sys.platform == 'cygwin':  # pragma: no cover
             _, gopath, _ = cmd_output('cygpath', '-w', directory)
