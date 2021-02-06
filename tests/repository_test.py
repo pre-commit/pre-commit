@@ -10,6 +10,7 @@ import pytest
 import re_assert
 
 import pre_commit.constants as C
+from pre_commit import git
 from pre_commit.clientlib import CONFIG_SCHEMA
 from pre_commit.clientlib import load_manifest
 from pre_commit.envcontext import envcontext
@@ -344,6 +345,59 @@ def test_golang_hook_still_works_when_gobin_is_set(tempdir_factory, store):
     with envcontext((('GOBIN', gobin_dir),)):
         test_golang_hook(tempdir_factory, store)
     assert os.listdir(gobin_dir) == []
+
+
+def test_golang_with_recursive_submodule(tmpdir, tempdir_factory, store):
+    sub_go = '''\
+package sub
+
+import "fmt"
+
+func Func() {
+    fmt.Println("hello hello world")
+}
+'''
+    sub = tmpdir.join('sub').ensure_dir()
+    sub.join('sub.go').write(sub_go)
+    cmd_output('git', '-C', str(sub), 'init', '.')
+    cmd_output('git', '-C', str(sub), 'add', '.')
+    git.commit(str(sub))
+
+    pre_commit_hooks = '''\
+-   id: example
+    name: example
+    entry: example
+    language: golang
+    verbose: true
+'''
+    go_mod = '''\
+module github.com/asottile/example
+
+go 1.14
+'''
+    main_go = '''\
+package main
+
+import "github.com/asottile/example/sub"
+
+func main() {
+    sub.Func()
+}
+'''
+    repo = tmpdir.join('repo').ensure_dir()
+    repo.join('.pre-commit-hooks.yaml').write(pre_commit_hooks)
+    repo.join('go.mod').write(go_mod)
+    repo.join('main.go').write(main_go)
+    cmd_output('git', '-C', str(repo), 'init', '.')
+    cmd_output('git', '-C', str(repo), 'add', '.')
+    cmd_output('git', '-C', str(repo), 'submodule', 'add', str(sub), 'sub')
+    git.commit(str(repo))
+
+    config = make_config_from_repo(str(repo))
+    hook = _get_hook(config, store, 'example')
+    ret, out = _hook_run(hook, (), color=False)
+    assert ret == 0
+    assert _norm_out(out) == b'hello hello world\n'
 
 
 def test_rust_hook(tempdir_factory, store):
