@@ -12,6 +12,7 @@ from typing import Collection
 from typing import Dict
 from typing import List
 from typing import MutableMapping
+from typing import Optional
 from typing import Sequence
 from typing import Set
 from typing import Tuple
@@ -22,6 +23,7 @@ from pre_commit import color
 from pre_commit import git
 from pre_commit import output
 from pre_commit.clientlib import load_config
+from pre_commit.commands.autoupdate import mutable_rev_fix
 from pre_commit.hook import Hook
 from pre_commit.languages.all import languages
 from pre_commit.repository import all_hooks
@@ -29,7 +31,6 @@ from pre_commit.repository import install_hook_envs
 from pre_commit.staged_files_only import staged_files_only
 from pre_commit.store import Store
 from pre_commit.util import cmd_output_b
-
 
 logger = logging.getLogger('pre_commit')
 
@@ -325,6 +326,28 @@ def _has_unstaged_config(config_file: str) -> bool:
     return retcode == 1
 
 
+def _solve_possible_mutable_revs(
+        config: Dict[str, Any],
+        config_file: str,
+        store: Store,
+) -> None:
+
+    if 'repos' not in config:
+        return None
+
+    to_update: List[Optional[Dict[str, Any]]] = []
+    for repo in config['repos']:
+        if 'rev' in repo and repo['rev'] == '':
+            to_update.append(repo)
+        else:
+            to_update.append(None)
+    if not all(repo is None for repo in to_update):
+        mutable_rev_fix(
+            config_file,
+            repos=to_update,
+        )
+
+
 def run(
         config_file: str,
         store: Store,
@@ -387,6 +410,7 @@ def run(
             exit_stack.enter_context(staged_files_only(store.directory))
 
         config = load_config(config_file)
+
         hooks = [
             hook
             for hook in all_hooks(config, store)
@@ -399,6 +423,7 @@ def run(
                 f'No hook with id `{args.hook}` in stage `{args.hook_stage}`',
             )
             return 1
+        _solve_possible_mutable_revs(config, config_file, store)
 
         install_hook_envs(hooks, store)
 

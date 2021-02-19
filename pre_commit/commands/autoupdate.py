@@ -130,6 +130,24 @@ def _write_new_config(path: str, rev_infos: List[Optional[RevInfo]]) -> None:
         f.write(''.join(lines))
 
 
+def mutable_rev_fix(
+        config_file: str,
+        repos: List[Optional[Dict[str, Any]]],
+) -> None:
+    rev_infos: List[Optional[RevInfo]] = []
+    for repo_config in repos:
+        if not repo_config:
+            rev_infos.append(None)
+            continue
+        info = RevInfo.from_config(repo_config)
+        updated_info = info.update(tags_only=True, freeze=False)
+        msg = f"{repo_config['repo']}: \
+                updating {info.rev} -> {updated_info.rev}."
+        output.write_line(msg)
+        rev_infos.append(updated_info)
+    _write_new_config(config_file, rev_infos)
+
+
 def autoupdate(
         config_file: str,
         store: Store,
