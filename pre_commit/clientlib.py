@@ -128,7 +128,8 @@ class WarnMutableRev(cfgv.ConditionalOptional):
                     f'(moving tag / branch).  Mutable references are never '
                     f'updated after first install and are not supported.  '
                     f'See https://pre-commit.com/#using-the-latest-version-for-a-repository '  # noqa: E501
-                    f'for more details.',
+                    f'for more details.  '
+                    f'Hint: `pre-commit autoupdate` often fixes this.',
                 )
 
 

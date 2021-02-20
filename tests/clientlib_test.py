@@ -228,7 +228,8 @@ def test_warn_mutable_rev_invalid(caplog, rev):
             'Mutable references are never updated after first install and are '
             'not supported.  '
             'See https://pre-commit.com/#using-the-latest-version-for-a-repository '  # noqa: E501
-            'for more details.',
+            'for more details.  '
+            'Hint: `pre-commit autoupdate` often fixes this.',
         ),
     ]
 
