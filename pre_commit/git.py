@@ -127,8 +127,7 @@ def get_staged_files(cwd: Optional[str] = None) -> List[str]:
     return zsplit(
         cmd_output(
             'git', 'diff', '--staged', '--name-only', '--no-ext-diff', '-z',
-            # Everything except for D
-            '--diff-filter=ACMRTUXB',
+            '--diff-filter=d',
             cwd=cwd,
         )[1],
     )
