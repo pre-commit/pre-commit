@@ -259,7 +259,10 @@ def _path_without_us():
     exe = find_executable('pre-commit', _environ=env)
     while exe:
         parts = env['PATH'].split(os.pathsep)
-        after = [x for x in parts if x.lower() != os.path.dirname(exe).lower()]
+        after = [
+            x for x in parts
+            if x.lower().rstrip(os.sep) != os.path.dirname(exe).lower()
+        ]
         if parts == after:
             raise AssertionError(exe, parts)
         env['PATH'] = os.pathsep.join(after)
