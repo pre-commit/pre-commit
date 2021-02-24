@@ -7,7 +7,9 @@ import pytest
 import pre_commit.constants as C
 from pre_commit import main
 from pre_commit.errors import FatalError
+from pre_commit.util import cmd_output
 from testing.auto_namedtuple import auto_namedtuple
+from testing.util import cwd
 
 
 @pytest.mark.parametrize(
@@ -52,6 +54,17 @@ def test_adjust_args_and_chdir_relative_things(in_git_dir):
     assert os.getcwd() == in_git_dir
     assert args.config == os.path.join('foo', 'cfg.yaml')
     assert args.files == [os.path.join('foo', 'f1'), os.path.join('foo', 'f2')]
+
+
+@pytest.mark.skipif(os.name != 'nt', reason='windows feature')
+def test_install_on_subst(in_git_dir, store):  # pragma: posix no cover
+    assert not os.path.exists('Z:')
+    cmd_output('subst', 'Z:', str(in_git_dir))
+    try:
+        with cwd('Z:'):
+            test_adjust_args_and_chdir_noop('Z:\\')
+    finally:
+        cmd_output('subst', '/d', 'Z:')
 
 
 def test_adjust_args_and_chdir_non_relative_config(in_git_dir):
