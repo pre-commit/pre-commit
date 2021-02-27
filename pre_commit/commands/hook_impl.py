@@ -76,6 +76,7 @@ def _ns(
         remote_url: Optional[str] = None,
         commit_msg_filename: Optional[str] = None,
         checkout_type: Optional[str] = None,
+        is_squash_merge: Optional[str] = None,
 ) -> argparse.Namespace:
     return argparse.Namespace(
         color=color,
@@ -88,6 +89,7 @@ def _ns(
         commit_msg_filename=commit_msg_filename,
         all_files=all_files,
         checkout_type=checkout_type,
+        is_squash_merge=is_squash_merge,
         files=(),
         hook=None,
         verbose=False,
@@ -158,6 +160,7 @@ _EXPECTED_ARG_LENGTH_BY_HOOK = {
     'post-commit': 0,
     'pre-commit': 0,
     'pre-merge-commit': 0,
+    'post-merge': 1,
     'pre-push': 2,
 }
 
@@ -199,6 +202,8 @@ def _run_ns(
             hook_type, color,
             from_ref=args[0], to_ref=args[1], checkout_type=args[2],
         )
+    elif hook_type == 'post-merge':
+        return _ns(hook_type, color, is_squash_merge=args[0])
     else:
         raise AssertionError(f'unexpected hook type: {hook_type}')
 

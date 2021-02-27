@@ -67,8 +67,8 @@ class AppendReplaceDefault(argparse.Action):
 def _add_hook_type_option(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         '-t', '--hook-type', choices=(
-            'pre-commit', 'pre-merge-commit', 'pre-push',
-            'prepare-commit-msg', 'commit-msg', 'post-commit', 'post-checkout',
+            'pre-commit', 'pre-merge-commit', 'pre-push', 'prepare-commit-msg',
+            'commit-msg', 'post-commit', 'post-checkout', 'post-merge',
         ),
         action=AppendReplaceDefault,
         default=['pre-commit'],
@@ -134,6 +134,13 @@ def _add_run_options(parser: argparse.ArgumentParser) -> None:
             'Indicates whether the checkout was a branch checkout '
             '(changing branches, flag=1) or a file checkout (retrieving a '
             'file from the index, flag=0).'
+        ),
+    )
+    parser.add_argument(
+        '--is-squash-merge',
+        help=(
+            'During a post-merge hook, indicates whether the merge was a '
+            'squash merge'
         ),
     )
 

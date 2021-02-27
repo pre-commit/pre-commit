@@ -494,6 +494,15 @@ def test_all_push_options_ok(cap_out, store, repo_with_passing_hook):
     assert b'Specify both --from-ref and --to-ref.' not in printed
 
 
+def test_is_squash_merge(cap_out, store, repo_with_passing_hook):
+    args = run_opts(is_squash_merge='1')
+    environ: MutableMapping[str, str] = {}
+    ret, printed = _do_run(
+        cap_out, store, repo_with_passing_hook, args, environ,
+    )
+    assert environ['PRE_COMMIT_IS_SQUASH_MERGE'] == '1'
+
+
 def test_checkout_type(cap_out, store, repo_with_passing_hook):
     args = run_opts(from_ref='', to_ref='', checkout_type='1')
     environ: MutableMapping[str, str] = {}
