@@ -1,3 +1,23 @@
+2.11.0 - 2021-03-07
+===================
+
+### Features
+- Improve warning for mutable ref.
+    - #1809 PR by @JamMarHer.
+- Add support for `post-merge` hook.
+    - #1800 PR by @psacawa.
+    - #1762 issue by @psacawa.
+- Add `r` as a supported hook language.
+    - #1799 PR by @lorenzwalthert.
+
+### Fixes
+- Fix `pre-commit install` on `subst` / network drives on windows.
+    - #1814 PR by @asottile.
+    - #1802 issue by @goroderickgo.
+- Fix installation of `local` golang repositories for go 1.16.
+    - #1818 PR by @rafikdraoui.
+    - #1815 issue by @rafikdraoui.
+
 2.10.1 - 2021-02-06
 ===================
 
