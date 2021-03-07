@@ -16,6 +16,7 @@ from pre_commit.languages import node
 from pre_commit.languages import perl
 from pre_commit.languages import pygrep
 from pre_commit.languages import python
+from pre_commit.languages import r
 from pre_commit.languages import ruby
 from pre_commit.languages import rust
 from pre_commit.languages import script
@@ -52,6 +53,7 @@ languages = {
     'perl': Language(name='perl', ENVIRONMENT_DIR=perl.ENVIRONMENT_DIR, get_default_version=perl.get_default_version, healthy=perl.healthy, install_environment=perl.install_environment, run_hook=perl.run_hook),  # noqa: E501
     'pygrep': Language(name='pygrep', ENVIRONMENT_DIR=pygrep.ENVIRONMENT_DIR, get_default_version=pygrep.get_default_version, healthy=pygrep.healthy, install_environment=pygrep.install_environment, run_hook=pygrep.run_hook),  # noqa: E501
     'python': Language(name='python', ENVIRONMENT_DIR=python.ENVIRONMENT_DIR, get_default_version=python.get_default_version, healthy=python.healthy, install_environment=python.install_environment, run_hook=python.run_hook),  # noqa: E501
+    'r': Language(name='r', ENVIRONMENT_DIR=r.ENVIRONMENT_DIR, get_default_version=r.get_default_version, healthy=r.healthy, install_environment=r.install_environment, run_hook=r.run_hook),  # noqa: E501
     'ruby': Language(name='ruby', ENVIRONMENT_DIR=ruby.ENVIRONMENT_DIR, get_default_version=ruby.get_default_version, healthy=ruby.healthy, install_environment=ruby.install_environment, run_hook=ruby.run_hook),  # noqa: E501
     'rust': Language(name='rust', ENVIRONMENT_DIR=rust.ENVIRONMENT_DIR, get_default_version=rust.get_default_version, healthy=rust.healthy, install_environment=rust.install_environment, run_hook=rust.run_hook),  # noqa: E501
     'script': Language(name='script', ENVIRONMENT_DIR=script.ENVIRONMENT_DIR, get_default_version=script.get_default_version, healthy=script.healthy, install_environment=script.install_environment, run_hook=script.run_hook),  # noqa: E501

@@ -1,0 +1,48 @@
+# parsing file
+-   id: parse-file-no-opts-no-args
+    name: Say hi
+    entry: Rscript parse-file-no-opts-no-args.R
+    language: r
+    types: [r]
+-   id: parse-file-no-opts-args
+    name: Say hi
+    entry: Rscript parse-file-no-opts-args.R
+    args: [--no-cache]
+    language: r
+    types: [r]
+## parsing expr
+-   id: parse-expr-no-opts-no-args-1
+    name: Say hi
+    entry: Rscript -e '1+1'
+    language: r
+    types: [r]
+-   id: parse-expr-args-in-entry-2
+    name: Say hi
+    entry: Rscript -e '1+1' -e '3' --no-cache3
+    language: r
+    types: [r]
+# real world
+-   id: hello-world
+    name: Say hi
+    entry: Rscript hello-world.R
+    args: [blibla]
+    language: r
+    types: [r]
+-   id: hello-world-inline
+    name: Say hi
+    entry: |
+      Rscript -e
+      'stopifnot(
+        packageVersion("rprojroot") == "1.0",
+        packageVersion("gli.clu") == "0.0.0.9000"
+      )
+      cat(commandArgs(trailingOnly = TRUE), "from R!\n", sep = ", ")
+      '
+    args: ['Hi-there']
+    language: r
+    types: [r]
+-   id: additional-deps
+    name: Check additional deps
+    entry: Rscript additional-deps.R
+    language: r
+    types: [r]
