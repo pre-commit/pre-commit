@@ -38,6 +38,17 @@ def test_get_root_bare_worktree(tmpdir):
         assert git.get_root() == os.path.abspath('.')
 
 
+def test_get_root_worktree_in_git(tmpdir):
+    src = tmpdir.join('src').ensure_dir()
+    cmd_output('git', 'init', str(src))
+    git_commit(cwd=str(src))
+
+    cmd_output('git', 'worktree', 'add', '.git/trees/foo', 'HEAD', cwd=src)
+
+    with src.join('.git/trees/foo').as_cwd():
+        assert git.get_root() == os.path.abspath('.')
+
+
 def test_get_staged_files_deleted(in_git_dir):
     in_git_dir.join('test').ensure()
     cmd_output('git', 'add', 'test')
