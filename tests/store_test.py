@@ -186,7 +186,7 @@ def test_local_resources_reflects_reality():
         for res in os.listdir('pre_commit/resources')
         if res.startswith('empty_template_')
     }
-    assert on_disk == set(Store.LOCAL_RESOURCES)
+    assert on_disk == {os.path.basename(x) for x in Store.LOCAL_RESOURCES}
 
 
 def test_mark_config_as_used(store, tmpdir):

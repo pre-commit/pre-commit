@@ -15,6 +15,7 @@ from pre_commit.util import clean_path_on_failure
 from pre_commit.util import cmd_output_b
 
 ENVIRONMENT_DIR = 'renv'
+RSCRIPT_OPTS = ('--no-save', '--no-restore', '--no-site-file', '--no-environ')
 get_default_version = helpers.basic_get_default_version
 healthy = helpers.basic_healthy
 
@@ -69,12 +70,11 @@ def _entry_validate(entry: Sequence[str]) -> None:
 
 
 def _cmd_from_hook(hook: Hook) -> Tuple[str, ...]:
-    opts = ('--no-save', '--no-restore', '--no-site-file', '--no-environ')
     entry = shlex.split(hook.entry)
     _entry_validate(entry)
 
     return (
-        *entry[:1], *opts,
+        *entry[:1], *RSCRIPT_OPTS,
         *_prefix_if_file_entry(entry, hook.prefix),
         *hook.args,
     )
@@ -89,22 +89,23 @@ def install_environment(
     with clean_path_on_failure(env_dir):
         os.makedirs(env_dir, exist_ok=True)
         shutil.copy(prefix.path('renv.lock'), env_dir)
+        shutil.copytree(prefix.path('renv'), os.path.join(env_dir, 'renv'))
         cmd_output_b(
             'Rscript', '--vanilla', '-e',
             f"""\
             prefix_dir <- {prefix.prefix_dir!r}
-            missing_pkgs <- setdiff(
-                "renv", unname(installed.packages()[, "Package"])
-            )
             options(
                 repos = c(CRAN = "https://cran.rstudio.com"),
                 renv.consent = TRUE
             )
-            install.packages(missing_pkgs)
-            renv::activate()
+            source("renv/activate.R")
             renv::restore()
             activate_statement <- paste0(
-              'renv::activate("', file.path(getwd()), '"); '
+              'suppressWarnings({{',
+              'old <- setwd("', getwd(), '"); ',
+              'source("renv/activate.R"); ',
+              'setwd(old); ',
+              'renv::load("', getwd(), '");}})'
             )
             writeLines(activate_statement, 'activate.R')
             is_package <- tryCatch({{
@@ -120,12 +121,13 @@ def install_environment(
             cwd=env_dir,
         )
         if additional_dependencies:
-            cmd_output_b(
-                'Rscript', '-e',
-                'renv::install(commandArgs(trailingOnly = TRUE))',
-                *additional_dependencies,
-                cwd=env_dir,
-            )
+            with in_env(prefix, version):
+                cmd_output_b(
+                    'Rscript', *RSCRIPT_OPTS, '-e',
+                    'renv::install(commandArgs(trailingOnly = TRUE))',
+                    *additional_dependencies,
+                    cwd=env_dir,
+                )
 
 
 def run_hook(

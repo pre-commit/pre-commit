@@ -189,14 +189,19 @@ class Store:
     LOCAL_RESOURCES = (
         'Cargo.toml', 'main.go', 'go.mod', 'main.rs', '.npmignore',
         'package.json', 'pre_commit_dummy_package.gemspec', 'setup.py',
-        'environment.yml', 'Makefile.PL', 'renv.lock',
+        'environment.yml', 'Makefile.PL',
+        'renv.lock', 'renv/activate.R', 'renv/LICENSE.renv',
     )
 
     def make_local(self, deps: Sequence[str]) -> str:
         def make_local_strategy(directory: str) -> None:
             for resource in self.LOCAL_RESOURCES:
-                contents = resource_text(f'empty_template_{resource}')
-                with open(os.path.join(directory, resource), 'w') as f:
+                resource_dirname, resource_basename = os.path.split(resource)
+                contents = resource_text(f'empty_template_{resource_basename}')
+                target_dir = os.path.join(directory, resource_dirname)
+                target_file = os.path.join(target_dir, resource_basename)
+                os.makedirs(target_dir, exist_ok=True)
+                with open(target_file, 'w') as f:
                     f.write(contents)
 
             env = git.no_git_env()
