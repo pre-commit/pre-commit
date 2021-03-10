@@ -1,3 +1,10 @@
+2.11.1 - 2021-03-09
+===================
+
+### Fixes
+- Fix r hooks when hook repo is a package
+    - #1831 PR by @lorenzwalthert.
+
 2.11.0 - 2021-03-07
 ===================
 
