@@ -13,6 +13,7 @@ from pre_commit.envcontext import UNSET
 from pre_commit.envcontext import Var
 from pre_commit.hook import Hook
 from pre_commit.languages import helpers
+from pre_commit.languages.node_env import install_node
 from pre_commit.languages.python import bin_dir
 from pre_commit.prefix import Prefix
 from pre_commit.util import clean_path_on_failure
@@ -89,27 +90,22 @@ def install_environment(
     if sys.platform == 'win32':  # pragma: no cover
         envdir = fr'\\?\{os.path.normpath(envdir)}'
     with clean_path_on_failure(envdir):
-        cmd = [
-            sys.executable, '-mnodeenv', '--prebuilt', '--clean-src', envdir,
-        ]
-        if version != C.DEFAULT:
-            cmd.extend(['-n', version])
-        cmd_output_b(*cmd)
+        npm = install_node(envdir, version)
 
         with in_env(prefix, version):
             # https://npm.community/t/npm-install-g-git-vs-git-clone-cd-npm-install-g/5449
             # install as if we installed from git
 
             local_install_cmd = (
-                'npm', 'install', '--dev', '--prod',
+                npm, 'install', '--dev', '--prod',
                 '--ignore-prepublish', '--no-progress', '--no-save',
             )
             helpers.run_setup_cmd(prefix, local_install_cmd)
 
-            _, pkg, _ = cmd_output('npm', 'pack', cwd=prefix.prefix_dir)
+            _, pkg, _ = cmd_output(npm, 'pack', cwd=prefix.prefix_dir)
             pkg = prefix.path(pkg.strip())
 
-            install = ('npm', 'install', '-g', pkg, *additional_dependencies)
+            install = (npm, 'install', '-g', pkg, *additional_dependencies)
             helpers.run_setup_cmd(prefix, install)
 
             # clean these up after installation
