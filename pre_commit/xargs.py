@@ -145,7 +145,9 @@ def xargs(
         # this is implementation details but the command gets translated into
         # full/path/to/cmd.exe /c *cmd
         cmd_exe = parse_shebang.find_executable('cmd.exe')
-        _max_length = 8192 - len(cmd_exe) - len(' /c ')
+        # 1024 is additionally subtracted to give headroom for further
+        # expansion inside the batch file
+        _max_length = 8192 - len(cmd_exe) - len(' /c ') - 1024
 
     partitions = partition(cmd, varargs, target_concurrency, _max_length)
 
