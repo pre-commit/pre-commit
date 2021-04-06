@@ -35,17 +35,20 @@ def make_archive(name: str, repo: str, ref: str, destdir: str) -> str:
     """
     output_path = os.path.join(destdir, f'{name}.tar.gz')
     with tempfile.TemporaryDirectory() as tmpdir:
+        # this ensures that the root directory has umask permissions
+        gitdir = os.path.join(tmpdir, 'root')
+
         # Clone the repository to the temporary directory
-        subprocess.check_call(('git', 'clone', repo, tmpdir))
-        subprocess.check_call(('git', '-C', tmpdir, 'checkout', ref))
+        subprocess.check_call(('git', 'clone', repo, gitdir))
+        subprocess.check_call(('git', '-C', gitdir, 'checkout', ref))
 
         # We don't want the '.git' directory
         # It adds a bunch of size to the archive and we don't use it at
         # runtime
-        shutil.rmtree(os.path.join(tmpdir, '.git'))
+        shutil.rmtree(os.path.join(gitdir, '.git'))
 
         with tarfile.open(output_path, 'w|gz') as tf:
-            tf.add(tmpdir, name)
+            tf.add(gitdir, name)
 
     return output_path
 

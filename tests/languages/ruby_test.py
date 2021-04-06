@@ -1,4 +1,5 @@
 import os.path
+import tarfile
 from unittest import mock
 
 import pytest
@@ -8,6 +9,7 @@ from pre_commit import parse_shebang
 from pre_commit.languages import ruby
 from pre_commit.prefix import Prefix
 from pre_commit.util import cmd_output
+from pre_commit.util import resource_bytesio
 from testing.util import xfailif_windows
 
 
@@ -72,3 +74,14 @@ def test_install_ruby_with_version(fake_gem_prefix):
     # Should be able to activate and use rbenv install
     with ruby.in_env(fake_gem_prefix, '2.7.2'):
         cmd_output('rbenv', 'install', '--help')
+
+
+@pytest.mark.parametrize(
+    'filename',
+    ('rbenv.tar.gz', 'ruby-build.tar.gz', 'ruby-download.tar.gz'),
+)
+def test_archive_root_stat(filename):
+    with resource_bytesio(filename) as f:
+        with tarfile.open(fileobj=f) as tarf:
+            root, _, _ = filename.partition('.')
+            assert oct(tarf.getmember(root).mode) == '0o755'
