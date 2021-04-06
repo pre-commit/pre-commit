@@ -1,3 +1,19 @@
+2.12.0 - 2021-04-06
+===================
+
+### Features
+- Upgrade rbenv.
+    - #1854 PR by @asottile.
+    - #1848 issue by @sirosen.
+
+### Fixes
+- Give command length a little more room when running batch files on windows
+  so underlying commands can expand further.
+    - #1864 PR by @asottile.
+    - pre-commit/mirrors-prettier#7 issue by @DeltaXWizard.
+- Fix permissions of root folder in ruby archives.
+    - #1868 PR by @asottile.
+
 2.11.1 - 2021-03-09
 ===================
 
