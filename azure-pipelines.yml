@@ -10,7 +10,7 @@ resources:
       type: github
       endpoint: github
       name: asottile/azure-pipeline-templates
-      ref: refs/tags/v2.0.0
+      ref: refs/tags/v2.1.0
 
 jobs:
 - template: job--python-tox.yml@asottile
