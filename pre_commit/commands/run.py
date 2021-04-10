@@ -271,11 +271,11 @@ def _get_diff() -> bytes:
 def _run_hooks(
         config: Dict[str, Any],
         hooks: Sequence[Hook],
+        skips: Set[str],
         args: argparse.Namespace,
         environ: MutableMapping[str, str],
 ) -> int:
     """Actually run the hooks."""
-    skips = _get_skips(environ)
     cols = _compute_cols(hooks)
     classifier = Classifier.from_config(
         _all_filenames(args), config['files'], config['exclude'],
@@ -403,9 +403,11 @@ def run(
             )
             return 1
 
-        install_hook_envs(hooks, store)
+        skips = _get_skips(environ)
+        to_install = [hook for hook in hooks if hook.id not in skips]
+        install_hook_envs(to_install, store)
 
-        return _run_hooks(config, hooks, args, environ)
+        return _run_hooks(config, hooks, skips, args, environ)
 
     # https://github.com/python/mypy/issues/7726
     raise AssertionError('unreachable')
