@@ -1,3 +1,11 @@
+2.12.1 - 2021-04-16
+===================
+
+### Fixes
+- Fix race condition when stashing files in multiple parallel invocations
+    - #1881 PR by @adamchainz.
+    - #1880 issue by @adamchainz.
+
 2.12.0 - 2021-04-06
 ===================
 
