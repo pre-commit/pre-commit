@@ -47,7 +47,7 @@ def _unstaged_changes_cleared(patch_dir: str) -> Generator[None, None, None]:
         retcode=None,
     )
     if retcode and diff_stdout_binary.strip():
-        patch_filename = f'patch{int(time.time())}'
+        patch_filename = f'patch{int(time.time())}-{os.getpid()}'
         patch_filename = os.path.join(patch_dir, patch_filename)
         logger.warning('Unstaged files detected.')
         logger.info(f'Stashing unstaged files to {patch_filename}.')
