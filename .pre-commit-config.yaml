@@ -12,7 +12,7 @@ repos:
     -   id: requirements-txt-fixer
     -   id: double-quote-string-fixer
 -   repo: https://github.com/PyCQA/flake8
-    rev: 3.9.0
+    rev: 3.9.1
     hooks:
     -   id: flake8
         additional_dependencies: [flake8-typing-imports==1.10.0]
