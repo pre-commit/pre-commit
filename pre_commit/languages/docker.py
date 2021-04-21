@@ -1,5 +1,7 @@
 import hashlib
+import json
 import os
+import socket
 from typing import Sequence
 from typing import Tuple
 
@@ -8,11 +10,40 @@ from pre_commit.hook import Hook
 from pre_commit.languages import helpers
 from pre_commit.prefix import Prefix
 from pre_commit.util import clean_path_on_failure
+from pre_commit.util import cmd_output_b
 
 ENVIRONMENT_DIR = 'docker'
 PRE_COMMIT_LABEL = 'PRE_COMMIT'
 get_default_version = helpers.basic_get_default_version
 healthy = helpers.basic_healthy
+
+
+def _is_in_docker() -> bool:
+    try:
+        with open('/proc/1/cgroup', 'rb') as f:
+            return b'docker' in f.read()
+    except FileNotFoundError:
+        return False
+
+
+def _get_docker_path(path: str) -> str:
+    if not _is_in_docker():
+        return path
+    hostname = socket.gethostname()
+
+    _, out, _ = cmd_output_b('docker', 'inspect', hostname)
+
+    container, = json.loads(out)
+    for mount in container['Mounts']:
+        src_path = mount['Source']
+        to_path = mount['Destination']
+        if os.path.commonpath((path, to_path)) == to_path:
+            # So there is something in common,
+            # and we can proceed remapping it
+            return path.replace(to_path, src_path)
+    # we're in Docker, but the path is not mounted, cannot really do anything,
+    # so fall back to original path
+    return path
 
 
 def md5(s: str) -> str:  # pragma: win32 no cover
@@ -73,7 +104,7 @@ def docker_cmd() -> Tuple[str, ...]:  # pragma: win32 no cover
         # https://docs.docker.com/engine/reference/commandline/run/#mount-volumes-from-container-volumes-from
         # The `Z` option tells Docker to label the content with a private
         # unshared label. Only the current container can use a private volume.
-        '-v', f'{os.getcwd()}:/src:rw,Z',
+        '-v', f'{_get_docker_path(os.getcwd())}:/src:rw,Z',
         '--workdir', '/src',
     )
 
