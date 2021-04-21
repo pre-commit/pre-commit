@@ -8,6 +8,7 @@ from pre_commit.hook import Hook
 from pre_commit.languages import helpers
 from pre_commit.prefix import Prefix
 from pre_commit.util import clean_path_on_failure
+from pre_commit.util import translate_path
 
 ENVIRONMENT_DIR = 'docker'
 PRE_COMMIT_LABEL = 'PRE_COMMIT'
@@ -73,7 +74,7 @@ def docker_cmd() -> Tuple[str, ...]:  # pragma: win32 no cover
         # https://docs.docker.com/engine/reference/commandline/run/#mount-volumes-from-container-volumes-from
         # The `Z` option tells Docker to label the content with a private
         # unshared label. Only the current container can use a private volume.
-        '-v', f'{os.getcwd()}:/src:rw,Z',
+        '-v', f'{translate_path(os.getcwd())}:/src:rw,Z',
         '--workdir', '/src',
     )
 

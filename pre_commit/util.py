@@ -1,8 +1,11 @@
 import contextlib
 import errno
 import functools
+import json
 import os.path
+import re
 import shutil
+import socket
 import stat
 import subprocess
 import sys
@@ -268,3 +271,70 @@ def rmtree(path: str) -> None:
 def parse_version(s: str) -> Tuple[int, ...]:
     """poor man's version comparison"""
     return tuple(int(p) for p in s.split('.'))
+
+
+def in_docker() -> bool:
+    """
+    Check if running in Docker
+    :return: Whether or not this is running in Docker container
+    """
+    try:
+        with open('/proc/1/cgroup') as cgroup_file:
+            return 'docker' in cgroup_file.read()
+    except FileNotFoundError:
+        return False
+
+
+def translate_path(path: str) -> str:
+    """
+    Method to get the right path considering it can be mounted in Docker
+     already.
+    :param path: A string representing a path within the container
+    :return: A string representing a path on the host (or the original
+             path if the path is not in a bound volume)
+    """
+    if not in_docker():
+        return path
+    binds = get_binds()
+    if path in binds.keys():
+        return binds[path]
+    exps = ['(%s)/(.*)' % key for key in binds.keys()]
+    for exp in exps:
+        result = re.search(exp, path)
+        if result:
+            return f'{binds[result.group(1)]}/{result.group(2)}'
+    raise ValueError(
+        f'Path {path} not present in a bind mount. ' +
+        'Volume mount will fail when running this in Docker.',
+    )
+
+
+def get_current_container() -> Dict[str, Any]:
+    """
+    Will raise ValueError if there is no container with the same hostname as
+    the environment this is running in.
+    Which indicates that this is not a docker container, or that
+    /var/run/docker.sock is not bind mounted to /var/run/docker.sock on the
+    host (i.e. this is a container which is also a docker host).
+    :return: A dictionary containing information about the container this
+             is running in obtained using docker api
+    """
+    hostname = socket.gethostname()
+    try:
+        output = subprocess.check_output(('docker', 'inspect', hostname))
+    except CalledProcessError:
+        raise ValueError('Not running in Docker container')
+
+    return json.loads(output)[0]
+
+
+def get_binds() -> Dict[str, str]:
+    """
+    :return: A dictionary with paths in the container as keys and paths
+             on the host as values
+    """
+    container = get_current_container()
+    return {
+        bind.split(':')[1]: bind.split(':')[0]
+        for bind in container['HostConfig']['Binds']
+    }
