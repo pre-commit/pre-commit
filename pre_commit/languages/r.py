@@ -40,14 +40,19 @@ def _get_env_dir(prefix: Prefix, version: str) -> str:
     return prefix.path(helpers.environment_dir(ENVIRONMENT_DIR, version))
 
 
-def _prefix_if_file_entry(
+def _prefix_if_non_local_file_entry(
     entry: Sequence[str],
     prefix: Prefix,
+    src: str,
 ) -> Sequence[str]:
     if entry[1] == '-e':
         return entry[1:]
     else:
-        return (prefix.path(entry[1]),)
+        if src == 'local':
+            path = entry[1]
+        else:
+            path = prefix.path(entry[1])
+        return (path,)
 
 
 def _entry_validate(entry: Sequence[str]) -> None:
@@ -75,7 +80,7 @@ def _cmd_from_hook(hook: Hook) -> Tuple[str, ...]:
 
     return (
         *entry[:1], *RSCRIPT_OPTS,
-        *_prefix_if_file_entry(entry, hook.prefix),
+        *_prefix_if_non_local_file_entry(entry, hook.prefix, hook.src),
         *hook.args,
     )
 

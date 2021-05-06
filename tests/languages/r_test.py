@@ -14,10 +14,12 @@ def _test_r_parsing(
     hook_id,
     expected_hook_expr={},
     expected_args={},
+    config={},
+    expect_path_prefix=True,
 ):
     repo_path = 'r_hooks_repo'
     path = make_repo(tempdir_factory, repo_path)
-    config = make_config_from_repo(path)
+    config = config or make_config_from_repo(path)
     hook = _get_hook_no_install(config, store, hook_id)
     ret = r._cmd_from_hook(hook)
     expected_cmd = 'Rscript'
@@ -25,7 +27,8 @@ def _test_r_parsing(
         '--no-save', '--no-restore', '--no-site-file', '--no-environ',
     )
     expected_path = os.path.join(
-        hook.prefix.prefix_dir, '.'.join([hook_id, 'R']),
+        hook.prefix.prefix_dir if expect_path_prefix else '',
+        f'{hook_id}.R',
     )
     expected = (
         expected_cmd,
@@ -102,3 +105,25 @@ def test_r_parsing_expr_non_Rscirpt(tempdir_factory, store):
 
     msg = execinfo.value.args
     assert msg == ('entry must start with `Rscript`.',)
+
+
+def test_r_parsing_file_local(tempdir_factory, store):
+    path = 'path/to/script.R'
+    hook_id = 'local-r'
+    config = {
+        'repo': 'local',
+        'hooks': [{
+            'id': hook_id,
+            'name': 'local-r',
+            'entry': f'Rscript {path}',
+            'language': 'r',
+        }],
+    }
+    _test_r_parsing(
+        tempdir_factory,
+        store,
+        hook_id=hook_id,
+        expected_hook_expr=(path,),
+        config=config,
+        expect_path_prefix=False,
+    )
