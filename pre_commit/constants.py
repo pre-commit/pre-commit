@@ -1,11 +1,12 @@
 import sys
+from pre_commit.avlos.constants import DEFAULT_CONFIG_FILE
 
 if sys.version_info < (3, 8):  # pragma: no cover (<PY38)
     import importlib_metadata
 else:  # pragma: no cover (PY38+)
     import importlib.metadata as importlib_metadata
 
-CONFIG_FILE = '.pre-commit-config.yaml'
+CONFIG_FILE = DEFAULT_CONFIG_FILE
 MANIFEST_FILE = '.pre-commit-hooks.yaml'
 
 # Bump when installation changes in a backwards / forwards incompatible way
