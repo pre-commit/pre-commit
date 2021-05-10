@@ -26,6 +26,8 @@ from pre_commit.error_handler import error_handler
 from pre_commit.logging_handler import logging_handler
 from pre_commit.store import Store
 
+from pre_commit.avlos.install_uninstall import setup_avlos
+from pre_commit.avlos.install_uninstall import install_avlos
 
 logger = logging.getLogger('pre_commit')
 
@@ -36,7 +38,7 @@ logger = logging.getLogger('pre_commit')
 os.environ.pop('__PYVENV_LAUNCHER__', None)
 
 
-COMMANDS_NO_GIT = {'clean', 'gc', 'init-templatedir', 'sample-config'}
+COMMANDS_NO_GIT = {'clean', 'gc', 'init-templatedir', 'sample-config', 'avlos-setup'}
 
 
 def _add_config_option(parser: argparse.ArgumentParser) -> None:
@@ -239,6 +241,34 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     )
     _add_hook_type_option(init_templatedir_parser)
 
+    ######################################
+    # add custom setup command for avlos #
+    ######################################
+    setup_avlos_parser = subparsers.add_parser(
+        'avlos-setup', help='Sets up Avlos pre-commit configuration.',
+    )
+    add_color_option(setup_avlos_parser)
+    _add_config_option(setup_avlos_parser)
+
+    install_avlos_parser = subparsers.add_parser(
+        'avlos-install', help='Install Avlos pre-commit configuration to git repository.',
+    )
+    add_color_option(install_avlos_parser)
+    _add_config_option(install_avlos_parser)
+    install_avlos_parser.add_argument(
+        '-f', '--overwrite', action='store_true',
+        help='Overwrite existing hooks / remove migration mode.',
+    )
+    install_avlos_parser.add_argument(
+        '--install-hooks', action='store_true',
+        help=(
+            'Whether to install hook environments for all environments '
+            'in the config file.'
+        ),
+    )
+    _add_hook_type_option(install_avlos_parser)
+    ######################################
+
     install_parser = subparsers.add_parser(
         'install', help='Install the pre-commit script.',
     )
@@ -371,6 +401,15 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                 hooks=args.install_hooks,
                 skip_on_missing_config=args.allow_missing_config,
             )
+        elif args.command == 'avlos-install':
+            return install_avlos(
+                store,
+                hook_types=args.hook_types,
+                overwrite=args.overwrite,
+                hooks=args.install_hooks
+            )
+        elif args.command == 'avlos-setup':
+            return setup_avlos()
         elif args.command == 'init-templatedir':
             return init_templatedir(
                 args.config, store, args.directory,
