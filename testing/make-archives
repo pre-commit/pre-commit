@@ -15,11 +15,11 @@ from typing import Sequence
 
 
 REPOS = (
-    ('rbenv', 'git://github.com/rbenv/rbenv', '0843745'),
-    ('ruby-build', 'git://github.com/rbenv/ruby-build', '500863c'),
+    ('rbenv', 'https://github.com/rbenv/rbenv', '585ed84'),
+    ('ruby-build', 'https://github.com/rbenv/ruby-build', 'e9fa4bf'),
     (
         'ruby-download',
-        'git://github.com/garnieretienne/rvm-download',
+        'https://github.com/garnieretienne/rvm-download',
         '09bd7c6',
     ),
 )
