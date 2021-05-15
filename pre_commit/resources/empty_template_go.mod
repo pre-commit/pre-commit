@@ -1,1 +1,1 @@
-module pre-commit-dummy-empty-module
+module pre-commit-placeholder-empty-module

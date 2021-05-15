@@ -90,8 +90,8 @@ def _make_conflict():
 @pytest.fixture
 def in_merge_conflict(tempdir_factory):
     path = make_consuming_repo(tempdir_factory, 'script_hooks_repo')
-    open(os.path.join(path, 'dummy'), 'a').close()
-    cmd_output('git', 'add', 'dummy', cwd=path)
+    open(os.path.join(path, 'placeholder'), 'a').close()
+    cmd_output('git', 'add', 'placeholder', cwd=path)
     git_commit(msg=in_merge_conflict.__name__, cwd=path)
 
     conflict_path = tempdir_factory.get()

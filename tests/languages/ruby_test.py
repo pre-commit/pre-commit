@@ -36,13 +36,13 @@ def test_uses_system_if_both_gem_and_ruby_are_available(find_exe_mck):
 def fake_gem_prefix(tmpdir):
     gemspec = '''\
 Gem::Specification.new do |s|
-    s.name = 'pre_commit_dummy_package'
+    s.name = 'pre_commit_placeholder_package'
     s.version = '0.0.0'
-    s.summary = 'dummy gem for pre-commit hooks'
+    s.summary = 'placeholder gem for pre-commit hooks'
     s.authors = ['Anthony Sottile']
 end
 '''
-    tmpdir.join('dummy_gem.gemspec').write(gemspec)
+    tmpdir.join('placeholder_gem.gemspec').write(gemspec)
     yield Prefix(tmpdir)
 
 
@@ -53,7 +53,7 @@ def test_install_ruby_system(fake_gem_prefix):
     # Should be able to activate and use rbenv install
     with ruby.in_env(fake_gem_prefix, 'system'):
         _, out, _ = cmd_output('gem', 'list')
-        assert 'pre_commit_dummy_package' in out
+        assert 'pre_commit_placeholder_package' in out
 
 
 @xfailif_windows  # pragma: win32 no cover

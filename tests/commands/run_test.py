@@ -526,9 +526,9 @@ def test_merge_conflict(cap_out, store, in_merge_conflict):
 
 def test_merge_conflict_modified(cap_out, store, in_merge_conflict):
     # Touch another file so we have unstaged non-conflicting things
-    assert os.path.exists('dummy')
-    with open('dummy', 'w') as dummy_file:
-        dummy_file.write('bar\nbaz\n')
+    assert os.path.exists('placeholder')
+    with open('placeholder', 'w') as placeholder_file:
+        placeholder_file.write('bar\nbaz\n')
 
     ret, printed = _do_run(cap_out, store, in_merge_conflict, run_opts())
     assert ret == 1
@@ -831,9 +831,9 @@ def test_local_hook_passes(cap_out, store, repo_with_passing_hook):
     }
     add_config_to_repo(repo_with_passing_hook, config)
 
-    with open('dummy.py', 'w') as staged_file:
+    with open('placeholder.py', 'w') as staged_file:
         staged_file.write('"""TODO: something"""\n')
-    cmd_output('git', 'add', 'dummy.py')
+    cmd_output('git', 'add', 'placeholder.py')
 
     _test_run(
         cap_out,
@@ -858,9 +858,9 @@ def test_local_hook_fails(cap_out, store, repo_with_passing_hook):
     }
     add_config_to_repo(repo_with_passing_hook, config)
 
-    with open('dummy.py', 'w') as staged_file:
+    with open('placeholder.py', 'w') as staged_file:
         staged_file.write('"""TODO: something"""\n')
-    cmd_output('git', 'add', 'dummy.py')
+    cmd_output('git', 'add', 'placeholder.py')
 
     _test_run(
         cap_out,
