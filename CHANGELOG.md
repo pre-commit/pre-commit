@@ -1444,7 +1444,7 @@ that have helped us get this far!
 
 0.13.1 - 2017-02-16
 ===================
-- Fix dummy gem for ruby local hooks
+- Fix placeholder gem for ruby local hooks
 
 0.13.0 - 2017-02-16
 ===================
