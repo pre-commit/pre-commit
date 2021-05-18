@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import argparse
+import gzip
 import os.path
 import shutil
 import subprocess
@@ -24,15 +25,14 @@ REPOS = (
 )
 
 
-def make_archive(name: str, repo: str, ref: str, destdir: str) -> str:
-    """Makes an archive of a repository in the given destdir.
+def reset(tarinfo: tarfile.TarInfo) -> tarfile.TarInfo:
+    tarinfo.uid = tarinfo.gid = 0
+    tarinfo.uname = tarinfo.gname = 'root'
+    tarinfo.mtime = 0
+    return tarinfo
 
-    :param text name: Name to give the archive.  For instance foo.  The file
-    that is created will be called foo.tar.gz.
-    :param text repo: Repository to clone.
-    :param text ref: Tag/SHA/branch to check out.
-    :param text destdir: Directory to place archives in.
-    """
+
+def make_archive(name: str, repo: str, ref: str, destdir: str) -> str:
     output_path = os.path.join(destdir, f'{name}.tar.gz')
     with tempfile.TemporaryDirectory() as tmpdir:
         # this ensures that the root directory has umask permissions
@@ -47,8 +47,24 @@ def make_archive(name: str, repo: str, ref: str, destdir: str) -> str:
         # runtime
         shutil.rmtree(os.path.join(gitdir, '.git'))
 
-        with tarfile.open(output_path, 'w|gz') as tf:
-            tf.add(gitdir, name)
+        arcs = [(name, gitdir)]
+        for root, dirs, filenames in os.walk(gitdir):
+            for filename in dirs + filenames:
+                abspath = os.path.abspath(os.path.join(root, filename))
+                relpath = os.path.relpath(abspath, gitdir)
+                arcs.append((os.path.join(name, relpath), abspath))
+        arcs.sort()
+
+        with gzip.GzipFile(output_path, 'wb', mtime=0) as gzipf:
+            # https://github.com/python/typeshed/issues/5491
+            with tarfile.open(fileobj=gzipf, mode='w') as tf:  # type: ignore
+                for arcname, abspath in arcs:
+                    tf.add(
+                        abspath,
+                        arcname=arcname,
+                        recursive=False,
+                        filter=reset,
+                    )
 
     return output_path
 
