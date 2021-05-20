@@ -22,6 +22,7 @@ from pre_commit.commands.install_uninstall import _hook_paths
 from pathlib import Path
 from git.repo.base import Repo
 from pre_commit.avlos.constants import GITHUB_DOTFILES_REPOSITORY
+from pre_commit.avlos.constants import GITHUB_DOTFILES_REPOSITORY_BRANCH
 
 logger = logging.getLogger(__name__)
 
@@ -42,7 +43,7 @@ def setup_avlos() -> int:
     # check if folder exists, remove #
     if os.path.isdir(installation_directory):
         shutil.rmtree(installation_directory)
-    Repo.clone_from(GITHUB_DOTFILES_REPOSITORY, installation_directory)
+    Repo.clone_from(GITHUB_DOTFILES_REPOSITORY, installation_directory, b=GITHUB_DOTFILES_REPOSITORY_BRANCH)
 
     ### copy dotfiles to home directory ###
     dotfiles = os.listdir(installation_directory)
