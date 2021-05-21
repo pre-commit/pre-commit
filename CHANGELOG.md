@@ -1,3 +1,26 @@
+2.13.0 - 2021-05-21
+===================
+
+### Features
+- Setting `SKIP=...` skips installation as well.
+    - #1875 PR by @asottile.
+    - pre-commit-ci/issues#53 issue by @TylerYep.
+- Attempt to mount from host with docker-in-docker.
+    - #1888 PR by @okainov.
+    - #1387 issue by @okainov.
+- Enable `repo: local` for `r` hooks.
+    - #1878 PR by @lorenzwalthert.
+- Upgrade `ruby-build` and `rbenv`.
+    - #1913 PR by @jalessio.
+
+### Fixes
+- Better detect `r` packages.
+    - #1898 PR by @lorenzwalthert.
+- Avoid warnings with mismatched `renv` versions.
+    - #1841 PR by @lorenzwalthert.
+- Reproducibly produce ruby tar resources.
+    - #1915 PR by @asottile.
+
 2.12.1 - 2021-04-16
 ===================
 
