@@ -1,7 +1,6 @@
 import hashlib
 import json
 import os
-import socket
 from typing import Sequence
 from typing import Tuple
 
@@ -26,12 +25,24 @@ def _is_in_docker() -> bool:
         return False
 
 
+def _get_container_id() -> str:
+    # It's assumed that we already check /proc/1/cgroup in _is_in_docker. The
+    # cpuset cgroup controller existed since cgroups were introduced so this
+    # way of getting the container ID is pretty reliable.
+    with open('/proc/1/cgroup', 'rb') as f:
+        for line in f.readlines():
+            if line.split(b':')[1] == b'cpuset':
+                return os.path.basename(line.split(b':')[2]).strip().decode()
+    raise RuntimeError('Failed to find the container ID in /proc/1/cgroup.')
+
+
 def _get_docker_path(path: str) -> str:
     if not _is_in_docker():
         return path
-    hostname = socket.gethostname()
 
-    _, out, _ = cmd_output_b('docker', 'inspect', hostname)
+    container_id = _get_container_id()
+
+    _, out, _ = cmd_output_b('docker', 'inspect', container_id)
 
     container, = json.loads(out)
     for mount in container['Mounts']:
