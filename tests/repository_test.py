@@ -51,7 +51,7 @@ def _get_hook_no_install(repo_config, store, hook_id):
     config = cfgv.validate(config, CONFIG_SCHEMA)
     config = cfgv.apply_defaults(config, CONFIG_SCHEMA)
     hooks = all_hooks(config, store)
-    hook, = [hook for hook in hooks if hook.id == hook_id]
+    hook, = (hook for hook in hooks if hook.id == hook_id)
     return hook
 
 
