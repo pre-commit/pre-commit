@@ -30,9 +30,10 @@ def exe_exists(exe: str) -> bool:
     if found is None:  # exe exists
         return False
 
+    realpath = os.path.realpath(found)
     homedir = os.path.expanduser('~')
     try:
-        common: Optional[str] = os.path.commonpath((found, homedir))
+        common: Optional[str] = os.path.commonpath((realpath, homedir))
     except ValueError:  # on windows, different drives raises ValueError
         common = None
 
