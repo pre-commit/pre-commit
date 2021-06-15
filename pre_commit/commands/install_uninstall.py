@@ -21,13 +21,13 @@ logger = logging.getLogger(__name__)
 
 # This is used to identify the hook file we install
 PRIOR_HASHES = (
-    '4d9958c90bc262f47553e2c073f14cfe',
-    'd8ee923c46731b42cd95cc869add4062',
-    '49fd668cb42069aa1b6048464be5d395',
-    '79f09a650522a87b0da915d0d983b2de',
-    'e358c9dae00eac5d06b38dfdb1e33a8c',
+    b'4d9958c90bc262f47553e2c073f14cfe',
+    b'd8ee923c46731b42cd95cc869add4062',
+    b'49fd668cb42069aa1b6048464be5d395',
+    b'79f09a650522a87b0da915d0d983b2de',
+    b'e358c9dae00eac5d06b38dfdb1e33a8c',
 )
-CURRENT_HASH = '138fd403232d2ddd5efb44317e38bf03'
+CURRENT_HASH = b'138fd403232d2ddd5efb44317e38bf03'
 TEMPLATE_START = '# start templated\n'
 TEMPLATE_END = '# end templated\n'
 # Homebrew/homebrew-core#35825: be more timid about appropriate `PATH`
@@ -48,7 +48,7 @@ def _hook_paths(
 def is_our_script(filename: str) -> bool:
     if not os.path.exists(filename):  # pragma: win32 no cover (symlink)
         return False
-    with open(filename) as f:
+    with open(filename, 'rb') as f:
         contents = f.read()
     return any(h in contents for h in (CURRENT_HASH,) + PRIOR_HASHES)
 
