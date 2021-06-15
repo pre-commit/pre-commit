@@ -39,7 +39,7 @@ def test_is_script():
 
 def test_is_previous_pre_commit(tmpdir):
     f = tmpdir.join('foo')
-    f.write(f'{PRIOR_HASHES[0]}\n')
+    f.write(f'{PRIOR_HASHES[0].decode()}\n')
     assert is_our_script(f.strpath)
 
 
@@ -390,6 +390,19 @@ def test_install_existing_hook_no_overwrite_idempotent(tempdir_factory, store):
         NORMAL_PRE_COMMIT_RUN.assert_matches(output[len('legacy hook\n'):])
 
 
+def test_install_with_existing_non_utf8_script(tmpdir, store):
+    cmd_output('git', 'init', str(tmpdir))
+    tmpdir.join('.git/hooks').ensure_dir()
+    tmpdir.join('.git/hooks/pre-commit').write_binary(
+        b'#!/usr/bin/env bash\n'
+        b'# garbage: \xa0\xef\x12\xf2\n'
+        b'echo legacy hook\n',
+    )
+
+    with tmpdir.as_cwd():
+        assert install(C.CONFIG_FILE, store, hook_types=['pre-commit']) == 0
+
+
 FAIL_OLD_HOOK = re_assert.Matches(
     r'fail!\n'
     r'\[INFO\] Initializing environment for .+\.\n'
@@ -460,7 +473,7 @@ def test_replace_old_commit_script(tempdir_factory, store):
         # Install a script that looks like our old script
         pre_commit_contents = resource_text('hook-tmpl')
         new_contents = pre_commit_contents.replace(
-            CURRENT_HASH, PRIOR_HASHES[-1],
+            CURRENT_HASH.decode(), PRIOR_HASHES[-1].decode(),
         )
 
         os.makedirs(os.path.join(path, '.git/hooks'), exist_ok=True)
