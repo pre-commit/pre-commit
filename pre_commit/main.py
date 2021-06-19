@@ -100,6 +100,9 @@ def _add_run_options(parser: argparse.ArgumentParser) -> None:
         '--remote-branch', help='Remote branch ref used by `git push`.',
     )
     parser.add_argument(
+        '--local-branch', help='Local branch ref used by `git push`.',
+    )
+    parser.add_argument(
         '--from-ref', '--source', '-s',
         help=(
             '(for usage with `--from-ref`) -- this option represents the '
