@@ -66,7 +66,8 @@ def _hook_installed(hook: Hook) -> bool:
 
 
 def _hook_install(hook: Hook) -> None:
-    logger.info(f'Installing environment for {hook.src}.')
+    # Do not put dot after repository url
+    logger.info(f'Installing environment for {hook.src}')
     logger.info('Once installed this environment will be reused.')
     logger.info('This may take a few minutes...')
 
