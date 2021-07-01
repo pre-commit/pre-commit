@@ -54,10 +54,10 @@ if sys.platform == 'win32':  # pragma: no cover (windows)
 else:  # pragma: win32 no cover
     terminal_supports_color = True
 
-RED = '\033[41m'
-GREEN = '\033[42m'
-YELLOW = '\033[43;30m'
-TURQUOISE = '\033[46;30m'
+RED = os.environ.get("PRE_COMMIT_RED", '\033[30;41m')
+GREEN = os.environ.get("PRE_COMMIT_GREEN", '\033[30;42m')
+YELLOW = os.environ.get("PRE_COMMIT_YELLOW", '\033[43;30m')
+TURQUOISE = os.environ.get("PRE_COMMIT_TURQUOISE", '\033[46;30m')
 SUBTLE = '\033[2m'
 NORMAL = '\033[m'
 
