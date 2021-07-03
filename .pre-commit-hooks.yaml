@@ -1,5 +1,5 @@
 -   id: validate_manifest
-    name: Validate Pre-Commit Manifest
+    name: validate pre-commit manifest
     description: This validator validates a pre-commit hooks manifest file
     entry: pre-commit-validate-manifest
     language: python
