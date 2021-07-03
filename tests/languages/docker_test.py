@@ -9,6 +9,41 @@ import pytest
 
 from pre_commit.languages import docker
 
+DOCKER_CGROUP_EXAMPLE = b'''\
+12:hugetlb:/docker/c33988ec7651ebc867cb24755eaf637a6734088bc7eef59d5799293a9e5450f7
+11:blkio:/docker/c33988ec7651ebc867cb24755eaf637a6734088bc7eef59d5799293a9e5450f7
+10:freezer:/docker/c33988ec7651ebc867cb24755eaf637a6734088bc7eef59d5799293a9e5450f7
+9:cpu,cpuacct:/docker/c33988ec7651ebc867cb24755eaf637a6734088bc7eef59d5799293a9e5450f7
+8:pids:/docker/c33988ec7651ebc867cb24755eaf637a6734088bc7eef59d5799293a9e5450f7
+7:rdma:/
+6:net_cls,net_prio:/docker/c33988ec7651ebc867cb24755eaf637a6734088bc7eef59d5799293a9e5450f7
+5:cpuset:/docker/c33988ec7651ebc867cb24755eaf637a6734088bc7eef59d5799293a9e5450f7
+4:devices:/docker/c33988ec7651ebc867cb24755eaf637a6734088bc7eef59d5799293a9e5450f7
+3:memory:/docker/c33988ec7651ebc867cb24755eaf637a6734088bc7eef59d5799293a9e5450f7
+2:perf_event:/docker/c33988ec7651ebc867cb24755eaf637a6734088bc7eef59d5799293a9e5450f7
+1:name=systemd:/docker/c33988ec7651ebc867cb24755eaf637a6734088bc7eef59d5799293a9e5450f7
+0::/system.slice/containerd.service
+'''  # noqa: E501
+
+# The ID should match the above cgroup example.
+CONTAINER_ID = 'c33988ec7651ebc867cb24755eaf637a6734088bc7eef59d5799293a9e5450f7'  # noqa: E501
+
+NON_DOCKER_CGROUP_EXAMPLE = b'''\
+12:perf_event:/
+11:hugetlb:/
+10:devices:/
+9:blkio:/
+8:rdma:/
+7:cpuset:/
+6:cpu,cpuacct:/
+5:freezer:/
+4:memory:/
+3:pids:/
+2:net_cls,net_prio:/
+1:name=systemd:/init.scope
+0::/init.scope
+'''
+
 
 def test_docker_fallback_user():
     def invalid_attribute():
@@ -37,43 +72,23 @@ def _mock_open(data):
 
 
 def test_in_docker_docker_in_file():
-    docker_cgroup_example = b'''\
-12:hugetlb:/docker/c33988ec7651ebc867cb24755eaf637a6734088bc7eef59d5799293a9e5450f7
-11:blkio:/docker/c33988ec7651ebc867cb24755eaf637a6734088bc7eef59d5799293a9e5450f7
-10:freezer:/docker/c33988ec7651ebc867cb24755eaf637a6734088bc7eef59d5799293a9e5450f7
-9:cpu,cpuacct:/docker/c33988ec7651ebc867cb24755eaf637a6734088bc7eef59d5799293a9e5450f7
-8:pids:/docker/c33988ec7651ebc867cb24755eaf637a6734088bc7eef59d5799293a9e5450f7
-7:rdma:/
-6:net_cls,net_prio:/docker/c33988ec7651ebc867cb24755eaf637a6734088bc7eef59d5799293a9e5450f7
-5:cpuset:/docker/c33988ec7651ebc867cb24755eaf637a6734088bc7eef59d5799293a9e5450f7
-4:devices:/docker/c33988ec7651ebc867cb24755eaf637a6734088bc7eef59d5799293a9e5450f7
-3:memory:/docker/c33988ec7651ebc867cb24755eaf637a6734088bc7eef59d5799293a9e5450f7
-2:perf_event:/docker/c33988ec7651ebc867cb24755eaf637a6734088bc7eef59d5799293a9e5450f7
-1:name=systemd:/docker/c33988ec7651ebc867cb24755eaf637a6734088bc7eef59d5799293a9e5450f7
-0::/system.slice/containerd.service
-'''  # noqa: E501
-    with _mock_open(docker_cgroup_example):
+    with _mock_open(DOCKER_CGROUP_EXAMPLE):
         assert docker._is_in_docker() is True
 
 
 def test_in_docker_docker_not_in_file():
-    non_docker_cgroup_example = b'''\
-12:perf_event:/
-11:hugetlb:/
-10:devices:/
-9:blkio:/
-8:rdma:/
-7:cpuset:/
-6:cpu,cpuacct:/
-5:freezer:/
-4:memory:/
-3:pids:/
-2:net_cls,net_prio:/
-1:name=systemd:/init.scope
-0::/init.scope
-'''
-    with _mock_open(non_docker_cgroup_example):
+    with _mock_open(NON_DOCKER_CGROUP_EXAMPLE):
         assert docker._is_in_docker() is False
+
+
+def test_get_container_id():
+    with _mock_open(DOCKER_CGROUP_EXAMPLE):
+        assert docker._get_container_id() == CONTAINER_ID
+
+
+def test_get_container_id_failure():
+    with _mock_open(b''), pytest.raises(RuntimeError):
+        docker._get_container_id()
 
 
 def test_get_docker_path_not_in_docker_returns_same():
@@ -84,7 +99,10 @@ def test_get_docker_path_not_in_docker_returns_same():
 @pytest.fixture
 def in_docker():
     with mock.patch.object(docker, '_is_in_docker', return_value=True):
-        yield
+        with mock.patch.object(
+            docker, '_get_container_id', return_value=CONTAINER_ID,
+        ):
+            yield
 
 
 def _linux_commonpath():
