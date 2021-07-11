@@ -36,7 +36,7 @@ def _hook_paths(
         hook_type: str,
         git_dir: str | None = None,
 ) -> tuple[str, str]:
-    git_dir = git_dir if git_dir is not None else git.get_git_dir()
+    git_dir = git_dir if git_dir is not None else git.get_git_common_dir()
     pth = os.path.join(git_dir, 'hooks', hook_type)
     return pth, f'{pth}.legacy'
 

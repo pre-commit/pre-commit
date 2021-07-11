@@ -21,6 +21,20 @@ def test_get_root_deeper(in_git_dir):
         assert os.path.normcase(git.get_root()) == expected
 
 
+def test_get_root_in_git_sub_dir(in_git_dir):
+    expected = os.path.normcase(in_git_dir.strpath)
+    with pytest.raises(FatalError):
+        with in_git_dir.join('.git/objects').ensure_dir().as_cwd():
+            assert os.path.normcase(git.get_root()) == expected
+
+
+def test_get_root_not_in_working_dir(in_git_dir):
+    expected = os.path.normcase(in_git_dir.strpath)
+    with pytest.raises(FatalError):
+        with in_git_dir.join('..').ensure_dir().as_cwd():
+            assert os.path.normcase(git.get_root()) == expected
+
+
 def test_in_exactly_dot_git(in_git_dir):
     with in_git_dir.join('.git').as_cwd(), pytest.raises(FatalError):
         git.get_root()
@@ -38,6 +52,22 @@ def test_get_root_bare_worktree(tmpdir):
 
     with bare.join('foo').as_cwd():
         assert git.get_root() == os.path.abspath('.')
+
+
+def test_get_git_dir(tmpdir):
+    """Regression test for #1972"""
+    src = tmpdir.join('src').ensure_dir()
+    cmd_output('git', 'init', str(src))
+    git_commit(cwd=str(src))
+
+    worktree = tmpdir.join('worktree').ensure_dir()
+    cmd_output('git', 'worktree', 'add', '../worktree', cwd=src)
+
+    with worktree.as_cwd():
+        assert git.get_git_dir() == src.ensure_dir(
+            '.git/worktrees/worktree',
+        )
+        assert git.get_git_common_dir() == src.ensure_dir('.git')
 
 
 def test_get_root_worktree_in_git(tmpdir):
