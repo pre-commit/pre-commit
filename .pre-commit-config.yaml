@@ -25,12 +25,12 @@ repos:
     hooks:
     -   id: validate_manifest
 -   repo: https://github.com/asottile/pyupgrade
-    rev: v2.21.2
+    rev: v2.23.0
     hooks:
     -   id: pyupgrade
         args: [--py36-plus]
 -   repo: https://github.com/asottile/reorder_python_imports
-    rev: v2.5.0
+    rev: v2.6.0
     hooks:
     -   id: reorder-python-imports
         args: [--py3-plus]
