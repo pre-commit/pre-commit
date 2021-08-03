@@ -8,6 +8,7 @@ from unittest import mock
 import pytest
 
 from pre_commit.languages import docker
+from pre_commit.util import CalledProcessError
 
 DOCKER_CGROUP_EXAMPLE = b'''\
 12:hugetlb:/docker/c33988ec7651ebc867cb24755eaf637a6734088bc7eef59d5799293a9e5450f7
@@ -171,3 +172,10 @@ def test_get_docker_path_in_docker_windows(in_docker):
         path = r'c:\folder\test\something'
         expected = r'c:\users\user\test\something'
         assert docker._get_docker_path(path) == expected
+
+
+def test_get_docker_path_in_docker_docker_in_docker(in_docker):
+    # won't be able to discover "self" container in true docker-in-docker
+    err = CalledProcessError(1, (), 0, b'', b'')
+    with mock.patch.object(docker, 'cmd_output_b', side_effect=err):
+        assert docker._get_docker_path('/project') == '/project'
