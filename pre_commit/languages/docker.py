@@ -8,6 +8,7 @@ import pre_commit.constants as C
 from pre_commit.hook import Hook
 from pre_commit.languages import helpers
 from pre_commit.prefix import Prefix
+from pre_commit.util import CalledProcessError
 from pre_commit.util import clean_path_on_failure
 from pre_commit.util import cmd_output_b
 
@@ -42,7 +43,11 @@ def _get_docker_path(path: str) -> str:
 
     container_id = _get_container_id()
 
-    _, out, _ = cmd_output_b('docker', 'inspect', container_id)
+    try:
+        _, out, _ = cmd_output_b('docker', 'inspect', container_id)
+    except CalledProcessError:
+        # self-container was not visible from here (perhaps docker-in-docker)
+        return path
 
     container, = json.loads(out)
     for mount in container['Mounts']:
