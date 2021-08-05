@@ -3,6 +3,7 @@ import logging
 import os.path
 import shutil
 import sys
+from pathlib import Path
 from typing import Optional
 from typing import Sequence
 from typing import Tuple
@@ -36,12 +37,36 @@ POSIX_SEARCH_PATH = ('/usr/local/bin', '/usr/bin', '/bin')
 SYS_EXE = os.path.basename(os.path.realpath(sys.executable))
 
 
+def _hooks_dir(git_dir: Optional[str] = None) -> str:
+    if git_dir is not None:
+        return os.path.join(git_dir, 'hooks')
+
+    # prefer core.hooksPath config setting
+    pth = git.get_core_hookspath()
+    if pth:
+        return pth
+    else:
+        git_dir = git.get_git_dir()
+        return os.path.join(git_dir, 'hooks')
+
+
+def _is_hooksPath_in_repo() -> bool:
+    if not git.has_core_hookpaths_set():
+        return True
+
+    gitroot = Path(git.get_root())
+    pth = Path(git.get_core_hookspath())
+    if not pth.is_absolute():
+        pth = Path(gitroot / pth.resolve())
+
+    return gitroot in pth.parents
+
+
 def _hook_paths(
         hook_type: str,
         git_dir: Optional[str] = None,
 ) -> Tuple[str, str]:
-    git_dir = git_dir if git_dir is not None else git.get_git_dir()
-    pth = os.path.join(git_dir, 'hooks', hook_type)
+    pth = os.path.join(_hooks_dir(git_dir), hook_type)
     return pth, f'{pth}.legacy'
 
 
@@ -128,9 +153,10 @@ def install(
         skip_on_missing_config: bool = False,
         git_dir: Optional[str] = None,
 ) -> int:
-    if git_dir is None and git.has_core_hookpaths_set():
+    if git_dir is None and not _is_hooksPath_in_repo():
         logger.error(
-            'Cowardly refusing to install hooks with `core.hooksPath` set.\n'
+            'Cowardly refusing to install hooks with `core.hooksPath` set to a'
+            f" location outside the repo: '{git.get_core_hookspath()}'\n"
             'hint: `git config --unset-all core.hooksPath`',
         )
         return 1
@@ -155,6 +181,10 @@ def install_hooks(config_file: str, store: Store) -> int:
 
 
 def _uninstall_hook_script(hook_type: str) -> None:
+    # don't bother if hooksPath is outside the repo
+    if not _is_hooksPath_in_repo():
+        return
+
     hook_path, legacy_path = _hook_paths(hook_type)
 
     # If our file doesn't exist or it isn't ours, gtfo.

@@ -173,9 +173,13 @@ def has_diff(*args: str, repo: str = '.') -> bool:
     return cmd_output_b(*cmd, cwd=repo, retcode=None)[0] == 1
 
 
-def has_core_hookpaths_set() -> bool:
+def get_core_hookspath() -> str:
     _, out, _ = cmd_output_b('git', 'config', 'core.hooksPath', retcode=None)
-    return bool(out.strip())
+    return out.strip().decode()
+
+
+def has_core_hookpaths_set() -> bool:
+    return bool(get_core_hookspath())
 
 
 def init_repo(path: str, remote: str) -> None:

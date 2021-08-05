@@ -105,9 +105,18 @@ def test_install_multiple_hooks_at_once(in_git_dir, store):
     assert not in_git_dir.join('.git/hooks/pre-push').exists()
 
 
-def test_install_refuses_core_hookspath(in_git_dir, store):
-    cmd_output('git', 'config', '--local', 'core.hooksPath', 'hooks')
+def test_install_refuses_core_hookspath_outside_repo(in_git_dir, store):
+    cmd_output('git', 'config', '--local', 'core.hooksPath', '../hooks')
     assert install(C.CONFIG_FILE, store, hook_types=['pre-commit'])
+    cmd_output('git', 'config', '--local', 'core.hooksPath', '/tmp/hooks')
+    assert install(C.CONFIG_FILE, store, hook_types=['pre-commit'])
+
+
+def test_install_core_hookspath_inside_repo(in_git_dir, store):
+    hook = in_git_dir.join('.hooks').ensure_dir().join('pre-commit')
+    cmd_output('git', 'config', '--local', 'core.hooksPath', '.hooks')
+    install(C.CONFIG_FILE, store, hook_types=['pre-commit'])
+    assert hook.exists()
 
 
 def test_install_hooks_dead_symlink(in_git_dir, store):
