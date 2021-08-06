@@ -55,13 +55,15 @@ def get_root() -> str:
         root = os.path.abspath(
             cmd_output('git', 'rev-parse', '--show-cdup')[1].strip(),
         )
-        git_dir = os.path.abspath(get_git_common_dir())
+        inside_git_dir = cmd_output(
+            'git', 'rev-parse', '--is-inside-git-dir',
+        )[1].strip()
     except CalledProcessError:
         raise FatalError(
             'git failed. Is it installed, and are you in a Git repository '
             'directory?',
         )
-    if os.path.samefile(root, git_dir):
+    if inside_git_dir != 'false':
         raise FatalError(
             'git toplevel unexpectedly empty! make sure you are not '
             'inside the `.git` directory of your repository.',
