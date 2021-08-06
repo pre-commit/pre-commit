@@ -1,3 +1,22 @@
+2.14.0 - 2021-08-06
+===================
+
+### Features
+- During `pre-push` hooks, expose local branch as `PRE_COMMIT_LOCAL_BRANCH`.
+    - #1947 PR by @FlorentClarret.
+    - #1410 issue by @MaicoTimmerman.
+- Improve container id detection for docker-beside-docker with custom hostname.
+    - #1919 PR by @adarnimrod.
+    - #1918 issue by @adarnimrod.
+
+### Fixes
+- Read legacy hooks in an encoding-agnostic way.
+    - #1943 PR by @asottile.
+    - #1942 issue by @sbienkow-ninja.
+- Fix execution of docker hooks for docker-in-docker.
+    - #1997 PR by @asottile.
+    - #1978 issue by @robin-moss.
+
 2.13.0 - 2021-05-21
 ===================
 
