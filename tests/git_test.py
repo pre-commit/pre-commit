@@ -38,6 +38,22 @@ def test_get_root_bare_worktree(tmpdir):
         assert git.get_root() == os.path.abspath('.')
 
 
+def test_get_git_dir(tmpdir):
+    """Regression test for #1972"""
+    src = tmpdir.join('src').ensure_dir()
+    cmd_output('git', 'init', str(src))
+    git_commit(cwd=str(src))
+
+    worktree = tmpdir.join('worktree').ensure_dir()
+    cmd_output('git', 'worktree', 'add', '../worktree', cwd=src)
+
+    with worktree.as_cwd():
+        assert git.get_git_dir() == src.ensure_dir(
+            '.git/worktrees/worktree',
+        )
+        assert git.get_git_common_dir() == src.ensure_dir('.git')
+
+
 def test_get_root_worktree_in_git(tmpdir):
     src = tmpdir.join('src').ensure_dir()
     cmd_output('git', 'init', str(src))
