@@ -139,6 +139,24 @@ def test_get_changed_files(in_git_dir):
     assert files == []
 
 
+def test_get_changed_files_disparate_histories(in_git_dir):
+    """in modern versions of git, `...` does not fall back to full diff"""
+    git_commit()
+    in_git_dir.join('a.txt').ensure()
+    cmd_output('git', 'add', '.')
+    git_commit()
+    cmd_output('git', 'branch', '-m', 'branch1')
+
+    cmd_output('git', 'checkout', '--orphan', 'branch2')
+    cmd_output('git', 'rm', '-rf', '.')
+    in_git_dir.join('a.txt').ensure()
+    in_git_dir.join('b.txt').ensure()
+    cmd_output('git', 'add', '.')
+    git_commit()
+
+    assert git.get_changed_files('branch1', 'branch2') == ['b.txt']
+
+
 @pytest.mark.parametrize(
     ('s', 'expected'),
     (
