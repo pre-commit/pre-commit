@@ -146,7 +146,8 @@ def install(
         if not follow_hooks_path:
             logger.error(
                 'Cowardly refusing to install hooks with `core.hooksPath` set.'
-                '\nhint: `git config --unset-all core.hooksPath`',
+                '\nhint: `git config --unset-all core.hooksPath`, '
+                'or use the `--follow-custom-hooks-path` flag',
             )
             return 1
 

@@ -110,6 +110,43 @@ def test_install_refuses_core_hookspath(in_git_dir, store):
     assert install(C.CONFIG_FILE, store, hook_types=['pre-commit'])
 
 
+def test_install_custom_core_hookspath(in_git_dir, store):
+    cmd_output('git', 'config', '--local', 'core.hooksPath', 'hooks')
+    assert not install(
+        C.CONFIG_FILE,
+        store,
+        hook_types=['pre-commit'],
+        follow_hooks_path=True,
+    )
+
+    _, core_hookspath = git.has_core_hookpaths_set()
+    pre_commit = in_git_dir.join(os.path.join(core_hookspath, 'pre-commit'))
+    assert pre_commit.exists() and is_our_script(pre_commit)
+
+
+def test_install_custom_core_hookspaths_with_existing_hook(in_git_dir, store):
+    cmd_output('git', 'config', '--local', 'core.hooksPath', 'hooks')
+    _, core_hookspath = git.has_core_hookpaths_set()
+    custom_hooks_path = in_git_dir.join(core_hookspath)
+    os.makedirs(custom_hooks_path, exist_ok=True)
+
+    pre_defined_hook = os.path.join(custom_hooks_path, 'pre-commit')
+    with open(pre_defined_hook, 'w') as f:
+        f.write('#!/usr/bin/env bash\necho 1\n')
+
+    assert not install(
+        C.CONFIG_FILE,
+        store,
+        hook_types=['pre-commit'],
+        follow_hooks_path=True,
+    )
+    pre_defined_hook, \
+        pre_commit = pre_defined_hook + '.legacy', pre_defined_hook
+
+    assert os.path.exists(pre_commit) and is_our_script(pre_commit) \
+        and os.path.exists(pre_defined_hook)
+
+
 def test_install_hooks_dead_symlink(in_git_dir, store):
     hook = in_git_dir.join('.git/hooks').ensure_dir().join('pre-commit')
     os.symlink('/fake/baz', hook.strpath)

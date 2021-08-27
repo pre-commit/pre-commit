@@ -271,7 +271,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         '--follow-custom-hooks-path', action='store_true', default=False,
         help=(
             'Whether to follow a custom core.hooksPath when attempting '
-            'to install the pre-comit hook.'
+            'to install the pre-commit hook.'
         ),
     )
 
