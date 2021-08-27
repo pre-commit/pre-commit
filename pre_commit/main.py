@@ -267,6 +267,14 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         ),
     )
 
+    install_parser.add_argument(
+        '--follow-custom-hooks-path', action='store_true', default=False,
+        help=(
+            'Whether to follow a custom core.hooksPath when attempting '
+            'to install the pre-comit hook.'
+        ),
+    )
+
     install_hooks_parser = subparsers.add_parser(
         'install-hooks',
         help=(
@@ -373,6 +381,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                 overwrite=args.overwrite,
                 hooks=args.install_hooks,
                 skip_on_missing_config=args.allow_missing_config,
+                follow_hooks_path=args.follow_custom_hooks_path,
             )
         elif args.command == 'init-templatedir':
             return init_templatedir(

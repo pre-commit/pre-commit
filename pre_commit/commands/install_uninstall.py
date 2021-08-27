@@ -39,9 +39,15 @@ SYS_EXE = os.path.basename(os.path.realpath(sys.executable))
 def _hook_paths(
         hook_type: str,
         git_dir: Optional[str] = None,
+        core_hookspath: str = '',
 ) -> Tuple[str, str]:
-    git_dir = git_dir if git_dir is not None else git.get_git_dir()
-    pth = os.path.join(git_dir, 'hooks', hook_type)
+    if core_hookspath:
+        pth = os.path.join(core_hookspath, hook_type)
+
+    else:
+        git_dir = git_dir if git_dir is not None else git.get_git_dir()
+        pth = os.path.join(git_dir, 'hooks', hook_type)
+
     return pth, f'{pth}.legacy'
 
 
@@ -79,8 +85,13 @@ def _install_hook_script(
         overwrite: bool = False,
         skip_on_missing_config: bool = False,
         git_dir: Optional[str] = None,
+        core_hookspath: str = '',
 ) -> None:
-    hook_path, legacy_path = _hook_paths(hook_type, git_dir=git_dir)
+    hook_path, legacy_path = _hook_paths(
+        hook_type,
+        git_dir=git_dir,
+        core_hookspath=core_hookspath,
+    )
 
     os.makedirs(os.path.dirname(hook_path), exist_ok=True)
 
@@ -126,14 +137,18 @@ def install(
         overwrite: bool = False,
         hooks: bool = False,
         skip_on_missing_config: bool = False,
+        follow_hooks_path: bool = False,
         git_dir: Optional[str] = None,
 ) -> int:
-    if git_dir is None and git.has_core_hookpaths_set():
-        logger.error(
-            'Cowardly refusing to install hooks with `core.hooksPath` set.\n'
-            'hint: `git config --unset-all core.hooksPath`',
-        )
-        return 1
+    core_hookspaths_set, core_hookspath = \
+        git.has_core_hookpaths_set()
+    if git_dir is None and core_hookspaths_set:
+        if not follow_hooks_path:
+            logger.error(
+                'Cowardly refusing to install hooks with `core.hooksPath` set.'
+                '\nhint: `git config --unset-all core.hooksPath`',
+            )
+            return 1
 
     for hook_type in hook_types:
         _install_hook_script(
@@ -141,6 +156,7 @@ def install(
             overwrite=overwrite,
             skip_on_missing_config=skip_on_missing_config,
             git_dir=git_dir,
+            core_hookspath=core_hookspath,
         )
 
     if hooks:
