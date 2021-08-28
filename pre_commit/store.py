@@ -189,7 +189,7 @@ class Store:
     LOCAL_RESOURCES = (
         'Cargo.toml', 'main.go', 'go.mod', 'main.rs', '.npmignore',
         'package.json', 'pre_commit_placeholder_package.gemspec', 'setup.py',
-        'environment.yml', 'Makefile.PL',
+        'environment.yml', 'Makefile.PL', 'pubspec.yaml',
         'renv.lock', 'renv/activate.R', 'renv/LICENSE.renv',
     )
 

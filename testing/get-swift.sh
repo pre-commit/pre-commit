@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # This is a script used in CI to install swift
-set -euxo pipefail
+set -euo pipefail
 
 . /etc/lsb-release
 if [ "$DISTRIB_CODENAME" = "bionic" ]; then
@@ -25,3 +25,5 @@ fi
 
 mkdir -p /tmp/swift
 tar -xf "$TGZ" --strip 1 --directory /tmp/swift
+
+echo '##vso[task.prependpath]/tmp/swift/usr/bin'

@@ -268,3 +268,7 @@ def rmtree(path: str) -> None:
 def parse_version(s: str) -> Tuple[int, ...]:
     """poor man's version comparison"""
     return tuple(int(p) for p in s.split('.'))
+
+
+def win_exe(s: str) -> str:
+    return s if sys.platform != 'win32' else f'{s}.exe'

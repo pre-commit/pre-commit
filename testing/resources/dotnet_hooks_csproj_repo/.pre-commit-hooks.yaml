@@ -1,4 +1,4 @@
--   id: dotnet example hook
+-   id: dotnet-example-hook
     name: dotnet example hook
     entry: testeroni
     language: dotnet

@@ -9,6 +9,7 @@ from pre_commit.envcontext import envcontext
 from pre_commit.languages import python
 from pre_commit.prefix import Prefix
 from pre_commit.util import make_executable
+from pre_commit.util import win_exe
 
 
 def test_read_pyvenv_cfg(tmpdir):
@@ -112,7 +113,7 @@ def test_unhealthy_python_goes_missing(python_dir):
 
     python.install_environment(prefix, C.DEFAULT, ())
 
-    exe_name = 'python' if sys.platform != 'win32' else 'python.exe'
+    exe_name = win_exe('python')
     py_exe = prefix.path(python.bin_dir('py_env-default'), exe_name)
     os.remove(py_exe)
 
@@ -158,7 +159,7 @@ def test_unhealthy_then_replaced(python_dir):
     python.install_environment(prefix, C.DEFAULT, ())
 
     # simulate an exe which returns an old version
-    exe_name = 'python.exe' if sys.platform == 'win32' else 'python'
+    exe_name = win_exe('python')
     py_exe = prefix.path(python.bin_dir('py_env-default'), exe_name)
     os.rename(py_exe, f'{py_exe}.tmp')
 

@@ -21,6 +21,7 @@ from pre_commit.util import CalledProcessError
 from pre_commit.util import clean_path_on_failure
 from pre_commit.util import cmd_output
 from pre_commit.util import cmd_output_b
+from pre_commit.util import win_exe
 
 ENVIRONMENT_DIR = 'py_env'
 
@@ -172,7 +173,7 @@ def healthy(prefix: Prefix, language_version: str) -> bool:
     if not os.path.exists(pyvenv_cfg):
         return False
 
-    exe_name = 'python.exe' if sys.platform == 'win32' else 'python'
+    exe_name = win_exe('python')
     py_exe = prefix.path(bin_dir(envdir), exe_name)
     cfg = _read_pyvenv_cfg(pyvenv_cfg)
 

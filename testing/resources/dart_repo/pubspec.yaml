@@ -1,0 +1,10 @@
+environment:
+  sdk: '>=2.10.0 <3.0.0'
+
+name: hello_world_dart
+
+executables:
+    hello-world-dart:
+
+dependencies:
+  ansicolor: ^2.0.1
