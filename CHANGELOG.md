@@ -1,3 +1,15 @@
+2.14.1 - 2021-08-28
+===================
+
+### Fixes
+- fix force-push of disparate histories using git>=2.28.
+    - #2005 PR by @asottile.
+    - #2002 issue by @bogusfocused.
+- fix `check-useless-excludes` and `check-hooks-apply` matching non-root
+  `.pre-commit-config.yaml`.
+    - #2026 PR by @asottile.
+    - pre-commit-ci/issues#84 issue by @billsioros.
+
 2.14.0 - 2021-08-06
 ===================
 
