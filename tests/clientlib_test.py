@@ -1,4 +1,5 @@
 import logging
+import re
 
 import cfgv
 import pytest
@@ -10,6 +11,7 @@ from pre_commit.clientlib import CONFIG_REPO_DICT
 from pre_commit.clientlib import CONFIG_SCHEMA
 from pre_commit.clientlib import DEFAULT_LANGUAGE_VERSION
 from pre_commit.clientlib import MANIFEST_SCHEMA
+from pre_commit.clientlib import META_HOOK_DICT
 from pre_commit.clientlib import MigrateShaToRev
 from pre_commit.clientlib import validate_config_main
 from pre_commit.clientlib import validate_manifest_main
@@ -390,6 +392,15 @@ def test_migrate_to_sha_ok():
 def test_meta_hook_invalid(config_repo):
     with pytest.raises(cfgv.ValidationError):
         cfgv.validate(config_repo, CONFIG_REPO_DICT)
+
+
+def test_meta_check_hooks_apply_only_at_top_level():
+    cfg = {'id': 'check-hooks-apply'}
+    cfg = cfgv.apply_defaults(cfg, META_HOOK_DICT)
+
+    files_re = re.compile(cfg['files'])
+    assert files_re.search('.pre-commit-config.yaml')
+    assert not files_re.search('foo/.pre-commit-config.yaml')
 
 
 @pytest.mark.parametrize(
