@@ -43,6 +43,9 @@ def check_useless_excludes(config_file: str) -> int:
 
     for repo in config['repos']:
         for hook in repo['hooks']:
+            # the default of manifest hooks is `types: [file]` but we may
+            # be configuring a symlink hook while there's a broken symlink
+            hook.setdefault('types', [])
             # Not actually a manifest dict, but this more accurately reflects
             # the defaults applied during runtime
             hook = apply_defaults(hook, MANIFEST_HOOK_DICT)
