@@ -48,8 +48,8 @@ def exe_exists(exe: str) -> bool:
     )
 
 
-def run_setup_cmd(prefix: Prefix, cmd: Tuple[str, ...]) -> None:
-    cmd_output_b(*cmd, cwd=prefix.prefix_dir)
+def run_setup_cmd(prefix: Prefix, cmd: Tuple[str, ...], **kwargs: Any) -> None:
+    cmd_output_b(*cmd, cwd=prefix.prefix_dir, **kwargs)
 
 
 @overload

@@ -1043,8 +1043,48 @@ def test_local_perl_additional_dependencies(store):
 def test_dotnet_hook(tempdir_factory, store, repo):
     _test_hook_repo(
         tempdir_factory, store, repo,
-        'dotnet example hook', [], b'Hello from dotnet!\n',
+        'dotnet-example-hook', [], b'Hello from dotnet!\n',
     )
+
+
+def test_dart_hook(tempdir_factory, store):
+    _test_hook_repo(
+        tempdir_factory, store, 'dart_repo',
+        'hello-world-dart', [], b'hello hello world\n',
+    )
+
+
+def test_local_dart_additional_dependencies(store):
+    config = {
+        'repo': 'local',
+        'hooks': [{
+            'id': 'local-dart',
+            'name': 'local-dart',
+            'entry': 'hello-world-dart',
+            'language': 'dart',
+            'additional_dependencies': ['hello_world_dart'],
+        }],
+    }
+    hook = _get_hook(config, store, 'local-dart')
+    ret, out = _hook_run(hook, (), color=False)
+    assert (ret, _norm_out(out)) == (0, b'hello hello world\n')
+
+
+def test_local_dart_additional_dependencies_versioned(store):
+    config = {
+        'repo': 'local',
+        'hooks': [{
+            'id': 'local-dart',
+            'name': 'local-dart',
+            'entry': 'secure-random -l 4 -b 16',
+            'language': 'dart',
+            'additional_dependencies': ['encrypt:5.0.0'],
+        }],
+    }
+    hook = _get_hook(config, store, 'local-dart')
+    ret, out = _hook_run(hook, (), color=False)
+    assert ret == 0
+    re_assert.Matches('^[a-f0-9]{8}\r?\n$').assert_matches(out.decode())
 
 
 def test_non_installable_hook_error_for_language_version(store, caplog):

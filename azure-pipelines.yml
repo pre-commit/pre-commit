@@ -26,9 +26,9 @@ jobs:
         Write-Host "##vso[task.prependpath]C:\Strawberry\perl\site\bin"
         Write-Host "##vso[task.prependpath]C:\Strawberry\c\bin"
       displayName: Add strawberry perl to PATH
-    - task: PowerShell@2
-      inputs:
-        filePath: "testing/get-r.ps1"
+    - bash: testing/get-dart.sh
+      displayName: install dart
+    - powershell: testing/get-r.ps1
       displayName: install R
 - template: job--python-tox.yml@asottile
   parameters:
@@ -38,13 +38,11 @@ jobs:
     pre_test:
     - task: UseRubyVersion@0
     - template: step--git-install.yml
-    - bash: |
-        testing/get-coursier.sh
-        echo '##vso[task.prependpath]/tmp/coursier'
+    - bash: testing/get-coursier.sh
       displayName: install coursier
-    - bash: |
-        testing/get-swift.sh
-        echo '##vso[task.prependpath]/tmp/swift/usr/bin'
+    - bash: testing/get-dart.sh
+      displayName: install dart
+    - bash: testing/get-swift.sh
       displayName: install swift
     - bash: testing/get-r.sh
       displayName: install R
@@ -54,13 +52,11 @@ jobs:
     os: linux
     pre_test:
     - task: UseRubyVersion@0
-    - bash: |
-        testing/get-coursier.sh
-        echo '##vso[task.prependpath]/tmp/coursier'
+    - bash: testing/get-coursier.sh
       displayName: install coursier
-    - bash: |
-        testing/get-swift.sh
-        echo '##vso[task.prependpath]/tmp/swift/usr/bin'
+    - bash: testing/get-dart.sh
+      displayName: install dart
+    - bash: testing/get-swift.sh
       displayName: install swift
     - bash: testing/get-r.sh
       displayName: install R
