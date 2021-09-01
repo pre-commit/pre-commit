@@ -69,6 +69,7 @@ def _add_hook_type_option(parser: argparse.ArgumentParser) -> None:
         '-t', '--hook-type', choices=(
             'pre-commit', 'pre-merge-commit', 'pre-push', 'prepare-commit-msg',
             'commit-msg', 'post-commit', 'post-checkout', 'post-merge',
+            'post-rewrite',
         ),
         action=AppendReplaceDefault,
         default=['pre-commit'],
@@ -144,6 +145,13 @@ def _add_run_options(parser: argparse.ArgumentParser) -> None:
         help=(
             'During a post-merge hook, indicates whether the merge was a '
             'squash merge'
+        ),
+    )
+    parser.add_argument(
+        '--rewrite-command',
+        help=(
+            'During a post-rewrite hook, specifies the command that invoked '
+            'the rewrite'
         ),
     )
 

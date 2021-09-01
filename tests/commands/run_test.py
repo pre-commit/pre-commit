@@ -504,6 +504,15 @@ def test_is_squash_merge(cap_out, store, repo_with_passing_hook):
     assert environ['PRE_COMMIT_IS_SQUASH_MERGE'] == '1'
 
 
+def test_rewrite_command(cap_out, store, repo_with_passing_hook):
+    args = run_opts(rewrite_command='amend')
+    environ: MutableMapping[str, str] = {}
+    ret, printed = _do_run(
+        cap_out, store, repo_with_passing_hook, args, environ,
+    )
+    assert environ['PRE_COMMIT_REWRITE_COMMAND'] == 'amend'
+
+
 def test_checkout_type(cap_out, store, repo_with_passing_hook):
     args = run_opts(from_ref='', to_ref='', checkout_type='1')
     environ: MutableMapping[str, str] = {}

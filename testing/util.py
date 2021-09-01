@@ -72,6 +72,7 @@ def run_opts(
         commit_msg_filename='',
         checkout_type='',
         is_squash_merge='',
+        rewrite_command='',
 ):
     # These are mutually exclusive
     assert not (all_files and files)
@@ -92,6 +93,7 @@ def run_opts(
         commit_msg_filename=commit_msg_filename,
         checkout_type=checkout_type,
         is_squash_merge=is_squash_merge,
+        rewrite_command=rewrite_command,
     )
 
 

@@ -78,6 +78,7 @@ def _ns(
         commit_msg_filename: Optional[str] = None,
         checkout_type: Optional[str] = None,
         is_squash_merge: Optional[str] = None,
+        rewrite_command: Optional[str] = None,
 ) -> argparse.Namespace:
     return argparse.Namespace(
         color=color,
@@ -92,6 +93,7 @@ def _ns(
         all_files=all_files,
         checkout_type=checkout_type,
         is_squash_merge=is_squash_merge,
+        rewrite_command=rewrite_command,
         files=(),
         hook=None,
         verbose=False,
@@ -166,6 +168,7 @@ _EXPECTED_ARG_LENGTH_BY_HOOK = {
     'pre-commit': 0,
     'pre-merge-commit': 0,
     'post-merge': 1,
+    'post-rewrite': 1,
     'pre-push': 2,
 }
 
@@ -209,6 +212,8 @@ def _run_ns(
         )
     elif hook_type == 'post-merge':
         return _ns(hook_type, color, is_squash_merge=args[0])
+    elif hook_type == 'post-rewrite':
+        return _ns(hook_type, color, rewrite_command=args[0])
     else:
         raise AssertionError(f'unexpected hook type: {hook_type}')
 
