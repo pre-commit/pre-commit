@@ -817,6 +817,35 @@ def test_post_merge_integration(tempdir_factory, store):
         assert os.path.exists('post-merge.tmp')
 
 
+def test_post_rewrite_integration(tempdir_factory, store):
+    path = git_dir(tempdir_factory)
+    config = [
+        {
+            'repo': 'local',
+            'hooks': [{
+                'id': 'post-rewrite',
+                'name': 'Post rewrite',
+                'entry': 'touch post-rewrite.tmp',
+                'language': 'system',
+                'always_run': True,
+                'verbose': True,
+                'stages': ['post-rewrite'],
+            }],
+        },
+    ]
+    write_config(path, config)
+    with cwd(path):
+        open('init', 'a').close()
+        cmd_output('git', 'add', '.')
+        install(C.CONFIG_FILE, store, hook_types=['post-rewrite'])
+        git_commit()
+
+        assert not os.path.exists('post-rewrite.tmp')
+
+        git_commit('--amend', '-m', 'ammended message')
+        assert os.path.exists('post-rewrite.tmp')
+
+
 def test_post_checkout_integration(tempdir_factory, store):
     path = git_dir(tempdir_factory)
     config = [

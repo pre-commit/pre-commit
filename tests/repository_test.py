@@ -1002,6 +1002,7 @@ def test_manifest_hooks(tempdir_factory, store):
         stages=(
             'commit', 'merge-commit', 'prepare-commit-msg', 'commit-msg',
             'post-commit', 'manual', 'post-checkout', 'push', 'post-merge',
+            'post-rewrite',
         ),
         types=['file'],
         types_or=[],

@@ -19,6 +19,7 @@ VERSION = importlib_metadata.version('pre_commit')
 STAGES = (
     'commit', 'merge-commit', 'prepare-commit-msg', 'commit-msg',
     'post-commit', 'manual', 'post-checkout', 'push', 'post-merge',
+    'post-rewrite',
 )
 
 DEFAULT = 'default'

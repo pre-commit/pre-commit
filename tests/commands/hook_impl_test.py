@@ -99,6 +99,7 @@ def test_run_legacy_recursive(tmpdir):
         ('post-commit', []),
         ('post-merge', ['1']),
         ('post-checkout', ['old_head', 'new_head', '1']),
+        ('post-rewrite', ['amend']),
         # multiple choices for commit-editmsg
         ('prepare-commit-msg', ['.git/COMMIT_EDITMSG']),
         ('prepare-commit-msg', ['.git/COMMIT_EDITMSG', 'message']),
@@ -164,6 +165,14 @@ def test_run_ns_post_merge():
     assert ns.hook_stage == 'post-merge'
     assert ns.color is True
     assert ns.is_squash_merge == '1'
+
+
+def test_run_ns_post_rewrite():
+    ns = hook_impl._run_ns('post-rewrite', True, ('amend',), b'')
+    assert ns is not None
+    assert ns.hook_stage == 'post-rewrite'
+    assert ns.color is True
+    assert ns.rewrite_command == 'amend'
 
 
 def test_run_ns_post_checkout():

@@ -245,7 +245,9 @@ def _compute_cols(hooks: Sequence[Hook]) -> int:
 
 def _all_filenames(args: argparse.Namespace) -> Collection[str]:
     # these hooks do not operate on files
-    if args.hook_stage in {'post-checkout', 'post-commit', 'post-merge'}:
+    if args.hook_stage in {
+        'post-checkout', 'post-commit', 'post-merge', 'post-rewrite',
+    }:
         return ()
     elif args.hook_stage in {'prepare-commit-msg', 'commit-msg'}:
         return (args.commit_msg_filename,)
@@ -385,6 +387,9 @@ def run(
 
     if args.is_squash_merge:
         environ['PRE_COMMIT_IS_SQUASH_MERGE'] = args.is_squash_merge
+
+    if args.rewrite_command:
+        environ['PRE_COMMIT_REWRITE_COMMAND'] = args.rewrite_command
 
     # Set pre_commit flag
     environ['PRE_COMMIT'] = '1'
