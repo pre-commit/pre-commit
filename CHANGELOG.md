@@ -1,3 +1,21 @@
+2.15.0 - 2021-09-02
+===================
+
+### Features
+- add support for hooks written in `dart`.
+    - #2027 PR by @asottile.
+- add support for `post-rewrite` hooks.
+    - #2036 PR by @uSpike.
+    - #2035 issue by @uSpike.
+
+### Fixes
+- fix `check-useless-excludes` with exclude matching broken symlink.
+    - #2029 PR by @asottile.
+    - #2019 issue by @pkoch.
+- eliminate duplicate mutable sha warning messages for `pre-commit autoupdate`.
+    - #2030 PR by @asottile.
+    - #2010 issue by @graingert.
+
 2.14.1 - 2021-08-28
 ===================
 
