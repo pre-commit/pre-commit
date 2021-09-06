@@ -1,0 +1,41 @@
+name: bug report
+description: something went wrong
+body:
+  - type: markdown
+    attributes:
+      value: |
+         this is for issues for `pre-commit` (the framework).
+         if you are reporting an issue for [pre-commit.ci] please report it at [pre-commit-ci/issues]
+
+         [pre-commit.ci]: https://pre-commit.ci
+         [pre-commit-ci/issues]: https://github.com/pre-commit-ci/issues
+  - type: textarea
+    id: freeform
+    attributes:
+      label: describe your issue
+      placeholder: 'I was doing ... I ran ... I expected ... I got ...'
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: pre-commit --version
+      placeholder: pre-commit x.x.x
+    validations:
+      required: true
+  - type: textarea
+    id: configuration
+    attributes:
+      label: .pre-commit-config.yaml
+      description: (auto-rendered as yaml, no need for backticks)
+      placeholder: 'repos: ...'
+      render: yaml
+    validations:
+      required: true
+  - type: textarea
+    id: error-log
+    attributes:
+      label: '~/.cache/pre-commit/pre-commit.log (if present)'
+      placeholder: "### version information\n..."
+    validations:
+      required: false
