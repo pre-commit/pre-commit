@@ -5,6 +5,7 @@ import pytest
 import yaml
 
 import pre_commit.constants as C
+from pre_commit import envcontext
 from pre_commit import git
 from pre_commit import util
 from pre_commit.commands.autoupdate import _check_hooks_still_exist_at_rev
@@ -174,6 +175,14 @@ def test_autoupdate_out_of_date_repo(out_of_date, tmpdir, store):
 
     assert autoupdate(str(cfg), store, freeze=False, tags_only=False) == 0
     assert cfg.read() == fmt.format(out_of_date.path, out_of_date.head_rev)
+
+
+def test_autoupdate_with_core_useBuiltinFSMonitor(out_of_date, tmpdir, store):
+    # force the setting on "globally" for git
+    home = tmpdir.join('fakehome').ensure_dir()
+    home.join('.gitconfig').write('[core]\nuseBuiltinFSMonitor = true\n')
+    with envcontext.envcontext((('HOME', str(home)),)):
+        test_autoupdate_out_of_date_repo(out_of_date, tmpdir, store)
 
 
 def test_autoupdate_pure_yaml(out_of_date, tmpdir, store):

@@ -36,24 +36,36 @@ class RevInfo(NamedTuple):
         return cls(config['repo'], config['rev'], None)
 
     def update(self, tags_only: bool, freeze: bool) -> 'RevInfo':
+        git_cmd = ('git', *git.NO_FS_MONITOR)
+
         if tags_only:
-            tag_cmd = ('git', 'describe', 'FETCH_HEAD', '--tags', '--abbrev=0')
+            tag_cmd = (
+                *git_cmd, 'describe',
+                'FETCH_HEAD', '--tags', '--abbrev=0',
+            )
         else:
-            tag_cmd = ('git', 'describe', 'FETCH_HEAD', '--tags', '--exact')
+            tag_cmd = (
+                *git_cmd, 'describe',
+                'FETCH_HEAD', '--tags', '--exact',
+            )
 
         with tmpdir() as tmp:
             git.init_repo(tmp, self.repo)
-            cmd_output_b('git', 'fetch', 'origin', 'HEAD', '--tags', cwd=tmp)
+            cmd_output_b(
+                *git_cmd, 'fetch', 'origin', 'HEAD', '--tags',
+                cwd=tmp,
+            )
 
             try:
                 rev = cmd_output(*tag_cmd, cwd=tmp)[1].strip()
             except CalledProcessError:
-                cmd = ('git', 'rev-parse', 'FETCH_HEAD')
+                cmd = (*git_cmd, 'rev-parse', 'FETCH_HEAD')
                 rev = cmd_output(*cmd, cwd=tmp)[1].strip()
 
             frozen = None
             if freeze:
-                exact = cmd_output('git', 'rev-parse', rev, cwd=tmp)[1].strip()
+                exact_rev_cmd = (*git_cmd, 'rev-parse', rev)
+                exact = cmd_output(*exact_rev_cmd, cwd=tmp)[1].strip()
                 if exact != rev:
                     rev, frozen = exact, rev
         return self._replace(rev=rev, frozen=frozen)
