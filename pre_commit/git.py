@@ -12,8 +12,10 @@ from pre_commit.util import CalledProcessError
 from pre_commit.util import cmd_output
 from pre_commit.util import cmd_output_b
 
-
 logger = logging.getLogger(__name__)
+
+# see #2046
+NO_FS_MONITOR = ('-c', 'core.useBuiltinFSMonitor=false')
 
 
 def zsplit(s: str) -> List[str]:
@@ -185,10 +187,11 @@ def init_repo(path: str, remote: str) -> None:
     if os.path.isdir(remote):
         remote = os.path.abspath(remote)
 
+    git = ('git', *NO_FS_MONITOR)
     env = no_git_env()
     # avoid the user's template so that hooks do not recurse
-    cmd_output_b('git', 'init', '--template=', path, env=env)
-    cmd_output_b('git', 'remote', 'add', 'origin', remote, cwd=path, env=env)
+    cmd_output_b(*git, 'init', '--template=', path, env=env)
+    cmd_output_b(*git, 'remote', 'add', 'origin', remote, cwd=path, env=env)
 
 
 def commit(repo: str = '.') -> None:
