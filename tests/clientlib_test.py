@@ -247,38 +247,64 @@ def test_warn_mutable_rev_conditional():
         cfgv.validate(config_obj, CONFIG_REPO_DICT)
 
 
-def test_validate_optional_sensible_regex_at_hook_level(caplog):
-    config_obj = {
-        'id': 'flake8',
-        'files': 'dir/*.py',
-    }
-    cfgv.validate(config_obj, CONFIG_HOOK_DICT)
-
-    assert caplog.record_tuples == [
+@pytest.mark.parametrize(
+    ('regex', 'warning'),
+    (
         (
-            'pre_commit',
-            logging.WARNING,
+            r'dir/*.py',
             "The 'files' field in hook 'flake8' is a regex, not a glob -- "
             "matching '/*' probably isn't what you want here",
         ),
-    ]
-
-
-def test_validate_optional_sensible_regex_at_top_level(caplog):
+        (
+            r'dir[\/].*\.py',
+            r"pre-commit normalizes slashes in the 'files' field in hook "
+            r"'flake8' to forward slashes, so you can use / instead of [\/]",
+        ),
+        (
+            r'dir[/\\].*\.py',
+            r"pre-commit normalizes slashes in the 'files' field in hook "
+            r"'flake8' to forward slashes, so you can use / instead of [/\\]",
+        ),
+    ),
+)
+def test_validate_optional_sensible_regex_at_hook(caplog, regex, warning):
     config_obj = {
-        'files': 'dir/*.py',
+        'id': 'flake8',
+        'files': regex,
+    }
+    cfgv.validate(config_obj, CONFIG_HOOK_DICT)
+
+    assert caplog.record_tuples == [('pre_commit', logging.WARNING, warning)]
+
+
+@pytest.mark.parametrize(
+    ('regex', 'warning'),
+    (
+        (
+            r'dir/*.py',
+            "The top-level 'files' field is a regex, not a glob -- "
+            "matching '/*' probably isn't what you want here",
+        ),
+        (
+            r'dir[\/].*\.py',
+            r"pre-commit normalizes the slashes in the top-level 'files' "
+            r'field to forward slashes, so you can use / instead of [\/]',
+        ),
+        (
+            r'dir[/\\].*\.py',
+            r"pre-commit normalizes the slashes in the top-level 'files' "
+            r'field to forward slashes, so you can use / instead of [/\\]',
+        ),
+    ),
+)
+def test_validate_optional_sensible_regex_at_top_level(caplog, regex, warning):
+    config_obj = {
+        'files': regex,
         'repos': [],
     }
     cfgv.validate(config_obj, CONFIG_SCHEMA)
 
-    assert caplog.record_tuples == [
-        (
-            'pre_commit',
-            logging.WARNING,
-            "The top-level 'files' field is a regex, not a glob -- matching "
-            "'/*' probably isn't what you want here",
-        ),
-    ]
+    assert caplog.record_tuples == [('pre_commit', logging.WARNING, warning)]
 
 
 @pytest.mark.parametrize('fn', (validate_config_main, validate_manifest_main))
