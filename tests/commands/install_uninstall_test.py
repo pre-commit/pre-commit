@@ -278,11 +278,7 @@ def test_environment_not_sourced(tempdir_factory, store):
         hook = os.path.join(path, '.git/hooks/pre-commit')
         with open(hook) as f:
             src = f.read()
-        src = re.sub(
-            '\nINSTALL_PYTHON =.*\n',
-            '\nINSTALL_PYTHON = "/dne"\n',
-            src,
-        )
+        src = re.sub('\nINSTALL_PYTHON=.*\n', '\nINSTALL_PYTHON="/dne"\n', src)
         with open(hook, 'w') as f:
             f.write(src)
 

@@ -1,6 +1,7 @@
 import itertools
 import logging
 import os.path
+import shlex
 import shutil
 import sys
 from typing import Optional
@@ -100,19 +101,17 @@ def _install_hook_script(
     args = ['hook-impl', f'--config={config_file}', f'--hook-type={hook_type}']
     if skip_on_missing_config:
         args.append('--skip-on-missing-config')
-    params = {'INSTALL_PYTHON': sys.executable, 'ARGS': args}
 
     with open(hook_path, 'w') as hook_file:
         contents = resource_text('hook-tmpl')
         before, rest = contents.split(TEMPLATE_START)
-        to_template, after = rest.split(TEMPLATE_END)
-
-        before = before.replace('#!/usr/bin/env python3', shebang())
+        _, after = rest.split(TEMPLATE_END)
 
         hook_file.write(before + TEMPLATE_START)
-        for line in to_template.splitlines():
-            var = line.split()[0]
-            hook_file.write(f'{var} = {params[var]!r}\n')
+        hook_file.write(f'INSTALL_PYTHON={shlex.quote(sys.executable)}\n')
+        # TODO: python3.8+: shlex.join
+        args_s = ' '.join(shlex.quote(part) for part in args)
+        hook_file.write(f'ARGS=({args_s})\n')
         hook_file.write(TEMPLATE_END + after)
     make_executable(hook_path)
 
