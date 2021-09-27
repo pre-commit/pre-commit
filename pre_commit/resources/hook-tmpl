@@ -3,15 +3,11 @@
 # ID: 138fd403232d2ddd5efb44317e38bf03
 import os
 import sys
-
+from shutil import which
 # we try our best, but the shebang of this script is difficult to determine:
 # - macos doesn't ship with python3
 # - windows executables are almost always `python.exe`
 # therefore we continue to support python2 for this small script
-if sys.version_info < (3, 3):
-    from distutils.spawn import find_executable as which
-else:
-    from shutil import which
 
 # work around https://github.com/Homebrew/homebrew-core/issues/30445
 os.environ.pop('__PYVENV_LAUNCHER__', None)
