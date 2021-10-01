@@ -181,9 +181,11 @@ def test_img_conflict(img_staged, patch_dir):
 
 
 @pytest.fixture
-def submodule_with_commits(tempdir_factory):
+def repo_with_commits(tempdir_factory):
     path = git_dir(tempdir_factory)
     with cwd(path):
+        open('foo', 'a+').close()
+        cmd_output('git', 'add', 'foo')
         git_commit()
         rev1 = cmd_output('git', 'rev-parse', 'HEAD')[1].strip()
         git_commit()
@@ -196,18 +198,21 @@ def checkout_submodule(rev):
 
 
 @pytest.fixture
-def sub_staged(submodule_with_commits, tempdir_factory):
+def sub_staged(repo_with_commits, tempdir_factory):
     path = git_dir(tempdir_factory)
     with cwd(path):
+        open('bar', 'a+').close()
+        cmd_output('git', 'add', 'bar')
+        git_commit()
         cmd_output(
-            'git', 'submodule', 'add', submodule_with_commits.path, 'sub',
+            'git', 'submodule', 'add', repo_with_commits.path, 'sub',
         )
-        checkout_submodule(submodule_with_commits.rev1)
+        checkout_submodule(repo_with_commits.rev1)
         cmd_output('git', 'add', 'sub')
         yield auto_namedtuple(
             path=path,
             sub_path=os.path.join(path, 'sub'),
-            submodule=submodule_with_commits,
+            submodule=repo_with_commits,
         )
 
 
@@ -240,6 +245,34 @@ def test_sub_something_unstaged(sub_staged, patch_dir):
         _test_sub_state(sub_staged, 'rev2', 'AM')
 
     _test_sub_state(sub_staged, 'rev2', 'AM')
+
+
+def test_submodule_does_not_discard_changes(sub_staged, patch_dir):
+    with open('bar', 'w') as f:
+        f.write('unstaged changes')
+
+    foo_path = os.path.join(sub_staged.sub_path, 'foo')
+    with open(foo_path, 'w') as f:
+        f.write('foo contents')
+
+    with staged_files_only(patch_dir):
+        with open('bar') as f:
+            assert f.read() == ''
+
+        with open(foo_path) as f:
+            assert f.read() == 'foo contents'
+
+    with open('bar') as f:
+        assert f.read() == 'unstaged changes'
+
+    with open(foo_path) as f:
+        assert f.read() == 'foo contents'
+
+
+def test_submodule_does_not_discard_changes_recurse(sub_staged, patch_dir):
+    cmd_output('git', 'config', 'submodule.recurse', '1', cwd=sub_staged.path)
+
+    test_submodule_does_not_discard_changes(sub_staged, patch_dir)
 
 
 def test_stage_utf8_changes(foo_staged, patch_dir):

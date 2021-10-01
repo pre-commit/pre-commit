@@ -13,6 +13,12 @@ from pre_commit.xargs import xargs
 
 logger = logging.getLogger('pre_commit')
 
+# without forcing submodule.recurse=0, changes in nested submodules will be
+# discarded if `submodule.recurse=1` is configured
+# we choose this instead of `--no-recurse-submodules` because it works on
+# versions of git before that option was added to `git checkout`
+_CHECKOUT_CMD = ('git', '-c', 'submodule.recurse=0', 'checkout', '--', '.')
+
 
 def _git_apply(patch: str) -> None:
     args = ('apply', '--whitespace=nowarn', patch)
@@ -58,7 +64,7 @@ def _unstaged_changes_cleared(patch_dir: str) -> Generator[None, None, None]:
 
         # prevent recursive post-checkout hooks (#1418)
         no_checkout_env = dict(os.environ, _PRE_COMMIT_SKIP_POST_CHECKOUT='1')
-        cmd_output_b('git', 'checkout', '--', '.', env=no_checkout_env)
+        cmd_output_b(*_CHECKOUT_CMD, env=no_checkout_env)
 
         try:
             yield
@@ -74,7 +80,7 @@ def _unstaged_changes_cleared(patch_dir: str) -> Generator[None, None, None]:
                 # We failed to apply the patch, presumably due to fixes made
                 # by hooks.
                 # Roll back the changes made by hooks.
-                cmd_output_b('git', 'checkout', '--', '.', env=no_checkout_env)
+                cmd_output_b(*_CHECKOUT_CMD, env=no_checkout_env)
                 _git_apply(patch_filename)
 
             logger.info(f'Restored changes from {patch_filename}.')
