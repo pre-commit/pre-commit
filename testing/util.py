@@ -57,6 +57,7 @@ xfailif_windows = pytest.mark.xfail(os.name == 'nt', reason='windows')
 
 def run_opts(
         all_files=False,
+        fail_fast=False,
         files=(),
         color=False,
         verbose=False,
@@ -78,6 +79,7 @@ def run_opts(
     assert not (all_files and files)
     return auto_namedtuple(
         all_files=all_files,
+        fail_fast=fail_fast,
         files=files,
         color=color,
         verbose=verbose,

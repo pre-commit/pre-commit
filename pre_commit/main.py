@@ -86,6 +86,10 @@ def _add_run_options(parser: argparse.ArgumentParser) -> None:
         help='Run on all the files in the repo.',
     )
     mutex_group.add_argument(
+        '--fail-fast', action='store_true',
+        help='Stop running hooks after the first failure',
+    )
+    mutex_group.add_argument(
         '--files', nargs='*', default=[],
         help='Specific filenames to run hooks on.',
     )
