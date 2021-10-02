@@ -159,11 +159,11 @@ def _add_run_options(parser: argparse.ArgumentParser) -> None:
 def _adjust_args_and_chdir(args: argparse.Namespace) -> None:
     # `--config` was specified relative to the non-root working directory
     if os.path.exists(args.config):
-        args.config = os.path.abspath(args.config)
+        args.config = os.path.realpath(args.config)
     if args.command in {'run', 'try-repo'}:
-        args.files = [os.path.abspath(filename) for filename in args.files]
+        args.files = [os.path.realpath(filename) for filename in args.files]
     if args.command == 'try-repo' and os.path.exists(args.repo):
-        args.repo = os.path.abspath(args.repo)
+        args.repo = os.path.realpath(args.repo)
 
     toplevel = git.get_root()
     os.chdir(toplevel)
