@@ -53,7 +53,9 @@ def check_useless_excludes(config_file: str) -> int:
             types = hook['types']
             types_or = hook['types_or']
             exclude_types = hook['exclude_types']
+            files_contain = hook['files_contain']
             names = classifier.by_types(names, types, types_or, exclude_types)
+            names = classifier.files_contain(names, files_contain)
             include, exclude = hook['files'], hook['exclude']
             if not exclude_matches_any(names, include, exclude):
                 print(

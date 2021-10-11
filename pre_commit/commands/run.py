@@ -2,6 +2,7 @@ import argparse
 import contextlib
 import functools
 import logging
+import mmap
 import os
 import re
 import subprocess
@@ -100,6 +101,22 @@ class Classifier:
                 ret.append(filename)
         return ret
 
+    def files_contain(
+        self,
+        names: Sequence[str],
+        contains: str,
+    ) -> List[str]:
+        if contains == '':
+            return list(names)
+
+        ret = []
+        for filename in names:
+            with open(filename, 'r+') as f:
+                with mmap.mmap(f.fileno(), 0) as mm:
+                    if mm.find(contains.encode()) >= 0:
+                        ret.append(filename)
+        return ret
+
     def filenames_for_hook(self, hook: Hook) -> Tuple[str, ...]:
         names = self.filenames
         names = filter_by_include_exclude(names, hook.files, hook.exclude)
@@ -108,6 +125,10 @@ class Classifier:
             hook.types,
             hook.types_or,
             hook.exclude_types,
+        )
+        names = self.files_contain(
+            names,
+            hook.files_contain,
         )
         return tuple(names)
 

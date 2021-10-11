@@ -1028,6 +1028,18 @@ def test_classifier_empty_types_or(tmpdir):
         assert for_file == ['bar']
 
 
+def test_classifier_files_contain(tmpdir):
+    tmpdir.join('ignored').ensure().write('We\nIgnore\nThis\nFile\n')
+    tmpdir.join('matched').ensure().write('We\nMatch\nThis\nFile\n')
+    with tmpdir.as_cwd():
+        classifier = Classifier(('ignored', 'matched'))
+        files_contain = classifier.files_contain(
+            classifier.filenames,
+            contains='Match',
+        )
+        assert files_contain == ['matched']
+
+
 @pytest.fixture
 def some_filenames():
     return (

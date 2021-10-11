@@ -60,6 +60,7 @@ MANIFEST_HOOK_DICT = cfgv.Map(
     cfgv.Optional('alias', cfgv.check_string, ''),
 
     cfgv.Optional('files', check_string_regex, ''),
+    cfgv.Optional('files_contain', cfgv.check_string, ''),
     cfgv.Optional('exclude', check_string_regex, '^$'),
     cfgv.Optional('types', cfgv.check_array(check_type_tag), ['file']),
     cfgv.Optional('types_or', cfgv.check_array(check_type_tag), []),
