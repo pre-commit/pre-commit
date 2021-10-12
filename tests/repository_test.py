@@ -111,8 +111,8 @@ def test_local_conda_additional_dependencies(store):
             'name': 'local-conda',
             'entry': 'python',
             'language': 'conda',
-            'args': ['-c', 'import tzdata; print("OK")'],
-            'additional_dependencies': ['python-tzdata'],
+            'args': ['-c', 'import botocore; print("OK")'],
+            'additional_dependencies': ['botocore'],
         }],
     }
     hook = _get_hook(config, store, 'local-conda')
