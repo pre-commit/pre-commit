@@ -2,32 +2,26 @@ import contextlib
 import functools
 import os
 import sys
-from typing import (
-    Dict,
-    Generator,
-    Optional,
-    Sequence,
-    Tuple,
-)
+from typing import Dict
+from typing import Generator
+from typing import Optional
+from typing import Sequence
+from typing import Tuple
 
 import pre_commit.constants as C
-from pre_commit.envcontext import (
-    envcontext,
-    PatchesT,
-    UNSET,
-    Var,
-)
+from pre_commit.envcontext import envcontext
+from pre_commit.envcontext import PatchesT
+from pre_commit.envcontext import UNSET
+from pre_commit.envcontext import Var
 from pre_commit.hook import Hook
 from pre_commit.languages import helpers
 from pre_commit.parse_shebang import find_executable
 from pre_commit.prefix import Prefix
-from pre_commit.util import (
-    CalledProcessError,
-    clean_path_on_failure,
-    cmd_output,
-    cmd_output_b,
-    win_exe,
-)
+from pre_commit.util import CalledProcessError
+from pre_commit.util import clean_path_on_failure
+from pre_commit.util import cmd_output
+from pre_commit.util import cmd_output_b
+from pre_commit.util import win_exe
 
 ENVIRONMENT_DIR = 'py_env'
 
