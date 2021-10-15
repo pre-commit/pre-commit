@@ -48,21 +48,104 @@ def _validate_config(
         config: str,
         skip_on_missing_config: bool,
 ) -> None:
-    if not os.path.isfile(config):
-        if skip_on_missing_config or os.getenv('PRE_COMMIT_ALLOW_NO_CONFIG'):
-            print(f'`{config}` config file not found. Skipping `pre-commit`.')
-            raise SystemExit(retv)
-        else:
+  if not os.path.isfile(config) or not os.path.isfile('.secrets.baseline'):
+        if not os.path.isfile(config):
             print(
                 f'No {config} file was found\n'
-                f'- To temporarily silence this, run '
-                f'`PRE_COMMIT_ALLOW_NO_CONFIG=1 git ...`\n'
-                f'- To permanently silence this, install pre-commit with the '
-                f'--allow-missing-config option\n'
-                f'- To uninstall pre-commit run `pre-commit uninstall`',
+                f'- .pre-commit-config.yaml file must be included in root of repo\n'
+                f'- The file can be copied from: \n' 
+                f'' + OKGREEN + get_git_template_dir() + '\.pre-commit-config.yaml' + ENDC + '\n'
+                f'- If the file is not found it can be downloaded using jfrog-cli \n'
+                f'- To download .pre-commit-config.yaml, run: \n'
+                f'' + OKGREEN + 'jfrog rt dl cxloyalty-tools-local/sic-tools/.pre-commit-config.yaml --flat' + ENDC + '\n'             
+                f'\n'
             )
-            raise SystemExit(1)
+        
+        if  not os.path.isfile('.secrets.baseline'):   
+            print(
+                f'No .secrets.baseline file was found\n'
+                f'- .secrets.baseline file must be included in root of repo\n'
+                f'- The file can be copied from: \n' 
+                f'' + OKGREEN + get_git_template_dir() + '\.secrets.baseline' + ENDC + '\n'
+                f'- If the file is not found it can be downloaded using jfrog-cli \n'               
+                f'- To download .secrets.baseline, run: \n'
+                f'' + OKGREEN + 'jfrog rt dl /cxloyalty-tools-local/sic-tools/.secrets.baseline --flat' + ENDC + '\n' 
+                
+            )
+        raise SystemExit(1)
+    if is_non_tracked_file('.secrets.baseline'):
+        print(
+            f"- .secrets.baseline is not tracked. \n"
+            f"run: git add .secrets.baseline \n"
+            f"- and commit the file"
+        )
+        raise SystemExit(1)
+    if is_non_tracked_file('.pre-commit-config.yaml'):
+        print(
+            f"- .pre-commit-config.yaml is not tracked. \n"
+            f"run: git add .pre-commit-config.yaml \n"
+            f"- and commit the file"
+        )
+        raise SystemExit(1)
+    if is_modified_file('.secrets.baseline'):
+        print(
+            f"- .secrets.baseline has been modified. \n"
+            f"run: git add .secrets.baseline \n"
+            f"- and commit the file"
+        )
+        raise SystemExit(1)
+    if is_modified_file('.pre-commit-config.yaml'):
+        print(
+            f"- .pre-commit-config.yaml has been modified. \n"
+            f"run: git add .pre-commit-config.yaml \n"
+            f"- and commit the file"
+        )
+        raise SystemExit(1)
+    if non_commited_file('.secrets.baseline'):
+        print(
+            f"- .secrets.baseline has not been commited. \n"
+            f"Commit the file before proceeding \n"
+        )
+        raise SystemExit(1)
+    if non_commited_file('.pre-commit-config.yaml'):
+        print(
+            f"- .pre-commit-config.yaml not been commited. \n"
+            f"Commit the file before proceeding \n"
+        )
+        raise SystemExit(1)
+def get_git_template_dir():
+    output = subprocess.check_output(('git', 'config', 'init.templateDir'))
+    output = output.decode().strip()
+    return output 
 
+def non_commited_file(filename):
+    output = subprocess.check_output(('git', 'status', '--porcelain'))
+    output = output.decode().strip().splitlines()
+    for file in output: 
+        file = file[2:].strip()
+        if file in filename:
+           return True 
+
+    return False
+    
+#Added for sic tool to check if file has been modified but not added to git.        
+def is_modified_file(filename): 
+    output = subprocess.check_output(('git', 'diff', '--name-only'))
+    output = output.decode().strip()
+    if filename in output:
+        return True 
+    else:
+        return False
+    
+
+#Added for sic tool to check if file is not tracked in git. 
+def is_non_tracked_file(filename): 
+    output = subprocess.check_output(('git', 'ls-files', '--others','--exclude-standard'))
+    output = output.decode().strip()
+    if filename in output:
+       return True 
+    else:
+       return False
 
 def _ns(
         hook_type: str,
