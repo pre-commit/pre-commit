@@ -39,14 +39,14 @@ def _migrate_sha_to_rev(contents: str) -> str:
 
 
 def migrate_config(config_file: str, quiet: bool = False) -> int:
-    with open(config_file) as f:
+    with open(config_file, encoding='utf-8-sig') as f:
         orig_contents = contents = f.read()
 
     contents = _migrate_map(contents)
     contents = _migrate_sha_to_rev(contents)
 
     if contents != orig_contents:
-        with open(config_file, 'w') as f:
+        with open(config_file, 'w', encoding='utf-8') as f:
             f.write(contents)
 
         print('Configuration has been migrated.')
