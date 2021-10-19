@@ -985,6 +985,18 @@ def test_fail_fast(cap_out, store, repo_with_failing_hook):
     assert printed.count(b'Failing hook') == 1
 
 
+def test_fail_fast_per_hook(cap_out, store, repo_with_failing_hook):
+    with modify_config() as config:
+        # More than one hook
+        config['repos'][0]['hooks'] *= 2
+        config['repos'][0]['hooks'][0]['fail_fast'] = True
+    stage_a_file()
+
+    ret, printed = _do_run(cap_out, store, repo_with_failing_hook, run_opts())
+    # it should have only run one hook
+    assert printed.count(b'Failing hook') == 1
+
+
 def test_classifier_removes_dne():
     classifier = Classifier(('this_file_does_not_exist',))
     assert classifier.filenames == []

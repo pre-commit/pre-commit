@@ -27,6 +27,7 @@ class Hook(NamedTuple):
     additional_dependencies: Sequence[str]
     args: Sequence[str]
     always_run: bool
+    fail_fast: bool
     pass_filenames: bool
     description: str
     language_version: str
