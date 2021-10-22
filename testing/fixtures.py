@@ -36,7 +36,7 @@ def copy_tree_to_path(src_dir, dest_dir):
 
 def git_dir(tempdir_factory):
     path = tempdir_factory.get()
-    cmd_output('git', 'init', path)
+    cmd_output('git', 'init', '-b', 'master', path)
     return path
 
 

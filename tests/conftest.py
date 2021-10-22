@@ -63,7 +63,7 @@ def in_tmpdir(tempdir_factory):
 def in_git_dir(tmpdir):
     repo = tmpdir.join('repo').ensure_dir()
     with repo.as_cwd():
-        cmd_output('git', 'init')
+        cmd_output('git', 'init', '-b', 'master')
         yield repo
 
 
