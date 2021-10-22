@@ -27,6 +27,7 @@ from testing.fixtures import write_config
 from testing.util import cmd_output_mocked_pre_commit_home
 from testing.util import cwd
 from testing.util import git_commit
+from testing.util import skipif_pre_commit_system_install
 
 
 def test_is_not_script():
@@ -255,6 +256,9 @@ def test_install_idempotent(tempdir_factory, store):
 
 def _path_without_us():
     # Choose a path which *probably* doesn't include us
+    # WARNING: on system with pre-commit installer system-wide,
+    # this will break the test because /usr/bin will be removed from $PATH
+    # decorate the test using this with @skipif_pre_commit_system_install
     env = dict(os.environ)
     exe = find_executable('pre-commit', _environ=env)
     while exe:
@@ -270,6 +274,7 @@ def _path_without_us():
     return env['PATH']
 
 
+@skipif_pre_commit_system_install
 def test_environment_not_sourced(tempdir_factory, store):
     path = make_consuming_repo(tempdir_factory, 'script_hooks_repo')
     with cwd(path):
@@ -528,6 +533,7 @@ def test_install_hooks_command(tempdir_factory, store):
         PRE_INSTALLED.assert_matches(output)
 
 
+@skipif_pre_commit_system_install
 def test_installed_from_venv(tempdir_factory, store):
     path = make_consuming_repo(tempdir_factory, 'script_hooks_repo')
     with cwd(path):

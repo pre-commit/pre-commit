@@ -12,6 +12,7 @@ from testing.auto_namedtuple import auto_namedtuple
 
 
 TESTING_DIR = os.path.abspath(os.path.dirname(__file__))
+SYSTEM_PATH = {'PATH': '/usr/bin:/usr/local/bin'}
 
 
 def docker_is_running() -> bool:  # pragma: win32 no cover
@@ -83,6 +84,10 @@ skipif_cant_run_rust = pytest.mark.skipif(
 skipif_cant_run_swift = pytest.mark.skipif(
     parse_shebang.find_executable('swift') is None,
     reason="swift isn't installed or can't be found",
+)
+skipif_pre_commit_system_install = pytest.mark.skipif(
+    bool(parse_shebang.find_executable('pre-commit', SYSTEM_PATH)),
+    reason='pre-commit is installed system-wide, this test will fail',
 )
 xfailif_windows = pytest.mark.xfail(os.name == 'nt', reason='windows')
 
