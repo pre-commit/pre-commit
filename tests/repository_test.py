@@ -32,8 +32,16 @@ from testing.fixtures import make_repo
 from testing.fixtures import modify_manifest
 from testing.util import cwd
 from testing.util import get_resource_path
+from testing.util import skipif_cant_run_conda
 from testing.util import skipif_cant_run_coursier
+from testing.util import skipif_cant_run_dart
 from testing.util import skipif_cant_run_docker
+from testing.util import skipif_cant_run_dotnet
+from testing.util import skipif_cant_run_go
+from testing.util import skipif_cant_run_node
+from testing.util import skipif_cant_run_perl
+from testing.util import skipif_cant_run_r
+from testing.util import skipif_cant_run_rust
 from testing.util import skipif_cant_run_swift
 from testing.util import xfailif_windows
 
@@ -80,6 +88,7 @@ def _test_hook_repo(
     assert _norm_out(out) == expected
 
 
+@skipif_cant_run_conda
 def test_conda_hook(tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'conda_hooks_repo',
@@ -88,6 +97,7 @@ def test_conda_hook(tempdir_factory, store):
     )
 
 
+@skipif_cant_run_conda
 def test_conda_with_additional_dependencies_hook(tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'conda_hooks_repo',
@@ -103,6 +113,7 @@ def test_conda_with_additional_dependencies_hook(tempdir_factory, store):
     )
 
 
+@skipif_cant_run_conda
 def test_local_conda_additional_dependencies(store):
     config = {
         'repo': 'local',
@@ -245,6 +256,7 @@ def test_run_a_docker_image_hook(tempdir_factory, store, hook_id):
     )
 
 
+@skipif_cant_run_node
 def test_run_a_node_hook(tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'node_hooks_repo',
@@ -252,6 +264,7 @@ def test_run_a_node_hook(tempdir_factory, store):
     )
 
 
+@skipif_cant_run_node
 def test_run_a_node_hook_default_version(tempdir_factory, store):
     # make sure that this continues to work for platforms where node is not
     # installed at the system
@@ -261,6 +274,7 @@ def test_run_a_node_hook_default_version(tempdir_factory, store):
         test_run_a_node_hook(tempdir_factory, store)
 
 
+@skipif_cant_run_node
 def test_run_versioned_node_hook(tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'node_versioned_hooks_repo',
@@ -268,6 +282,7 @@ def test_run_versioned_node_hook(tempdir_factory, store):
     )
 
 
+@skipif_cant_run_node
 def test_node_hook_with_npm_userconfig_set(tempdir_factory, store, tmpdir):
     cfg = tmpdir.join('cfg')
     cfg.write('cache=/dne\n')
@@ -275,6 +290,7 @@ def test_node_hook_with_npm_userconfig_set(tempdir_factory, store, tmpdir):
         test_run_a_node_hook(tempdir_factory, store)
 
 
+@skipif_cant_run_r
 def test_r_hook(tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'r_hooks_repo',
@@ -283,6 +299,7 @@ def test_r_hook(tempdir_factory, store):
     )
 
 
+@skipif_cant_run_r
 def test_r_inline_hook(tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'r_hooks_repo',
@@ -291,6 +308,7 @@ def test_r_inline_hook(tempdir_factory, store):
     )
 
 
+@skipif_cant_run_r
 def test_r_with_additional_dependencies_hook(tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'r_hooks_repo',
@@ -305,6 +323,7 @@ def test_r_with_additional_dependencies_hook(tempdir_factory, store):
     )
 
 
+@skipif_cant_run_r
 def test_r_local_with_additional_dependencies_hook(store):
     config = {
         'repo': 'local',
@@ -377,6 +396,7 @@ def test_swift_hook(tempdir_factory, store):
     )
 
 
+@skipif_cant_run_go
 def test_golang_hook(tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'golang_hooks_repo',
@@ -384,6 +404,7 @@ def test_golang_hook(tempdir_factory, store):
     )
 
 
+@skipif_cant_run_go
 def test_golang_hook_still_works_when_gobin_is_set(tempdir_factory, store):
     gobin_dir = tempdir_factory.get()
     with envcontext((('GOBIN', gobin_dir),)):
@@ -391,6 +412,7 @@ def test_golang_hook_still_works_when_gobin_is_set(tempdir_factory, store):
     assert os.listdir(gobin_dir) == []
 
 
+@skipif_cant_run_go
 def test_golang_with_recursive_submodule(tmpdir, tempdir_factory, store):
     sub_go = '''\
 package sub
@@ -444,6 +466,7 @@ func main() {
     assert _norm_out(out) == b'hello hello world\n'
 
 
+@skipif_cant_run_rust
 def test_rust_hook(tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'rust_hooks_repo',
@@ -451,6 +474,7 @@ def test_rust_hook(tempdir_factory, store):
     )
 
 
+@skipif_cant_run_rust
 @pytest.mark.parametrize('dep', ('cli:shellharden:3.1.0', 'cli:shellharden'))
 def test_additional_rust_cli_dependencies_installed(
         tempdir_factory, store, dep,
@@ -470,6 +494,7 @@ def test_additional_rust_cli_dependencies_installed(
     assert 'shellharden' in binaries
 
 
+@skipif_cant_run_rust
 def test_additional_rust_lib_dependencies_installed(
         tempdir_factory, store,
 ):
@@ -649,6 +674,7 @@ def test_additional_ruby_dependencies_installed(tempdir_factory, store):
         assert 'tins' in output
 
 
+@skipif_cant_run_node
 def test_additional_node_dependencies_installed(tempdir_factory, store):
     path = make_repo(tempdir_factory, 'node_hooks_repo')
     config = make_config_from_repo(path)
@@ -660,6 +686,7 @@ def test_additional_node_dependencies_installed(tempdir_factory, store):
         assert 'lodash' in output
 
 
+@skipif_cant_run_go
 def test_additional_golang_dependencies_installed(
         tempdir_factory, store,
 ):
@@ -679,6 +706,7 @@ def test_additional_golang_dependencies_installed(
     assert 'hello' in binaries
 
 
+@skipif_cant_run_go
 def test_local_golang_additional_dependencies(store):
     config = {
         'repo': 'local',
@@ -696,6 +724,7 @@ def test_local_golang_additional_dependencies(store):
     assert _norm_out(out) == b'Hello, Go examples!\n'
 
 
+@skipif_cant_run_rust
 def test_local_rust_additional_dependencies(store):
     config = {
         'repo': 'local',
@@ -1005,6 +1034,7 @@ def test_manifest_hooks(tempdir_factory, store):
     )
 
 
+@skipif_cant_run_perl
 def test_perl_hook(tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'perl_hooks_repo',
@@ -1012,6 +1042,7 @@ def test_perl_hook(tempdir_factory, store):
     )
 
 
+@skipif_cant_run_perl
 def test_local_perl_additional_dependencies(store):
     config = {
         'repo': 'local',
@@ -1036,6 +1067,7 @@ def test_local_perl_additional_dependencies(store):
         'dotnet_hooks_sln_repo',
     ),
 )
+@skipif_cant_run_dotnet
 def test_dotnet_hook(tempdir_factory, store, repo):
     _test_hook_repo(
         tempdir_factory, store, repo,
@@ -1043,6 +1075,7 @@ def test_dotnet_hook(tempdir_factory, store, repo):
     )
 
 
+@skipif_cant_run_dart
 def test_dart_hook(tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'dart_repo',
@@ -1050,6 +1083,7 @@ def test_dart_hook(tempdir_factory, store):
     )
 
 
+@skipif_cant_run_dart
 def test_local_dart_additional_dependencies(store):
     config = {
         'repo': 'local',
@@ -1066,6 +1100,7 @@ def test_local_dart_additional_dependencies(store):
     assert (ret, _norm_out(out)) == (0, b'hello hello world\n')
 
 
+@skipif_cant_run_dart
 def test_local_dart_additional_dependencies_versioned(store):
     config = {
         'repo': 'local',

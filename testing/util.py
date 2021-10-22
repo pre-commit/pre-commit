@@ -40,13 +40,45 @@ def cmd_output_mocked_pre_commit_home(
     return ret, out.replace('\r\n', '\n'), None
 
 
+skipif_cant_run_conda = pytest.mark.skipif(
+    parse_shebang.find_executable('conda') is None,
+    reason="conda isn't installed or can't be found",
+)
 skipif_cant_run_coursier = pytest.mark.skipif(
     os.name == 'nt' or parse_shebang.find_executable('cs') is None,
     reason="coursier isn't installed or can't be found",
 )
+skipif_cant_run_dart = pytest.mark.skipif(
+    parse_shebang.find_executable('dart') is None,
+    reason="dart isn't installed or can't be found",
+)
 skipif_cant_run_docker = pytest.mark.skipif(
     os.name == 'nt' or not docker_is_running(),
     reason="Docker isn't running or can't be accessed",
+)
+skipif_cant_run_dotnet = pytest.mark.skipif(
+    parse_shebang.find_executable('dotnet') is None,
+    reason="dotnet isn't installed or can't be found",
+)
+skipif_cant_run_go = pytest.mark.skipif(
+    parse_shebang.find_executable('go') is None,
+    reason="Go isn't installed or can't be found",
+)
+skipif_cant_run_node = pytest.mark.skipif(
+    parse_shebang.find_executable('npm') is None,
+    reason="Node/npm isn't installed or can't be found",
+)
+skipif_cant_run_perl = pytest.mark.skipif(
+    parse_shebang.find_executable('perl') is None,
+    reason="perl isn't installed or can't be found",
+)
+skipif_cant_run_r = pytest.mark.skipif(
+    parse_shebang.find_executable('Rscript') is None,
+    reason="R isn't installed or can't be found",
+)
+skipif_cant_run_rust = pytest.mark.skipif(
+    parse_shebang.find_executable('cargo') is None,
+    reason="Rust/Cargo isn't installed or can't be found",
 )
 skipif_cant_run_swift = pytest.mark.skipif(
     parse_shebang.find_executable('swift') is None,
