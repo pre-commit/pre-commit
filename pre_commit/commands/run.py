@@ -290,7 +290,7 @@ def _run_hooks(
             verbose=args.verbose, use_color=args.color,
         )
         retval |= current_retval
-        if retval and config['fail_fast']:
+        if retval and (config['fail_fast'] or hook.fail_fast):
             break
     if retval and args.show_diff_on_failure and prior_diff:
         if args.all_files:
