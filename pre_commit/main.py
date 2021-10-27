@@ -156,21 +156,36 @@ def _add_run_options(parser: argparse.ArgumentParser) -> None:
     )
 
 
+def _canon_subpath(path: str, toplevel: str) -> str:
+    tail = ''
+    while len(path):
+        if os.path.samefile(path, toplevel):
+            return os.path.join(toplevel, tail)
+        path, base = os.path.split(path)
+        tail = os.path.join(base, tail)
+    return tail
+
+
+def _canon_relpath(path: str, toplevel: str) -> str:
+    return os.path.relpath(_canon_subpath(path, toplevel))
+
+
 def _adjust_args_and_chdir(args: argparse.Namespace) -> None:
     # `--config` was specified relative to the non-root working directory
     if os.path.exists(args.config):
-        args.config = os.path.abspath(args.config)
+        args.config = os.path.realpath(args.config)
     if args.command in {'run', 'try-repo'}:
         args.files = [os.path.abspath(filename) for filename in args.files]
     if args.command == 'try-repo' and os.path.exists(args.repo):
-        args.repo = os.path.abspath(args.repo)
+        args.repo = os.path.realpath(args.repo)
 
     toplevel = git.get_root()
     os.chdir(toplevel)
 
     args.config = os.path.relpath(args.config)
     if args.command in {'run', 'try-repo'}:
-        args.files = [os.path.relpath(filename) for filename in args.files]
+        args.files = [_canon_relpath(filename, toplevel)
+                      for filename in args.files]
     if args.command == 'try-repo' and os.path.exists(args.repo):
         args.repo = os.path.relpath(args.repo)
 
