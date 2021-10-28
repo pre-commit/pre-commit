@@ -159,8 +159,11 @@ def _add_run_options(parser: argparse.ArgumentParser) -> None:
 def _canon_subpath(path: str, toplevel: str) -> str:
     tail = ''
     while len(path):
-        if os.path.samefile(path, toplevel):
-            return os.path.join(toplevel, tail)
+        try:
+            if os.path.samefile(path, toplevel):
+                return os.path.join(toplevel, tail)
+        except FileNotFoundError:
+            pass
         path, base = os.path.split(path)
         tail = os.path.join(base, tail)
     return tail
