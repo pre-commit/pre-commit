@@ -187,8 +187,10 @@ def _adjust_args_and_chdir(args: argparse.Namespace) -> None:
 
     args.config = os.path.relpath(args.config)
     if args.command in {'run', 'try-repo'}:
-        args.files = [_canon_relpath(filename, toplevel)
-                      for filename in args.files]
+        args.files = [
+            _canon_relpath(filename, toplevel)
+            for filename in args.files
+        ]
     if args.command == 'try-repo' and os.path.exists(args.repo):
         args.repo = os.path.relpath(args.repo)
 
