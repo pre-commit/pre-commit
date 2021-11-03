@@ -112,7 +112,7 @@ class Classifier:
 
         # surround filenames containing whitespace with quotes
         for f in names:
-            if re.search(r"\s", f):
+            if re.search(r'\s', f):
                 f = '"' + f + '"'
 
         return tuple(names)
