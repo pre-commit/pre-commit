@@ -391,6 +391,9 @@ def run(
     if args.rewrite_command:
         environ['PRE_COMMIT_REWRITE_COMMAND'] = args.rewrite_command
 
+    if args.hook_stage:
+        environ['PRE_COMMIT_HOOK_STAGE'] = args.hook_stage
+
     # Set pre_commit flag
     environ['PRE_COMMIT'] = '1'
 
