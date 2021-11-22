@@ -227,6 +227,11 @@ def test_no_git_env():
         'GIT_SSH': '/usr/bin/ssh',
         'GIT_SSH_COMMAND': 'ssh -o',
         'GIT_DIR': '/none/shall/pass',
+        'GIT_CONFIG_KEY_0': 'user.name',
+        'GIT_CONFIG_VALUE_0': 'anthony',
+        'GIT_CONFIG_KEY_1': 'user.email',
+        'GIT_CONFIG_VALUE_1': 'asottile@example.com',
+        'GIT_CONFIG_COUNT': '2',
     }
     no_git_env = git.no_git_env(env)
     assert no_git_env == {
@@ -234,6 +239,11 @@ def test_no_git_env():
         'GIT_EXEC_PATH': '/some/git/exec/path',
         'GIT_SSH': '/usr/bin/ssh',
         'GIT_SSH_COMMAND': 'ssh -o',
+        'GIT_CONFIG_KEY_0': 'user.name',
+        'GIT_CONFIG_VALUE_0': 'anthony',
+        'GIT_CONFIG_KEY_1': 'user.email',
+        'GIT_CONFIG_VALUE_1': 'asottile@example.com',
+        'GIT_CONFIG_COUNT': '2',
     }
 
 
