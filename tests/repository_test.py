@@ -1021,13 +1021,13 @@ def test_local_perl_additional_dependencies(store):
             'name': 'hello',
             'entry': 'perltidy --version',
             'language': 'perl',
-            'additional_dependencies': ['SHANCOCK/Perl-Tidy-20200110.tar.gz'],
+            'additional_dependencies': ['SHANCOCK/Perl-Tidy-20211029.tar.gz'],
         }],
     }
     hook = _get_hook(config, store, 'hello')
     ret, out = _hook_run(hook, (), color=False)
     assert ret == 0
-    assert _norm_out(out).startswith(b'This is perltidy, v20200110')
+    assert _norm_out(out).startswith(b'This is perltidy, v20211029')
 
 
 @pytest.mark.parametrize(
