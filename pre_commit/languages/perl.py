@@ -54,7 +54,11 @@ def install_environment(
     with clean_path_on_failure(_envdir(prefix, version)):
         with in_env(prefix, version):
             helpers.run_setup_cmd(
-                prefix, ('cpan', '-T', '.', *additional_dependencies),
+                prefix, (
+                    'cpan', '-T',
+                    '-M', 'https://www.cpan.org,https://backpan.perl.org',
+                    '.', *additional_dependencies,
+                ),
             )
 
 
