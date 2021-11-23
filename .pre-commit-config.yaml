@@ -25,7 +25,7 @@ repos:
     hooks:
     -   id: validate_manifest
 -   repo: https://github.com/asottile/pyupgrade
-    rev: v2.29.0
+    rev: v2.29.1
     hooks:
     -   id: pyupgrade
         args: [--py36-plus]
@@ -35,12 +35,12 @@ repos:
     -   id: reorder-python-imports
         args: [--py3-plus]
 -   repo: https://github.com/asottile/add-trailing-comma
-    rev: v2.2.0
+    rev: v2.2.1
     hooks:
     -   id: add-trailing-comma
         args: [--py36-plus]
 -   repo: https://github.com/asottile/setup-cfg-fmt
-    rev: v1.19.0
+    rev: v1.20.0
     hooks:
     -   id: setup-cfg-fmt
 -   repo: https://github.com/pre-commit/mirrors-mypy
