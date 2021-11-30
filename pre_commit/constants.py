@@ -1,10 +1,10 @@
 import sys
 from pre_commit.avlos.constants import DEFAULT_CONFIG_FILE
 
-if sys.version_info < (3, 8):  # pragma: no cover (<PY38)
-    import importlib_metadata
-else:  # pragma: no cover (PY38+)
+if sys.version_info >= (3, 8):  # pragma: >=3.8 cover
     import importlib.metadata as importlib_metadata
+else:  # pragma: <3.8 cover
+    import importlib_metadata
 
 CONFIG_FILE = DEFAULT_CONFIG_FILE
 MANIFEST_FILE = '.pre-commit-hooks.yaml'
