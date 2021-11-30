@@ -71,7 +71,7 @@ def main() -> int:
         _msg('populating wheels...')
         _exit_if_retv(
             'podman', 'run', '--rm', '--volume', f'{wheeldir}:/wheels:rw', IMG,
-            'pip', 'wheel', f'pre_commit=={args.version}',
+            'pip', 'wheel', f'pre_commit=={args.version}', 'setuptools',
             '--wheel-dir', '/wheels',
         )
 
