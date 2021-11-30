@@ -1,4 +1,4 @@
-covdefaults
+covdefaults>=2.1
 coverage
 distlib
 pytest

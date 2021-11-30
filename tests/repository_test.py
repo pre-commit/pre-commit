@@ -164,7 +164,7 @@ def test_python_hook_weird_setup_cfg(in_git_dir, tempdir_factory, store):
     )
 
 
-def test_python_venv(tempdir_factory, store):  # pragma: no cover (no venv)
+def test_python_venv(tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'python_venv_hooks_repo',
         'foo', [os.devnull],
