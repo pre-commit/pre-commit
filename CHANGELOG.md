@@ -1,3 +1,33 @@
+2.16.0 - 2021-11-30
+===================
+
+### Features
+- add warning for regexes containing `[\/]` or `[/\\]`.
+    - #2053 PR by @radek-sprta.
+    - #2043 issue by @asottile.
+- move hook template back to `bash` resolving shebang-portability issues.
+    - #2065 PR by @asottile.
+- add support for `fail_fast` at the individual hook level.
+    - #2097 PR by @colens3.
+    - #1143 issue by @potiuk.
+- allow passthrough of `GIT_CONFIG_KEY_*`, `GIT_CONFIG_VALUE_*`, and
+  `GIT_CONFIG_COUNT`.
+    - #2136 PR by @emzeat.
+
+### Fixes
+- fix pre-commit autoupdate for `core.useBuiltinFSMonitor=true` on windows.
+    - #2047 PR by @asottile.
+    - #2046 issue by @lcnittl.
+- fix temporary file stashing with for `submodule.recurse=1`.
+    - #2071 PR by @asottile.
+    - #2063 issue by @a666.
+- ban broken importlib-resources versions.
+    - #2098 PR by @asottile.
+- replace `exit(...)` with `raise SystemExit(...)` for portability.
+    - #2103 PR by @asottile.
+    - #2104 PR by @asottile.
+
+
 2.15.0 - 2021-09-02
 ===================
 
