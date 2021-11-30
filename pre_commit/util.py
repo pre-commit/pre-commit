@@ -21,10 +21,10 @@ import yaml
 
 from pre_commit import parse_shebang
 
-if sys.version_info >= (3, 7):  # pragma: no cover (PY37+)
+if sys.version_info >= (3, 7):  # pragma: >=3.7 cover
     from importlib.resources import open_binary
     from importlib.resources import read_text
-else:  # pragma: no cover (<PY37)
+else:  # pragma: <3.7 cover
     from importlib_resources import open_binary
     from importlib_resources import read_text
 
