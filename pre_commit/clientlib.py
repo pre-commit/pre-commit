@@ -144,7 +144,7 @@ class OptionalSensibleRegexAtHook(cfgv.OptionalNoDefault):
                 f"regex, not a glob -- matching '/*' probably isn't what you "
                 f'want here',
             )
-        for fwd_slash_re in [r'[\\/]', r'[\/]', r'[/\\]']:
+        for fwd_slash_re in (r'[\\/]', r'[\/]', r'[/\\]'):
             if fwd_slash_re in dct.get(self.key, ''):
                 logger.warning(
                     fr'pre-commit normalizes slashes in the {self.key!r} '
@@ -162,7 +162,7 @@ class OptionalSensibleRegexAtTop(cfgv.OptionalNoDefault):
                 f'The top-level {self.key!r} field is a regex, not a glob -- '
                 f"matching '/*' probably isn't what you want here",
             )
-        for fwd_slash_re in [r'[\\/]', r'[\/]', r'[/\\]']:
+        for fwd_slash_re in (r'[\\/]', r'[\/]', r'[/\\]'):
             if fwd_slash_re in dct.get(self.key, ''):
                 logger.warning(
                     fr'pre-commit normalizes the slashes in the top-level '
