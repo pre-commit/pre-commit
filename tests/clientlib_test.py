@@ -265,6 +265,11 @@ def test_warn_mutable_rev_conditional():
             r"pre-commit normalizes slashes in the 'files' field in hook "
             r"'flake8' to forward slashes, so you can use / instead of [/\\]",
         ),
+        (
+            r'dir[\\/].*\.py',
+            r"pre-commit normalizes slashes in the 'files' field in hook "
+            r"'flake8' to forward slashes, so you can use / instead of [\\/]",
+        ),
     ),
 )
 def test_validate_optional_sensible_regex_at_hook(caplog, regex, warning):
@@ -294,6 +299,11 @@ def test_validate_optional_sensible_regex_at_hook(caplog, regex, warning):
             r'dir[/\\].*\.py',
             r"pre-commit normalizes the slashes in the top-level 'files' "
             r'field to forward slashes, so you can use / instead of [/\\]',
+        ),
+        (
+            r'dir[\\/].*\.py',
+            r"pre-commit normalizes the slashes in the top-level 'files' "
+            r'field to forward slashes, so you can use / instead of [\\/]',
         ),
     ),
 )
