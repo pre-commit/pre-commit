@@ -144,18 +144,13 @@ class OptionalSensibleRegexAtHook(cfgv.OptionalNoDefault):
                 f"regex, not a glob -- matching '/*' probably isn't what you "
                 f'want here',
             )
-        if r'[\/]' in dct.get(self.key, ''):
-            logger.warning(
-                fr'pre-commit normalizes slashes in the {self.key!r} field '
-                fr'in hook {dct.get("id")!r} to forward slashes, so you '
-                fr'can use / instead of [\/]',
-            )
-        if r'[/\\]' in dct.get(self.key, ''):
-            logger.warning(
-                fr'pre-commit normalizes slashes in the {self.key!r} field '
-                fr'in hook {dct.get("id")!r} to forward slashes, so you '
-                fr'can use / instead of [/\\]',
-            )
+        for fwd_slash_re in [r'[\\/]', r'[\/]', r'[/\\]']:
+            if fwd_slash_re in dct.get(self.key, ''):
+                logger.warning(
+                    fr'pre-commit normalizes slashes in the {self.key!r} '
+                    fr'field in hook {dct.get("id")!r} to forward slashes, '
+                    fr'so you can use / instead of {fwd_slash_re}',
+                )
 
 
 class OptionalSensibleRegexAtTop(cfgv.OptionalNoDefault):
@@ -167,18 +162,13 @@ class OptionalSensibleRegexAtTop(cfgv.OptionalNoDefault):
                 f'The top-level {self.key!r} field is a regex, not a glob -- '
                 f"matching '/*' probably isn't what you want here",
             )
-        if r'[\/]' in dct.get(self.key, ''):
-            logger.warning(
-                fr'pre-commit normalizes the slashes in the top-level '
-                fr'{self.key!r} field to forward slashes, so you can use / '
-                fr'instead of [\/]',
-            )
-        if r'[/\\]' in dct.get(self.key, ''):
-            logger.warning(
-                fr'pre-commit normalizes the slashes in the top-level '
-                fr'{self.key!r} field to forward slashes, so you can use / '
-                fr'instead of [/\\]',
-            )
+        for fwd_slash_re in [r'[\\/]', r'[\/]', r'[/\\]']:
+            if fwd_slash_re in dct.get(self.key, ''):
+                logger.warning(
+                    fr'pre-commit normalizes the slashes in the top-level '
+                    fr'{self.key!r} field to forward slashes, so you '
+                    fr'can use / instead of {fwd_slash_re}',
+                )
 
 
 class MigrateShaToRev:
