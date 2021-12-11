@@ -54,6 +54,12 @@ def _prefix_if_non_local_file_entry(
             path = prefix.path(entry[1])
         return (path,)
 
+def _rscript_exec():
+    """
+    When invoked in a sub-process of R, use full path
+    """
+    return os.path.join(os.getenv('R_HOME', ""), 'Rscript')
+
 
 def _entry_validate(entry: Sequence[str]) -> None:
     """
@@ -95,8 +101,9 @@ def install_environment(
         os.makedirs(env_dir, exist_ok=True)
         shutil.copy(prefix.path('renv.lock'), env_dir)
         shutil.copytree(prefix.path('renv'), os.path.join(env_dir, 'renv'))
+        
         cmd_output_b(
-            'Rscript', '--vanilla', '-e',
+            _rscript_exec(), '--vanilla', '-e',
             f"""\
             prefix_dir <- {prefix.prefix_dir!r}
             options(
@@ -130,7 +137,7 @@ def install_environment(
         if additional_dependencies:
             with in_env(prefix, version):
                 cmd_output_b(
-                    'Rscript', *RSCRIPT_OPTS, '-e',
+                    _rscript_exec(), *RSCRIPT_OPTS, '-e',
                     'renv::install(commandArgs(trailingOnly = TRUE))',
                     *additional_dependencies,
                     cwd=env_dir,
