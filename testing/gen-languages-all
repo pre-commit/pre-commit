@@ -3,7 +3,7 @@ import sys
 
 LANGUAGES = [
     'conda', 'coursier', 'dart', 'docker', 'docker_image', 'dotnet', 'fail',
-    'golang', 'node', 'perl', 'pygrep', 'python', 'r', 'ruby', 'rust',
+    'golang', 'lua', 'node', 'perl', 'pygrep', 'python', 'r', 'ruby', 'rust',
     'script', 'swift', 'system',
 ]
 FIELDS = [
