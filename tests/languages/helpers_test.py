@@ -72,8 +72,8 @@ def test_basic_healthy():
 def test_failed_setup_command_does_not_unicode_error():
     script = (
         'import sys\n'
-        "getattr(sys.stderr, 'buffer', sys.stderr).write(b'\\x81\\xfe')\n"
-        'exit(1)\n'
+        "sys.stderr.buffer.write(b'\\x81\\xfe')\n"
+        'raise SystemExit(1)\n'
     )
 
     # an assertion that this does not raise `UnicodeError`
