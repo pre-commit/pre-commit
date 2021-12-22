@@ -258,7 +258,7 @@ def test_environment_not_sourced(tempdir_factory, store):
         assert ret == 1
         assert out == (
             "'pre-commit' not found.  "
-            "Did you forget to activate your virtualenv?\n"
+            'Did you forget to activate your virtualenv?\n'
         )
 
 
