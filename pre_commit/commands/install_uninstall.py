@@ -59,8 +59,8 @@ def shebang() -> str:
         py, _ = os.path.splitext(SYS_EXE)
     else:
         exe_choices = [
-            f'python{sys.version_info[0]}.{sys.version_info[1]}',
             f'python{sys.version_info[0]}',
+            f'python{sys.version_info[0]}.{sys.version_info[1]}',
         ]
         # avoid searching for bare `python` as it's likely to be python 2
         if SYS_EXE != 'python':
