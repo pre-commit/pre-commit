@@ -275,7 +275,6 @@ def _run_hooks(
         hooks: Sequence[Hook],
         skips: Set[str],
         args: argparse.Namespace,
-        environ: MutableMapping[str, str],
 ) -> int:
     """Actually run the hooks."""
     cols = _compute_cols(hooks)
@@ -416,7 +415,7 @@ def run(
         to_install = [hook for hook in hooks if hook.id not in skips]
         install_hook_envs(to_install, store)
 
-        return _run_hooks(config, hooks, skips, args, environ)
+        return _run_hooks(config, hooks, skips, args)
 
     # https://github.com/python/mypy/issues/7726
     raise AssertionError('unreachable')
