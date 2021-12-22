@@ -1,19 +1,15 @@
 import os.path
 import re
-import sys
-from unittest import mock
 
 import re_assert
 
 import pre_commit.constants as C
 from pre_commit import git
-from pre_commit.commands import install_uninstall
 from pre_commit.commands.install_uninstall import CURRENT_HASH
 from pre_commit.commands.install_uninstall import install
 from pre_commit.commands.install_uninstall import install_hooks
 from pre_commit.commands.install_uninstall import is_our_script
 from pre_commit.commands.install_uninstall import PRIOR_HASHES
-from pre_commit.commands.install_uninstall import shebang
 from pre_commit.commands.install_uninstall import uninstall
 from pre_commit.parse_shebang import find_executable
 from pre_commit.util import cmd_output
@@ -41,43 +37,6 @@ def test_is_previous_pre_commit(tmpdir):
     f = tmpdir.join('foo')
     f.write(f'{PRIOR_HASHES[0].decode()}\n')
     assert is_our_script(f.strpath)
-
-
-def patch_platform(platform):
-    return mock.patch.object(sys, 'platform', platform)
-
-
-def patch_lookup_path(path):
-    return mock.patch.object(install_uninstall, 'POSIX_SEARCH_PATH', path)
-
-
-def patch_sys_exe(exe):
-    return mock.patch.object(install_uninstall, 'SYS_EXE', exe)
-
-
-def test_shebang_windows():
-    with patch_platform('win32'), patch_sys_exe('python'):
-        assert shebang() == '#!/usr/bin/env python'
-
-
-def test_shebang_windows_drop_ext():
-    with patch_platform('win32'), patch_sys_exe('python.exe'):
-        assert shebang() == '#!/usr/bin/env python'
-
-
-def test_shebang_posix_not_on_path():
-    with patch_platform('posix'), patch_lookup_path(()):
-        with patch_sys_exe('python3.6'):
-            assert shebang() == '#!/usr/bin/env python3.6'
-
-
-def test_shebang_posix_on_path(tmpdir):
-    exe = tmpdir.join(f'python{sys.version_info[0]}').ensure()
-    make_executable(exe)
-
-    with patch_platform('posix'), patch_lookup_path((tmpdir.strpath,)):
-        with patch_sys_exe('python'):
-            assert shebang() == f'#!/usr/bin/env python{sys.version_info[0]}'
 
 
 def test_install_pre_commit(in_git_dir, store):
@@ -336,7 +295,7 @@ EXISTING_COMMIT_RUN = re_assert.Matches(
 def _write_legacy_hook(path):
     os.makedirs(os.path.join(path, '.git/hooks'), exist_ok=True)
     with open(os.path.join(path, '.git/hooks/pre-commit'), 'w') as f:
-        f.write(f'{shebang()}\nprint("legacy hook")\n')
+        f.write('#!/usr/bin/env bash\necho legacy hook\n')
     make_executable(f.name)
 
 
