@@ -58,9 +58,6 @@ def _prefix_if_non_local_file_entry(
 
 
 def _rscript_exec() -> str:
-    """
-    When invoked in a sub-process of R, use full path
-    """
     return os.path.join(os.getenv('R_HOME', ''), 'Rscript')
 
 
