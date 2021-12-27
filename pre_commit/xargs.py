@@ -159,7 +159,8 @@ def xargs(
         )
 
     threads = min(len(partitions), target_concurrency)
-    with _thread_mapper(threads) as thread_map:
+    # https://github.com/python/mypy/issues/11852
+    with _thread_mapper(threads) as thread_map:  # type: ignore
         results = thread_map(run_cmd_partition, partitions)
 
         for proc_retcode, proc_out, _ in results:

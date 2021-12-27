@@ -166,13 +166,15 @@ def test_xargs_concurrency():
 
 
 def test_thread_mapper_concurrency_uses_threadpoolexecutor_map():
-    with xargs._thread_mapper(10) as thread_map:
+    # https://github.com/python/mypy/issues/11852
+    with xargs._thread_mapper(10) as thread_map:  # type: ignore
         _self = thread_map.__self__  # type: ignore
         assert isinstance(_self, concurrent.futures.ThreadPoolExecutor)
 
 
 def test_thread_mapper_concurrency_uses_regular_map():
-    with xargs._thread_mapper(1) as thread_map:
+    # https://github.com/python/mypy/issues/11852
+    with xargs._thread_mapper(1) as thread_map:  # type: ignore
         assert thread_map is map
 
 
