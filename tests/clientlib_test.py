@@ -423,6 +423,13 @@ def test_migrate_to_sha_ok():
         {'repo': 'meta', 'hooks': [{'id': 'identity', 'language': 'python'}]},
         # name override must be string
         {'repo': 'meta', 'hooks': [{'id': 'identity', 'name': False}]},
+        pytest.param(
+            {
+                'repo': 'meta',
+                'hooks': [{'id': 'identity', 'entry': 'echo hi'}],
+            },
+            id='cannot override entry for meta hooks',
+        ),
     ),
 )
 def test_meta_hook_invalid(config_repo):
