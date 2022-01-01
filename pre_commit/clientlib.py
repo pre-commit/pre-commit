@@ -251,12 +251,21 @@ _meta = (
     ),
 )
 
+
+class NotAllowed(cfgv.OptionalNoDefault):
+    def check(self, dct: Dict[str, Any]) -> None:
+        if self.key in dct:
+            raise cfgv.ValidationError(f'{self.key!r} cannot be overridden')
+
+
 META_HOOK_DICT = cfgv.Map(
     'Hook', 'id',
     cfgv.Required('id', cfgv.check_string),
     cfgv.Required('id', cfgv.check_one_of(tuple(k for k, _ in _meta))),
     # language must be system
     cfgv.Optional('language', cfgv.check_one_of({'system'}), 'system'),
+    # entry cannot be overridden
+    NotAllowed('entry', cfgv.check_any),
     *(
         # default to the hook definition for the meta hooks
         cfgv.ConditionalOptional(key, cfgv.check_any, value, 'id', hook_id)
