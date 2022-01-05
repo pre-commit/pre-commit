@@ -82,6 +82,13 @@ def _install_hook_script(
         before, rest = contents.split(TEMPLATE_START)
         _, after = rest.split(TEMPLATE_END)
 
+        # on windows always use `/bin/sh` since `bash` might not be on PATH
+        # though we use bash-specific features `sh` on windows is actually
+        # bash in "POSIXLY_CORRECT" mode which still supports the features we
+        # use: subshells / arrays
+        if sys.platform == 'win32':  # pragma: win32 cover
+            hook_file.write('#!/bin/sh\n')
+
         hook_file.write(before + TEMPLATE_START)
         hook_file.write(f'INSTALL_PYTHON={shlex.quote(sys.executable)}\n')
         # TODO: python3.8+: shlex.join
