@@ -31,10 +31,11 @@ def _get_default_directory() -> str:
     `_get_default_directory` can be tested.
     """
     ret = os.environ.get('PRE_COMMIT_HOME') or os.path.join(
-        os.environ.get('XDG_CACHE_HOME') or os.path.expanduser('~/.cache'),
+        os.environ.get('XDG_CACHE_HOME') or '~/.cache',
         'pre-commit',
     )
-    return os.path.realpath(ret)
+    
+    return os.path.realpath(os.path.expanduser(ret))
 
 
 class Store:
