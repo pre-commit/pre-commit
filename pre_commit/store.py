@@ -34,7 +34,7 @@ def _get_default_directory() -> str:
         os.environ.get('XDG_CACHE_HOME') or '~/.cache',
         'pre-commit',
     )
-    
+
     return os.path.realpath(os.path.expanduser(ret))
 
 
