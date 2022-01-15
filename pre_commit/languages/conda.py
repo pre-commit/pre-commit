@@ -50,6 +50,15 @@ def in_env(
         yield
 
 
+def _conda_exe() -> str:
+    if os.environ.get('PRE_COMMIT_USE_MICROMAMBA'):
+        return 'micromamba'
+    elif os.environ.get('PRE_COMMIT_USE_MAMBA'):
+        return 'mamba'
+    else:
+        return 'conda'
+
+
 def install_environment(
         prefix: Prefix,
         version: str,
@@ -58,15 +67,17 @@ def install_environment(
     helpers.assert_version_default('conda', version)
     directory = helpers.environment_dir(ENVIRONMENT_DIR, version)
 
+    conda_exe = _conda_exe()
+
     env_dir = prefix.path(directory)
     with clean_path_on_failure(env_dir):
         cmd_output_b(
-            'conda', 'env', 'create', '-p', env_dir, '--file',
+            conda_exe, 'env', 'create', '-p', env_dir, '--file',
             'environment.yml', cwd=prefix.prefix_dir,
         )
         if additional_dependencies:
             cmd_output_b(
-                'conda', 'install', '-p', env_dir, *additional_dependencies,
+                conda_exe, 'install', '-p', env_dir, *additional_dependencies,
                 cwd=prefix.prefix_dir,
             )
 
