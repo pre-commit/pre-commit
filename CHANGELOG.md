@@ -226,7 +226,7 @@
 - Add `types_or` which allows matching multiple disparate `types` in a hook
     - #1677 by @MarcoGorelli.
     - #607 by @asottile.
-- Add Github Sponsors / Open Collective links
+- Add GitHub Sponsors / Open Collective links
     - https://github.com/sponsors/asottile
     - https://opencollective.com/pre-commit
 
