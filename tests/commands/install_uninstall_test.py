@@ -797,7 +797,7 @@ def test_post_rewrite_integration(tempdir_factory, store):
 
         assert not os.path.exists('post-rewrite.tmp')
 
-        git_commit('--amend', '-m', 'ammended message')
+        git_commit('--amend', '-m', 'amended message')
         assert os.path.exists('post-rewrite.tmp')
 
 
