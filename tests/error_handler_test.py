@@ -187,7 +187,7 @@ def test_error_handler_no_tty(tempdir_factory):
 @xfailif_windows  # pragma: win32 no cover
 def test_error_handler_read_only_filesystem(mock_store_dir, cap_out, capsys):
     # a better scenario would be if even the Store crash would be handled
-    # but realistically we're only targetting systems where the Store has
+    # but realistically we're only targeting systems where the Store has
     # already been set up
     Store()
 
