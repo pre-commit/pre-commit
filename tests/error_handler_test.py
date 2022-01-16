@@ -122,6 +122,7 @@ def test_log_and_exit(cap_out, mock_store_dir):
             r'\n'
             r'```\n'
             r'pre-commit version: \d+\.\d+\.\d+\n'
+            r'git --version: git version .+\n'
             r'sys.version:\n'
             r'(    .*\n)*'
             r'sys.executable: .*\n'
