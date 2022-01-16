@@ -401,7 +401,7 @@ def test_autoupdate_latest_no_config(out_of_date, in_tmpdir, store):
         assert out_of_date.original_rev in f.read()
 
 
-def test_hook_disppearing_repo_raises(hook_disappearing, store):
+def test_hook_disappearing_repo_raises(hook_disappearing, store):
     config = make_config_from_repo(
         hook_disappearing.path,
         rev=hook_disappearing.original_rev,
