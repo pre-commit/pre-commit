@@ -99,7 +99,7 @@ def test_r_parsing_expr_args_in_entry2(tempdir_factory, store):
     assert msg == ('You can supply at most one expression.',)
 
 
-def test_r_parsing_expr_non_Rscirpt(tempdir_factory, store):
+def test_r_parsing_expr_non_Rscript(tempdir_factory, store):
     with pytest.raises(ValueError) as execinfo:
         r._entry_validate(['AnotherScript', '-e', '{{}}'])
 
