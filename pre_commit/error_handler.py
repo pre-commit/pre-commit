@@ -9,6 +9,7 @@ import pre_commit.constants as C
 from pre_commit import output
 from pre_commit.errors import FatalError
 from pre_commit.store import Store
+from pre_commit.util import cmd_output_b
 from pre_commit.util import force_bytes
 
 
@@ -20,6 +21,9 @@ def _log_and_exit(
 ) -> None:
     error_msg = f'{msg}: {type(exc).__name__}: '.encode() + force_bytes(exc)
     output.write_line_b(error_msg)
+
+    _, git_version_b, _ = cmd_output_b('git', '--version', retcode=None)
+    git_version = git_version_b.decode(errors='backslashreplace').rstrip()
 
     storedir = Store().directory
     log_path = os.path.join(storedir, 'pre-commit.log')
@@ -38,6 +42,7 @@ def _log_and_exit(
         _log_line()
         _log_line('```')
         _log_line(f'pre-commit version: {C.VERSION}')
+        _log_line(f'git --version: {git_version}')
         _log_line('sys.version:')
         for line in sys.version.splitlines():
             _log_line(f'    {line}')
