@@ -13,6 +13,7 @@ from pre_commit.languages import docker_image
 from pre_commit.languages import dotnet
 from pre_commit.languages import fail
 from pre_commit.languages import golang
+from pre_commit.languages import lua
 from pre_commit.languages import node
 from pre_commit.languages import perl
 from pre_commit.languages import pygrep
@@ -51,6 +52,7 @@ languages = {
     'dotnet': Language(name='dotnet', ENVIRONMENT_DIR=dotnet.ENVIRONMENT_DIR, get_default_version=dotnet.get_default_version, healthy=dotnet.healthy, install_environment=dotnet.install_environment, run_hook=dotnet.run_hook),  # noqa: E501
     'fail': Language(name='fail', ENVIRONMENT_DIR=fail.ENVIRONMENT_DIR, get_default_version=fail.get_default_version, healthy=fail.healthy, install_environment=fail.install_environment, run_hook=fail.run_hook),  # noqa: E501
     'golang': Language(name='golang', ENVIRONMENT_DIR=golang.ENVIRONMENT_DIR, get_default_version=golang.get_default_version, healthy=golang.healthy, install_environment=golang.install_environment, run_hook=golang.run_hook),  # noqa: E501
+    'lua': Language(name='lua', ENVIRONMENT_DIR=lua.ENVIRONMENT_DIR, get_default_version=lua.get_default_version, healthy=lua.healthy, install_environment=lua.install_environment, run_hook=lua.run_hook),  # noqa: E501
     'node': Language(name='node', ENVIRONMENT_DIR=node.ENVIRONMENT_DIR, get_default_version=node.get_default_version, healthy=node.healthy, install_environment=node.install_environment, run_hook=node.run_hook),  # noqa: E501
     'perl': Language(name='perl', ENVIRONMENT_DIR=perl.ENVIRONMENT_DIR, get_default_version=perl.get_default_version, healthy=perl.healthy, install_environment=perl.install_environment, run_hook=perl.run_hook),  # noqa: E501
     'pygrep': Language(name='pygrep', ENVIRONMENT_DIR=pygrep.ENVIRONMENT_DIR, get_default_version=pygrep.get_default_version, healthy=pygrep.healthy, install_environment=pygrep.install_environment, run_hook=pygrep.run_hook),  # noqa: E501

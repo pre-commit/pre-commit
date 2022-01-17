@@ -1,0 +1,4 @@
+-   id: hello-world-lua
+    name: hello world lua
+    entry: hello-world-lua
+    language: lua
