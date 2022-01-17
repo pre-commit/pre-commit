@@ -17,7 +17,6 @@ from pre_commit.envcontext import envcontext
 from pre_commit.hook import Hook
 from pre_commit.languages import golang
 from pre_commit.languages import helpers
-from pre_commit.languages import lua
 from pre_commit.languages import node
 from pre_commit.languages import python
 from pre_commit.languages import ruby
@@ -1142,18 +1141,17 @@ def test_lua_hook(tempdir_factory, store):
 
 @skipif_cant_run_lua  # pragma: win32 no cover
 def test_local_lua_additional_dependencies(store):
-    lua_entry = lua._find_lua(C.DEFAULT)
     config = {
         'repo': 'local',
         'hooks': [{
             'id': 'local-lua',
             'name': 'local-lua',
-            'entry': lua_entry,
+            'entry': 'luacheck --version',
             'language': 'lua',
-            'args': ['-e', 'require "inspect"; print("hello world")'],
-            'additional_dependencies': ['inspect'],
+            'additional_dependencies': ['luacheck'],
         }],
     }
     hook = _get_hook(config, store, 'local-lua')
     ret, out = _hook_run(hook, (), color=False)
-    assert (ret, _norm_out(out)) == (0, b'hello world\n')
+    assert b'Luacheck' in out
+    assert ret == 0
