@@ -1,10 +1,11 @@
+from __future__ import annotations
+
 import contextlib
 import enum
 import os
 from typing import Generator
 from typing import MutableMapping
 from typing import NamedTuple
-from typing import Optional
 from typing import Tuple
 from typing import Union
 
@@ -32,7 +33,7 @@ def format_env(parts: SubstitutionT, env: MutableMapping[str, str]) -> str:
 @contextlib.contextmanager
 def envcontext(
         patch: PatchesT,
-        _env: Optional[MutableMapping[str, str]] = None,
+        _env: MutableMapping[str, str] | None = None,
 ) -> Generator[None, None, None]:
     """In this context, `os.environ` is modified according to `patch`.
 

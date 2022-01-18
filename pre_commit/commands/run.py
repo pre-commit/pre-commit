@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import argparse
 import contextlib
 import functools
@@ -9,12 +11,8 @@ import time
 import unicodedata
 from typing import Any
 from typing import Collection
-from typing import Dict
-from typing import List
 from typing import MutableMapping
 from typing import Sequence
-from typing import Set
-from typing import Tuple
 
 from identify.identify import tags_from_path
 
@@ -62,7 +60,7 @@ def filter_by_include_exclude(
         names: Collection[str],
         include: str,
         exclude: str,
-) -> List[str]:
+) -> list[str]:
     include_re, exclude_re = re.compile(include), re.compile(exclude)
     return [
         filename for filename in names
@@ -76,7 +74,7 @@ class Classifier:
         self.filenames = [f for f in filenames if os.path.lexists(f)]
 
     @functools.lru_cache(maxsize=None)
-    def _types_for_file(self, filename: str) -> Set[str]:
+    def _types_for_file(self, filename: str) -> set[str]:
         return tags_from_path(filename)
 
     def by_types(
@@ -85,7 +83,7 @@ class Classifier:
             types: Collection[str],
             types_or: Collection[str],
             exclude_types: Collection[str],
-    ) -> List[str]:
+    ) -> list[str]:
         types = frozenset(types)
         types_or = frozenset(types_or)
         exclude_types = frozenset(exclude_types)
@@ -100,7 +98,7 @@ class Classifier:
                 ret.append(filename)
         return ret
 
-    def filenames_for_hook(self, hook: Hook) -> Tuple[str, ...]:
+    def filenames_for_hook(self, hook: Hook) -> tuple[str, ...]:
         names = self.filenames
         names = filter_by_include_exclude(names, hook.files, hook.exclude)
         names = self.by_types(
@@ -117,7 +115,7 @@ class Classifier:
             filenames: Collection[str],
             include: str,
             exclude: str,
-    ) -> 'Classifier':
+    ) -> Classifier:
         # on windows we normalize all filenames to use forward slashes
         # this makes it easier to filter using the `files:` regex
         # this also makes improperly quoted shell-based hooks work better
@@ -128,7 +126,7 @@ class Classifier:
         return Classifier(filenames)
 
 
-def _get_skips(environ: MutableMapping[str, str]) -> Set[str]:
+def _get_skips(environ: MutableMapping[str, str]) -> set[str]:
     skips = environ.get('SKIP', '')
     return {skip.strip() for skip in skips.split(',') if skip.strip()}
 
@@ -144,12 +142,12 @@ def _subtle_line(s: str, use_color: bool) -> None:
 def _run_single_hook(
         classifier: Classifier,
         hook: Hook,
-        skips: Set[str],
+        skips: set[str],
         cols: int,
         diff_before: bytes,
         verbose: bool,
         use_color: bool,
-) -> Tuple[bool, bytes]:
+) -> tuple[bool, bytes]:
     filenames = classifier.filenames_for_hook(hook)
 
     if hook.id in skips or hook.alias in skips:
@@ -271,9 +269,9 @@ def _get_diff() -> bytes:
 
 
 def _run_hooks(
-        config: Dict[str, Any],
+        config: dict[str, Any],
         hooks: Sequence[Hook],
-        skips: Set[str],
+        skips: set[str],
         args: argparse.Namespace,
 ) -> int:
     """Actually run the hooks."""

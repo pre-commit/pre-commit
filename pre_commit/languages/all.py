@@ -1,8 +1,8 @@
+from __future__ import annotations
+
 from typing import Callable
 from typing import NamedTuple
-from typing import Optional
 from typing import Sequence
-from typing import Tuple
 
 from pre_commit.hook import Hook
 from pre_commit.languages import conda
@@ -30,7 +30,7 @@ from pre_commit.prefix import Prefix
 class Language(NamedTuple):
     name: str
     # Use `None` for no installation / environment
-    ENVIRONMENT_DIR: Optional[str]
+    ENVIRONMENT_DIR: str | None
     # return a value to replace `'default` for `language_version`
     get_default_version: Callable[[], str]
     # return whether the environment is healthy (or should be rebuilt)
@@ -38,7 +38,7 @@ class Language(NamedTuple):
     # install a repository for the given language and language_version
     install_environment: Callable[[Prefix, str, Sequence[str]], None]
     # execute a hook and return the exit code and output
-    run_hook: 'Callable[[Hook, Sequence[str], bool], Tuple[int, bytes]]'
+    run_hook: Callable[[Hook, Sequence[str], bool], tuple[int, bytes]]
 
 
 # TODO: back to modules + Protocol: https://github.com/python/mypy/issues/5018

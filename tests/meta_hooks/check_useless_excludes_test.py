@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from pre_commit import git
 from pre_commit.meta_hooks import check_useless_excludes
 from pre_commit.util import cmd_output

@@ -1,7 +1,7 @@
+from __future__ import annotations
+
 import os.path
 from typing import Mapping
-from typing import Optional
-from typing import Tuple
 from typing import TYPE_CHECKING
 
 from identify.identify import parse_shebang_from_file
@@ -11,11 +11,11 @@ if TYPE_CHECKING:
 
 
 class ExecutableNotFoundError(OSError):
-    def to_output(self) -> Tuple[int, bytes, None]:
+    def to_output(self) -> tuple[int, bytes, None]:
         return (1, self.args[0].encode(), None)
 
 
-def parse_filename(filename: str) -> Tuple[str, ...]:
+def parse_filename(filename: str) -> tuple[str, ...]:
     if not os.path.exists(filename):
         return ()
     else:
@@ -23,8 +23,8 @@ def parse_filename(filename: str) -> Tuple[str, ...]:
 
 
 def find_executable(
-        exe: str, _environ: Optional[Mapping[str, str]] = None,
-) -> Optional[str]:
+        exe: str, _environ: Mapping[str, str] | None = None,
+) -> str | None:
     exe = os.path.normpath(exe)
     if os.sep in exe:
         return exe
@@ -47,7 +47,7 @@ def find_executable(
 
 
 def normexe(orig: str) -> str:
-    def _error(msg: str) -> 'NoReturn':
+    def _error(msg: str) -> NoReturn:
         raise ExecutableNotFoundError(f'Executable `{orig}` {msg}')
 
     if os.sep not in orig and (not os.altsep or os.altsep not in orig):
@@ -65,7 +65,7 @@ def normexe(orig: str) -> str:
         return orig
 
 
-def normalize_cmd(cmd: Tuple[str, ...]) -> Tuple[str, ...]:
+def normalize_cmd(cmd: tuple[str, ...]) -> tuple[str, ...]:
     """Fixes for the following issues on windows
     - https://bugs.python.org/issue8557
     - windows does not parse shebangs

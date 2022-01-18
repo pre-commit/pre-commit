@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os.path
 import sys
 from unittest import mock
@@ -47,16 +49,16 @@ def test_norm_version_of_default_is_sys_executable():
     assert python.norm_version('default') is None
 
 
-@pytest.mark.parametrize('v', ('python3.6', 'python3', 'python'))
+@pytest.mark.parametrize('v', ('python3.9', 'python3', 'python'))
 def test_sys_executable_matches(v):
-    with mock.patch.object(sys, 'version_info', (3, 6, 7)):
+    with mock.patch.object(sys, 'version_info', (3, 9, 10)):
         assert python._sys_executable_matches(v)
         assert python.norm_version(v) is None
 
 
 @pytest.mark.parametrize('v', ('notpython', 'python3.x'))
 def test_sys_executable_matches_does_not_match(v):
-    with mock.patch.object(sys, 'version_info', (3, 6, 7)):
+    with mock.patch.object(sys, 'version_info', (3, 9, 10)):
         assert not python._sys_executable_matches(v)
 
 
@@ -65,7 +67,7 @@ def test_sys_executable_matches_does_not_match(v):
         ('/usr/bin/python3', '/usr/bin/python3.7', 'python3'),
         ('/usr/bin/python', '/usr/bin/python3.7', 'python3.7'),
         ('/usr/bin/python', '/usr/bin/python', None),
-        ('/usr/bin/python3.6m', '/usr/bin/python3.6m', 'python3.6m'),
+        ('/usr/bin/python3.7m', '/usr/bin/python3.7m', 'python3.7m'),
         ('v/bin/python', 'v/bin/pypy', 'pypy'),
     ),
 )

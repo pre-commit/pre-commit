@@ -50,7 +50,7 @@ jobs:
       displayName: install R
 - template: job--python-tox.yml@asottile
   parameters:
-    toxenvs: [pypy3, py36, py37, py38, py39]
+    toxenvs: [py37, py38, py39]
     os: linux
     pre_test:
     - task: UseRubyVersion@0

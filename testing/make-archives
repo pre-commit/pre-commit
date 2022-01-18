@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+from __future__ import annotations
+
 import argparse
 import gzip
 import os.path
@@ -6,7 +8,6 @@ import shutil
 import subprocess
 import tarfile
 import tempfile
-from typing import Optional
 from typing import Sequence
 
 
@@ -69,7 +70,7 @@ def make_archive(name: str, repo: str, ref: str, destdir: str) -> str:
     return output_path
 
 
-def main(argv: Optional[Sequence[str]] = None) -> int:
+def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument('--dest', default='pre_commit/resources')
     args = parser.parse_args(argv)

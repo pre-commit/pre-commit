@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import logging
 
 from pre_commit import color

@@ -1,11 +1,11 @@
+from __future__ import annotations
+
 import logging
 import os.path
 import shlex
 import shutil
 import sys
-from typing import Optional
 from typing import Sequence
-from typing import Tuple
 
 from pre_commit import git
 from pre_commit import output
@@ -34,8 +34,8 @@ TEMPLATE_END = '# end templated\n'
 
 def _hook_paths(
         hook_type: str,
-        git_dir: Optional[str] = None,
-) -> Tuple[str, str]:
+        git_dir: str | None = None,
+) -> tuple[str, str]:
     git_dir = git_dir if git_dir is not None else git.get_git_dir()
     pth = os.path.join(git_dir, 'hooks', hook_type)
     return pth, f'{pth}.legacy'
@@ -54,7 +54,7 @@ def _install_hook_script(
         hook_type: str,
         overwrite: bool = False,
         skip_on_missing_config: bool = False,
-        git_dir: Optional[str] = None,
+        git_dir: str | None = None,
 ) -> None:
     hook_path, legacy_path = _hook_paths(hook_type, git_dir=git_dir)
 
@@ -107,7 +107,7 @@ def install(
         overwrite: bool = False,
         hooks: bool = False,
         skip_on_missing_config: bool = False,
-        git_dir: Optional[str] = None,
+        git_dir: str | None = None,
 ) -> int:
     if git_dir is None and git.has_core_hookpaths_set():
         logger.error(

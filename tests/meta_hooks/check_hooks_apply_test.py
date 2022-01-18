@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from pre_commit.meta_hooks import check_hooks_apply
 from testing.fixtures import add_config_to_repo
 

@@ -1,13 +1,12 @@
+from __future__ import annotations
+
 import multiprocessing
 import os
 import random
 import re
 from typing import Any
-from typing import List
-from typing import Optional
 from typing import overload
 from typing import Sequence
-from typing import Tuple
 from typing import TYPE_CHECKING
 
 import pre_commit.constants as C
@@ -32,7 +31,7 @@ def exe_exists(exe: str) -> bool:
 
     homedir = os.path.expanduser('~')
     try:
-        common: Optional[str] = os.path.commonpath((found, homedir))
+        common: str | None = os.path.commonpath((found, homedir))
     except ValueError:  # on windows, different drives raises ValueError
         common = None
 
@@ -48,7 +47,7 @@ def exe_exists(exe: str) -> bool:
     )
 
 
-def run_setup_cmd(prefix: Prefix, cmd: Tuple[str, ...], **kwargs: Any) -> None:
+def run_setup_cmd(prefix: Prefix, cmd: tuple[str, ...], **kwargs: Any) -> None:
     cmd_output_b(*cmd, cwd=prefix.prefix_dir, **kwargs)
 
 
@@ -58,7 +57,7 @@ def environment_dir(d: None, language_version: str) -> None: ...
 def environment_dir(d: str, language_version: str) -> str: ...
 
 
-def environment_dir(d: Optional[str], language_version: str) -> Optional[str]:
+def environment_dir(d: str | None, language_version: str) -> str | None:
     if d is None:
         return None
     else:
@@ -95,7 +94,7 @@ def no_install(
         prefix: Prefix,
         version: str,
         additional_dependencies: Sequence[str],
-) -> 'NoReturn':
+) -> NoReturn:
     raise AssertionError('This type is not installable')
 
 
@@ -113,7 +112,7 @@ def target_concurrency(hook: Hook) -> int:
                 return 1
 
 
-def _shuffled(seq: Sequence[str]) -> List[str]:
+def _shuffled(seq: Sequence[str]) -> list[str]:
     """Deterministically shuffle"""
     fixed_random = random.Random()
     fixed_random.seed(FIXED_RANDOM_SEED, version=1)
@@ -125,10 +124,10 @@ def _shuffled(seq: Sequence[str]) -> List[str]:
 
 def run_xargs(
         hook: Hook,
-        cmd: Tuple[str, ...],
+        cmd: tuple[str, ...],
         file_args: Sequence[str],
         **kwargs: Any,
-) -> Tuple[int, bytes]:
+) -> tuple[int, bytes]:
     # Shuffle the files so that they more evenly fill out the xargs partitions,
     # but do it deterministically in case a hook cares about ordering.
     file_args = _shuffled(file_args)

@@ -1,8 +1,9 @@
+from __future__ import annotations
+
 import contextlib
 import sys
 from typing import Any
 from typing import IO
-from typing import Optional
 
 
 def write(s: str, stream: IO[bytes] = sys.stdout.buffer) -> None:
@@ -11,9 +12,9 @@ def write(s: str, stream: IO[bytes] = sys.stdout.buffer) -> None:
 
 
 def write_line_b(
-        s: Optional[bytes] = None,
+        s: bytes | None = None,
         stream: IO[bytes] = sys.stdout.buffer,
-        logfile_name: Optional[str] = None,
+        logfile_name: str | None = None,
 ) -> None:
     with contextlib.ExitStack() as exit_stack:
         output_streams = [stream]
@@ -28,5 +29,5 @@ def write_line_b(
             output_stream.flush()
 
 
-def write_line(s: Optional[str] = None, **kwargs: Any) -> None:
+def write_line(s: str | None = None, **kwargs: Any) -> None:
     write_line_b(s.encode() if s is not None else s, **kwargs)

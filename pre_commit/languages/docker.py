@@ -1,8 +1,9 @@
+from __future__ import annotations
+
 import hashlib
 import json
 import os
 from typing import Sequence
-from typing import Tuple
 
 import pre_commit.constants as C
 from pre_commit.hook import Hook
@@ -76,7 +77,7 @@ def build_docker_image(
         *,
         pull: bool,
 ) -> None:  # pragma: win32 no cover
-    cmd: Tuple[str, ...] = (
+    cmd: tuple[str, ...] = (
         'docker', 'build',
         '--tag', docker_tag(prefix),
         '--label', PRE_COMMIT_LABEL,
@@ -105,14 +106,14 @@ def install_environment(
         os.mkdir(directory)
 
 
-def get_docker_user() -> Tuple[str, ...]:  # pragma: win32 no cover
+def get_docker_user() -> tuple[str, ...]:  # pragma: win32 no cover
     try:
         return ('-u', f'{os.getuid()}:{os.getgid()}')
     except AttributeError:
         return ()
 
 
-def docker_cmd() -> Tuple[str, ...]:  # pragma: win32 no cover
+def docker_cmd() -> tuple[str, ...]:  # pragma: win32 no cover
     return (
         'docker', 'run',
         '--rm',
@@ -129,7 +130,7 @@ def run_hook(
         hook: Hook,
         file_args: Sequence[str],
         color: bool,
-) -> Tuple[int, bytes]:  # pragma: win32 no cover
+) -> tuple[int, bytes]:  # pragma: win32 no cover
     # Rebuild the docker image in case it has gone missing, as many people do
     # automated cleanup of docker images.
     build_docker_image(hook.prefix, pull=False)

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import io
 
 from pre_commit import output

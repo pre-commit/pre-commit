@@ -1,12 +1,10 @@
+from __future__ import annotations
+
 import os.path
 import re
 from typing import Any
-from typing import Dict
-from typing import List
 from typing import NamedTuple
-from typing import Optional
 from typing import Sequence
-from typing import Tuple
 
 import pre_commit.constants as C
 from pre_commit import git
@@ -29,13 +27,13 @@ from pre_commit.util import yaml_load
 class RevInfo(NamedTuple):
     repo: str
     rev: str
-    frozen: Optional[str]
+    frozen: str | None
 
     @classmethod
-    def from_config(cls, config: Dict[str, Any]) -> 'RevInfo':
+    def from_config(cls, config: dict[str, Any]) -> RevInfo:
         return cls(config['repo'], config['rev'], None)
 
-    def update(self, tags_only: bool, freeze: bool) -> 'RevInfo':
+    def update(self, tags_only: bool, freeze: bool) -> RevInfo:
         git_cmd = ('git', *git.NO_FS_MONITOR)
 
         if tags_only:
@@ -76,7 +74,7 @@ class RepositoryCannotBeUpdatedError(RuntimeError):
 
 
 def _check_hooks_still_exist_at_rev(
-        repo_config: Dict[str, Any],
+        repo_config: dict[str, Any],
         info: RevInfo,
         store: Store,
 ) -> None:
@@ -101,9 +99,9 @@ REV_LINE_RE = re.compile(r'^(\s+)rev:(\s*)([\'"]?)([^\s#]+)(.*)(\r?\n)$')
 
 def _original_lines(
         path: str,
-        rev_infos: List[Optional[RevInfo]],
+        rev_infos: list[RevInfo | None],
         retry: bool = False,
-) -> Tuple[List[str], List[int]]:
+) -> tuple[list[str], list[int]]:
     """detect `rev:` lines or reformat the file"""
     with open(path, newline='') as f:
         original = f.read()
@@ -120,7 +118,7 @@ def _original_lines(
         return _original_lines(path, rev_infos, retry=True)
 
 
-def _write_new_config(path: str, rev_infos: List[Optional[RevInfo]]) -> None:
+def _write_new_config(path: str, rev_infos: list[RevInfo | None]) -> None:
     lines, idxs = _original_lines(path, rev_infos)
 
     for idx, rev_info in zip(idxs, rev_infos):
@@ -152,7 +150,7 @@ def autoupdate(
     """Auto-update the pre-commit config to the latest versions of repos."""
     migrate_config(config_file, quiet=True)
     retv = 0
-    rev_infos: List[Optional[RevInfo]] = []
+    rev_infos: list[RevInfo | None] = []
     changed = False
 
     config = load_config(config_file)

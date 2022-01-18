@@ -1,5 +1,6 @@
+from __future__ import annotations
+
 import argparse
-from typing import Optional
 from typing import Sequence
 
 import pre_commit.constants as C
@@ -27,7 +28,7 @@ def check_all_hooks_match_files(config_file: str) -> int:
     return retv
 
 
-def main(argv: Optional[Sequence[str]] = None) -> int:
+def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument('filenames', nargs='*', default=[C.CONFIG_FILE])
     args = parser.parse_args(argv)

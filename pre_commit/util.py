@@ -1,6 +1,9 @@
+from __future__ import annotations
+
 import contextlib
 import errno
 import functools
+import importlib.resources
 import os.path
 import shutil
 import stat
@@ -10,23 +13,12 @@ import tempfile
 from types import TracebackType
 from typing import Any
 from typing import Callable
-from typing import Dict
 from typing import Generator
 from typing import IO
-from typing import Optional
-from typing import Tuple
-from typing import Type
 
 import yaml
 
 from pre_commit import parse_shebang
-
-if sys.version_info >= (3, 7):  # pragma: >=3.7 cover
-    from importlib.resources import open_binary
-    from importlib.resources import read_text
-else:  # pragma: <3.7 cover
-    from importlib_resources import open_binary
-    from importlib_resources import read_text
 
 Loader = getattr(yaml, 'CSafeLoader', yaml.SafeLoader)
 yaml_load = functools.partial(yaml.load, Loader=Loader)
@@ -73,11 +65,11 @@ def tmpdir() -> Generator[str, None, None]:
 
 
 def resource_bytesio(filename: str) -> IO[bytes]:
-    return open_binary('pre_commit.resources', filename)
+    return importlib.resources.open_binary('pre_commit.resources', filename)
 
 
 def resource_text(filename: str) -> str:
-    return read_text('pre_commit.resources', filename)
+    return importlib.resources.read_text('pre_commit.resources', filename)
 
 
 def make_executable(filename: str) -> None:
@@ -90,10 +82,10 @@ class CalledProcessError(RuntimeError):
     def __init__(
             self,
             returncode: int,
-            cmd: Tuple[str, ...],
+            cmd: tuple[str, ...],
             expected_returncode: int,
             stdout: bytes,
-            stderr: Optional[bytes],
+            stderr: bytes | None,
     ) -> None:
         super().__init__(returncode, cmd, expected_returncode, stdout, stderr)
         self.returncode = returncode
@@ -103,7 +95,7 @@ class CalledProcessError(RuntimeError):
         self.stderr = stderr
 
     def __bytes__(self) -> bytes:
-        def _indent_or_none(part: Optional[bytes]) -> bytes:
+        def _indent_or_none(part: bytes | None) -> bytes:
             if part:
                 return b'\n    ' + part.replace(b'\n', b'\n    ')
             else:
@@ -121,20 +113,20 @@ class CalledProcessError(RuntimeError):
         return self.__bytes__().decode()
 
 
-def _setdefault_kwargs(kwargs: Dict[str, Any]) -> None:
+def _setdefault_kwargs(kwargs: dict[str, Any]) -> None:
     for arg in ('stdin', 'stdout', 'stderr'):
         kwargs.setdefault(arg, subprocess.PIPE)
 
 
-def _oserror_to_output(e: OSError) -> Tuple[int, bytes, None]:
+def _oserror_to_output(e: OSError) -> tuple[int, bytes, None]:
     return 1, force_bytes(e).rstrip(b'\n') + b'\n', None
 
 
 def cmd_output_b(
         *cmd: str,
-        retcode: Optional[int] = 0,
+        retcode: int | None = 0,
         **kwargs: Any,
-) -> Tuple[int, bytes, Optional[bytes]]:
+) -> tuple[int, bytes, bytes | None]:
     _setdefault_kwargs(kwargs)
 
     try:
@@ -156,7 +148,7 @@ def cmd_output_b(
     return returncode, stdout_b, stderr_b
 
 
-def cmd_output(*cmd: str, **kwargs: Any) -> Tuple[int, str, Optional[str]]:
+def cmd_output(*cmd: str, **kwargs: Any) -> tuple[int, str, str | None]:
     returncode, stdout_b, stderr_b = cmd_output_b(*cmd, **kwargs)
     stdout = stdout_b.decode() if stdout_b is not None else None
     stderr = stderr_b.decode() if stderr_b is not None else None
@@ -169,10 +161,10 @@ if os.name != 'nt':  # pragma: win32 no cover
 
     class Pty:
         def __init__(self) -> None:
-            self.r: Optional[int] = None
-            self.w: Optional[int] = None
+            self.r: int | None = None
+            self.w: int | None = None
 
-        def __enter__(self) -> 'Pty':
+        def __enter__(self) -> Pty:
             self.r, self.w = openpty()
 
             # tty flags normally change \n to \r\n
@@ -195,18 +187,18 @@ if os.name != 'nt':  # pragma: win32 no cover
 
         def __exit__(
                 self,
-                exc_type: Optional[Type[BaseException]],
-                exc_value: Optional[BaseException],
-                traceback: Optional[TracebackType],
+                exc_type: type[BaseException] | None,
+                exc_value: BaseException | None,
+                traceback: TracebackType | None,
         ) -> None:
             self.close_w()
             self.close_r()
 
     def cmd_output_p(
             *cmd: str,
-            retcode: Optional[int] = 0,
+            retcode: int | None = 0,
             **kwargs: Any,
-    ) -> Tuple[int, bytes, Optional[bytes]]:
+    ) -> tuple[int, bytes, bytes | None]:
         assert retcode is None
         assert kwargs['stderr'] == subprocess.STDOUT, kwargs['stderr']
         _setdefault_kwargs(kwargs)
@@ -250,7 +242,7 @@ def rmtree(path: str) -> None:
     def handle_remove_readonly(
             func: Callable[..., Any],
             path: str,
-            exc: Tuple[Type[OSError], OSError, TracebackType],
+            exc: tuple[type[OSError], OSError, TracebackType],
     ) -> None:
         excvalue = exc[1]
         if (
@@ -265,7 +257,7 @@ def rmtree(path: str) -> None:
     shutil.rmtree(path, ignore_errors=False, onerror=handle_remove_readonly)
 
 
-def parse_version(s: str) -> Tuple[int, ...]:
+def parse_version(s: str) -> tuple[int, ...]:
     """poor man's version comparison"""
     return tuple(int(p) for p in s.split('.'))
 

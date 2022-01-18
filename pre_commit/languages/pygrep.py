@@ -1,11 +1,11 @@
+from __future__ import annotations
+
 import argparse
 import re
 import sys
 from typing import NamedTuple
-from typing import Optional
 from typing import Pattern
 from typing import Sequence
-from typing import Tuple
 
 from pre_commit import output
 from pre_commit.hook import Hook
@@ -90,12 +90,12 @@ def run_hook(
         hook: Hook,
         file_args: Sequence[str],
         color: bool,
-) -> Tuple[int, bytes]:
+) -> tuple[int, bytes]:
     exe = (sys.executable, '-m', __name__) + tuple(hook.args) + (hook.entry,)
     return xargs(exe, file_args, color=color)
 
 
-def main(argv: Optional[Sequence[str]] = None) -> int:
+def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description=(
             'grep-like finder using python regexes.  Unlike grep, this tool '

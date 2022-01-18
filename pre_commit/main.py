@@ -1,11 +1,11 @@
+from __future__ import annotations
+
 import argparse
 import logging
 import os
 import sys
 from typing import Any
-from typing import Optional
 from typing import Sequence
-from typing import Union
 
 import pre_commit.constants as C
 from pre_commit import git
@@ -55,8 +55,8 @@ class AppendReplaceDefault(argparse.Action):
             self,
             parser: argparse.ArgumentParser,
             namespace: argparse.Namespace,
-            values: Union[str, Sequence[str], None],
-            option_string: Optional[str] = None,
+            values: str | Sequence[str] | None,
+            option_string: str | None = None,
     ) -> None:
         if not self.appended:
             setattr(namespace, self.dest, [])
@@ -175,7 +175,7 @@ def _adjust_args_and_chdir(args: argparse.Namespace) -> None:
         args.repo = os.path.relpath(args.repo)
 
 
-def main(argv: Optional[Sequence[str]] = None) -> int:
+def main(argv: Sequence[str] | None = None) -> int:
     argv = argv if argv is not None else sys.argv[1:]
     parser = argparse.ArgumentParser(prog='pre-commit')
 
