@@ -1,3 +1,36 @@
+2.17.0 - 2022-01-18
+===================
+
+### Features
+- add warnings for regexes containing `[\\/]`.
+    - #2151 issue by @sanjioh.
+    - #2154 PR by @kuviokelluja.
+- upgrade supported ruby versions.
+    - #2205 PR by @jalessio.
+- allow `language: conda` to use `mamba` or `micromamba` via
+  `PRE_COMMIT_USE_MAMBA=1` or `PRE_COMMIT_USE_MICROMAMBA=1` respectively.
+    - #2204 issue by @janjagusch.
+    - #2207 PR by @xhochy.
+- display `git --version` in error report.
+    - #2210 PR by @asottile.
+- add `language: lua` as a supported language.
+    - #2158 PR by @mblayman.
+
+### Fixes
+- temporarily add `setuptools` to the zipapp.
+    - #2122 issue by @andreoliwa.
+    - a737d5f commit by @asottile.
+- use `go install` instead of `go get` for go 1.18+ support.
+    - #2161 PR by @schmir.
+- fix `language: r` with a local renv and `RENV_PROJECT` set.
+    - #2170 PR by @lorenzwalthert.
+- forbid overriding `entry` in `language: meta` hooks which breaks them.
+    - #2180 issue by @DanKaplanSES.
+    - #2181 PR by @asottile.
+- always use `#!/bin/sh` on windows for hook script.
+    - #2182 issue by @hushigome-visco.
+    - #2187 PR by @asottile.
+
 2.16.0 - 2021-11-30
 ===================
 
