@@ -1,10 +1,10 @@
+from __future__ import annotations
+
 import argparse
 import os.path
 import subprocess
 import sys
-from typing import Optional
 from typing import Sequence
-from typing import Tuple
 
 from pre_commit.commands.run import run
 from pre_commit.envcontext import envcontext
@@ -18,7 +18,7 @@ def _run_legacy(
         hook_type: str,
         hook_dir: str,
         args: Sequence[str],
-) -> Tuple[int, bytes]:
+) -> tuple[int, bytes]:
     if os.environ.get('PRE_COMMIT_RUNNING_LEGACY'):
         raise SystemExit(
             f"bug: pre-commit's script is installed in migration mode\n"
@@ -69,16 +69,16 @@ def _ns(
         color: bool,
         *,
         all_files: bool = False,
-        remote_branch: Optional[str] = None,
-        local_branch: Optional[str] = None,
-        from_ref: Optional[str] = None,
-        to_ref: Optional[str] = None,
-        remote_name: Optional[str] = None,
-        remote_url: Optional[str] = None,
-        commit_msg_filename: Optional[str] = None,
-        checkout_type: Optional[str] = None,
-        is_squash_merge: Optional[str] = None,
-        rewrite_command: Optional[str] = None,
+        remote_branch: str | None = None,
+        local_branch: str | None = None,
+        from_ref: str | None = None,
+        to_ref: str | None = None,
+        remote_name: str | None = None,
+        remote_url: str | None = None,
+        commit_msg_filename: str | None = None,
+        checkout_type: str | None = None,
+        is_squash_merge: str | None = None,
+        rewrite_command: str | None = None,
 ) -> argparse.Namespace:
     return argparse.Namespace(
         color=color,
@@ -109,7 +109,7 @@ def _pre_push_ns(
         color: bool,
         args: Sequence[str],
         stdin: bytes,
-) -> Optional[argparse.Namespace]:
+) -> argparse.Namespace | None:
     remote_name = args[0]
     remote_url = args[1]
 
@@ -197,7 +197,7 @@ def _run_ns(
         color: bool,
         args: Sequence[str],
         stdin: bytes,
-) -> Optional[argparse.Namespace]:
+) -> argparse.Namespace | None:
     _check_args_length(hook_type, args)
     if hook_type == 'pre-push':
         return _pre_push_ns(color, args, stdin)

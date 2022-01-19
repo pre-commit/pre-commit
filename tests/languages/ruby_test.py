@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os.path
 import tarfile
 from unittest import mock

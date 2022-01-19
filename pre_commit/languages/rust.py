@@ -1,9 +1,9 @@
+from __future__ import annotations
+
 import contextlib
 import os.path
 from typing import Generator
 from typing import Sequence
-from typing import Set
-from typing import Tuple
 
 import toml
 
@@ -39,7 +39,7 @@ def in_env(prefix: Prefix) -> Generator[None, None, None]:
 
 def _add_dependencies(
         cargo_toml_path: str,
-        additional_dependencies: Set[str],
+        additional_dependencies: set[str],
 ) -> None:
     with open(cargo_toml_path, 'r+') as f:
         cargo_toml = toml.load(f)
@@ -81,7 +81,7 @@ def install_environment(
         _add_dependencies(prefix.path('Cargo.toml'), lib_deps)
 
     with clean_path_on_failure(directory):
-        packages_to_install: Set[Tuple[str, ...]] = {('--path', '.')}
+        packages_to_install: set[tuple[str, ...]] = {('--path', '.')}
         for cli_dep in cli_deps:
             cli_dep = cli_dep[len('cli:'):]
             package, _, version = cli_dep.partition(':')
@@ -101,6 +101,6 @@ def run_hook(
         hook: Hook,
         file_args: Sequence[str],
         color: bool,
-) -> Tuple[int, bytes]:
+) -> tuple[int, bytes]:
     with in_env(hook.prefix):
         return helpers.run_xargs(hook, hook.cmd, file_args, color=color)

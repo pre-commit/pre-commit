@@ -1,9 +1,10 @@
+from __future__ import annotations
+
 import contextlib
 import os
 import shlex
 from typing import Generator
 from typing import Sequence
-from typing import Tuple
 
 from pre_commit.envcontext import envcontext
 from pre_commit.envcontext import PatchesT
@@ -62,6 +63,6 @@ def run_hook(
         hook: Hook,
         file_args: Sequence[str],
         color: bool,
-) -> Tuple[int, bytes]:
+) -> tuple[int, bytes]:
     with in_env(hook.prefix, hook.language_version):
         return helpers.run_xargs(hook, hook.cmd, file_args, color=color)

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import pre_commit.constants as C
 from pre_commit.commands.migrate_config import migrate_config
 

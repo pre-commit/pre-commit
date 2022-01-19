@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import argparse
 import functools
 import logging
@@ -5,8 +7,6 @@ import re
 import shlex
 import sys
 from typing import Any
-from typing import Dict
-from typing import Optional
 from typing import Sequence
 
 import cfgv
@@ -95,7 +95,7 @@ load_manifest = functools.partial(
 )
 
 
-def validate_manifest_main(argv: Optional[Sequence[str]] = None) -> int:
+def validate_manifest_main(argv: Sequence[str] | None = None) -> int:
     parser = _make_argparser('Manifest filenames.')
     args = parser.parse_args(argv)
 
@@ -116,7 +116,7 @@ META = 'meta'
 
 # should inherit from cfgv.Conditional if sha support is dropped
 class WarnMutableRev(cfgv.ConditionalOptional):
-    def check(self, dct: Dict[str, Any]) -> None:
+    def check(self, dct: dict[str, Any]) -> None:
         super().check(dct)
 
         if self.key in dct:
@@ -135,7 +135,7 @@ class WarnMutableRev(cfgv.ConditionalOptional):
 
 
 class OptionalSensibleRegexAtHook(cfgv.OptionalNoDefault):
-    def check(self, dct: Dict[str, Any]) -> None:
+    def check(self, dct: dict[str, Any]) -> None:
         super().check(dct)
 
         if '/*' in dct.get(self.key, ''):
@@ -154,7 +154,7 @@ class OptionalSensibleRegexAtHook(cfgv.OptionalNoDefault):
 
 
 class OptionalSensibleRegexAtTop(cfgv.OptionalNoDefault):
-    def check(self, dct: Dict[str, Any]) -> None:
+    def check(self, dct: dict[str, Any]) -> None:
         super().check(dct)
 
         if '/*' in dct.get(self.key, ''):
@@ -183,7 +183,7 @@ class MigrateShaToRev:
             ensure_absent=True,
         )
 
-    def check(self, dct: Dict[str, Any]) -> None:
+    def check(self, dct: dict[str, Any]) -> None:
         if dct.get('repo') in {LOCAL, META}:
             self._cond('rev').check(dct)
             self._cond('sha').check(dct)
@@ -194,7 +194,7 @@ class MigrateShaToRev:
         else:
             self._cond('rev').check(dct)
 
-    def apply_default(self, dct: Dict[str, Any]) -> None:
+    def apply_default(self, dct: dict[str, Any]) -> None:
         if 'sha' in dct:
             dct['rev'] = dct.pop('sha')
 
@@ -212,7 +212,7 @@ def _entry(modname: str) -> str:
 def warn_unknown_keys_root(
         extra: Sequence[str],
         orig_keys: Sequence[str],
-        dct: Dict[str, str],
+        dct: dict[str, str],
 ) -> None:
     logger.warning(f'Unexpected key(s) present at root: {", ".join(extra)}')
 
@@ -220,7 +220,7 @@ def warn_unknown_keys_root(
 def warn_unknown_keys_repo(
         extra: Sequence[str],
         orig_keys: Sequence[str],
-        dct: Dict[str, str],
+        dct: dict[str, str],
 ) -> None:
     logger.warning(
         f'Unexpected key(s) present on {dct["repo"]}: {", ".join(extra)}',
@@ -253,7 +253,7 @@ _meta = (
 
 
 class NotAllowed(cfgv.OptionalNoDefault):
-    def check(self, dct: Dict[str, Any]) -> None:
+    def check(self, dct: dict[str, Any]) -> None:
         if self.key in dct:
             raise cfgv.ValidationError(f'{self.key!r} cannot be overridden')
 
@@ -377,7 +377,7 @@ class InvalidConfigError(FatalError):
     pass
 
 
-def ordered_load_normalize_legacy_config(contents: str) -> Dict[str, Any]:
+def ordered_load_normalize_legacy_config(contents: str) -> dict[str, Any]:
     data = yaml_load(contents)
     if isinstance(data, list):
         logger.warning(
@@ -398,7 +398,7 @@ load_config = functools.partial(
 )
 
 
-def validate_config_main(argv: Optional[Sequence[str]] = None) -> int:
+def validate_config_main(argv: Sequence[str] | None = None) -> int:
     parser = _make_argparser('Config filenames.')
     args = parser.parse_args(argv)
 

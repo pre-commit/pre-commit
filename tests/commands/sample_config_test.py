@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from pre_commit.commands.sample_config import sample_config
 
 

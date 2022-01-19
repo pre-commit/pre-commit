@@ -1,8 +1,7 @@
+from __future__ import annotations
+
 import os.path
 from typing import Any
-from typing import Dict
-from typing import Set
-from typing import Tuple
 
 import pre_commit.constants as C
 from pre_commit import output
@@ -17,9 +16,9 @@ from pre_commit.store import Store
 
 def _mark_used_repos(
         store: Store,
-        all_repos: Dict[Tuple[str, str], str],
-        unused_repos: Set[Tuple[str, str]],
-        repo: Dict[str, Any],
+        all_repos: dict[tuple[str, str], str],
+        unused_repos: set[tuple[str, str]],
+        repo: dict[str, Any],
 ) -> None:
     if repo['repo'] == META:
         return

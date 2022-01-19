@@ -1,8 +1,8 @@
+from __future__ import annotations
+
 import argparse
 import logging
 import os.path
-from typing import Optional
-from typing import Tuple
 
 import pre_commit.constants as C
 from pre_commit import git
@@ -18,7 +18,7 @@ from pre_commit.xargs import xargs
 logger = logging.getLogger(__name__)
 
 
-def _repo_ref(tmpdir: str, repo: str, ref: Optional[str]) -> Tuple[str, str]:
+def _repo_ref(tmpdir: str, repo: str, ref: str | None) -> tuple[str, str]:
     # if `ref` is explicitly passed, use it
     if ref is not None:
         return repo, ref

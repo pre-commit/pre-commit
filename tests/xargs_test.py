@@ -1,8 +1,9 @@
+from __future__ import annotations
+
 import concurrent.futures
 import os
 import sys
 import time
-from typing import Tuple
 from unittest import mock
 
 import pytest
@@ -178,7 +179,7 @@ def test_thread_mapper_concurrency_uses_regular_map():
 
 def test_xargs_propagate_kwargs_to_cmd():
     env = {'PRE_COMMIT_TEST_VAR': 'Pre commit is awesome'}
-    cmd: Tuple[str, ...] = ('bash', '-c', 'echo $PRE_COMMIT_TEST_VAR', '--')
+    cmd: tuple[str, ...] = ('bash', '-c', 'echo $PRE_COMMIT_TEST_VAR', '--')
     cmd = parse_shebang.normalize_cmd(cmd)
 
     ret, stdout = xargs.xargs(cmd, ('1',), env=env)

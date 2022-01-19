@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+from __future__ import annotations
+
 import os.path
 import shutil
 import stat
@@ -59,10 +61,7 @@ def main() -> int:
     if sys.platform == 'win32':  # https://bugs.python.org/issue19124
         import subprocess
 
-        if sys.version_info < (3, 7):  # https://bugs.python.org/issue25942
-            return subprocess.Popen(cmd).wait()
-        else:
-            return subprocess.call(cmd)
+        return subprocess.call(cmd)
     else:
         os.execvp(cmd[0], cmd)
 

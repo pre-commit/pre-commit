@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import contextlib
 import logging
 import os.path
@@ -5,10 +7,7 @@ import sqlite3
 import tempfile
 from typing import Callable
 from typing import Generator
-from typing import List
-from typing import Optional
 from typing import Sequence
-from typing import Tuple
 
 import pre_commit.constants as C
 from pre_commit import file_lock
@@ -40,7 +39,7 @@ def _get_default_directory() -> str:
 class Store:
     get_default_directory = staticmethod(_get_default_directory)
 
-    def __init__(self, directory: Optional[str] = None) -> None:
+    def __init__(self, directory: str | None = None) -> None:
         self.directory = directory or Store.get_default_directory()
         self.db_path = os.path.join(self.directory, 'db.db')
         self.readonly = (
@@ -92,7 +91,7 @@ class Store:
     @contextlib.contextmanager
     def connect(
             self,
-            db_path: Optional[str] = None,
+            db_path: str | None = None,
     ) -> Generator[sqlite3.Connection, None, None]:
         db_path = db_path or self.db_path
         # sqlite doesn't close its fd with its contextmanager >.<
@@ -119,7 +118,7 @@ class Store:
     ) -> str:
         repo = self.db_repo_name(repo, deps)
 
-        def _get_result() -> Optional[str]:
+        def _get_result() -> str | None:
             # Check if we already exist
             with self.connect() as db:
                 result = db.execute(
@@ -239,18 +238,18 @@ class Store:
             self._create_config_table(db)
             db.execute('INSERT OR IGNORE INTO configs VALUES (?)', (path,))
 
-    def select_all_configs(self) -> List[str]:
+    def select_all_configs(self) -> list[str]:
         with self.connect() as db:
             self._create_config_table(db)
             rows = db.execute('SELECT path FROM configs').fetchall()
             return [path for path, in rows]
 
-    def delete_configs(self, configs: List[str]) -> None:
+    def delete_configs(self, configs: list[str]) -> None:
         with self.connect() as db:
             rows = [(path,) for path in configs]
             db.executemany('DELETE FROM configs WHERE path = ?', rows)
 
-    def select_all_repos(self) -> List[Tuple[str, str, str]]:
+    def select_all_repos(self) -> list[tuple[str, str, str]]:
         with self.connect() as db:
             return db.execute('SELECT repo, ref, path from repos').fetchall()
 

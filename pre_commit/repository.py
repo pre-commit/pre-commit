@@ -1,13 +1,10 @@
+from __future__ import annotations
+
 import json
 import logging
 import os
 from typing import Any
-from typing import Dict
-from typing import List
-from typing import Optional
 from typing import Sequence
-from typing import Set
-from typing import Tuple
 
 import pre_commit.constants as C
 from pre_commit.clientlib import load_manifest
@@ -33,7 +30,7 @@ def _state_filename(prefix: Prefix, venv: str) -> str:
     return prefix.path(venv, f'.install_state_v{C.INSTALLED_STATE_VERSION}')
 
 
-def _read_state(prefix: Prefix, venv: str) -> Optional[object]:
+def _read_state(prefix: Prefix, venv: str) -> object | None:
     filename = _state_filename(prefix, venv)
     if not os.path.exists(filename):
         return None
@@ -93,9 +90,9 @@ def _hook_install(hook: Hook) -> None:
 
 
 def _hook(
-        *hook_dicts: Dict[str, Any],
-        root_config: Dict[str, Any],
-) -> Dict[str, Any]:
+        *hook_dicts: dict[str, Any],
+        root_config: dict[str, Any],
+) -> dict[str, Any]:
     ret, rest = dict(hook_dicts[0]), hook_dicts[1:]
     for dct in rest:
         ret.update(dct)
@@ -140,10 +137,10 @@ def _hook(
 
 
 def _non_cloned_repository_hooks(
-        repo_config: Dict[str, Any],
+        repo_config: dict[str, Any],
         store: Store,
-        root_config: Dict[str, Any],
-) -> Tuple[Hook, ...]:
+        root_config: dict[str, Any],
+) -> tuple[Hook, ...]:
     def _prefix(language_name: str, deps: Sequence[str]) -> Prefix:
         language = languages[language_name]
         # pygrep / script / system / docker_image do not have
@@ -164,10 +161,10 @@ def _non_cloned_repository_hooks(
 
 
 def _cloned_repository_hooks(
-        repo_config: Dict[str, Any],
+        repo_config: dict[str, Any],
         store: Store,
-        root_config: Dict[str, Any],
-) -> Tuple[Hook, ...]:
+        root_config: dict[str, Any],
+) -> tuple[Hook, ...]:
     repo, rev = repo_config['repo'], repo_config['rev']
     manifest_path = os.path.join(store.clone(repo, rev), C.MANIFEST_FILE)
     by_id = {hook['id']: hook for hook in load_manifest(manifest_path)}
@@ -196,10 +193,10 @@ def _cloned_repository_hooks(
 
 
 def _repository_hooks(
-        repo_config: Dict[str, Any],
+        repo_config: dict[str, Any],
         store: Store,
-        root_config: Dict[str, Any],
-) -> Tuple[Hook, ...]:
+        root_config: dict[str, Any],
+) -> tuple[Hook, ...]:
     if repo_config['repo'] in {LOCAL, META}:
         return _non_cloned_repository_hooks(repo_config, store, root_config)
     else:
@@ -207,8 +204,8 @@ def _repository_hooks(
 
 
 def install_hook_envs(hooks: Sequence[Hook], store: Store) -> None:
-    def _need_installed() -> List[Hook]:
-        seen: Set[Tuple[Prefix, str, str, Tuple[str, ...]]] = set()
+    def _need_installed() -> list[Hook]:
+        seen: set[tuple[Prefix, str, str, tuple[str, ...]]] = set()
         ret = []
         for hook in hooks:
             if hook.install_key not in seen and not _hook_installed(hook):
@@ -224,7 +221,7 @@ def install_hook_envs(hooks: Sequence[Hook], store: Store) -> None:
             _hook_install(hook)
 
 
-def all_hooks(root_config: Dict[str, Any], store: Store) -> Tuple[Hook, ...]:
+def all_hooks(root_config: dict[str, Any], store: Store) -> tuple[Hook, ...]:
     return tuple(
         hook
         for repo in root_config['repos']

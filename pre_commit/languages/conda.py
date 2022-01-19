@@ -1,8 +1,9 @@
+from __future__ import annotations
+
 import contextlib
 import os
 from typing import Generator
 from typing import Sequence
-from typing import Tuple
 
 from pre_commit.envcontext import envcontext
 from pre_commit.envcontext import PatchesT
@@ -86,7 +87,7 @@ def run_hook(
         hook: Hook,
         file_args: Sequence[str],
         color: bool,
-) -> Tuple[int, bytes]:
+) -> tuple[int, bytes]:
     # TODO: Some rare commands need to be run using `conda run` but mostly we
     #       can run them without which is much quicker and produces a better
     #       output.

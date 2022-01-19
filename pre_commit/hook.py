@@ -1,10 +1,10 @@
+from __future__ import annotations
+
 import logging
 import shlex
 from typing import Any
-from typing import Dict
 from typing import NamedTuple
 from typing import Sequence
-from typing import Tuple
 
 from pre_commit.prefix import Prefix
 
@@ -38,11 +38,11 @@ class Hook(NamedTuple):
     verbose: bool
 
     @property
-    def cmd(self) -> Tuple[str, ...]:
+    def cmd(self) -> tuple[str, ...]:
         return (*shlex.split(self.entry), *self.args)
 
     @property
-    def install_key(self) -> Tuple[Prefix, str, str, Tuple[str, ...]]:
+    def install_key(self) -> tuple[Prefix, str, str, tuple[str, ...]]:
         return (
             self.prefix,
             self.language,
@@ -51,7 +51,7 @@ class Hook(NamedTuple):
         )
 
     @classmethod
-    def create(cls, src: str, prefix: Prefix, dct: Dict[str, Any]) -> 'Hook':
+    def create(cls, src: str, prefix: Prefix, dct: dict[str, Any]) -> Hook:
         # TODO: have cfgv do this (?)
         extra_keys = set(dct) - _KEYS
         if extra_keys:

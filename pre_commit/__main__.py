@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from pre_commit.main import main
 
 

@@ -1,12 +1,11 @@
+from __future__ import annotations
+
 import contextlib
 import functools
 import os
 import sys
-from typing import Dict
 from typing import Generator
-from typing import Optional
 from typing import Sequence
-from typing import Tuple
 
 import pre_commit.constants as C
 from pre_commit.envcontext import envcontext
@@ -35,7 +34,7 @@ def _version_info(exe: str) -> str:
         return f'<<error retrieving version from {exe}>>'
 
 
-def _read_pyvenv_cfg(filename: str) -> Dict[str, str]:
+def _read_pyvenv_cfg(filename: str) -> dict[str, str]:
     ret = {}
     with open(filename, encoding='UTF-8') as f:
         for line in f:
@@ -65,7 +64,7 @@ def get_env_patch(venv: str) -> PatchesT:
 
 def _find_by_py_launcher(
         version: str,
-) -> Optional[str]:  # pragma: no cover (windows only)
+) -> str | None:  # pragma: no cover (windows only)
     if version.startswith('python'):
         num = version[len('python'):]
         cmd = ('py', f'-{num}', '-c', 'import sys; print(sys.executable)')
@@ -77,8 +76,8 @@ def _find_by_py_launcher(
     return None
 
 
-def _find_by_sys_executable() -> Optional[str]:
-    def _norm(path: str) -> Optional[str]:
+def _find_by_sys_executable() -> str | None:
+    def _norm(path: str) -> str | None:
         _, exe = os.path.split(path.lower())
         exe, _, _ = exe.partition('.exe')
         if exe not in {'python', 'pythonw'} and find_executable(exe):
@@ -133,7 +132,7 @@ def _sys_executable_matches(version: str) -> bool:
     return sys.version_info[:len(info)] == info
 
 
-def norm_version(version: str) -> Optional[str]:
+def norm_version(version: str) -> str | None:
     if version == C.DEFAULT:  # use virtualenv's default
         return None
     elif _sys_executable_matches(version):  # virtualenv defaults to our exe
@@ -209,6 +208,6 @@ def run_hook(
         hook: Hook,
         file_args: Sequence[str],
         color: bool,
-) -> Tuple[int, bytes]:
+) -> tuple[int, bytes]:
     with in_env(hook.prefix, hook.language_version):
         return helpers.run_xargs(hook, hook.cmd, file_args, color=color)

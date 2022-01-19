@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 import argparse
 import re
-from typing import Optional
 from typing import Sequence
 
 from cfgv import apply_defaults
@@ -65,7 +66,7 @@ def check_useless_excludes(config_file: str) -> int:
     return retv
 
 
-def main(argv: Optional[Sequence[str]] = None) -> int:
+def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument('filenames', nargs='*', default=[C.CONFIG_FILE])
     args = parser.parse_args(argv)

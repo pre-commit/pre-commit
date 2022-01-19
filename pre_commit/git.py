@@ -1,11 +1,9 @@
+from __future__ import annotations
+
 import logging
 import os.path
 import sys
-from typing import Dict
-from typing import List
 from typing import MutableMapping
-from typing import Optional
-from typing import Set
 
 from pre_commit.errors import FatalError
 from pre_commit.util import CalledProcessError
@@ -18,7 +16,7 @@ logger = logging.getLogger(__name__)
 NO_FS_MONITOR = ('-c', 'core.useBuiltinFSMonitor=false')
 
 
-def zsplit(s: str) -> List[str]:
+def zsplit(s: str) -> list[str]:
     s = s.strip('\0')
     if s:
         return s.split('\0')
@@ -27,8 +25,8 @@ def zsplit(s: str) -> List[str]:
 
 
 def no_git_env(
-        _env: Optional[MutableMapping[str, str]] = None,
-) -> Dict[str, str]:
+        _env: MutableMapping[str, str] | None = None,
+) -> dict[str, str]:
     # Too many bugs dealing with environment variables and GIT:
     # https://github.com/pre-commit/pre-commit/issues/300
     # In git 2.6.3 (maybe others), git exports GIT_WORK_TREE while running
@@ -95,7 +93,7 @@ def is_in_merge_conflict() -> bool:
     )
 
 
-def parse_merge_msg_for_conflicts(merge_msg: bytes) -> List[str]:
+def parse_merge_msg_for_conflicts(merge_msg: bytes) -> list[str]:
     # Conflicted files start with tabs
     return [
         line.lstrip(b'#').strip().decode()
@@ -105,7 +103,7 @@ def parse_merge_msg_for_conflicts(merge_msg: bytes) -> List[str]:
     ]
 
 
-def get_conflicted_files() -> Set[str]:
+def get_conflicted_files() -> set[str]:
     logger.info('Checking merge-conflict files only.')
     # Need to get the conflicted files from the MERGE_MSG because they could
     # have resolved the conflict by choosing one side or the other
@@ -126,7 +124,7 @@ def get_conflicted_files() -> Set[str]:
     return set(merge_conflict_filenames) | set(merge_diff_filenames)
 
 
-def get_staged_files(cwd: Optional[str] = None) -> List[str]:
+def get_staged_files(cwd: str | None = None) -> list[str]:
     return zsplit(
         cmd_output(
             'git', 'diff', '--staged', '--name-only', '--no-ext-diff', '-z',
@@ -137,7 +135,7 @@ def get_staged_files(cwd: Optional[str] = None) -> List[str]:
     )
 
 
-def intent_to_add_files() -> List[str]:
+def intent_to_add_files() -> list[str]:
     _, stdout, _ = cmd_output(
         'git', 'status', '--ignore-submodules', '--porcelain', '-z',
     )
@@ -153,11 +151,11 @@ def intent_to_add_files() -> List[str]:
     return intent_to_add
 
 
-def get_all_files() -> List[str]:
+def get_all_files() -> list[str]:
     return zsplit(cmd_output('git', 'ls-files', '-z')[1])
 
 
-def get_changed_files(old: str, new: str) -> List[str]:
+def get_changed_files(old: str, new: str) -> list[str]:
     diff_cmd = ('git', 'diff', '--name-only', '--no-ext-diff', '-z')
     try:
         _, out, _ = cmd_output(*diff_cmd, f'{old}...{new}')

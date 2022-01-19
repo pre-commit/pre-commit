@@ -1,8 +1,9 @@
+from __future__ import annotations
+
 import contextlib
 import os
 from typing import Generator
 from typing import Sequence
-from typing import Tuple
 
 import pre_commit.constants as C
 from pre_commit.envcontext import envcontext
@@ -59,6 +60,6 @@ def run_hook(
         hook: Hook,
         file_args: Sequence[str],
         color: bool,
-) -> Tuple[int, bytes]:  # pragma: win32 no cover
+) -> tuple[int, bytes]:  # pragma: win32 no cover
     with in_env(hook.prefix):
         return helpers.run_xargs(hook, hook.cmd, file_args, color=color)

@@ -1,10 +1,11 @@
+from __future__ import annotations
+
 import contextlib
 import os.path
 import shutil
 import tempfile
 from typing import Generator
 from typing import Sequence
-from typing import Tuple
 
 import pre_commit.constants as C
 from pre_commit.envcontext import envcontext
@@ -76,7 +77,7 @@ def install_environment(
             with tempfile.TemporaryDirectory() as dep_tmp:
                 dep, _, version = dep_s.partition(':')
                 if version:
-                    dep_cmd: Tuple[str, ...] = (dep, '--version', version)
+                    dep_cmd: tuple[str, ...] = (dep, '--version', version)
                 else:
                     dep_cmd = (dep,)
 
@@ -104,6 +105,6 @@ def run_hook(
         hook: Hook,
         file_args: Sequence[str],
         color: bool,
-) -> Tuple[int, bytes]:
+) -> tuple[int, bytes]:
     with in_env(hook.prefix):
         return helpers.run_xargs(hook, hook.cmd, file_args, color=color)
