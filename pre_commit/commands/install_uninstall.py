@@ -61,8 +61,12 @@ def _install_hook_script(
     os.makedirs(os.path.dirname(hook_path), exist_ok=True)
 
     # If we have an existing hook, move it to pre-commit.legacy
-    if os.path.lexists(hook_path) and not is_our_script(hook_path):
-        shutil.move(hook_path, legacy_path)
+    our_script_was_already_installed = False
+    if os.path.lexists(hook_path):
+        if is_our_script(hook_path):
+            our_script_was_already_installed = True
+        else:
+            shutil.move(hook_path, legacy_path)
 
     # If we specify overwrite, we simply delete the legacy file
     if overwrite and os.path.exists(legacy_path):
@@ -97,7 +101,10 @@ def _install_hook_script(
         hook_file.write(TEMPLATE_END + after)
     make_executable(hook_path)
 
-    output.write_line(f'pre-commit installed at {hook_path}')
+    if our_script_was_already_installed:
+        output.write_line(f'pre-commit already installed at {hook_path}')
+    else:
+        output.write_line(f'pre-commit installed at {hook_path}')
 
 
 def install(
