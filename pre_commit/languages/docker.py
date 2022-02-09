@@ -22,7 +22,17 @@ healthy = helpers.basic_healthy
 def _is_in_docker() -> bool:
     try:
         with open('/proc/1/cgroup', 'rb') as f:
-            return b'docker' in f.read()
+            for line in f.readlines():
+                if b'docker' in line:
+                    break
+                else:
+                    _, name, path = line.strip().split(b':')
+                    if name == b'cpuset' and len(os.path.basename(path)) == 64:
+                        break
+            else:
+                return False
+
+            return True
     except FileNotFoundError:
         return False
 

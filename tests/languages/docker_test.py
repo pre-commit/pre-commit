@@ -12,7 +12,7 @@ import pytest
 from pre_commit.languages import docker
 from pre_commit.util import CalledProcessError
 
-DOCKER_CGROUP_EXAMPLE = b'''\
+DOCKER_CGROUP_EXAMPLE1 = b'''\
 12:hugetlb:/docker/c33988ec7651ebc867cb24755eaf637a6734088bc7eef59d5799293a9e5450f7
 11:blkio:/docker/c33988ec7651ebc867cb24755eaf637a6734088bc7eef59d5799293a9e5450f7
 10:freezer:/docker/c33988ec7651ebc867cb24755eaf637a6734088bc7eef59d5799293a9e5450f7
@@ -28,7 +28,23 @@ DOCKER_CGROUP_EXAMPLE = b'''\
 0::/system.slice/containerd.service
 '''  # noqa: E501
 
-# The ID should match the above cgroup example.
+DOCKER_CGROUP_EXAMPLE2 = b'''\
+12:blkio:/actions_job/c33988ec7651ebc867cb24755eaf637a6734088bc7eef59d5799293a9e5450f7
+11:memory:/actions_job/c33988ec7651ebc867cb24755eaf637a6734088bc7eef59d5799293a9e5450f7
+10:hugetlb:/actions_job/c33988ec7651ebc867cb24755eaf637a6734088bc7eef59d5799293a9e5450f7
+9:devices:/actions_job/c33988ec7651ebc867cb24755eaf637a6734088bc7eef59d5799293a9e5450f7
+8:freezer:/actions_job/c33988ec7651ebc867cb24755eaf637a6734088bc7eef59d5799293a9e5450f7
+7:cpu,cpuacct:/actions_job/c33988ec7651ebc867cb24755eaf637a6734088bc7eef59d5799293a9e5450f7
+6:cpuset:/actions_job/c33988ec7651ebc867cb24755eaf637a6734088bc7eef59d5799293a9e5450f7
+5:pids:/actions_job/c33988ec7651ebc867cb24755eaf637a6734088bc7eef59d5799293a9e5450f7
+4:net_cls,net_prio:/actions_job/c33988ec7651ebc867cb24755eaf637a6734088bc7eef59d5799293a9e5450f7
+3:perf_event:/actions_job/c33988ec7651ebc867cb24755eaf637a6734088bc7eef59d5799293a9e5450f7
+2:rdma:/
+1:name=systemd:/actions_job/c33988ec7651ebc867cb24755eaf637a6734088bc7eef59d5799293a9e5450f7
+0::/system.slice/containerd.service
+'''  # noqa: E501
+
+# The ID should match the above cgroup examples.
 CONTAINER_ID = 'c33988ec7651ebc867cb24755eaf637a6734088bc7eef59d5799293a9e5450f7'  # noqa: E501
 
 NON_DOCKER_CGROUP_EXAMPLE = b'''\
@@ -74,8 +90,13 @@ def _mock_open(data):
     )
 
 
-def test_in_docker_docker_in_file():
-    with _mock_open(DOCKER_CGROUP_EXAMPLE):
+def test_in_docker_docker_in_file1():
+    with _mock_open(DOCKER_CGROUP_EXAMPLE1):
+        assert docker._is_in_docker() is True
+
+
+def test_in_docker_docker_in_file2():
+    with _mock_open(DOCKER_CGROUP_EXAMPLE2):
         assert docker._is_in_docker() is True
 
 
@@ -84,8 +105,13 @@ def test_in_docker_docker_not_in_file():
         assert docker._is_in_docker() is False
 
 
-def test_get_container_id():
-    with _mock_open(DOCKER_CGROUP_EXAMPLE):
+def test_get_container_id1():
+    with _mock_open(DOCKER_CGROUP_EXAMPLE1):
+        assert docker._get_container_id() == CONTAINER_ID
+
+
+def test_get_container_id2():
+    with _mock_open(DOCKER_CGROUP_EXAMPLE2):
         assert docker._get_container_id() == CONTAINER_ID
 
 
