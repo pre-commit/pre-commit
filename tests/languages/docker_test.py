@@ -12,7 +12,7 @@ import pytest
 from pre_commit.languages import docker
 from pre_commit.util import CalledProcessError
 
-DOCKER_CGROUP_EXAMPLE1 = b'''\
+DOCKER_CGROUP_EXAMPLE = b'''\
 12:hugetlb:/docker/c33988ec7651ebc867cb24755eaf637a6734088bc7eef59d5799293a9e5450f7
 11:blkio:/docker/c33988ec7651ebc867cb24755eaf637a6734088bc7eef59d5799293a9e5450f7
 10:freezer:/docker/c33988ec7651ebc867cb24755eaf637a6734088bc7eef59d5799293a9e5450f7
@@ -28,23 +28,7 @@ DOCKER_CGROUP_EXAMPLE1 = b'''\
 0::/system.slice/containerd.service
 '''  # noqa: E501
 
-DOCKER_CGROUP_EXAMPLE2 = b'''\
-12:blkio:/actions_job/c33988ec7651ebc867cb24755eaf637a6734088bc7eef59d5799293a9e5450f7
-11:memory:/actions_job/c33988ec7651ebc867cb24755eaf637a6734088bc7eef59d5799293a9e5450f7
-10:hugetlb:/actions_job/c33988ec7651ebc867cb24755eaf637a6734088bc7eef59d5799293a9e5450f7
-9:devices:/actions_job/c33988ec7651ebc867cb24755eaf637a6734088bc7eef59d5799293a9e5450f7
-8:freezer:/actions_job/c33988ec7651ebc867cb24755eaf637a6734088bc7eef59d5799293a9e5450f7
-7:cpu,cpuacct:/actions_job/c33988ec7651ebc867cb24755eaf637a6734088bc7eef59d5799293a9e5450f7
-6:cpuset:/actions_job/c33988ec7651ebc867cb24755eaf637a6734088bc7eef59d5799293a9e5450f7
-5:pids:/actions_job/c33988ec7651ebc867cb24755eaf637a6734088bc7eef59d5799293a9e5450f7
-4:net_cls,net_prio:/actions_job/c33988ec7651ebc867cb24755eaf637a6734088bc7eef59d5799293a9e5450f7
-3:perf_event:/actions_job/c33988ec7651ebc867cb24755eaf637a6734088bc7eef59d5799293a9e5450f7
-2:rdma:/
-1:name=systemd:/actions_job/c33988ec7651ebc867cb24755eaf637a6734088bc7eef59d5799293a9e5450f7
-0::/system.slice/containerd.service
-'''  # noqa: E501
-
-# The ID should match the above cgroup examples.
+# The ID should match the above cgroup example.
 CONTAINER_ID = 'c33988ec7651ebc867cb24755eaf637a6734088bc7eef59d5799293a9e5450f7'  # noqa: E501
 
 NON_DOCKER_CGROUP_EXAMPLE = b'''\
@@ -62,6 +46,108 @@ NON_DOCKER_CGROUP_EXAMPLE = b'''\
 1:name=systemd:/init.scope
 0::/init.scope
 '''
+
+DOCKER_SCHED_EXAMPLE = b'''\
+sh (1, #threads: 1)
+-------------------------------------------------------------------
+se.exec_start                                :     349708379.385019
+se.vruntime                                  :            32.684454
+se.sum_exec_runtime                          :            33.860082
+se.nr_migrations                             :                   18
+nr_switches                                  :                   77
+nr_voluntary_switches                        :                   64
+nr_involuntary_switches                      :                   13
+se.load.weight                               :              1048576
+se.avg.load_sum                              :                  198
+se.avg.runnable_sum                          :               203813
+se.avg.util_sum                              :               200802
+se.avg.load_avg                              :                    4
+se.avg.runnable_avg                          :                    4
+se.avg.util_avg                              :                    4
+se.avg.last_update_time                      :      349700175852544
+se.avg.util_est.ewma                         :                    8
+se.avg.util_est.enqueued                     :                    0
+uclamp.min                                   :                    0
+uclamp.max                                   :                 1024
+effective uclamp.min                         :                    0
+effective uclamp.max                         :                 1024
+policy                                       :                    0
+prio                                         :                  120
+clock-delta                                  :                   27
+mm->numa_scan_seq                            :                    0
+numa_pages_migrated                          :                    0
+numa_preferred_nid                           :                   -1
+total_numa_faults                            :                    0
+current_node=0, numa_group_id=0
+numa_faults node=0 task_private=0 task_shared=0 group_private=0 group_shared=0
+'''  # noqa: E501
+
+SYSTEMD_SCHED_EXAMPLE = b'''\
+systemd (1, #threads: 1)
+-------------------------------------------------------------------
+se.exec_start                                :     349429286.842224
+se.vruntime                                  :          2759.778972
+se.sum_exec_runtime                          :          9858.995771
+se.nr_migrations                             :                11801
+nr_switches                                  :                80235
+nr_voluntary_switches                        :                78822
+nr_involuntary_switches                      :                 1413
+se.load.weight                               :              1048576
+se.avg.load_sum                              :                 4221
+se.avg.runnable_sum                          :              4325517
+se.avg.util_sum                              :              3881112
+se.avg.load_avg                              :                   91
+se.avg.runnable_avg                          :                   91
+se.avg.util_avg                              :                   81
+se.avg.last_update_time                      :      349418325520384
+se.avg.util_est.ewma                         :                   81
+se.avg.util_est.enqueued                     :                   81
+uclamp.min                                   :                    0
+uclamp.max                                   :                 1024
+effective uclamp.min                         :                    0
+effective uclamp.max                         :                 1024
+policy                                       :                    0
+prio                                         :                  120
+clock-delta                                  :                   78
+mm->numa_scan_seq                            :                    0
+numa_pages_migrated                          :                    0
+numa_preferred_nid                           :                   -1
+total_numa_faults                            :                    0
+current_node=0, numa_group_id=0
+numa_faults node=0 task_private=0 task_shared=0 group_private=0 group_shared=0
+'''  # noqa: E501
+
+INIT_SCHED_EXAMPLE = b'''\
+init (1, #threads: 1)
+-------------------------------------------------------------------
+se.exec_start                                :         45362.204529
+se.vruntime                                  :         14424.583092
+se.sum_exec_runtime                          :           636.475090
+se.nr_migrations                             :                    0
+nr_switches                                  :                  409
+nr_voluntary_switches                        :                  206
+nr_involuntary_switches                      :                  203
+se.load.weight                               :              1048576
+se.runnable_weight                           :              1048576
+se.avg.load_sum                              :                   48
+se.avg.runnable_load_sum                     :                   48
+se.avg.util_sum                              :                37888
+se.avg.load_avg                              :                    0
+se.avg.runnable_load_avg                     :                    0
+se.avg.util_avg                              :                    0
+se.avg.last_update_time                      :          45362203648
+se.avg.util_est.ewma                         :                    9
+se.avg.util_est.enqueued                     :                    0
+policy                                       :                    0
+prio                                         :                  120
+clock-delta                                  :                  396
+mm->numa_scan_seq                            :                    0
+numa_pages_migrated                          :                    0
+numa_preferred_nid                           :                   -1
+total_numa_faults                            :                    0
+current_node=0, numa_group_id=0
+numa_faults node=0 task_private=0 task_shared=0 group_private=0 group_shared=0
+'''  # noqa: E501
 
 
 def test_docker_fallback_user():
@@ -90,28 +176,33 @@ def _mock_open(data):
     )
 
 
-def test_in_docker_docker_in_file1():
-    with _mock_open(DOCKER_CGROUP_EXAMPLE1):
-        assert docker._is_in_docker() is True
-
-
-def test_in_docker_docker_in_file2():
-    with _mock_open(DOCKER_CGROUP_EXAMPLE2):
-        assert docker._is_in_docker() is True
+def test_in_docker_docker_in_file():
+    with _mock_open(DOCKER_CGROUP_EXAMPLE):
+        assert docker._is_in_docker_cgroup() is True
 
 
 def test_in_docker_docker_not_in_file():
     with _mock_open(NON_DOCKER_CGROUP_EXAMPLE):
-        assert docker._is_in_docker() is False
+        assert docker._is_in_docker_cgroup() is False
 
 
-def test_get_container_id1():
-    with _mock_open(DOCKER_CGROUP_EXAMPLE1):
-        assert docker._get_container_id() == CONTAINER_ID
+def test_in_docker_inside_container():
+    with _mock_open(DOCKER_SCHED_EXAMPLE):
+        assert docker._is_in_docker_sched() is True
 
 
-def test_get_container_id2():
-    with _mock_open(DOCKER_CGROUP_EXAMPLE2):
+def test_in_docker_outside_container_systemd():
+    with _mock_open(SYSTEMD_SCHED_EXAMPLE):
+        assert docker._is_in_docker_sched() is False
+
+
+def test_in_docker_outside_container_init():
+    with _mock_open(INIT_SCHED_EXAMPLE):
+        assert docker._is_in_docker_sched() is False
+
+
+def test_get_container_id():
+    with _mock_open(DOCKER_CGROUP_EXAMPLE):
         assert docker._get_container_id() == CONTAINER_ID
 
 
