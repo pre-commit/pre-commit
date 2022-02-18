@@ -387,6 +387,9 @@ def run(
 
     if args.rewrite_command:
         environ['PRE_COMMIT_REWRITE_COMMAND'] = args.rewrite_command
+    
+    if args.all_files:
+        environ['PRE_COMMIT_ALL_FILES'] = '1' if args.all_files else ''
 
     # Set pre_commit flag
     environ['PRE_COMMIT'] = '1'

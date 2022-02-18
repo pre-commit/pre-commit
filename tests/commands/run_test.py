@@ -524,6 +524,15 @@ def test_checkout_type(cap_out, store, repo_with_passing_hook):
     assert environ['PRE_COMMIT_CHECKOUT_TYPE'] == '1'
 
 
+def test_all_files(cap_out, store, repo_with_passing_hook):
+    args = run_opts(all_files=True)
+    environ: MutableMapping[str, str] = {}
+    ret, printed = _do_run(
+        cap_out, store, repo_with_passing_hook, args, environ,
+    )
+    assert environ['PRE_COMMIT_ALL_FILES'] == '1'
+
+
 def test_has_unmerged_paths(in_merge_conflict):
     assert _has_unmerged_paths() is True
     cmd_output('git', 'add', '.')
