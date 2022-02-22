@@ -3,12 +3,15 @@ from __future__ import annotations
 import argparse
 import contextlib
 import functools
+import json
 import logging
 import os
+import pathlib
 import re
 import subprocess
 import time
 import unicodedata
+
 from typing import Any
 from typing import Collection
 from typing import MutableMapping
@@ -72,6 +75,7 @@ def filter_by_include_exclude(
 class Classifier:
     def __init__(self, filenames: Collection[str]) -> None:
         self.filenames = [f for f in filenames if os.path.lexists(f)]
+        self.summary_json = {}
 
     @functools.lru_cache(maxsize=None)
     def _types_for_file(self, filename: str) -> set[str]:
@@ -160,6 +164,7 @@ def _run_single_hook(
                 cols=cols,
             ),
         )
+        classifier.summary_json[hook.name] = SKIPPED
         duration = None
         retcode = 0
         diff_after = diff_before
@@ -176,6 +181,7 @@ def _run_single_hook(
                 cols=cols,
             ),
         )
+        classifier.summary_json[hook.name] = SKIPPED
         duration = None
         retcode = 0
         diff_after = diff_before
@@ -204,7 +210,7 @@ def _run_single_hook(
             status = 'Passed'
 
         output.write_line(color.format_color(status, print_color, use_color))
-
+        classifier.summary_json[hook.name] = status
     if verbose or hook.verbose or retcode or files_modified:
         _subtle_line(f'- hook id: {hook.id}', use_color)
 
@@ -306,7 +312,10 @@ def _run_hooks(
             'git', '--no-pager', 'diff', '--no-ext-diff',
             f'--color={git_color_opt}',
         ))
-
+    if args.summary_json_output_file:
+        fn = pathlib.Path(args.summary_json_output_file).expanduser().resolve()
+        with open(fn,'w') as f:
+            f.write(json.dumps(classifier.summary_json))
     return retval
 
 

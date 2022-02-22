@@ -154,6 +154,10 @@ def _add_run_options(parser: argparse.ArgumentParser) -> None:
             'the rewrite'
         ),
     )
+    parser.add_argument(
+        '--summary-json-output-file',
+        help='Write summary information to a json file.'
+    )
 
 
 def _adjust_args_and_chdir(args: argparse.Namespace) -> None:
