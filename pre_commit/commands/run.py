@@ -11,7 +11,6 @@ import re
 import subprocess
 import time
 import unicodedata
-
 from typing import Any
 from typing import Collection
 from typing import MutableMapping
@@ -314,7 +313,7 @@ def _run_hooks(
         ))
     if args.summary_json_output_file:
         fn = pathlib.Path(args.summary_json_output_file).expanduser().resolve()
-        with open(fn,'w') as f:
+        with open(fn, 'w') as f:
             f.write(json.dumps(classifier.summary_json))
     return retval
 

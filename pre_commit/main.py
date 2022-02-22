@@ -156,7 +156,7 @@ def _add_run_options(parser: argparse.ArgumentParser) -> None:
     )
     parser.add_argument(
         '--summary-json-output-file',
-        help='Write summary information to a json file.'
+        help='Write summary information to a json file.',
     )
 
 
