@@ -106,7 +106,7 @@ def _add_run_options(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         '--from-ref', '--source', '-s',
         help=(
-            '(for usage with `--from-ref`) -- this option represents the '
+            '(for usage with `--to-ref`) -- this option represents the '
             'original ref in a `from_ref...to_ref` diff expression.  '
             'For `pre-push` hooks, this represents the branch you are pushing '
             'to.  '
@@ -117,7 +117,7 @@ def _add_run_options(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         '--to-ref', '--origin', '-o',
         help=(
-            '(for usage with `--to-ref`) -- this option represents the '
+            '(for usage with `--from-ref`) -- this option represents the '
             'destination ref in a `from_ref...to_ref` diff expression.  '
             'For `pre-push` hooks, this represents the branch being pushed.  '
             'For `post-checkout` hooks, this represents the branch that is '
