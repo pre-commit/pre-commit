@@ -103,9 +103,7 @@ def install_environment(
         shutil.copy(prefix.path('renv.lock'), env_dir)
         shutil.copytree(prefix.path('renv'), os.path.join(env_dir, 'renv'))
 
-        cmd_output_b(
-            _rscript_exec(), '--vanilla', '-e',
-            f"""\
+        r_code_inst_environment = f"""\
             prefix_dir <- {prefix.prefix_dir!r}
             options(
                 repos = c(CRAN = "https://cran.rstudio.com"),
@@ -132,17 +130,34 @@ def install_environment(
             if (is_package) {{
                 renv::install(prefix_dir)
             }}
-            """,
+            """
+
+        cmd_output_b(
+            _rscript_exec(), '--vanilla', '-e',
+            _inline_r_setup(r_code_inst_environment),
             cwd=env_dir,
         )
         if additional_dependencies:
+            r_code_inst_add = 'renv::install(commandArgs(trailingOnly = TRUE))'
             with in_env(prefix, version):
                 cmd_output_b(
                     _rscript_exec(), *RSCRIPT_OPTS, '-e',
-                    'renv::install(commandArgs(trailingOnly = TRUE))',
+                    _inline_r_setup(r_code_inst_add),
                     *additional_dependencies,
                     cwd=env_dir,
                 )
+
+
+def _inline_r_setup(code: str) -> str:
+    """
+    Some behaviour of R cannot be configured via env variables, but can
+    only be configured via R options once R has started. These are set here.
+    """
+    with_option = f"""\
+    options(install.packages.compile.from.source = "never")
+    {code}
+    """
+    return with_option
 
 
 def run_hook(
