@@ -218,9 +218,19 @@ def _run_single_hook(
         if files_modified:
             _subtle_line('- files were modified by this hook', use_color)
 
-        if out.strip():
+        hook_output = out.strip()
+        if hook_output:
+            if hook.prepend_name:
+                # Prepends the hook name to each line of its console output
+                hook_output = b'\n'.join(
+                    [
+                        bytes(f'{hook.name}: ', encoding='utf8') + line
+                        for line in hook_output.split(b'\n')
+                    ],
+                )
+
             output.write_line()
-            output.write_line_b(out.strip(), logfile_name=hook.log_file)
+            output.write_line_b(hook_output, logfile_name=hook.log_file)
             output.write_line()
 
     return files_modified or bool(retcode), diff_after
