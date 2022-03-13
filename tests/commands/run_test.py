@@ -473,6 +473,22 @@ def test_hook_verbose_enabled(cap_out, store, repo_with_passing_hook):
     )
 
 
+def test_hook_prepend_name_enabled(cap_out, store, repo_with_failing_hook):
+    with modify_config() as config:
+        config['repos'][0]['hooks'][0]['always_run'] = True
+        config['repos'][0]['hooks'][0]['prepend_name'] = True
+
+    _test_run(
+        cap_out,
+        store,
+        repo_with_failing_hook,
+        {},
+        (b'Failing hook:',),
+        1,
+        stage=False,
+    )
+
+
 @pytest.mark.parametrize(
     ('from_ref', 'to_ref'), (('master', ''), ('', 'master')),
 )
