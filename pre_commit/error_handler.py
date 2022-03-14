@@ -6,6 +6,7 @@ import os.path
 import sys
 import traceback
 from typing import Generator
+from typing import IO
 
 import pre_commit.constants as C
 from pre_commit import output
@@ -32,7 +33,7 @@ def _log_and_exit(
     with contextlib.ExitStack() as ctx:
         if os.access(storedir, os.W_OK):
             output.write_line(f'Check the log at {log_path}')
-            log = ctx.enter_context(open(log_path, 'wb'))
+            log: IO[bytes] = ctx.enter_context(open(log_path, 'wb'))
         else:  # pragma: win32 no cover
             output.write_line(f'Failed to write to log at {log_path}')
             log = sys.stdout.buffer
