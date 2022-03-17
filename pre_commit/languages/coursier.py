@@ -10,6 +10,7 @@ from pre_commit.envcontext import PatchesT
 from pre_commit.envcontext import Var
 from pre_commit.hook import Hook
 from pre_commit.languages import helpers
+from pre_commit.parse_shebang import find_executable
 from pre_commit.prefix import Prefix
 from pre_commit.util import clean_path_on_failure
 
@@ -27,6 +28,14 @@ def install_environment(
     helpers.assert_version_default('coursier', version)
     helpers.assert_no_additional_deps('coursier', additional_dependencies)
 
+    # Support both possible executable names (either "cs" or "coursier")
+    executable = find_executable('cs') or find_executable('coursier')
+    if executable is None:
+        raise AssertionError(
+            'pre-commit requires system-installed "cs" or "coursier" '
+            'executables in the application search path',
+        )
+
     envdir = prefix.path(helpers.environment_dir(ENVIRONMENT_DIR, version))
     channel = prefix.path('.pre-commit-channel')
     with clean_path_on_failure(envdir):
@@ -36,7 +45,7 @@ def install_environment(
             helpers.run_setup_cmd(
                 prefix,
                 (
-                    'cs',
+                    executable,
                     'install',
                     '--default-channels=false',
                     f'--channel={channel}',
