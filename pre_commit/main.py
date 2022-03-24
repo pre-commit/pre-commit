@@ -197,7 +197,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     autoupdate_parser.add_argument(
         '--bleeding-edge', action='store_true',
         help=(
-            'Update to the bleeding edge of `master` instead of the latest '
+            'Update to the bleeding edge of `HEAD` instead of the latest '
             'tagged version (the default behavior).'
         ),
     )
