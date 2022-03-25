@@ -17,6 +17,7 @@ repos:
     rev: v3.0.1
     hooks:
     -   id: reorder-python-imports
+        exclude: ^testing/resources/python3_hooks_repo/
         args: [--py37-plus, --add-import, 'from __future__ import annotations']
 -   repo: https://github.com/asottile/add-trailing-comma
     rev: v2.2.1
@@ -41,3 +42,4 @@ repos:
     hooks:
     -   id: mypy
         additional_dependencies: [types-all]
+        exclude: ^testing/resources/
