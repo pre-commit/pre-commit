@@ -88,7 +88,9 @@ def test_assert_no_additional_deps():
         helpers.assert_no_additional_deps('lang', ['hmmm'])
     msg, = excinfo.value.args
     assert msg == (
-        'For now, pre-commit does not support additional_dependencies for lang'
+        'for now, pre-commit does not support additional_dependencies for '
+        'lang -- '
+        "you selected `additional_dependencies: ['hmmm']`"
     )
 
 

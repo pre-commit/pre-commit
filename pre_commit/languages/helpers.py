@@ -67,7 +67,8 @@ def environment_dir(d: str | None, language_version: str) -> str | None:
 def assert_version_default(binary: str, version: str) -> None:
     if version != C.DEFAULT:
         raise AssertionError(
-            f'For now, pre-commit requires system-installed {binary}',
+            f'for now, pre-commit requires system-installed {binary} -- '
+            f'you selected `language_version: {version}`',
         )
 
 
@@ -77,8 +78,9 @@ def assert_no_additional_deps(
 ) -> None:
     if additional_deps:
         raise AssertionError(
-            f'For now, pre-commit does not support '
-            f'additional_dependencies for {lang}',
+            f'for now, pre-commit does not support '
+            f'additional_dependencies for {lang} -- '
+            f'you selected `additional_dependencies: {additional_deps}`',
         )
 
 
