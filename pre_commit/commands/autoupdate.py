@@ -59,6 +59,9 @@ class RevInfo(NamedTuple):
             except CalledProcessError:
                 cmd = (*git_cmd, 'rev-parse', 'FETCH_HEAD')
                 rev = cmd_output(*cmd, cwd=tmp)[1].strip()
+            else:
+                if tags_only:
+                    rev = git.get_best_candidate_tag(rev, tmp)
 
             frozen = None
             if freeze:
