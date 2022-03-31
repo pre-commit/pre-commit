@@ -229,3 +229,18 @@ def check_for_cygwin_mismatch() -> None:
                 f' - python {exe_type[is_cygwin_python]}\n'
                 f' - git {exe_type[is_cygwin_git]}\n',
             )
+
+
+def get_best_candidate_tag(rev: str, git_repo: str) -> str:
+    """Get the best tag candidate.
+
+    Multiple tags can exist on a SHA. Sometimes a moving tag is attached
+    to a version tag. Try to pick the tag that looks like a version.
+    """
+    tags = cmd_output(
+        'git', *NO_FS_MONITOR, 'tag', '--points-at', rev, cwd=git_repo,
+    )[1].splitlines()
+    for tag in tags:
+        if '.' in tag:
+            return tag
+    return rev

@@ -103,6 +103,24 @@ def test_rev_info_update_tags_only_does_not_pick_tip(tagged):
     assert new_info.rev == 'v1.2.3'
 
 
+def test_rev_info_update_tags_prefers_version_tag(tagged, out_of_date):
+    cmd_output('git', 'tag', 'latest', cwd=out_of_date.path)
+    config = make_config_from_repo(tagged.path, rev=tagged.original_rev)
+    info = RevInfo.from_config(config)
+    new_info = info.update(tags_only=True, freeze=False)
+    assert new_info.rev == 'v1.2.3'
+
+
+def test_rev_info_update_tags_non_version_tag(out_of_date):
+    cmd_output('git', 'tag', 'latest', cwd=out_of_date.path)
+    config = make_config_from_repo(
+        out_of_date.path, rev=out_of_date.original_rev,
+    )
+    info = RevInfo.from_config(config)
+    new_info = info.update(tags_only=True, freeze=False)
+    assert new_info.rev == 'latest'
+
+
 def test_rev_info_update_freeze_tag(tagged):
     git_commit(cwd=tagged.path)
     config = make_config_from_repo(tagged.path, rev=tagged.original_rev)
