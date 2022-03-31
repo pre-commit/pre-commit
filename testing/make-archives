@@ -17,7 +17,7 @@ from typing import Sequence
 
 REPOS = (
     ('rbenv', 'https://github.com/rbenv/rbenv', '38e1fbb'),
-    ('ruby-build', 'https://github.com/rbenv/ruby-build', '8663d2f'),
+    ('ruby-build', 'https://github.com/rbenv/ruby-build', 'a5ca3e4'),
     (
         'ruby-download',
         'https://github.com/garnieretienne/rvm-download',
