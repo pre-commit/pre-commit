@@ -4,7 +4,6 @@ import argparse
 import logging
 import os
 import sys
-from typing import Any
 from typing import Sequence
 
 import pre_commit.constants as C
@@ -46,34 +45,10 @@ def _add_config_option(parser: argparse.ArgumentParser) -> None:
     )
 
 
-class AppendReplaceDefault(argparse.Action):
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        super().__init__(*args, **kwargs)
-        self.appended = False
-
-    def __call__(
-            self,
-            parser: argparse.ArgumentParser,
-            namespace: argparse.Namespace,
-            values: str | Sequence[str] | None,
-            option_string: str | None = None,
-    ) -> None:
-        if not self.appended:
-            setattr(namespace, self.dest, [])
-            self.appended = True
-        getattr(namespace, self.dest).append(values)
-
-
 def _add_hook_type_option(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
-        '-t', '--hook-type', choices=(
-            'pre-commit', 'pre-merge-commit', 'pre-push', 'prepare-commit-msg',
-            'commit-msg', 'post-commit', 'post-checkout', 'post-merge',
-            'post-rewrite',
-        ),
-        action=AppendReplaceDefault,
-        default=['pre-commit'],
-        dest='hook_types',
+        '-t', '--hook-type',
+        choices=C.HOOK_TYPES, action='append', dest='hook_types',
     )
 
 
@@ -399,7 +374,10 @@ def main(argv: Sequence[str] | None = None) -> int:
         elif args.command == 'try-repo':
             return try_repo(args)
         elif args.command == 'uninstall':
-            return uninstall(hook_types=args.hook_types)
+            return uninstall(
+                config_file=args.config,
+                hook_types=args.hook_types,
+            )
         else:
             raise NotImplementedError(
                 f'Command {args.command} not implemented.',

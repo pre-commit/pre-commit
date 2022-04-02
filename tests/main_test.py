@@ -14,20 +14,6 @@ from testing.auto_namedtuple import auto_namedtuple
 from testing.util import cwd
 
 
-@pytest.mark.parametrize(
-    ('argv', 'expected'),
-    (
-        ((), ['f']),
-        (('--f', 'x'), ['x']),
-        (('--f', 'x', '--f', 'y'), ['x', 'y']),
-    ),
-)
-def test_append_replace_default(argv, expected):
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--f', action=main.AppendReplaceDefault, default=['f'])
-    assert parser.parse_args(argv).f == expected
-
-
 def _args(**kwargs):
     kwargs.setdefault('command', 'help')
     kwargs.setdefault('config', C.CONFIG_FILE)
@@ -172,7 +158,7 @@ def test_init_templatedir(mock_store_dir):
 
     assert patch.call_count == 1
     assert 'tdir' in patch.call_args[0]
-    assert patch.call_args[1]['hook_types'] == ['pre-commit']
+    assert patch.call_args[1]['hook_types'] is None
     assert patch.call_args[1]['skip_on_missing_config'] is True
 
 

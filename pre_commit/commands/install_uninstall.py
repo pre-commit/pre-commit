@@ -5,10 +5,10 @@ import os.path
 import shlex
 import shutil
 import sys
-from typing import Sequence
 
 from pre_commit import git
 from pre_commit import output
+from pre_commit.clientlib import InvalidConfigError
 from pre_commit.clientlib import load_config
 from pre_commit.repository import all_hooks
 from pre_commit.repository import install_hook_envs
@@ -30,6 +30,18 @@ PRIOR_HASHES = (
 CURRENT_HASH = b'138fd403232d2ddd5efb44317e38bf03'
 TEMPLATE_START = '# start templated\n'
 TEMPLATE_END = '# end templated\n'
+
+
+def _hook_types(cfg_filename: str, hook_types: list[str] | None) -> list[str]:
+    if hook_types is not None:
+        return hook_types
+    else:
+        try:
+            cfg = load_config(cfg_filename)
+        except InvalidConfigError:
+            return ['pre-commit']
+        else:
+            return cfg['default_install_hook_types']
 
 
 def _hook_paths(
@@ -103,7 +115,7 @@ def _install_hook_script(
 def install(
         config_file: str,
         store: Store,
-        hook_types: Sequence[str],
+        hook_types: list[str] | None,
         overwrite: bool = False,
         hooks: bool = False,
         skip_on_missing_config: bool = False,
@@ -116,7 +128,7 @@ def install(
         )
         return 1
 
-    for hook_type in hook_types:
+    for hook_type in _hook_types(config_file, hook_types):
         _install_hook_script(
             config_file, hook_type,
             overwrite=overwrite,
@@ -150,7 +162,7 @@ def _uninstall_hook_script(hook_type: str) -> None:
         output.write_line(f'Restored previous hooks to {hook_path}')
 
 
-def uninstall(hook_types: Sequence[str]) -> int:
-    for hook_type in hook_types:
+def uninstall(config_file: str, hook_types: list[str] | None) -> int:
+    for hook_type in _hook_types(config_file, hook_types):
         _uninstall_hook_script(hook_type)
     return 0

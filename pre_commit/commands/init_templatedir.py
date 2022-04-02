@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import logging
 import os.path
-from typing import Sequence
 
 from pre_commit.commands.install_uninstall import install
 from pre_commit.store import Store
@@ -16,7 +15,7 @@ def init_templatedir(
         config_file: str,
         store: Store,
         directory: str,
-        hook_types: Sequence[str],
+        hook_types: list[str] | None,
         skip_on_missing_config: bool = True,
 ) -> int:
     install(
