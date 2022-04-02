@@ -7,6 +7,7 @@ import re_assert
 
 import pre_commit.constants as C
 from pre_commit import git
+from pre_commit.commands.install_uninstall import _hook_types
 from pre_commit.commands.install_uninstall import CURRENT_HASH
 from pre_commit.commands.install_uninstall import install
 from pre_commit.commands.install_uninstall import install_hooks
@@ -25,6 +26,36 @@ from testing.fixtures import write_config
 from testing.util import cmd_output_mocked_pre_commit_home
 from testing.util import cwd
 from testing.util import git_commit
+
+
+def test_hook_types_explicitly_listed():
+    assert _hook_types(os.devnull, ['pre-push']) == ['pre-push']
+
+
+def test_hook_types_default_value_when_not_specified():
+    assert _hook_types(os.devnull, None) == ['pre-commit']
+
+
+def test_hook_types_configured(tmpdir):
+    cfg = tmpdir.join('t.cfg')
+    cfg.write('default_install_hook_types: [pre-push]\nrepos: []\n')
+
+    assert _hook_types(str(cfg), None) == ['pre-push']
+
+
+def test_hook_types_configured_nonsense(tmpdir):
+    cfg = tmpdir.join('t.cfg')
+    cfg.write('default_install_hook_types: []\nrepos: []\n')
+
+    # hopefully the user doesn't do this, but the code allows it!
+    assert _hook_types(str(cfg), None) == []
+
+
+def test_hook_types_configuration_has_error(tmpdir):
+    cfg = tmpdir.join('t.cfg')
+    cfg.write('[')
+
+    assert _hook_types(str(cfg), None) == ['pre-commit']
 
 
 def test_is_not_script():
@@ -61,7 +92,7 @@ def test_install_multiple_hooks_at_once(in_git_dir, store):
     install(C.CONFIG_FILE, store, hook_types=['pre-commit', 'pre-push'])
     assert in_git_dir.join('.git/hooks/pre-commit').exists()
     assert in_git_dir.join('.git/hooks/pre-push').exists()
-    uninstall(hook_types=['pre-commit', 'pre-push'])
+    uninstall(C.CONFIG_FILE, hook_types=['pre-commit', 'pre-push'])
     assert not in_git_dir.join('.git/hooks/pre-commit').exists()
     assert not in_git_dir.join('.git/hooks/pre-push').exists()
 
@@ -79,14 +110,14 @@ def test_install_hooks_dead_symlink(in_git_dir, store):
 
 
 def test_uninstall_does_not_blow_up_when_not_there(in_git_dir):
-    assert uninstall(hook_types=['pre-commit']) == 0
+    assert uninstall(C.CONFIG_FILE, hook_types=['pre-commit']) == 0
 
 
 def test_uninstall(in_git_dir, store):
     assert not in_git_dir.join('.git/hooks/pre-commit').exists()
     install(C.CONFIG_FILE, store, hook_types=['pre-commit'])
     assert in_git_dir.join('.git/hooks/pre-commit').exists()
-    uninstall(hook_types=['pre-commit'])
+    uninstall(C.CONFIG_FILE, hook_types=['pre-commit'])
     assert not in_git_dir.join('.git/hooks/pre-commit').exists()
 
 
@@ -416,7 +447,7 @@ def test_uninstall_restores_legacy_hooks(tempdir_factory, store):
 
         # Now install and uninstall pre-commit
         assert install(C.CONFIG_FILE, store, hook_types=['pre-commit']) == 0
-        assert uninstall(hook_types=['pre-commit']) == 0
+        assert uninstall(C.CONFIG_FILE, hook_types=['pre-commit']) == 0
 
         # Make sure we installed the "old" hook correctly
         ret, output = _get_commit_output(tempdir_factory, touch_file='baz')
@@ -451,7 +482,7 @@ def test_uninstall_doesnt_remove_not_our_hooks(in_git_dir):
     pre_commit.write('#!/usr/bin/env bash\necho 1\n')
     make_executable(pre_commit.strpath)
 
-    assert uninstall(hook_types=['pre-commit']) == 0
+    assert uninstall(C.CONFIG_FILE, hook_types=['pre-commit']) == 0
 
     assert pre_commit.exists()
 
@@ -1007,3 +1038,16 @@ def test_install_temporarily_allow_mising_config(tempdir_factory, store):
             'Skipping `pre-commit`.'
         )
         assert expected in output
+
+
+def test_install_uninstall_default_hook_types(in_git_dir, store):
+    cfg_src = 'default_install_hook_types: [pre-commit, pre-push]\nrepos: []\n'
+    in_git_dir.join(C.CONFIG_FILE).write(cfg_src)
+
+    assert not install(C.CONFIG_FILE, store, hook_types=None)
+    assert os.access(in_git_dir.join('.git/hooks/pre-commit').strpath, os.X_OK)
+    assert os.access(in_git_dir.join('.git/hooks/pre-push').strpath, os.X_OK)
+
+    assert not uninstall(C.CONFIG_FILE, hook_types=None)
+    assert not in_git_dir.join('.git/hooks/pre-commit').exists()
+    assert not in_git_dir.join('.git/hooks/pre-push').exists()

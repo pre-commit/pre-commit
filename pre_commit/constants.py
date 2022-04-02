@@ -24,4 +24,10 @@ STAGES = (
     'post-rewrite',
 )
 
+HOOK_TYPES = (
+    'pre-commit', 'pre-merge-commit', 'pre-push', 'prepare-commit-msg',
+    'commit-msg', 'post-commit', 'post-checkout', 'post-merge',
+    'post-rewrite',
+)
+
 DEFAULT = 'default'

@@ -336,6 +336,11 @@ CONFIG_SCHEMA = cfgv.Map(
     'Config', None,
 
     cfgv.RequiredRecurse('repos', cfgv.Array(CONFIG_REPO_DICT)),
+    cfgv.Optional(
+        'default_install_hook_types',
+        cfgv.check_array(cfgv.check_one_of(C.HOOK_TYPES)),
+        ['pre-commit'],
+    ),
     cfgv.OptionalRecurse(
         'default_language_version', DEFAULT_LANGUAGE_VERSION, {},
     ),
@@ -355,6 +360,7 @@ CONFIG_SCHEMA = cfgv.Map(
     cfgv.WarnAdditionalKeys(
         (
             'repos',
+            'default_install_hook_types',
             'default_language_version',
             'default_stages',
             'files',
