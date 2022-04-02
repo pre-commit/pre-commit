@@ -57,13 +57,15 @@ def get_root() -> str:
         root = os.path.abspath(
             cmd_output('git', 'rev-parse', '--show-cdup')[1].strip(),
         )
-        git_dir = os.path.abspath(get_git_dir())
+        inside_git_dir = cmd_output(
+            'git', 'rev-parse', '--is-inside-git-dir',
+        )[1].strip()
     except CalledProcessError:
         raise FatalError(
             'git failed. Is it installed, and are you in a Git repository '
             'directory?',
         )
-    if os.path.samefile(root, git_dir):
+    if inside_git_dir != 'false':
         raise FatalError(
             'git toplevel unexpectedly empty! make sure you are not '
             'inside the `.git` directory of your repository.',
@@ -72,13 +74,23 @@ def get_root() -> str:
 
 
 def get_git_dir(git_root: str = '.') -> str:
-    opts = ('--git-common-dir', '--git-dir')
-    _, out, _ = cmd_output('git', 'rev-parse', *opts, cwd=git_root)
-    for line, opt in zip(out.splitlines(), opts):
-        if line != opt:  # pragma: no branch (git < 2.5)
-            return os.path.normpath(os.path.join(git_root, line))
+    opt = '--git-dir'
+    _, out, _ = cmd_output('git', 'rev-parse', opt, cwd=git_root)
+    git_dir = out.strip()
+    if git_dir != opt:
+        return os.path.normpath(os.path.join(git_root, git_dir))
     else:
         raise AssertionError('unreachable: no git dir')
+
+
+def get_git_common_dir(git_root: str = '.') -> str:
+    opt = '--git-common-dir'
+    _, out, _ = cmd_output('git', 'rev-parse', opt, cwd=git_root)
+    git_common_dir = out.strip()
+    if git_common_dir != opt:
+        return os.path.normpath(os.path.join(git_root, git_common_dir))
+    else:  # pragma: no cover (git < 2.5)
+        return get_git_dir(git_root)
 
 
 def get_remote_url(git_root: str) -> str:
