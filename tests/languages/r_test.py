@@ -4,6 +4,7 @@ import os.path
 
 import pytest
 
+from pre_commit import envcontext
 from pre_commit.languages import r
 from testing.fixtures import make_config_from_repo
 from testing.fixtures import make_repo
@@ -129,3 +130,14 @@ def test_r_parsing_file_local(tempdir_factory, store):
         config=config,
         expect_path_prefix=False,
     )
+
+
+def test_rscript_exec_relative_to_r_home():
+    expected = os.path.join('r_home_dir', 'bin', 'Rscript')
+    with envcontext.envcontext((('R_HOME', 'r_home_dir'),)):
+        assert r._rscript_exec() == expected
+
+
+def test_path_rscript_exec_no_r_home_set():
+    with envcontext.envcontext((('R_HOME', envcontext.UNSET),)):
+        assert r._rscript_exec() == 'Rscript'

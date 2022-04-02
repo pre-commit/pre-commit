@@ -59,7 +59,11 @@ def _prefix_if_non_local_file_entry(
 
 
 def _rscript_exec() -> str:
-    return os.path.join(os.getenv('R_HOME', ''), 'Rscript')
+    r_home = os.environ.get('R_HOME')
+    if r_home is None:
+        return 'Rscript'
+    else:
+        return os.path.join(r_home, 'bin', 'Rscript')
 
 
 def _entry_validate(entry: Sequence[str]) -> None:
