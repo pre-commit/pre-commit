@@ -1,3 +1,46 @@
+2.18.0 - 2022-04-02
+===================
+
+### Features
+- Keep `GIT_HTTP_PROXY_AUTHMETHOD` in git environ.
+    - #2272 PR by @VincentBerthier.
+    - #2271 issue by @VincentBerthier.
+- Support both `cs` and `coursier` executables for coursier hooks.
+    - #2293 PR by @Holzhaus.
+- Include more information in errors for `language_version` /
+  `additional_dependencies` for languages which do not support them.
+    -  #2315 PR by @asottile.
+- Have autoupdate preferentially pick tags which look like versions when
+  there are multiple equivalent tags.
+    - #2312 PR by @mblayman.
+    - #2311 issue by @mblayman.
+- Upgrade `ruby-build`.
+    - #2319 PR by @jalessio.
+- Add top level `default_install_hook_types` which will be installed when
+  `--hook-types` is not specified in `pre-commit install`.
+    - #2322 PR by @asottile.
+
+### Fixes
+- Fix typo in help message for `--from-ref` and `--to-ref`.
+    - #2266 PR by @leetrout.
+- Prioritize binary builds for R dependencies.
+    - #2277 PR by @lorenzwalthert.
+- Fix handling of git worktrees.
+    - #2252 PR by @daschuer.
+- Fix handling of `$R_HOME` for R hooks.
+    - #2301 PR by @jeff-m-sullivan.
+    - #2300 issue by @jeff-m-sullivan.
+- Fix a rare race condition in change stashing.
+    - #2323 PR by @asottile.
+    - #2287 issue by @ian-h-chamberlain.
+
+### Updating
+- Remove python3.6 support.  Note that pre-commit still supports running hooks
+  written in older versions, but pre-commit itself requires python 3.7+.
+    - #2215 PR by @asottile.
+- pre-commit has migrated from the `master` branch to `main`.
+    - #2302 PR by @asottile.
+
 2.17.0 - 2022-01-18
 ===================
 
