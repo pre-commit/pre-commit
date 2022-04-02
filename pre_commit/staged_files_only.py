@@ -66,9 +66,9 @@ def _unstaged_changes_cleared(patch_dir: str) -> Generator[None, None, None]:
 
         # prevent recursive post-checkout hooks (#1418)
         no_checkout_env = dict(os.environ, _PRE_COMMIT_SKIP_POST_CHECKOUT='1')
-        cmd_output_b(*_CHECKOUT_CMD, env=no_checkout_env)
 
         try:
+            cmd_output_b(*_CHECKOUT_CMD, env=no_checkout_env)
             yield
         finally:
             # Try to apply the patch we saved
