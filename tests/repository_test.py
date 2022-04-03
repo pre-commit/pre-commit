@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import os.path
 import shutil
-import sys
 from typing import Any
 from unittest import mock
 
@@ -876,7 +875,7 @@ def test_tags_on_repositories(in_tmpdir, tempdir_factory, store):
 @pytest.fixture
 def local_python_config():
     # Make a "local" hooks repo that just installs our other hooks repo
-    repo_path = get_resource_path('python_hooks_repo')
+    repo_path = get_resource_path('python3_hooks_repo')
     manifest = load_manifest(os.path.join(repo_path, C.MANIFEST_FILE))
     hooks = [
         dict(hook, additional_dependencies=[repo_path]) for hook in manifest
@@ -884,17 +883,23 @@ def local_python_config():
     return {'repo': 'local', 'hooks': hooks}
 
 
-@pytest.mark.xfail(  # pragma: win32 no cover
-    sys.platform == 'win32',
-    reason='microsoft/azure-pipelines-image-generation#989',
-)
 def test_local_python_repo(store, local_python_config):
-    hook = _get_hook(local_python_config, store, 'foo')
+    hook = _get_hook(local_python_config, store, 'python3-hook')
     # language_version should have been adjusted to the interpreter version
     assert hook.language_version != C.DEFAULT
     ret, out = _hook_run(hook, ('filename',), color=False)
     assert ret == 0
-    assert _norm_out(out) == b"['filename']\nHello World\n"
+    assert _norm_out(out) == b"3\n['filename']\nHello World\n"
+
+
+def test_local_python_repo_python2(store, local_python_config):
+    local_python_config['hooks'][0]['language_version'] = 'python2'
+    hook = _get_hook(local_python_config, store, 'python3-hook')
+    # language_version should have been adjusted to the interpreter version
+    assert hook.language_version != C.DEFAULT
+    ret, out = _hook_run(hook, ('filename',), color=False)
+    assert ret == 0
+    assert _norm_out(out) == b"2\n['filename']\nHello World\n"
 
 
 def test_default_language_version(store, local_python_config):

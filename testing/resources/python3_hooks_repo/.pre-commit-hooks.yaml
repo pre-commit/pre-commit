@@ -2,5 +2,4 @@
     name: Python 3 Hook
     entry: python3-hook
     language: python
-    language_version: python3
     files: \.py$
