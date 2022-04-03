@@ -1,3 +1,10 @@
+2.18.1 - 2022-04-02
+===================
+
+### Fixes
+- Fix regression for `repo: local` hooks running `python<3.7`
+    - #2324 PR by @asottile.
+
 2.18.0 - 2022-04-02
 ===================
 
