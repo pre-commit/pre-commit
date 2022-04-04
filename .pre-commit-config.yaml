@@ -10,7 +10,7 @@ repos:
     -   id: name-tests-test
     -   id: requirements-txt-fixer
 -   repo: https://github.com/asottile/setup-cfg-fmt
-    rev: v1.20.0
+    rev: v1.20.1
     hooks:
     -   id: setup-cfg-fmt
 -   repo: https://github.com/asottile/reorder_python_imports
@@ -20,7 +20,7 @@ repos:
         exclude: ^(pre_commit/resources/|testing/resources/python3_hooks_repo/)
         args: [--py37-plus, --add-import, 'from __future__ import annotations']
 -   repo: https://github.com/asottile/add-trailing-comma
-    rev: v2.2.1
+    rev: v2.2.2
     hooks:
     -   id: add-trailing-comma
         args: [--py36-plus]
