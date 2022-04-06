@@ -1042,6 +1042,7 @@ def test_local_perl_additional_dependencies(store):
     (
         'dotnet_hooks_csproj_repo',
         'dotnet_hooks_sln_repo',
+        'dotnet_hooks_combo_repo',
     ),
 )
 def test_dotnet_hook(tempdir_factory, store, repo):

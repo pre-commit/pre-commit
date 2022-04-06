@@ -1,0 +1,12 @@
+-   id: dotnet-example-hook
+    name: Test Project 1
+    description: Test Project 1
+    entry: proj1
+    language: dotnet
+    stages: [commit]
+-   id: proj2
+    name: Test Project 2
+    description: Test Project 2
+    entry: proj2
+    language: dotnet
+    stages: [commit]
