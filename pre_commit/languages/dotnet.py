@@ -59,22 +59,19 @@ def install_environment(
 
         # Determine tool from the packaged file <tool_name>.<version>.nupkg
         build_outputs = os.listdir(os.path.join(prefix.prefix_dir, build_dir))
-        if len(build_outputs) != 1:
-            raise NotImplementedError(
-                f"Can't handle multiple build outputs. Got {build_outputs}",
-            )
-        tool_name = build_outputs[0].split('.')[0]
+        for output in build_outputs:
+            tool_name = output.split('.')[0]
 
-        # Install to bin dir
-        helpers.run_setup_cmd(
-            prefix,
-            (
-                'dotnet', 'tool', 'install',
-                '--tool-path', os.path.join(envdir, BIN_DIR),
-                '--add-source', build_dir,
-                tool_name,
-            ),
-        )
+            # Install to bin dir
+            helpers.run_setup_cmd(
+                prefix,
+                (
+                    'dotnet', 'tool', 'install',
+                    '--tool-path', os.path.join(envdir, BIN_DIR),
+                    '--add-source', build_dir,
+                    tool_name,
+                ),
+            )
 
         # Clean the git dir, ignoring the environment dir
         clean_cmd = ('git', 'clean', '-ffxd', '-e', f'{ENVIRONMENT_DIR}-*')
