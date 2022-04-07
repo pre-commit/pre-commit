@@ -6,7 +6,7 @@
 
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>proj2</ToolCommandName>
-    <PackageOutputPath>./nupkg</PackageOutputPath>    
+    <PackageOutputPath>./nupkg</PackageOutputPath>
   </PropertyGroup>
 
 </Project>

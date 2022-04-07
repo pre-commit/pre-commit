@@ -9,4 +9,4 @@
     description: Test Project 2
     entry: proj2
     language: dotnet
-    stages: [commit]    
+    stages: [commit]
