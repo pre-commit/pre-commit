@@ -667,7 +667,7 @@ def test_additional_golang_dependencies_installed(
     path = make_repo(tempdir_factory, 'golang_hooks_repo')
     config = make_config_from_repo(path)
     # A small go package
-    deps = ['golang.org/x/example/hello']
+    deps = ['golang.org/x/example/hello@latest']
     config['hooks'][0]['additional_dependencies'] = deps
     hook = _get_hook(config, store, 'golang-hook')
     binaries = os.listdir(
@@ -688,7 +688,7 @@ def test_local_golang_additional_dependencies(store):
             'name': 'hello',
             'entry': 'hello',
             'language': 'golang',
-            'additional_dependencies': ['golang.org/x/example/hello'],
+            'additional_dependencies': ['golang.org/x/example/hello@latest'],
         }],
     }
     hook = _get_hook(config, store, 'hello')
