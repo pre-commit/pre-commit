@@ -24,6 +24,7 @@ from pre_commit.languages import rust
 from pre_commit.languages import script
 from pre_commit.languages import swift
 from pre_commit.languages import system
+from pre_commit.languages import powershell
 from pre_commit.prefix import Prefix
 
 
@@ -43,7 +44,7 @@ class Language(NamedTuple):
 
 # TODO: back to modules + Protocol: https://github.com/python/mypy/issues/5018
 languages = {
-    # BEGIN GENERATED (testing/gen-languages-all)
+     # BEGIN GENERATED (.\gen-languages-all)
     'conda': Language(name='conda', ENVIRONMENT_DIR=conda.ENVIRONMENT_DIR, get_default_version=conda.get_default_version, healthy=conda.healthy, install_environment=conda.install_environment, run_hook=conda.run_hook),  # noqa: E501
     'coursier': Language(name='coursier', ENVIRONMENT_DIR=coursier.ENVIRONMENT_DIR, get_default_version=coursier.get_default_version, healthy=coursier.healthy, install_environment=coursier.install_environment, run_hook=coursier.run_hook),  # noqa: E501
     'dart': Language(name='dart', ENVIRONMENT_DIR=dart.ENVIRONMENT_DIR, get_default_version=dart.get_default_version, healthy=dart.healthy, install_environment=dart.install_environment, run_hook=dart.run_hook),  # noqa: E501
@@ -55,6 +56,7 @@ languages = {
     'lua': Language(name='lua', ENVIRONMENT_DIR=lua.ENVIRONMENT_DIR, get_default_version=lua.get_default_version, healthy=lua.healthy, install_environment=lua.install_environment, run_hook=lua.run_hook),  # noqa: E501
     'node': Language(name='node', ENVIRONMENT_DIR=node.ENVIRONMENT_DIR, get_default_version=node.get_default_version, healthy=node.healthy, install_environment=node.install_environment, run_hook=node.run_hook),  # noqa: E501
     'perl': Language(name='perl', ENVIRONMENT_DIR=perl.ENVIRONMENT_DIR, get_default_version=perl.get_default_version, healthy=perl.healthy, install_environment=perl.install_environment, run_hook=perl.run_hook),  # noqa: E501
+    'powershell': Language(name='powershell', ENVIRONMENT_DIR=powershell.ENVIRONMENT_DIR, get_default_version=powershell.get_default_version, healthy=powershell.healthy, install_environment=powershell.install_environment, run_hook=powershell.run_hook),  # noqa: E501
     'pygrep': Language(name='pygrep', ENVIRONMENT_DIR=pygrep.ENVIRONMENT_DIR, get_default_version=pygrep.get_default_version, healthy=pygrep.healthy, install_environment=pygrep.install_environment, run_hook=pygrep.run_hook),  # noqa: E501
     'python': Language(name='python', ENVIRONMENT_DIR=python.ENVIRONMENT_DIR, get_default_version=python.get_default_version, healthy=python.healthy, install_environment=python.install_environment, run_hook=python.run_hook),  # noqa: E501
     'r': Language(name='r', ENVIRONMENT_DIR=r.ENVIRONMENT_DIR, get_default_version=r.get_default_version, healthy=r.healthy, install_environment=r.install_environment, run_hook=r.run_hook),  # noqa: E501
