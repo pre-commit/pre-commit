@@ -1169,7 +1169,7 @@ def test_local_lua_additional_dependencies(store):
         'powershell_repo',
     ),
 )
-def test_dotnet_hook(tempdir_factory, store, repo):
+def test_powershell_hook(tempdir_factory, store, repo):
     _test_hook_repo(
         tempdir_factory, store, repo,
         'powershell-example-hook', [], b'Hello from Powershell\n',
