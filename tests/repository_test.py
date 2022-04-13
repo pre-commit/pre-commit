@@ -1162,3 +1162,15 @@ def test_local_lua_additional_dependencies(store):
     ret, out = _hook_run(hook, (), color=False)
     assert b'Luacheck' in out
     assert ret == 0
+
+@pytest.mark.parametrize(
+    'repo',
+    (
+        'powershell_repo',
+    ),
+)
+def test_dotnet_hook(tempdir_factory, store, repo):
+    _test_hook_repo(
+        tempdir_factory, store, repo,
+        'powershell-example-hook', [], b'Hello from Powershell\n',
+    )

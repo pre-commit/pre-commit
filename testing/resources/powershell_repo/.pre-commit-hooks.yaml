@@ -1,0 +1,6 @@
+-   id: powershell-example-hook
+    name: Test Powershell Project
+    description: Test Powershell Project
+    entry: test-script.ps1
+    language: powershell
+    stages: [commit]
