@@ -1163,6 +1163,7 @@ def test_local_lua_additional_dependencies(store):
     assert b'Luacheck' in out
     assert ret == 0
 
+
 @pytest.mark.parametrize(
     'repo',
     (
