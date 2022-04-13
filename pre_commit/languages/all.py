@@ -16,6 +16,7 @@ from pre_commit.languages import golang
 from pre_commit.languages import lua
 from pre_commit.languages import node
 from pre_commit.languages import perl
+from pre_commit.languages import powershell
 from pre_commit.languages import pygrep
 from pre_commit.languages import python
 from pre_commit.languages import r
@@ -24,7 +25,6 @@ from pre_commit.languages import rust
 from pre_commit.languages import script
 from pre_commit.languages import swift
 from pre_commit.languages import system
-from pre_commit.languages import powershell
 from pre_commit.prefix import Prefix
 
 
