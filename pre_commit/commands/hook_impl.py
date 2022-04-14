@@ -114,7 +114,8 @@ def _pre_push_ns(
     remote_url = args[1]
 
     for line in stdin.decode().splitlines():
-        local_branch, local_sha, remote_branch, remote_sha = line.split()
+        parts = line.rsplit(maxsplit=3)
+        local_branch, local_sha, remote_branch, remote_sha = parts
         if local_sha == Z40:
             continue
         elif remote_sha != Z40 and _rev_exists(remote_sha):

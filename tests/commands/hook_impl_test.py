@@ -242,6 +242,18 @@ def test_run_ns_pre_push_new_branch_existing_rev(push_example):
     assert ns is None
 
 
+def test_run_ns_pre_push_ref_with_whitespace(push_example):
+    src, src_head, clone, _ = push_example
+
+    with cwd(clone):
+        args = ('origin', src)
+        line = f'HEAD^{{/ }} {src_head} refs/heads/b2 {hook_impl.Z40}\n'
+        stdin = line.encode()
+        ns = hook_impl._run_ns('pre-push', False, args, stdin)
+
+    assert ns is None
+
+
 def test_pushing_orphan_branch(push_example):
     src, src_head, clone, _ = push_example
 
