@@ -16,7 +16,7 @@ from pre_commit.util import cmd_output_b
 ENVIRONMENT_DIR = 'docker'
 PRE_COMMIT_LABEL = 'PRE_COMMIT'
 get_default_version = helpers.basic_get_default_version
-healthy = helpers.basic_healthy
+health_check = helpers.basic_health_check
 
 
 def _is_in_docker() -> bool:

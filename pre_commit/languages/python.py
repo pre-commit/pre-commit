@@ -163,27 +163,44 @@ def in_env(
         yield
 
 
-def healthy(prefix: Prefix, language_version: str) -> bool:
+def health_check(prefix: Prefix, language_version: str) -> str | None:
     directory = helpers.environment_dir(ENVIRONMENT_DIR, language_version)
     envdir = prefix.path(directory)
     pyvenv_cfg = os.path.join(envdir, 'pyvenv.cfg')
 
     # created with "old" virtualenv
     if not os.path.exists(pyvenv_cfg):
-        return False
+        return 'pyvenv.cfg does not exist (old virtualenv?)'
 
     exe_name = win_exe('python')
     py_exe = prefix.path(bin_dir(envdir), exe_name)
     cfg = _read_pyvenv_cfg(pyvenv_cfg)
 
-    return (
-        'version_info' in cfg and
-        # always use uncached lookup here in case we replaced an unhealthy env
-        _version_info.__wrapped__(py_exe) == cfg['version_info'] and (
-            'base-executable' not in cfg or
-            _version_info(cfg['base-executable']) == cfg['version_info']
+    if 'version_info' not in cfg:
+        return "created virtualenv's pyvenv.cfg is missing `version_info`"
+
+    # always use uncached lookup here in case we replaced an unhealthy env
+    virtualenv_version = _version_info.__wrapped__(py_exe)
+    if virtualenv_version != cfg['version_info']:
+        return (
+            f'virtualenv python version did not match created version:\n'
+            f'- actual version: {virtualenv_version}\n'
+            f'- expected version: {cfg["version_info"]}\n'
         )
-    )
+
+    # made with an older version of virtualenv? skip `base-executable` check
+    if 'base-executable' not in cfg:
+        return None
+
+    base_exe_version = _version_info(cfg['base-executable'])
+    if base_exe_version != cfg['version_info']:
+        return (
+            f'base executable python version does not match created version:\n'
+            f'- base-executable version: {base_exe_version}\n'
+            f'- expected version: {cfg["version_info"]}\n'
+        )
+    else:
+        return None
 
 
 def install_environment(

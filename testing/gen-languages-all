@@ -3,15 +3,15 @@ from __future__ import annotations
 
 import sys
 
-LANGUAGES = [
+LANGUAGES = (
     'conda', 'coursier', 'dart', 'docker', 'docker_image', 'dotnet', 'fail',
     'golang', 'lua', 'node', 'perl', 'pygrep', 'python', 'r', 'ruby', 'rust',
     'script', 'swift', 'system',
-]
-FIELDS = [
-    'ENVIRONMENT_DIR', 'get_default_version', 'healthy', 'install_environment',
-    'run_hook',
-]
+)
+FIELDS = (
+    'ENVIRONMENT_DIR', 'get_default_version', 'health_check',
+    'install_environment', 'run_hook',
+)
 
 
 def main() -> int:

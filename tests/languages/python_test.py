@@ -93,11 +93,11 @@ def test_healthy_default_creator(python_dir):
     python.install_environment(prefix, C.DEFAULT, ())
 
     # should be healthy right after creation
-    assert python.healthy(prefix, C.DEFAULT) is True
+    assert python.health_check(prefix, C.DEFAULT) is None
 
     # even if a `types.py` file exists, should still be healthy
     tmpdir.join('types.py').ensure()
-    assert python.healthy(prefix, C.DEFAULT) is True
+    assert python.health_check(prefix, C.DEFAULT) is None
 
 
 def test_healthy_venv_creator(python_dir):
@@ -107,7 +107,7 @@ def test_healthy_venv_creator(python_dir):
     with envcontext((('VIRTUALENV_CREATOR', 'venv'),)):
         python.install_environment(prefix, C.DEFAULT, ())
 
-    assert python.healthy(prefix, C.DEFAULT) is True
+    assert python.health_check(prefix, C.DEFAULT) is None
 
 
 def test_unhealthy_python_goes_missing(python_dir):
@@ -119,7 +119,12 @@ def test_unhealthy_python_goes_missing(python_dir):
     py_exe = prefix.path(python.bin_dir('py_env-default'), exe_name)
     os.remove(py_exe)
 
-    assert python.healthy(prefix, C.DEFAULT) is False
+    ret = python.health_check(prefix, C.DEFAULT)
+    assert ret == (
+        f'virtualenv python version did not match created version:\n'
+        f'- actual version: <<error retrieving version from {py_exe}>>\n'
+        f'- expected version: {python._version_info(sys.executable)}\n'
+    )
 
 
 def test_unhealthy_with_version_change(python_dir):
@@ -127,10 +132,15 @@ def test_unhealthy_with_version_change(python_dir):
 
     python.install_environment(prefix, C.DEFAULT, ())
 
-    with open(prefix.path('py_env-default/pyvenv.cfg'), 'w') as f:
+    with open(prefix.path('py_env-default/pyvenv.cfg'), 'a+') as f:
         f.write('version_info = 1.2.3\n')
 
-    assert python.healthy(prefix, C.DEFAULT) is False
+    ret = python.health_check(prefix, C.DEFAULT)
+    assert ret == (
+        f'virtualenv python version did not match created version:\n'
+        f'- actual version: {python._version_info(sys.executable)}\n'
+        f'- expected version: 1.2.3\n'
+    )
 
 
 def test_unhealthy_system_version_changes(python_dir):
@@ -141,7 +151,12 @@ def test_unhealthy_system_version_changes(python_dir):
     with open(prefix.path('py_env-default/pyvenv.cfg'), 'a') as f:
         f.write('base-executable = /does/not/exist\n')
 
-    assert python.healthy(prefix, C.DEFAULT) is False
+    ret = python.health_check(prefix, C.DEFAULT)
+    assert ret == (
+        f'base executable python version does not match created version:\n'
+        f'- base-executable version: <<error retrieving version from /does/not/exist>>\n'  # noqa: E501
+        f'- expected version: {python._version_info(sys.executable)}\n'
+    )
 
 
 def test_unhealthy_old_virtualenv(python_dir):
@@ -152,7 +167,21 @@ def test_unhealthy_old_virtualenv(python_dir):
     # simulate "old" virtualenv by deleting this file
     os.remove(prefix.path('py_env-default/pyvenv.cfg'))
 
-    assert python.healthy(prefix, C.DEFAULT) is False
+    ret = python.health_check(prefix, C.DEFAULT)
+    assert ret == 'pyvenv.cfg does not exist (old virtualenv?)'
+
+
+def test_unhealthy_unexpected_pyvenv(python_dir):
+    prefix, tmpdir = python_dir
+
+    python.install_environment(prefix, C.DEFAULT, ())
+
+    # simulate a buggy environment build (I don't think this is possible)
+    with open(prefix.path('py_env-default/pyvenv.cfg'), 'w'):
+        pass
+
+    ret = python.health_check(prefix, C.DEFAULT)
+    assert ret == "created virtualenv's pyvenv.cfg is missing `version_info`"
 
 
 def test_unhealthy_then_replaced(python_dir):
@@ -170,9 +199,14 @@ def test_unhealthy_then_replaced(python_dir):
     make_executable(py_exe)
 
     # should be unhealthy due to version mismatch
-    assert python.healthy(prefix, C.DEFAULT) is False
+    ret = python.health_check(prefix, C.DEFAULT)
+    assert ret == (
+        f'virtualenv python version did not match created version:\n'
+        f'- actual version: 1.2.3\n'
+        f'- expected version: {python._version_info(sys.executable)}\n'
+    )
 
     # now put the exe back and it should be healthy again
     os.replace(f'{py_exe}.tmp', py_exe)
 
-    assert python.healthy(prefix, C.DEFAULT) is True
+    assert python.health_check(prefix, C.DEFAULT) is None

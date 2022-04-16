@@ -18,7 +18,7 @@ from pre_commit.util import cmd_output
 
 ENVIRONMENT_DIR = 'lua_env'
 get_default_version = helpers.basic_get_default_version
-healthy = helpers.basic_healthy
+health_check = helpers.basic_health_check
 
 
 def _get_lua_version() -> str:  # pragma: win32 no cover

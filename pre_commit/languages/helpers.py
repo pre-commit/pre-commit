@@ -88,8 +88,8 @@ def basic_get_default_version() -> str:
     return C.DEFAULT
 
 
-def basic_healthy(prefix: Prefix, language_version: str) -> bool:
-    return True
+def basic_health_check(prefix: Prefix, language_version: str) -> str | None:
+    return None
 
 
 def no_install(

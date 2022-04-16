@@ -17,7 +17,7 @@ from pre_commit.util import clean_path_on_failure
 ENVIRONMENT_DIR = 'coursier'
 
 get_default_version = helpers.basic_get_default_version
-healthy = helpers.basic_healthy
+health_check = helpers.basic_health_check
 
 
 def install_environment(
