@@ -62,7 +62,7 @@ def test_healthy_system_node(tmpdir):
 
     prefix = Prefix(str(tmpdir))
     node.install_environment(prefix, 'system', ())
-    assert node.healthy(prefix, 'system')
+    assert node.health_check(prefix, 'system') is None
 
 
 @xfailif_windows  # pragma: win32 no cover
@@ -78,10 +78,11 @@ def test_unhealthy_if_system_node_goes_missing(tmpdir):
     with envcontext.envcontext((path,)):
         prefix = Prefix(str(prefix_dir))
         node.install_environment(prefix, 'system', ())
-        assert node.healthy(prefix, 'system')
+        assert node.health_check(prefix, 'system') is None
 
         node_bin.remove()
-        assert not node.healthy(prefix, 'system')
+        ret = node.health_check(prefix, 'system')
+        assert ret == '`node --version` returned 127'
 
 
 @xfailif_windows  # pragma: win32 no cover
@@ -101,7 +102,7 @@ def test_installs_without_links_outside_env(tmpdir):
 
     prefix = Prefix(str(tmpdir))
     node.install_environment(prefix, 'system', ())
-    assert node.healthy(prefix, 'system')
+    assert node.health_check(prefix, 'system') is None
 
     # this directory shouldn't exist, make sure we succeed without it existing
     cmd_output('rm', '-rf', str(tmpdir.join('node_modules')))

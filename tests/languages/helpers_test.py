@@ -67,8 +67,8 @@ def test_basic_get_default_version():
     assert helpers.basic_get_default_version() == C.DEFAULT
 
 
-def test_basic_healthy():
-    assert helpers.basic_healthy(Prefix('.'), 'default') is True
+def test_basic_health_check():
+    assert helpers.basic_health_check(Prefix('.'), 'default') is None
 
 
 def test_failed_setup_command_does_not_unicode_error():

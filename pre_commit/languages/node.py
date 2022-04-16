@@ -73,10 +73,13 @@ def in_env(
         yield
 
 
-def healthy(prefix: Prefix, language_version: str) -> bool:
+def health_check(prefix: Prefix, language_version: str) -> str | None:
     with in_env(prefix, language_version):
         retcode, _, _ = cmd_output_b('node', '--version', retcode=None)
-        return retcode == 0
+        if retcode != 0:  # pragma: win32 no cover
+            return f'`node --version` returned {retcode}'
+        else:
+            return None
 
 
 def install_environment(

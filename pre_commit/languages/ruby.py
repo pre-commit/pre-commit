@@ -21,7 +21,7 @@ from pre_commit.util import clean_path_on_failure
 from pre_commit.util import resource_bytesio
 
 ENVIRONMENT_DIR = 'rbenv'
-healthy = helpers.basic_healthy
+health_check = helpers.basic_health_check
 
 
 @functools.lru_cache(maxsize=1)

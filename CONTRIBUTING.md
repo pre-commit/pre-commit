@@ -117,15 +117,16 @@ get_default_version = helpers.basic_default_version
 
 `python` is currently the only language which implements this api
 
-#### `healthy`
+#### `health_check`
 
 This is used to check whether the installed environment is considered healthy.
-This function should return `True` or `False`.
+This function should return a detailed message if unhealthy or `None` if
+healthy.
 
 You generally don't need to implement this on a first pass and can just use:
 
 ```python
-healthy = helpers.basic_healthy
+health_check = helpers.basic_healthy_check
 ```
 
 `python` is currently the only language which implements this api, for python

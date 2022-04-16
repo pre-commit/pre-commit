@@ -18,7 +18,7 @@ from pre_commit.util import cmd_output_b
 
 ENVIRONMENT_DIR = 'conda'
 get_default_version = helpers.basic_get_default_version
-healthy = helpers.basic_healthy
+health_check = helpers.basic_health_check
 
 
 def get_env_patch(env: str) -> PatchesT:

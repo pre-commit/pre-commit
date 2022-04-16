@@ -8,7 +8,7 @@ from pre_commit.languages import helpers
 
 ENVIRONMENT_DIR = None
 get_default_version = helpers.basic_get_default_version
-healthy = helpers.basic_healthy
+health_check = helpers.basic_health_check
 install_environment = helpers.no_install
 
 
