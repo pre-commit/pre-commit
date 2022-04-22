@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import argparse
 import logging
+import os
 import shlex
 from typing import Any
 from typing import NamedTuple
@@ -60,6 +62,16 @@ class Hook(NamedTuple):
                 f'{", ".join(sorted(extra_keys))}',
             )
         return cls(src=src, prefix=prefix, **{k: dct[k] for k in _KEYS})
+
+    def expand(self, args: argparse.Namespace, config_file: str) -> Hook:
+        map_ = {
+            '%CONFIG_BASEPATH%': os.path.dirname(os.path.abspath(config_file)),
+        }
+        values = self._asdict()
+        for k, v in map_.items():
+            values['entry'] = values['entry'].replace(k, v)
+            values['args'] = [x.replace(k, v) for x in values['args']]
+        return Hook(**values)
 
 
 _KEYS = frozenset(set(Hook._fields) - {'src', 'prefix'})

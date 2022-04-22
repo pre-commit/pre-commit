@@ -265,6 +265,39 @@ def test_global_exclude(cap_out, store, in_git_dir):
     assert printed.endswith(b'\n\n.pre-commit-config.yaml\nbar.py\n\n')
 
 
+def test_global_hook_expand(cap_out, store, in_git_dir):
+    config = {
+        'repos': [
+            {
+                'repo': 'local',
+                'hooks': [
+                    {
+                        'id': 'foo',
+                        'language': 'script',
+                        'name': 'bar',
+                        'entry': '%CONFIG_BASEPATH%/script',
+                        'args': ['%CONFIG_BASEPATH%'],
+                    },
+                ],
+            },
+        ],
+    }
+    write_config('.', config)
+
+    open('foo.py', 'a').close()
+    cmd_output('git', 'add', '.')
+    opts = run_opts(verbose=False)
+    ret, printed = _do_run(cap_out, store, str(in_git_dir), opts)
+    # script doesn't exist so this needs to fail
+    assert ret != 0
+
+    # %CONFIG_BASEPATH% is properly expanded
+    assert b'%CONFIG_BASEPATH%' not in printed
+    if sys.platform != 'win32':
+        # on windows path separator would look different
+        assert f'{in_git_dir}/script'.encode() in printed
+
+
 def test_global_files(cap_out, store, in_git_dir):
     config = {
         'files': r'^bar\.py$',

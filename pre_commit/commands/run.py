@@ -397,7 +397,7 @@ def run(
 
         config = load_config(config_file)
         hooks = [
-            hook
+            hook.expand(args, config_file)
             for hook in all_hooks(config, store)
             if not args.hook or hook.id == args.hook or hook.alias == args.hook
             if args.hook_stage in hook.stages
