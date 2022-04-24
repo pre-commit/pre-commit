@@ -21,6 +21,8 @@ from pre_commit.commands.migrate_config import migrate_config
 from pre_commit.commands.run import run
 from pre_commit.commands.sample_config import sample_config
 from pre_commit.commands.try_repo import try_repo
+from pre_commit.commands.validate_config import validate_config
+from pre_commit.commands.validate_manifest import validate_manifest
 from pre_commit.error_handler import error_handler
 from pre_commit.logging_handler import logging_handler
 from pre_commit.store import Store
@@ -34,8 +36,10 @@ logger = logging.getLogger('pre_commit')
 # pyvenv
 os.environ.pop('__PYVENV_LAUNCHER__', None)
 
-
-COMMANDS_NO_GIT = {'clean', 'gc', 'init-templatedir', 'sample-config'}
+COMMANDS_NO_GIT = {
+    'clean', 'gc', 'init-templatedir', 'sample-config',
+    'validate-config', 'validate-manifest',
+}
 
 
 def _add_config_option(parser: argparse.ArgumentParser) -> None:
@@ -304,6 +308,20 @@ def main(argv: Sequence[str] | None = None) -> int:
     _add_config_option(uninstall_parser)
     _add_hook_type_option(uninstall_parser)
 
+    validate_config_parser = subparsers.add_parser(
+        'validate-config', help='Validate .pre-commit-config.yaml files',
+    )
+    add_color_option(validate_config_parser)
+    _add_config_option(validate_config_parser)
+    validate_config_parser.add_argument('filenames', nargs='*')
+
+    validate_manifest_parser = subparsers.add_parser(
+        'validate-manifest', help='Validate .pre-commit-hooks.yaml files',
+    )
+    add_color_option(validate_manifest_parser)
+    _add_config_option(validate_manifest_parser)
+    validate_manifest_parser.add_argument('filenames', nargs='*')
+
     help = subparsers.add_parser(
         'help', help='Show help for a specific command.',
     )
@@ -378,6 +396,10 @@ def main(argv: Sequence[str] | None = None) -> int:
                 config_file=args.config,
                 hook_types=args.hook_types,
             )
+        elif args.command == 'validate-config':
+            return validate_config(args.filenames)
+        elif args.command == 'validate-manifest':
+            return validate_manifest(args.filenames)
         else:
             raise NotImplementedError(
                 f'Command {args.command} not implemented.',
