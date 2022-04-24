@@ -173,6 +173,7 @@ def test_python_venv(tempdir_factory, store):
     )
 
 
+@xfailif_windows  # pragma: win32 no cover  # no python 2 in GHA
 def test_switch_language_versions_doesnt_clobber(tempdir_factory, store):
     # We're using the python3 repo because it prints the python version
     path = make_repo(tempdir_factory, 'python3_hooks_repo')
@@ -892,6 +893,7 @@ def test_local_python_repo(store, local_python_config):
     assert _norm_out(out) == b"3\n['filename']\nHello World\n"
 
 
+@xfailif_windows  # pragma: win32 no cover  # no python2 in GHA
 def test_local_python_repo_python2(store, local_python_config):
     local_python_config['hooks'][0]['language_version'] = 'python2'
     hook = _get_hook(local_python_config, store, 'python3-hook')

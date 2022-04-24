@@ -3,9 +3,9 @@
 set -euo pipefail
 
 . /etc/lsb-release
-if [ "$DISTRIB_CODENAME" = "bionic" ]; then
-    SWIFT_URL='https://swift.org/builds/swift-5.1.3-release/ubuntu1804/swift-5.1.3-RELEASE/swift-5.1.3-RELEASE-ubuntu18.04.tar.gz'
-    SWIFT_HASH='ac82ccd773fe3d586fc340814e31e120da1ff695c6a712f6634e9cc720769610'
+if [ "$DISTRIB_CODENAME" = "focal" ]; then
+    SWIFT_URL='https://download.swift.org/swift-5.6.1-release/ubuntu2004/swift-5.6.1-RELEASE/swift-5.6.1-RELEASE-ubuntu20.04.tar.gz'
+    SWIFT_HASH='2b4f22d4a8b59fe8e050f0b7f020f8d8f12553cbda56709b2340a4a3bb90cfea'
 else
     echo "unknown dist: ${DISTRIB_CODENAME}" 1>&2
     exit 1
