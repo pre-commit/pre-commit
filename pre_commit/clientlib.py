@@ -14,6 +14,8 @@ from identify.identify import ALL_TAGS
 
 import pre_commit.constants as C
 from pre_commit.color import add_color_option
+from pre_commit.commands.validate_config import validate_config
+from pre_commit.commands.validate_manifest import validate_manifest
 from pre_commit.errors import FatalError
 from pre_commit.languages.all import all_languages
 from pre_commit.logging_handler import logging_handler
@@ -100,14 +102,12 @@ def validate_manifest_main(argv: Sequence[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     with logging_handler(args.color):
-        ret = 0
-        for filename in args.filenames:
-            try:
-                load_manifest(filename)
-            except InvalidManifestError as e:
-                print(e)
-                ret = 1
-        return ret
+        logger.warning(
+            'pre-commit-validate-manifest is deprecated -- '
+            'use `pre-commit validate-manifest` instead.',
+        )
+
+        return validate_manifest(args.filenames)
 
 
 LOCAL = 'local'
@@ -409,11 +409,9 @@ def validate_config_main(argv: Sequence[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     with logging_handler(args.color):
-        ret = 0
-        for filename in args.filenames:
-            try:
-                load_config(filename)
-            except InvalidConfigError as e:
-                print(e)
-                ret = 1
-        return ret
+        logger.warning(
+            'pre-commit-validate-config is deprecated -- '
+            'use `pre-commit validate-config` instead.',
+        )
+
+        return validate_config(args.filenames)

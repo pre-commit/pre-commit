@@ -122,8 +122,8 @@ def test_validate_config_old_list_format_ok(tmpdir, cap_out):
     f = tmpdir.join('cfg.yaml')
     f.write('-  {repo: meta, hooks: [{id: identity}]}')
     assert not validate_config_main((f.strpath,))
-    start = '[WARNING] normalizing pre-commit configuration to a top-level map'
-    assert cap_out.get().startswith(start)
+    msg = '[WARNING] normalizing pre-commit configuration to a top-level map'
+    assert msg in cap_out.get()
 
 
 def test_validate_warn_on_unknown_keys_at_repo_level(tmpdir, caplog):
@@ -139,6 +139,12 @@ def test_validate_warn_on_unknown_keys_at_repo_level(tmpdir, caplog):
     ret_val = validate_config_main((f.strpath,))
     assert not ret_val
     assert caplog.record_tuples == [
+        (
+            'pre_commit',
+            logging.WARNING,
+            'pre-commit-validate-config is deprecated -- '
+            'use `pre-commit validate-config` instead.',
+        ),
         (
             'pre_commit',
             logging.WARNING,
@@ -162,6 +168,12 @@ def test_validate_warn_on_unknown_keys_at_top_level(tmpdir, caplog):
     ret_val = validate_config_main((f.strpath,))
     assert not ret_val
     assert caplog.record_tuples == [
+        (
+            'pre_commit',
+            logging.WARNING,
+            'pre-commit-validate-config is deprecated -- '
+            'use `pre-commit validate-config` instead.',
+        ),
         (
             'pre_commit',
             logging.WARNING,
