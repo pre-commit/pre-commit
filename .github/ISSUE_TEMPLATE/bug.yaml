@@ -9,6 +9,13 @@ body:
 
          [pre-commit.ci]: https://pre-commit.ci
          [pre-commit-ci/issues]: https://github.com/pre-commit-ci/issues
+  - type: input
+    id: version
+    attributes:
+      label: search tried in the issue tracker
+      placeholder: ...
+    validations:
+      required: true
   - type: textarea
     id: freeform
     attributes:
