@@ -1,3 +1,27 @@
+2.19.0 - 2022-05-05
+===================
+
+### Features
+- Allow multiple outputs from `language: dotnet` hooks.
+    - #2332 PR by @WallucePinkham.
+- Add more information to `healthy()` failure.
+    - #2348 PR by @asottile.
+- Upgrade ruby-build.
+    - #2342 PR by @jalessio.
+- Add `pre-commit validate-config` / `pre-commit validate-manifest` and
+  deprecate `pre-commit-validate-config` and `pre-commit-validate-manifest`.
+    - #2362 PR by @asottile.
+
+### Fixes
+- Fix `pre-push` when pushed ref contains spaces.
+    - #2345 PR by @wwade.
+    - #2344 issue by @wwade.
+
+### Updating
+- Change `pre-commit-validate-config` / `pre-commit-validate-manifest` to
+  `pre-commit validate-config` / `pre-commit validate-manifest`.
+    - #2362 PR by @asottile.
+
 2.18.1 - 2022-04-02
 ===================
 
