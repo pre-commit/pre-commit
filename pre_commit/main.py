@@ -38,7 +38,7 @@ os.environ.pop('__PYVENV_LAUNCHER__', None)
 
 COMMANDS_NO_GIT = {
     'clean', 'gc', 'init-templatedir', 'sample-config',
-    'validate-config', 'validate-manifest',
+    'validate-config', 'validate-manifest', 'install-hooks',
 }
 
 
