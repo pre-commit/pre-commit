@@ -332,6 +332,13 @@ def test_run_a_ruby_hook(tempdir_factory, store):
     )
 
 
+def test_run_a_ruby_hook_with_user_install_set(tempdir_factory, store, tmpdir):
+    gemrc = tmpdir.join('gemrc')
+    gemrc.write('gem: --user-install\n')
+    with envcontext((('GEMRC', str(gemrc)),)):
+        test_run_a_ruby_hook(tempdir_factory, store)
+
+
 @xfailif_windows  # pragma: win32 no cover
 def test_run_versioned_ruby_hook(tempdir_factory, store):
     _test_hook_repo(
