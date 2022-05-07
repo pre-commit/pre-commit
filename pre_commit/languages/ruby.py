@@ -138,6 +138,7 @@ def install_environment(
                 (
                     'gem', 'install',
                     '--no-document', '--no-format-executable',
+                    '--no-user-install',
                     *prefix.star('.gem'), *additional_dependencies,
                 ),
             )
