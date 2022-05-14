@@ -168,10 +168,10 @@ if os.name != 'nt':  # pragma: win32 no cover
             self.r, self.w = openpty()
 
             # tty flags normally change \n to \r\n
-            attrs = termios.tcgetattr(self.r)
+            attrs = termios.tcgetattr(self.w)
             assert isinstance(attrs[1], int)
             attrs[1] &= ~(termios.ONLCR | termios.OPOST)
-            termios.tcsetattr(self.r, termios.TCSANOW, attrs)
+            termios.tcsetattr(self.w, termios.TCSANOW, attrs)
 
             return self
 
