@@ -72,7 +72,7 @@ to implement.  The current implemented languages are at varying levels:
 - 3rd class - pre-commit requires the user to install both the tool and the
   language globally (current examples: script, system)
 
-"third class" is usually the easiest to implement first and is perfectly
+"second class" is usually the easiest to implement first and is perfectly
 acceptable.
 
 Ideally the language works on the supported platforms for pre-commit (linux,
