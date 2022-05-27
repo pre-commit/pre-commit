@@ -154,6 +154,42 @@ def test_run_ns_commit_msg():
     assert ns.commit_msg_filename == '.git/COMMIT_MSG'
 
 
+def test_run_ns_prepare_commit_msg_one_arg():
+    ns = hook_impl._run_ns(
+        'prepare-commit-msg', False,
+        ('.git/COMMIT_MSG',), b'',
+    )
+    assert ns is not None
+    assert ns.hook_stage == 'prepare-commit-msg'
+    assert ns.color is False
+    assert ns.commit_msg_filename == '.git/COMMIT_MSG'
+
+
+def test_run_ns_prepare_commit_msg_two_arg():
+    ns = hook_impl._run_ns(
+        'prepare-commit-msg', False,
+        ('.git/COMMIT_MSG', 'message'), b'',
+    )
+    assert ns is not None
+    assert ns.hook_stage == 'prepare-commit-msg'
+    assert ns.color is False
+    assert ns.commit_msg_filename == '.git/COMMIT_MSG'
+    assert ns.prepare_commit_message_source == 'message'
+
+
+def test_run_ns_prepare_commit_msg_three_arg():
+    ns = hook_impl._run_ns(
+        'prepare-commit-msg', False,
+        ('.git/COMMIT_MSG', 'message', 'HEAD'), b'',
+    )
+    assert ns is not None
+    assert ns.hook_stage == 'prepare-commit-msg'
+    assert ns.color is False
+    assert ns.commit_msg_filename == '.git/COMMIT_MSG'
+    assert ns.prepare_commit_message_source == 'message'
+    assert ns.commit_object_name == 'HEAD'
+
+
 def test_run_ns_post_commit():
     ns = hook_impl._run_ns('post-commit', True, (), b'')
     assert ns is not None
