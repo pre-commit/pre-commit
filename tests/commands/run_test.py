@@ -810,7 +810,12 @@ def test_prepare_commit_msg_hook(cap_out, store, prepare_commit_msg_repo):
         cap_out,
         store,
         prepare_commit_msg_repo,
-        {'hook_stage': 'prepare-commit-msg', 'commit_msg_filename': filename},
+        {
+            'hook_stage': 'prepare-commit-msg',
+            'commit_msg_filename': filename,
+            'prepare_commit_message_source': 'commit',
+            'commit_object_name': 'HEAD',
+        },
         expected_outputs=[b'Add "Signed off by:"', b'Passed'],
         expected_ret=0,
         stage=False,

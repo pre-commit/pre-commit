@@ -76,6 +76,8 @@ def _ns(
         remote_name: str | None = None,
         remote_url: str | None = None,
         commit_msg_filename: str | None = None,
+        prepare_commit_message_source: str | None = None,
+        commit_object_name: str | None = None,
         checkout_type: str | None = None,
         is_squash_merge: str | None = None,
         rewrite_command: str | None = None,
@@ -90,6 +92,8 @@ def _ns(
         remote_name=remote_name,
         remote_url=remote_url,
         commit_msg_filename=commit_msg_filename,
+        prepare_commit_message_source=prepare_commit_message_source,
+        commit_object_name=commit_object_name,
         all_files=all_files,
         checkout_type=checkout_type,
         is_squash_merge=is_squash_merge,
@@ -202,8 +206,20 @@ def _run_ns(
     _check_args_length(hook_type, args)
     if hook_type == 'pre-push':
         return _pre_push_ns(color, args, stdin)
-    elif hook_type in {'commit-msg', 'prepare-commit-msg'}:
+    elif hook_type in 'commit-msg':
         return _ns(hook_type, color, commit_msg_filename=args[0])
+    elif hook_type == 'prepare-commit-msg' and len(args) == 1:
+        return _ns(hook_type, color, commit_msg_filename=args[0])
+    elif hook_type == 'prepare-commit-msg' and len(args) == 2:
+        return _ns(
+            hook_type, color, commit_msg_filename=args[0],
+            prepare_commit_message_source=args[1],
+        )
+    elif hook_type == 'prepare-commit-msg' and len(args) == 3:
+        return _ns(
+            hook_type, color, commit_msg_filename=args[0],
+            prepare_commit_message_source=args[1], commit_object_name=args[2],
+        )
     elif hook_type in {'post-commit', 'pre-merge-commit', 'pre-commit'}:
         return _ns(hook_type, color)
     elif hook_type == 'post-checkout':

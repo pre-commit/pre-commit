@@ -361,6 +361,16 @@ def run(
     ):
         return 0
 
+    # Expose prepare_commit_message_source / commit_object_name
+    # as environment variables for the hooks
+    if args.prepare_commit_message_source:
+        environ['PRE_COMMIT_COMMIT_MSG_SOURCE'] = (
+            args.prepare_commit_message_source
+        )
+
+    if args.commit_object_name:
+        environ['PRE_COMMIT_COMMIT_OBJECT_NAME'] = args.commit_object_name
+
     # Expose from-ref / to-ref as environment variables for hooks to consume
     if args.from_ref and args.to_ref:
         # legacy names
