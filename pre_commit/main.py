@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import logging
 import os
+import re
 import sys
 from typing import Sequence
 
@@ -345,6 +346,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     if len(argv) == 0:
         argv = ['run']
     args = parser.parse_args(argv)
+
+    os.environ['PRE_COMMIT_ARGV'] = ' '.join([re.escape(x) for x in argv])
 
     if args.command == 'help' and args.help_cmd:
         parser.parse_args([args.help_cmd, '--help'])
