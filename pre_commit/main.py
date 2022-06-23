@@ -181,11 +181,15 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     subparsers = parser.add_subparsers(dest='command')
 
-    autoupdate_parser = subparsers.add_parser(
+    def _add_cmd(name: str, *, help: str) -> argparse.ArgumentParser:
+        parser = subparsers.add_parser(name, help=help)
+        add_color_option(parser)
+        return parser
+
+    autoupdate_parser = _add_cmd(
         'autoupdate',
         help="Auto-update pre-commit config to the latest repos' versions.",
     )
-    add_color_option(autoupdate_parser)
     _add_config_option(autoupdate_parser)
     autoupdate_parser.add_argument(
         '--bleeding-edge', action='store_true',
@@ -203,34 +207,17 @@ def main(argv: Sequence[str] | None = None) -> int:
         help='Only update this repository -- may be specified multiple times.',
     )
 
-    clean_parser = subparsers.add_parser(
-        'clean', help='Clean out pre-commit files.',
-    )
-    add_color_option(clean_parser)
-    _add_config_option(clean_parser)
+    _add_cmd('clean', help='Clean out pre-commit files.')
 
-    hook_impl_parser = subparsers.add_parser('hook-impl')
-    add_color_option(hook_impl_parser)
-    _add_config_option(hook_impl_parser)
-    hook_impl_parser.add_argument('--hook-type')
-    hook_impl_parser.add_argument('--hook-dir')
-    hook_impl_parser.add_argument(
-        '--skip-on-missing-config', action='store_true',
-    )
-    hook_impl_parser.add_argument(dest='rest', nargs=argparse.REMAINDER)
+    _add_cmd('gc', help='Clean unused cached repos.')
 
-    gc_parser = subparsers.add_parser('gc', help='Clean unused cached repos.')
-    add_color_option(gc_parser)
-    _add_config_option(gc_parser)
-
-    init_templatedir_parser = subparsers.add_parser(
+    init_templatedir_parser = _add_cmd(
         'init-templatedir',
         help=(
             'Install hook script in a directory intended for use with '
             '`git config init.templateDir`.'
         ),
     )
-    add_color_option(init_templatedir_parser)
     _add_config_option(init_templatedir_parser)
     init_templatedir_parser.add_argument(
         'directory', help='The directory in which to write the hook script.',
@@ -243,10 +230,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     )
     _add_hook_type_option(init_templatedir_parser)
 
-    install_parser = subparsers.add_parser(
-        'install', help='Install the pre-commit script.',
-    )
-    add_color_option(install_parser)
+    install_parser = _add_cmd('install', help='Install the pre-commit script.')
     _add_config_option(install_parser)
     install_parser.add_argument(
         '-f', '--overwrite', action='store_true',
@@ -268,7 +252,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         ),
     )
 
-    install_hooks_parser = subparsers.add_parser(
+    install_hooks_parser = _add_cmd(
         'install-hooks',
         help=(
             'Install hook environments for all environments in the config '
@@ -276,32 +260,24 @@ def main(argv: Sequence[str] | None = None) -> int:
             'useful.'
         ),
     )
-    add_color_option(install_hooks_parser)
     _add_config_option(install_hooks_parser)
 
-    migrate_config_parser = subparsers.add_parser(
+    migrate_config_parser = _add_cmd(
         'migrate-config',
         help='Migrate list configuration to new map configuration.',
     )
-    add_color_option(migrate_config_parser)
     _add_config_option(migrate_config_parser)
 
-    run_parser = subparsers.add_parser('run', help='Run hooks.')
-    add_color_option(run_parser)
+    run_parser = _add_cmd('run', help='Run hooks.')
     _add_config_option(run_parser)
     _add_run_options(run_parser)
 
-    sample_config_parser = subparsers.add_parser(
-        'sample-config', help=f'Produce a sample {C.CONFIG_FILE} file',
-    )
-    add_color_option(sample_config_parser)
-    _add_config_option(sample_config_parser)
+    _add_cmd('sample-config', help=f'Produce a sample {C.CONFIG_FILE} file')
 
-    try_repo_parser = subparsers.add_parser(
+    try_repo_parser = _add_cmd(
         'try-repo',
         help='Try the hooks in a repository, useful for developing new hooks.',
     )
-    add_color_option(try_repo_parser)
     _add_config_option(try_repo_parser)
     try_repo_parser.add_argument(
         'repo', help='Repository to source hooks from.',
@@ -315,31 +291,38 @@ def main(argv: Sequence[str] | None = None) -> int:
     )
     _add_run_options(try_repo_parser)
 
-    uninstall_parser = subparsers.add_parser(
+    uninstall_parser = _add_cmd(
         'uninstall', help='Uninstall the pre-commit script.',
     )
-    add_color_option(uninstall_parser)
     _add_config_option(uninstall_parser)
     _add_hook_type_option(uninstall_parser)
 
-    validate_config_parser = subparsers.add_parser(
+    validate_config_parser = _add_cmd(
         'validate-config', help='Validate .pre-commit-config.yaml files',
     )
-    add_color_option(validate_config_parser)
-    _add_config_option(validate_config_parser)
     validate_config_parser.add_argument('filenames', nargs='*')
 
-    validate_manifest_parser = subparsers.add_parser(
+    validate_manifest_parser = _add_cmd(
         'validate-manifest', help='Validate .pre-commit-hooks.yaml files',
     )
-    add_color_option(validate_manifest_parser)
-    _add_config_option(validate_manifest_parser)
     validate_manifest_parser.add_argument('filenames', nargs='*')
 
+    # does not use `_add_cmd` because it doesn't use `--color`
     help = subparsers.add_parser(
         'help', help='Show help for a specific command.',
     )
     help.add_argument('help_cmd', nargs='?', help='Command to show help for.')
+
+    # not intended for users to call this directly
+    hook_impl_parser = subparsers.add_parser('hook-impl')
+    add_color_option(hook_impl_parser)
+    _add_config_option(hook_impl_parser)
+    hook_impl_parser.add_argument('--hook-type')
+    hook_impl_parser.add_argument('--hook-dir')
+    hook_impl_parser.add_argument(
+        '--skip-on-missing-config', action='store_true',
+    )
+    hook_impl_parser.add_argument(dest='rest', nargs=argparse.REMAINDER)
 
     # argparse doesn't really provide a way to use a `default` subparser
     if len(argv) == 0:
@@ -354,11 +337,11 @@ def main(argv: Sequence[str] | None = None) -> int:
     with error_handler(), logging_handler(args.color):
         git.check_for_cygwin_mismatch()
 
+        store = Store()
+
         if args.command not in COMMANDS_NO_GIT:
             _adjust_args_and_chdir(args)
-
-        store = Store()
-        store.mark_config_used(args.config)
+            store.mark_config_used(args.config)
 
         if args.command == 'autoupdate':
             return autoupdate(
