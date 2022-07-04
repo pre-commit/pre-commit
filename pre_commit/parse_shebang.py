@@ -2,12 +2,9 @@ from __future__ import annotations
 
 import os.path
 from typing import Mapping
-from typing import TYPE_CHECKING
+from typing import NoReturn
 
 from identify.identify import parse_shebang_from_file
-
-if TYPE_CHECKING:
-    from typing import NoReturn
 
 
 class ExecutableNotFoundError(OSError):
