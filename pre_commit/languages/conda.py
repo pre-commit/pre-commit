@@ -73,7 +73,7 @@ def install_environment(
     env_dir = prefix.path(directory)
     with clean_path_on_failure(env_dir):
         cmd_output_b(
-            conda_exe, 'env', 'create', '-p', env_dir, '--file',
+            conda_exe, *(['env'] if 'micro' not in conda_exe else []), 'create', '-p', env_dir, '--file',
             'environment.yml', cwd=prefix.prefix_dir,
         )
         if additional_dependencies:
