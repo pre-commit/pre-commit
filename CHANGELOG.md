@@ -1,3 +1,23 @@
+2.20.0 - 2022-07-10
+===================
+
+### Features
+- Expose `source` and `object-name` (positional args) of `prepare-commit-msg`
+  hook as `PRE_COMMIT_COMIT_MSG_SOURCE` and `PRE_COMMIT_COMMIT_OBJECT_NAME`.
+    - #2407 PR by @M-Whitaker.
+    - #2406 issue by @M-Whitaker.
+
+### Fixes
+- Fix `language: ruby` installs when `--user-install` is set in gemrc.
+    - #2394 PR by @narpfel.
+    - #2393 issue by @narpfel.
+- Adjust pty setup for solaris.
+    - #2390 PR by @gaige.
+    - #2389 issue by @gaige.
+- Remove unused `--config` option from `gc`, `sample-config`,
+  `validate-config`, `validate-manifest` sub-commands.
+    - #2429 PR by @asottile.
+
 2.19.0 - 2022-05-05
 ===================
 
