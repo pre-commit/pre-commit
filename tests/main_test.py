@@ -17,6 +17,8 @@ from testing.util import cwd
 def _args(**kwargs):
     kwargs.setdefault('command', 'help')
     kwargs.setdefault('config', C.CONFIG_FILE)
+    if kwargs['command'] in {'run', 'try-repo'}:
+        kwargs.setdefault('commit_msg_filename', None)
     return argparse.Namespace(**kwargs)
 
 
@@ -35,13 +37,24 @@ def test_adjust_args_and_chdir_noop(in_git_dir):
 
 def test_adjust_args_and_chdir_relative_things(in_git_dir):
     in_git_dir.join('foo/cfg.yaml').ensure()
-    in_git_dir.join('foo').chdir()
+    with in_git_dir.join('foo').as_cwd():
+        args = _args(command='run', files=['f1', 'f2'], config='cfg.yaml')
+        main._adjust_args_and_chdir(args)
+        assert os.getcwd() == in_git_dir
+        assert args.config == os.path.join('foo', 'cfg.yaml')
+        assert args.files == [
+            os.path.join('foo', 'f1'),
+            os.path.join('foo', 'f2'),
+        ]
 
-    args = _args(command='run', files=['f1', 'f2'], config='cfg.yaml')
-    main._adjust_args_and_chdir(args)
-    assert os.getcwd() == in_git_dir
-    assert args.config == os.path.join('foo', 'cfg.yaml')
-    assert args.files == [os.path.join('foo', 'f1'), os.path.join('foo', 'f2')]
+
+def test_adjust_args_and_chdir_relative_commit_msg(in_git_dir):
+    in_git_dir.join('foo/cfg.yaml').ensure()
+    with in_git_dir.join('foo').as_cwd():
+        args = _args(command='run', files=[], commit_msg_filename='t.txt')
+        main._adjust_args_and_chdir(args)
+        assert os.getcwd() == in_git_dir
+        assert args.commit_msg_filename == os.path.join('foo', 't.txt')
 
 
 @pytest.mark.skipif(os.name != 'nt', reason='windows feature')
@@ -56,24 +69,22 @@ def test_install_on_subst(in_git_dir, store):  # pragma: posix no cover
 
 
 def test_adjust_args_and_chdir_non_relative_config(in_git_dir):
-    in_git_dir.join('foo').ensure_dir().chdir()
-
-    args = _args()
-    main._adjust_args_and_chdir(args)
-    assert os.getcwd() == in_git_dir
-    assert args.config == C.CONFIG_FILE
+    with in_git_dir.join('foo').ensure_dir().as_cwd():
+        args = _args()
+        main._adjust_args_and_chdir(args)
+        assert os.getcwd() == in_git_dir
+        assert args.config == C.CONFIG_FILE
 
 
 def test_adjust_args_try_repo_repo_relative(in_git_dir):
-    in_git_dir.join('foo').ensure_dir().chdir()
-
-    args = _args(command='try-repo', repo='../foo', files=[])
-    assert args.repo is not None
-    assert os.path.exists(args.repo)
-    main._adjust_args_and_chdir(args)
-    assert os.getcwd() == in_git_dir
-    assert os.path.exists(args.repo)
-    assert args.repo == 'foo'
+    with in_git_dir.join('foo').ensure_dir().as_cwd():
+        args = _args(command='try-repo', repo='../foo', files=[])
+        assert args.repo is not None
+        assert os.path.exists(args.repo)
+        main._adjust_args_and_chdir(args)
+        assert os.getcwd() == in_git_dir
+        assert os.path.exists(args.repo)
+        assert args.repo == 'foo'
 
 
 FNS = (
