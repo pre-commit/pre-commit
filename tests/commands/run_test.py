@@ -618,10 +618,18 @@ def test_skip_bypasses_installation(cap_out, store, repo_with_passing_hook):
         'hooks': [
             {
                 'id': 'skipme',
-                'name': 'skipme',
+                'name': 'skipme-1',
                 'entry': 'skipme',
+                'alias': 'skipme-1',
                 'language': 'python',
                 'additional_dependencies': ['/pre-commit-does-not-exist'],
+            },
+            {
+                'id': 'skipme',
+                'name': 'skipme-2',
+                'entry': 'skipme',
+                'alias': 'skipme-2',
+                'language': 'python',
             },
         ],
     }
@@ -633,6 +641,13 @@ def test_skip_bypasses_installation(cap_out, store, repo_with_passing_hook):
         {'SKIP': 'skipme'},
     )
     assert ret == 0
+
+    ret, printed = _do_run(
+        cap_out, store, repo_with_passing_hook,
+        run_opts(all_files=True),
+        {'SKIP': 'skipme-1'},
+    )
+    assert ret == 1
 
 
 def test_hook_id_not_in_non_verbose_output(
