@@ -635,6 +635,32 @@ def test_skip_bypasses_installation(cap_out, store, repo_with_passing_hook):
     assert ret == 0
 
 
+def test_skip_alias_bypasses_installation(
+        cap_out, store, repo_with_passing_hook,
+):
+    config = {
+        'repo': 'local',
+        'hooks': [
+            {
+                'id': 'skipme',
+                'name': 'skipme-1',
+                'alias': 'skipme-1',
+                'entry': 'skipme',
+                'language': 'python',
+                'additional_dependencies': ['/pre-commit-does-not-exist'],
+            },
+        ],
+    }
+    add_config_to_repo(repo_with_passing_hook, config)
+
+    ret, printed = _do_run(
+        cap_out, store, repo_with_passing_hook,
+        run_opts(all_files=True),
+        {'SKIP': 'skipme-1'},
+    )
+    assert ret == 0
+
+
 def test_hook_id_not_in_non_verbose_output(
         cap_out, store, repo_with_passing_hook,
 ):
