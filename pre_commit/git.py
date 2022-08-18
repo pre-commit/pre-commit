@@ -215,6 +215,11 @@ def commit(repo: str = '.') -> None:
     cmd_output_b(*cmd, cwd=repo, env=env)
 
 
+def update_changes(repo: str = '.') -> None:
+    cmd = ('git', 'add', '--update')
+    cmd_output_b(*cmd, cwd=repo)
+
+
 def git_path(name: str, repo: str = '.') -> str:
     _, out, _ = cmd_output('git', 'rev-parse', '--git-path', name, cwd=repo)
     return os.path.join(repo, out.strip())

@@ -82,8 +82,34 @@ def _unstaged_changes_cleared(patch_dir: str) -> Generator[None, None, None]:
                 # We failed to apply the patch, presumably due to fixes made
                 # by hooks.
                 # Roll back the changes made by hooks.
-                cmd_output_b(*_CHECKOUT_CMD, env=no_checkout_env)
+                cmd_output_b(
+                    'git',
+                    'restore',
+                    '--source',
+                    tree,
+                    '--worktree',
+                    '.',
+                    env=no_checkout_env,
+                )
                 _git_apply(patch_filename)
+
+                # Save the current satte of the index which may include
+                # partially staged files, a new commit, etc.
+                new_tree = cmd_output('git', 'write-tree')[1].strip()
+                # Restore worktree to the patch base (which updates the index
+                # as a side-effect).
+                cmd_output_b(
+                    'git',
+                    'checkout',
+                    tree,
+                    '--',
+                    '.',
+                    env=no_checkout_env,
+                )
+                # Apply patch.
+                _git_apply(patch_filename)
+                # Restore new saved index.
+                cmd_output_b('git', 'read-tree', new_tree, env=no_checkout_env)
 
             logger.info(f'Restored changes from {patch_filename}.')
     else:
