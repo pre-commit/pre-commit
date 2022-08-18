@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import base64
+import configparser
 import hashlib
 import importlib.resources
 import io
@@ -60,7 +61,7 @@ def _write_cache_key(version: str, wheeldir: str, dest: str) -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument('version')
+    parser.add_argument('--version', required=False)
     args = parser.parse_args()
 
     with tempfile.TemporaryDirectory() as tmpdir:
@@ -70,10 +71,25 @@ def main() -> int:
         _msg('building podman image...')
         _exit_if_retv('podman', 'build', '-q', '-t', IMG, HERE)
 
+        if args.version:
+            wheel_spec = f'pre_commit=={args.version}'
+            volume_options_for_current_dir = ()
+            version = args.version
+        else:
+            wheel_spec = 'pre_commit'
+            cwd = os.getcwd()
+            volume_options_for_current_dir = (  # type: ignore
+                '--volume', f'{cwd}:{cwd}:ro',
+            )
+            config = configparser.ConfigParser()
+            config.read(f'{cwd}/setup.cfg')
+            version = config['metadata']['version']
+
         _msg('populating wheels...')
         _exit_if_retv(
-            'podman', 'run', '--rm', '--volume', f'{wheeldir}:/wheels:rw', IMG,
-            'pip', 'wheel', f'pre_commit=={args.version}', 'setuptools',
+            'podman', 'run', '--rm', '--volume', f'{wheeldir}:/wheels:rw',
+            *volume_options_for_current_dir, IMG,
+            'pip', 'wheel', wheel_spec, 'setuptools',
             '--wheel-dir', '/wheels',
         )
 
@@ -94,9 +110,9 @@ def main() -> int:
         shutil.copy(file_lock_py, file_lock_py_dest)
 
         _msg('writing CACHE_KEY...')
-        _write_cache_key(args.version, wheeldir, tmpdir)
+        _write_cache_key(version, wheeldir, tmpdir)
 
-        filename = f'pre-commit-{args.version}.pyz'
+        filename = f'pre-commit-{version}.pyz'
         _msg(f'writing {filename}...')
         shebang = '/usr/bin/env python3'
         zipapp.create_archive(tmpdir, filename, interpreter=shebang)
