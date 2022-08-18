@@ -58,7 +58,7 @@ def _unstaged_changes_cleared(patch_dir: str) -> Generator[None, None, None]:
         patch_filename = f'patch{int(time.time())}-{os.getpid()}'
         patch_filename = os.path.join(patch_dir, patch_filename)
         logger.warning('Unstaged files detected.')
-        logger.info(f'Stashing unstaged files to {patch_filename}.')
+        logger.info(f'Stashing unstaged files to {patch_filename}')
         # Save the current unstaged changes as a patch
         os.makedirs(patch_dir, exist_ok=True)
         with open(patch_filename, 'wb') as patch_file:
