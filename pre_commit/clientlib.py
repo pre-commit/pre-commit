@@ -81,6 +81,7 @@ MANIFEST_HOOK_DICT = cfgv.Map(
     cfgv.Optional('require_serial', cfgv.check_bool, False),
     cfgv.Optional('stages', cfgv.check_array(cfgv.check_one_of(C.STAGES)), []),
     cfgv.Optional('verbose', cfgv.check_bool, False),
+    cfgv.Optional('commit_changes', cfgv.check_bool, False),
 )
 MANIFEST_SCHEMA = cfgv.Array(MANIFEST_HOOK_DICT)
 
