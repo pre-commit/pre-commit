@@ -27,6 +27,27 @@ from pre_commit.error_handler import error_handler
 from pre_commit.logging_handler import logging_handler
 from pre_commit.store import Store
 
+try:
+    import shtab
+except ImportError:
+    from . import _shtab as shtab
+
+
+# https://github.com/iterative/shtab/blob/master/examples/customcomplete.py#L11-L22
+YAML_FILE = {
+    'bash': '_shtab_greeter_compgen_yaml_files',
+    'zsh': "_files -g '*.yaml'",
+    'tcsh': 'f:*.yaml',
+}
+PREAMBLE = {
+    'bash': """
+# $1=COMP_WORDS[1]
+_shtab_greeter_compgen_yaml_files() {
+  compgen -d -- $1  # recurse into subdirs
+  compgen -f -X '!*?.yaml' -- $1
+}
+""",
+}
 
 logger = logging.getLogger('pre_commit')
 
@@ -46,7 +67,7 @@ def _add_config_option(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         '-c', '--config', default=C.CONFIG_FILE,
         help='Path to alternate config file',
-    )
+    ).complete = YAML_FILE  # type: ignore
 
 
 def _add_hook_type_option(parser: argparse.ArgumentParser) -> None:
@@ -67,7 +88,7 @@ def _add_run_options(parser: argparse.ArgumentParser) -> None:
     mutex_group.add_argument(
         '--files', nargs='*', default=[],
         help='Specific filenames to run hooks on.',
-    )
+    ).complete = shtab.FILE  # type: ignore
     parser.add_argument(
         '--show-diff-on-failure', action='store_true',
         help='When hooks fail, run `git diff` directly afterward.',
@@ -179,6 +200,7 @@ def _adjust_args_and_chdir(args: argparse.Namespace) -> None:
 def main(argv: Sequence[str] | None = None) -> int:
     argv = argv if argv is not None else sys.argv[1:]
     parser = argparse.ArgumentParser(prog='pre-commit')
+    shtab.add_argument_to(parser, preamble=PREAMBLE)
 
     # https://stackoverflow.com/a/8521644/812183
     parser.add_argument(
@@ -229,7 +251,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     _add_config_option(init_templatedir_parser)
     init_templatedir_parser.add_argument(
         'directory', help='The directory in which to write the hook script.',
-    )
+    ).complete = shtab.DIR  # type: ignore
     init_templatedir_parser.add_argument(
         '--no-allow-missing-config',
         action='store_false',
