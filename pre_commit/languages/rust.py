@@ -5,7 +5,11 @@ import os.path
 from typing import Generator
 from typing import Sequence
 
-import toml
+try:
+    from tomllib import load as toml_load
+except ModuleNotFoundError:  # Python < 3.11
+    from tomli import load as toml_load
+from tomli_w import dump as toml_dump
 
 import pre_commit.constants as C
 from pre_commit.envcontext import envcontext
@@ -42,13 +46,13 @@ def _add_dependencies(
         additional_dependencies: set[str],
 ) -> None:
     with open(cargo_toml_path, 'r+') as f:
-        cargo_toml = toml.load(f)
+        cargo_toml = toml_load(f)
         cargo_toml.setdefault('dependencies', {})
         for dep in additional_dependencies:
             name, _, spec = dep.partition(':')
             cargo_toml['dependencies'][name] = spec or '*'
         f.seek(0)
-        toml.dump(cargo_toml, f)
+        toml_dump(cargo_toml, f)
         f.truncate()
 
 
