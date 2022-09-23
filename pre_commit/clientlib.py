@@ -298,6 +298,14 @@ CONFIG_HOOK_DICT = cfgv.Map(
     OptionalSensibleRegexAtHook('files', cfgv.check_string),
     OptionalSensibleRegexAtHook('exclude', cfgv.check_string),
 )
+LOCAL_HOOK_DICT = cfgv.Map(
+    'Hook', 'id',
+
+    *MANIFEST_HOOK_DICT.items,
+
+    OptionalSensibleRegexAtHook('files', cfgv.check_string),
+    OptionalSensibleRegexAtHook('exclude', cfgv.check_string),
+)
 CONFIG_REPO_DICT = cfgv.Map(
     'Repository', 'repo',
 
@@ -308,7 +316,7 @@ CONFIG_REPO_DICT = cfgv.Map(
         'repo', cfgv.NotIn(LOCAL, META),
     ),
     cfgv.ConditionalRecurse(
-        'hooks', cfgv.Array(MANIFEST_HOOK_DICT),
+        'hooks', cfgv.Array(LOCAL_HOOK_DICT),
         'repo', LOCAL,
     ),
     cfgv.ConditionalRecurse(
