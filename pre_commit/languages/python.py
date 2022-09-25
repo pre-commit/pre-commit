@@ -211,6 +211,9 @@ def install_environment(
     envdir = prefix.path(helpers.environment_dir(ENVIRONMENT_DIR, version))
     venv_cmd = [sys.executable, '-mvirtualenv', envdir]
     python = norm_version(version)
+    # fix for creating a virtualenv inside a virtualenv/venv
+    if python is None and sys.executable != os.readlink(sys.executable):
+        python = os.readlink(sys.executable)
     if python is not None:
         venv_cmd.extend(('-p', python))
     install_cmd = ('python', '-mpip', 'install', '.', *additional_dependencies)
