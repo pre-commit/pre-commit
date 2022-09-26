@@ -321,7 +321,7 @@ def test_validate_optional_sensible_regex_at_hook(caplog, regex, warning):
 
 def test_validate_optional_sensible_regex_at_local_hook(caplog):
     config_obj = sample_local_config()
-    config_obj['hooks'][0]['files'] = r'dir/*.py'
+    config_obj['hooks'][0]['files'] = 'dir/*.py'
 
     cfgv.validate(config_obj, CONFIG_REPO_DICT)
 
