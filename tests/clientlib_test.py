@@ -15,6 +15,8 @@ from pre_commit.clientlib import DEFAULT_LANGUAGE_VERSION
 from pre_commit.clientlib import MANIFEST_SCHEMA
 from pre_commit.clientlib import META_HOOK_DICT
 from pre_commit.clientlib import MigrateShaToRev
+from pre_commit.clientlib import OptionalSensibleRegexAtHook
+from pre_commit.clientlib import OptionalSensibleRegexAtTop
 from pre_commit.clientlib import validate_config_main
 from pre_commit.clientlib import validate_manifest_main
 from testing.fixtures import sample_local_config
@@ -262,6 +264,27 @@ def test_warn_mutable_rev_conditional():
 
 
 @pytest.mark.parametrize(
+    'validator_cls',
+    (
+        OptionalSensibleRegexAtHook,
+        OptionalSensibleRegexAtTop,
+    ),
+)
+def test_sensible_regex_validators_dont_pass_none(validator_cls):
+    key = 'files'
+    with pytest.raises(cfgv.ValidationError) as excinfo:
+        validator = validator_cls(key, cfgv.check_string)
+        validator.check({key: None})
+
+    assert str(excinfo.value) == (
+        '\n'
+        f'==> At key: {key}'
+        '\n'
+        '=====> Expected string got NoneType'
+    )
+
+
+@pytest.mark.parametrize(
     ('regex', 'warning'),
     (
         (
@@ -294,6 +317,22 @@ def test_validate_optional_sensible_regex_at_hook(caplog, regex, warning):
     cfgv.validate(config_obj, CONFIG_HOOK_DICT)
 
     assert caplog.record_tuples == [('pre_commit', logging.WARNING, warning)]
+
+
+def test_validate_optional_sensible_regex_at_local_hook(caplog):
+    config_obj = sample_local_config()
+    config_obj['hooks'][0]['files'] = r'dir/*.py'
+
+    cfgv.validate(config_obj, CONFIG_REPO_DICT)
+
+    assert caplog.record_tuples == [
+        (
+            'pre_commit',
+            logging.WARNING,
+            "The 'files' field in hook 'do_not_commit' is a regex, not a glob "
+            "-- matching '/*' probably isn't what you want here",
+        ),
+    ]
 
 
 @pytest.mark.parametrize(
