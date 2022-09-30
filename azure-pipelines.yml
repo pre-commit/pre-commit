@@ -17,6 +17,8 @@ jobs:
   parameters:
     toxenvs: [py37]
     os: windows
+    additional_variables:
+      TEMP: C:\Temp
     pre_test:
     - task: UseRubyVersion@0
     - powershell: Write-Host "##vso[task.prependpath]$env:CONDA\Scripts"
