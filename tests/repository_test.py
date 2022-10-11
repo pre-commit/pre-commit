@@ -471,7 +471,7 @@ def test_additional_rust_cli_dependencies_installed(
     hook = _get_hook(config, store, 'rust-hook')
     binaries = os.listdir(
         hook.prefix.path(
-            helpers.environment_dir(rust.ENVIRONMENT_DIR, C.DEFAULT), 'bin',
+            helpers.environment_dir(rust.ENVIRONMENT_DIR, 'system'), 'bin',
         ),
     )
     # normalize for windows
@@ -490,7 +490,7 @@ def test_additional_rust_lib_dependencies_installed(
     hook = _get_hook(config, store, 'rust-hook')
     binaries = os.listdir(
         hook.prefix.path(
-            helpers.environment_dir(rust.ENVIRONMENT_DIR, C.DEFAULT), 'bin',
+            helpers.environment_dir(rust.ENVIRONMENT_DIR, 'system'), 'bin',
         ),
     )
     # normalize for windows

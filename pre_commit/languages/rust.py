@@ -1,13 +1,20 @@
 from __future__ import annotations
 
 import contextlib
+import functools
 import os.path
+import platform
+import shutil
+import sys
+import tempfile
+import urllib.request
 from typing import Generator
 from typing import Sequence
 
 import toml
 
 import pre_commit.constants as C
+from pre_commit import parse_shebang
 from pre_commit.envcontext import envcontext
 from pre_commit.envcontext import PatchesT
 from pre_commit.envcontext import Var
@@ -16,24 +23,61 @@ from pre_commit.languages import helpers
 from pre_commit.prefix import Prefix
 from pre_commit.util import clean_path_on_failure
 from pre_commit.util import cmd_output_b
+from pre_commit.util import make_executable
+from pre_commit.util import win_exe
 
 ENVIRONMENT_DIR = 'rustenv'
-get_default_version = helpers.basic_get_default_version
 health_check = helpers.basic_health_check
 
 
-def get_env_patch(target_dir: str) -> PatchesT:
+@functools.lru_cache(maxsize=1)
+def get_default_version() -> str:
+    # If rust is already installed, we can save a bunch of setup time by
+    # using the installed version.
+    #
+    # Just detecting the executable does not suffice, because if rustup is
+    # installed but no toolchain is available, then `cargo` exists but
+    # cannot be used without installing a toolchain first.
+    if cmd_output_b('cargo', '--version', retcode=None)[0] == 0:
+        return 'system'
+    else:
+        return C.DEFAULT
+
+
+def _rust_toolchain(language_version: str) -> str:
+    """Transform the language version into a rust toolchain version."""
+    if language_version == C.DEFAULT:
+        return 'stable'
+    else:
+        return language_version
+
+
+def _envdir(prefix: Prefix, version: str) -> str:
+    directory = helpers.environment_dir(ENVIRONMENT_DIR, version)
+    return prefix.path(directory)
+
+
+def get_env_patch(target_dir: str, version: str) -> PatchesT:
     return (
+        ('CARGO_HOME', target_dir),
         ('PATH', (os.path.join(target_dir, 'bin'), os.pathsep, Var('PATH'))),
+        # Only set RUSTUP_TOOLCHAIN if we don't want use the system's default
+        # toolchain
+        *(
+            (('RUSTUP_TOOLCHAIN', _rust_toolchain(version)),)
+            if version != 'system' else ()
+        ),
     )
 
 
 @contextlib.contextmanager
-def in_env(prefix: Prefix) -> Generator[None, None, None]:
-    target_dir = prefix.path(
-        helpers.environment_dir(ENVIRONMENT_DIR, C.DEFAULT),
-    )
-    with envcontext(get_env_patch(target_dir)):
+def in_env(
+    prefix: Prefix,
+    language_version: str,
+) -> Generator[None, None, None]:
+    with envcontext(
+        get_env_patch(_envdir(prefix, language_version), language_version),
+    ):
         yield
 
 
@@ -52,15 +96,45 @@ def _add_dependencies(
         f.truncate()
 
 
+def install_rust_with_toolchain(toolchain: str) -> None:
+    with tempfile.TemporaryDirectory() as rustup_dir:
+        with envcontext((('RUSTUP_HOME', rustup_dir),)):
+            # acquire `rustup` if not present
+            if parse_shebang.find_executable('rustup') is None:
+                # We did not detect rustup and need to download it first.
+                if sys.platform == 'win32':  # pragma: win32 cover
+                    if platform.machine() == 'x86_64':
+                        url = 'https://win.rustup.rs/x86_64'
+                    else:
+                        url = 'https://win.rustup.rs/i686'
+                else:  # pragma: win32 no cover
+                    url = 'https://sh.rustup.rs'
+
+                resp = urllib.request.urlopen(url)
+
+                rustup_init = os.path.join(rustup_dir, win_exe('rustup-init'))
+                with open(rustup_init, 'wb') as f:
+                    shutil.copyfileobj(resp, f)
+                make_executable(rustup_init)
+
+                # install rustup into `$CARGO_HOME/bin`
+                cmd_output_b(
+                    rustup_init, '-y', '--quiet', '--no-modify-path',
+                    '--default-toolchain', 'none',
+                )
+
+            cmd_output_b(
+                'rustup', 'toolchain', 'install', '--no-self-update',
+                toolchain,
+            )
+
+
 def install_environment(
         prefix: Prefix,
         version: str,
         additional_dependencies: Sequence[str],
 ) -> None:
-    helpers.assert_version_default('rust', version)
-    directory = prefix.path(
-        helpers.environment_dir(ENVIRONMENT_DIR, C.DEFAULT),
-    )
+    directory = _envdir(prefix, version)
 
     # There are two cases where we might want to specify more dependencies:
     # as dependencies for the library being built, and as binary packages
@@ -84,17 +158,21 @@ def install_environment(
         packages_to_install: set[tuple[str, ...]] = {('--path', '.')}
         for cli_dep in cli_deps:
             cli_dep = cli_dep[len('cli:'):]
-            package, _, version = cli_dep.partition(':')
-            if version != '':
-                packages_to_install.add((package, '--version', version))
+            package, _, crate_version = cli_dep.partition(':')
+            if crate_version != '':
+                packages_to_install.add((package, '--version', crate_version))
             else:
                 packages_to_install.add((package,))
 
-        for args in packages_to_install:
-            cmd_output_b(
-                'cargo', 'install', '--bins', '--root', directory, *args,
-                cwd=prefix.prefix_dir,
-            )
+        with in_env(prefix, version):
+            if version != 'system':
+                install_rust_with_toolchain(_rust_toolchain(version))
+
+            for args in packages_to_install:
+                cmd_output_b(
+                    'cargo', 'install', '--bins', '--root', directory, *args,
+                    cwd=prefix.prefix_dir,
+                )
 
 
 def run_hook(
@@ -102,5 +180,5 @@ def run_hook(
         file_args: Sequence[str],
         color: bool,
 ) -> tuple[int, bytes]:
-    with in_env(hook.prefix):
+    with in_env(hook.prefix, hook.language_version):
         return helpers.run_xargs(hook, hook.cmd, file_args, color=color)
