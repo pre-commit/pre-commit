@@ -10,11 +10,11 @@ repos:
     -   id: name-tests-test
     -   id: requirements-txt-fixer
 -   repo: https://github.com/asottile/setup-cfg-fmt
-    rev: v2.0.0
+    rev: v2.1.0
     hooks:
     -   id: setup-cfg-fmt
 -   repo: https://github.com/asottile/reorder_python_imports
-    rev: v3.8.4
+    rev: v3.8.5
     hooks:
     -   id: reorder-python-imports
         exclude: ^(pre_commit/resources/|testing/resources/python3_hooks_repo/)
