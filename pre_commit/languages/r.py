@@ -158,7 +158,7 @@ def _inline_r_setup(code: str) -> str:
     only be configured via R options once R has started. These are set here.
     """
     with_option = f"""\
-    options(install.packages.compile.from.source = "never")
+    options(install.packages.compile.from.source = "never", pkgType = "binary")
     {code}
     """
     return with_option
