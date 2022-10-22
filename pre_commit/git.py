@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 import os.path
 import sys
-from typing import MutableMapping
+from typing import Mapping
 
 from pre_commit.errors import FatalError
 from pre_commit.util import CalledProcessError
@@ -24,9 +24,7 @@ def zsplit(s: str) -> list[str]:
         return []
 
 
-def no_git_env(
-        _env: MutableMapping[str, str] | None = None,
-) -> dict[str, str]:
+def no_git_env(_env: Mapping[str, str] | None = None) -> dict[str, str]:
     # Too many bugs dealing with environment variables and GIT:
     # https://github.com/pre-commit/pre-commit/issues/300
     # In git 2.6.3 (maybe others), git exports GIT_WORK_TREE while running
@@ -44,6 +42,7 @@ def no_git_env(
             'GIT_EXEC_PATH', 'GIT_SSH', 'GIT_SSH_COMMAND', 'GIT_SSL_CAINFO',
             'GIT_SSL_NO_VERIFY', 'GIT_CONFIG_COUNT',
             'GIT_HTTP_PROXY_AUTHMETHOD',
+            'GIT_ALLOW_PROTOCOL',
         }
     }
 
