@@ -57,7 +57,7 @@ def guess_go_dir(remote_url: str) -> str:
         return 'unknown_src_dir'
 
 
-def find_go_mod_dir(repo_src_dir):
+def find_go_mod_dir(repo_src_dir: str) -> str:
     # First the root
     if os.path.exists(os.path.join(repo_src_dir, 'go.mod')):
         return repo_src_dir
@@ -66,7 +66,7 @@ def find_go_mod_dir(repo_src_dir):
         if each.is_dir() and re.fullmatch('v[0-9]+', each.name) \
                 and os.path.exists(os.path.join(each.path, 'go.mod')):
             return each.path
-    raise FatalError("could not find a go.mod file in this git repository")
+    raise FatalError('could not find a go.mod file in this git repository')
 
 
 def install_environment(
