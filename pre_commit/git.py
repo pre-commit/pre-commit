@@ -43,6 +43,7 @@ def no_git_env(_env: Mapping[str, str] | None = None) -> dict[str, str]:
             'GIT_SSL_NO_VERIFY', 'GIT_CONFIG_COUNT',
             'GIT_HTTP_PROXY_AUTHMETHOD',
             'GIT_ALLOW_PROTOCOL',
+            'GIT_ASKPASS',
         }
     }
 
