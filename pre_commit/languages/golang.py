@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import contextlib
 import os.path
+import re
 import sys
 from typing import Generator
 from typing import Sequence
@@ -11,6 +12,7 @@ from pre_commit import git
 from pre_commit.envcontext import envcontext
 from pre_commit.envcontext import PatchesT
 from pre_commit.envcontext import Var
+from pre_commit.errors import FatalError
 from pre_commit.hook import Hook
 from pre_commit.languages import helpers
 from pre_commit.prefix import Prefix
@@ -55,6 +57,18 @@ def guess_go_dir(remote_url: str) -> str:
         return 'unknown_src_dir'
 
 
+def find_go_mod_dir(repo_src_dir):
+    # First the root
+    if os.path.exists(os.path.join(repo_src_dir, 'go.mod')):
+        return repo_src_dir
+    # Check if there are any major version directories
+    for each in os.scandir(repo_src_dir):
+        if each.is_dir() and re.fullmatch('v[0-9]+', each.name) \
+                and os.path.exists(os.path.join(each.path, 'go.mod')):
+            return each.path
+    raise FatalError("could not find a go.mod file in this git repository")
+
+
 def install_environment(
         prefix: Prefix,
         version: str,
@@ -80,7 +94,8 @@ def install_environment(
             gopath = directory
         env = dict(os.environ, GOPATH=gopath)
         env.pop('GOBIN', None)
-        cmd_output_b('go', 'install', './...', cwd=repo_src_dir, env=env)
+        go_root_dir = find_go_mod_dir(repo_src_dir)
+        cmd_output_b('go', 'install', './...', cwd=go_root_dir, env=env)
         for dependency in additional_dependencies:
             cmd_output_b(
                 'go', 'install', dependency, cwd=repo_src_dir, env=env,
