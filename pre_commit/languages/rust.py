@@ -11,7 +11,11 @@ import urllib.request
 from typing import Generator
 from typing import Sequence
 
-import toml
+if sys.version_info >= (3, 11):
+    import tomllib
+else:
+    import tomli as tomllib
+import tomli_w
 
 import pre_commit.constants as C
 from pre_commit import parse_shebang
@@ -85,14 +89,14 @@ def _add_dependencies(
         cargo_toml_path: str,
         additional_dependencies: set[str],
 ) -> None:
-    with open(cargo_toml_path, 'r+') as f:
-        cargo_toml = toml.load(f)
+    with open(cargo_toml_path, 'rb+') as f:
+        cargo_toml = tomllib.load(f)
         cargo_toml.setdefault('dependencies', {})
         for dep in additional_dependencies:
             name, _, spec = dep.partition(':')
             cargo_toml['dependencies'][name] = spec or '*'
         f.seek(0)
-        toml.dump(cargo_toml, f)
+        tomli_w.dump(cargo_toml, f)
         f.truncate()
 
 
