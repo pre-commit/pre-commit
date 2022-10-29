@@ -485,7 +485,7 @@ def test_additional_rust_lib_dependencies_installed(
     path = make_repo(tempdir_factory, 'rust_hooks_repo')
     config = make_config_from_repo(path)
     # A small rust package with no dependencies.
-    deps = ['shellharden:3.1.0']
+    deps = ['shellharden:3.1.0', 'git-version']
     config['hooks'][0]['additional_dependencies'] = deps
     hook = _get_hook(config, store, 'rust-hook')
     binaries = os.listdir(
