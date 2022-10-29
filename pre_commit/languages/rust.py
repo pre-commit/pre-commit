@@ -11,8 +11,6 @@ import urllib.request
 from typing import Generator
 from typing import Sequence
 
-import toml
-
 import pre_commit.constants as C
 from pre_commit import parse_shebang
 from pre_commit.envcontext import envcontext
@@ -82,18 +80,16 @@ def in_env(
 
 
 def _add_dependencies(
-        cargo_toml_path: str,
+        prefix: Prefix,
         additional_dependencies: set[str],
 ) -> None:
-    with open(cargo_toml_path, 'r+') as f:
-        cargo_toml = toml.load(f)
-        cargo_toml.setdefault('dependencies', {})
-        for dep in additional_dependencies:
-            name, _, spec = dep.partition(':')
-            cargo_toml['dependencies'][name] = spec or '*'
-        f.seek(0)
-        toml.dump(cargo_toml, f)
-        f.truncate()
+    crates = []
+    for dep in additional_dependencies:
+        name, _, spec = dep.partition(':')
+        crate = f'{name}@{spec or "*"}'
+        crates.append(crate)
+
+    helpers.run_setup_cmd(prefix, ('cargo', 'add', *crates))
 
 
 def install_rust_with_toolchain(toolchain: str) -> None:
@@ -151,9 +147,6 @@ def install_environment(
     }
     lib_deps = set(additional_dependencies) - cli_deps
 
-    if len(lib_deps) > 0:
-        _add_dependencies(prefix.path('Cargo.toml'), lib_deps)
-
     with clean_path_on_failure(directory):
         packages_to_install: set[tuple[str, ...]] = {('--path', '.')}
         for cli_dep in cli_deps:
@@ -167,6 +160,9 @@ def install_environment(
         with in_env(prefix, version):
             if version != 'system':
                 install_rust_with_toolchain(_rust_toolchain(version))
+
+            if len(lib_deps) > 0:
+                _add_dependencies(prefix, lib_deps)
 
             for args in packages_to_install:
                 cmd_output_b(
