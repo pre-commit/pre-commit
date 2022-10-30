@@ -25,7 +25,7 @@ def _log_and_exit(
     error_msg = f'{msg}: {type(exc).__name__}: '.encode() + force_bytes(exc)
     output.write_line_b(error_msg)
 
-    _, git_version_b, _ = cmd_output_b('git', '--version', retcode=None)
+    _, git_version_b, _ = cmd_output_b('git', '--version', check=False)
     git_version = git_version_b.decode(errors='backslashreplace').rstrip()
 
     storedir = Store().directory

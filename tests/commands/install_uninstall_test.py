@@ -126,7 +126,7 @@ def _get_commit_output(tempdir_factory, touch_file='foo', **kwargs):
     cmd_output('git', 'add', touch_file)
     return git_commit(
         fn=cmd_output_mocked_pre_commit_home,
-        retcode=None,
+        check=False,
         tempdir_factory=tempdir_factory,
         **kwargs,
     )
@@ -286,7 +286,7 @@ def test_environment_not_sourced(tempdir_factory, store):
                 'GIT_AUTHOR_EMAIL': os.environ['GIT_AUTHOR_EMAIL'],
                 'GIT_COMMITTER_EMAIL': os.environ['GIT_COMMITTER_EMAIL'],
             },
-            retcode=None,
+            check=False,
         )
         assert ret == 1
         assert out == (
@@ -551,7 +551,7 @@ def _get_push_output(tempdir_factory, remote='origin', opts=()):
     return cmd_output_mocked_pre_commit_home(
         'git', 'push', remote, 'HEAD:new_branch', *opts,
         tempdir_factory=tempdir_factory,
-        retcode=None,
+        check=False,
     )[:2]
 
 

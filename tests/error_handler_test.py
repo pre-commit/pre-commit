@@ -183,10 +183,11 @@ def test_error_handler_no_tty(tempdir_factory):
         'from pre_commit.error_handler import error_handler\n'
         'with error_handler():\n'
         '    raise ValueError("\\u2603")\n',
-        retcode=3,
+        check=False,
         tempdir_factory=tempdir_factory,
         pre_commit_home=pre_commit_home,
     )
+    assert ret == 3
     log_file = os.path.join(pre_commit_home, 'pre-commit.log')
     out_lines = out.splitlines()
     assert out_lines[-2] == 'An unexpected error has occurred: ValueError: ☃'

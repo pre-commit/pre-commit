@@ -124,7 +124,7 @@ def _oserror_to_output(e: OSError) -> tuple[int, bytes, None]:
 
 def cmd_output_b(
         *cmd: str,
-        retcode: int | None = 0,
+        check: bool = True,
         **kwargs: Any,
 ) -> tuple[int, bytes, bytes | None]:
     _setdefault_kwargs(kwargs)
@@ -142,8 +142,9 @@ def cmd_output_b(
             stdout_b, stderr_b = proc.communicate()
             returncode = proc.returncode
 
-    if retcode is not None and retcode != returncode:
-        raise CalledProcessError(returncode, cmd, retcode, stdout_b, stderr_b)
+    SUCCESS = 0
+    if check and returncode != SUCCESS:
+        raise CalledProcessError(returncode, cmd, SUCCESS, stdout_b, stderr_b)
 
     return returncode, stdout_b, stderr_b
 
@@ -196,10 +197,10 @@ if os.name != 'nt':  # pragma: win32 no cover
 
     def cmd_output_p(
             *cmd: str,
-            retcode: int | None = 0,
+            check: bool = True,
             **kwargs: Any,
     ) -> tuple[int, bytes, bytes | None]:
-        assert retcode is None
+        assert check is False
         assert kwargs['stderr'] == subprocess.STDOUT, kwargs['stderr']
         _setdefault_kwargs(kwargs)
 

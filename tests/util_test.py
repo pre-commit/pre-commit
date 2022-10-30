@@ -83,14 +83,14 @@ def test_tmpdir():
 
 
 def test_cmd_output_exe_not_found():
-    ret, out, _ = cmd_output('dne', retcode=None)
+    ret, out, _ = cmd_output('dne', check=False)
     assert ret == 1
     assert out == 'Executable `dne` not found'
 
 
 @pytest.mark.parametrize('fn', (cmd_output_b, cmd_output_p))
 def test_cmd_output_exe_not_found_bytes(fn):
-    ret, out, _ = fn('dne', retcode=None, stderr=subprocess.STDOUT)
+    ret, out, _ = fn('dne', check=False, stderr=subprocess.STDOUT)
     assert ret == 1
     assert out == b'Executable `dne` not found'
 
@@ -101,7 +101,7 @@ def test_cmd_output_no_shebang(tmpdir, fn):
     make_executable(f)
 
     # previously this raised `OSError` -- the output is platform specific
-    ret, out, _ = fn(str(f), retcode=None, stderr=subprocess.STDOUT)
+    ret, out, _ = fn(str(f), check=False, stderr=subprocess.STDOUT)
     assert ret == 1
     assert isinstance(out, bytes)
     assert out.endswith(b'\n')
