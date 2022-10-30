@@ -162,7 +162,7 @@ def test_error_handler_non_ascii_exception(mock_store_dir):
 def test_error_handler_non_utf8_exception(mock_store_dir):
     with pytest.raises(SystemExit):
         with error_handler.error_handler():
-            raise CalledProcessError(1, ('exe',), b'error: \xa0\xe1', b'')
+            raise CalledProcessError(1, ('exe',), 0, b'error: \xa0\xe1', b'')
 
 
 def test_error_handler_non_stringable_exception(mock_store_dir):
@@ -183,11 +183,10 @@ def test_error_handler_no_tty(tempdir_factory):
         'from pre_commit.error_handler import error_handler\n'
         'with error_handler():\n'
         '    raise ValueError("\\u2603")\n',
-        check=False,
+        retcode=3,
         tempdir_factory=tempdir_factory,
         pre_commit_home=pre_commit_home,
     )
-    assert ret == 3
     log_file = os.path.join(pre_commit_home, 'pre-commit.log')
     out_lines = out.splitlines()
     assert out_lines[-2] == 'An unexpected error has occurred: ValueError: ☃'

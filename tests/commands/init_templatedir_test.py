@@ -135,7 +135,7 @@ def test_init_templatedir_skip_on_missing_config(
         retcode, output = git_commit(
             fn=cmd_output_mocked_pre_commit_home,
             tempdir_factory=tempdir_factory,
-            check=False,
+            retcode=None,
         )
 
         assert retcode == commit_retcode
