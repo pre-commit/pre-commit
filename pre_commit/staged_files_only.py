@@ -52,7 +52,7 @@ def _unstaged_changes_cleared(patch_dir: str) -> Generator[None, None, None]:
     retcode, diff_stdout_binary, _ = cmd_output_b(
         'git', 'diff-index', '--ignore-submodules', '--binary',
         '--exit-code', '--no-color', '--no-ext-diff', tree, '--',
-        retcode=None,
+        check=False,
     )
     if retcode and diff_stdout_binary.strip():
         patch_filename = f'patch{int(time.time())}-{os.getpid()}'

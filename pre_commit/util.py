@@ -83,14 +83,12 @@ class CalledProcessError(RuntimeError):
             self,
             returncode: int,
             cmd: tuple[str, ...],
-            expected_returncode: int,
             stdout: bytes,
             stderr: bytes | None,
     ) -> None:
-        super().__init__(returncode, cmd, expected_returncode, stdout, stderr)
+        super().__init__(returncode, cmd, stdout, stderr)
         self.returncode = returncode
         self.cmd = cmd
-        self.expected_returncode = expected_returncode
         self.stdout = stdout
         self.stderr = stderr
 
@@ -104,7 +102,6 @@ class CalledProcessError(RuntimeError):
         return b''.join((
             f'command: {self.cmd!r}\n'.encode(),
             f'return code: {self.returncode}\n'.encode(),
-            f'expected return code: {self.expected_returncode}\n'.encode(),
             b'stdout:', _indent_or_none(self.stdout), b'\n',
             b'stderr:', _indent_or_none(self.stderr),
         ))
@@ -124,7 +121,7 @@ def _oserror_to_output(e: OSError) -> tuple[int, bytes, None]:
 
 def cmd_output_b(
         *cmd: str,
-        retcode: int | None = 0,
+        check: bool = True,
         **kwargs: Any,
 ) -> tuple[int, bytes, bytes | None]:
     _setdefault_kwargs(kwargs)
@@ -142,8 +139,8 @@ def cmd_output_b(
             stdout_b, stderr_b = proc.communicate()
             returncode = proc.returncode
 
-    if retcode is not None and retcode != returncode:
-        raise CalledProcessError(returncode, cmd, retcode, stdout_b, stderr_b)
+    if check and returncode:
+        raise CalledProcessError(returncode, cmd, stdout_b, stderr_b)
 
     return returncode, stdout_b, stderr_b
 
@@ -196,10 +193,10 @@ if os.name != 'nt':  # pragma: win32 no cover
 
     def cmd_output_p(
             *cmd: str,
-            retcode: int | None = 0,
+            check: bool = True,
             **kwargs: Any,
     ) -> tuple[int, bytes, bytes | None]:
-        assert retcode is None
+        assert check is False
         assert kwargs['stderr'] == subprocess.STDOUT, kwargs['stderr']
         _setdefault_kwargs(kwargs)
 

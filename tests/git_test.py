@@ -104,7 +104,7 @@ def test_is_in_merge_conflict_submodule(in_conflicting_submodule):
 def test_cherry_pick_conflict(in_merge_conflict):
     cmd_output('git', 'merge', '--abort')
     foo_ref = cmd_output('git', 'rev-parse', 'foo')[1].strip()
-    cmd_output('git', 'cherry-pick', foo_ref, retcode=None)
+    cmd_output('git', 'cherry-pick', foo_ref, check=False)
     assert git.is_in_merge_conflict() is False
 
 

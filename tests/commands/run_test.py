@@ -718,7 +718,7 @@ def test_non_ascii_hook_id(repo_with_passing_hook, tempdir_factory):
     with cwd(repo_with_passing_hook):
         _, stdout, _ = cmd_output_mocked_pre_commit_home(
             sys.executable, '-m', 'pre_commit.main', 'run', '☃',
-            retcode=None, tempdir_factory=tempdir_factory,
+            check=False, tempdir_factory=tempdir_factory,
         )
         assert 'UnicodeDecodeError' not in stdout
         # Doesn't actually happen, but a reasonable assertion
@@ -737,7 +737,7 @@ def test_stdout_write_bug_py26(repo_with_failing_hook, store, tempdir_factory):
         _, out = git_commit(
             fn=cmd_output_mocked_pre_commit_home,
             tempdir_factory=tempdir_factory,
-            retcode=None,
+            check=False,
         )
         assert 'UnicodeEncodeError' not in out
         # Doesn't actually happen, but a reasonable assertion

@@ -154,7 +154,7 @@ def xargs(
             run_cmd: tuple[str, ...],
     ) -> tuple[int, bytes, bytes | None]:
         return cmd_fn(
-            *run_cmd, retcode=None, stderr=subprocess.STDOUT, **kwargs,
+            *run_cmd, check=False, stderr=subprocess.STDOUT, **kwargs,
         )
 
     threads = min(len(partitions), target_concurrency)

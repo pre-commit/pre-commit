@@ -36,7 +36,7 @@ def get_default_version() -> str:
     # Just detecting the executable does not suffice, because if rustup is
     # installed but no toolchain is available, then `cargo` exists but
     # cannot be used without installing a toolchain first.
-    if cmd_output_b('cargo', '--version', retcode=None)[0] == 0:
+    if cmd_output_b('cargo', '--version', check=False)[0] == 0:
         return 'system'
     else:
         return C.DEFAULT

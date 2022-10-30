@@ -187,11 +187,11 @@ def head_rev(remote: str) -> str:
 
 def has_diff(*args: str, repo: str = '.') -> bool:
     cmd = ('git', 'diff', '--quiet', '--no-ext-diff', *args)
-    return cmd_output_b(*cmd, cwd=repo, retcode=None)[0] == 1
+    return cmd_output_b(*cmd, cwd=repo, check=False)[0] == 1
 
 
 def has_core_hookpaths_set() -> bool:
-    _, out, _ = cmd_output_b('git', 'config', 'core.hooksPath', retcode=None)
+    _, out, _ = cmd_output_b('git', 'config', 'core.hooksPath', check=False)
     return bool(out.strip())
 
 

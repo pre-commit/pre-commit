@@ -127,7 +127,7 @@ def test_clone_shallow_failure_fallback_to_complete(
 
     # Force shallow clone failure
     def fake_shallow_clone(self, *args, **kwargs):
-        raise CalledProcessError(1, (), 0, b'', None)
+        raise CalledProcessError(1, (), b'', None)
     store._shallow_clone = fake_shallow_clone
 
     ret = store.clone(path, rev)

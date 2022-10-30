@@ -68,7 +68,7 @@ def _make_conflict():
         bar_only_file.write('bar')
     cmd_output('git', 'add', 'bar_only_file')
     git_commit(msg=_make_conflict.__name__)
-    cmd_output('git', 'merge', 'foo', retcode=None)
+    cmd_output('git', 'merge', 'foo', check=False)
 
 
 @pytest.fixture
