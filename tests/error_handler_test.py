@@ -162,7 +162,7 @@ def test_error_handler_non_ascii_exception(mock_store_dir):
 def test_error_handler_non_utf8_exception(mock_store_dir):
     with pytest.raises(SystemExit):
         with error_handler.error_handler():
-            raise CalledProcessError(1, ('exe',), 0, b'error: \xa0\xe1', b'')
+            raise CalledProcessError(1, ('exe',), b'error: \xa0\xe1', b'')
 
 
 def test_error_handler_non_stringable_exception(mock_store_dir):

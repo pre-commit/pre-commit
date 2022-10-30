@@ -83,14 +83,12 @@ class CalledProcessError(RuntimeError):
             self,
             returncode: int,
             cmd: tuple[str, ...],
-            expected_returncode: int,
             stdout: bytes,
             stderr: bytes | None,
     ) -> None:
-        super().__init__(returncode, cmd, expected_returncode, stdout, stderr)
+        super().__init__(returncode, cmd, stdout, stderr)
         self.returncode = returncode
         self.cmd = cmd
-        self.expected_returncode = expected_returncode
         self.stdout = stdout
         self.stderr = stderr
 
@@ -104,7 +102,6 @@ class CalledProcessError(RuntimeError):
         return b''.join((
             f'command: {self.cmd!r}\n'.encode(),
             f'return code: {self.returncode}\n'.encode(),
-            f'expected return code: {self.expected_returncode}\n'.encode(),
             b'stdout:', _indent_or_none(self.stdout), b'\n',
             b'stderr:', _indent_or_none(self.stderr),
         ))
@@ -142,9 +139,8 @@ def cmd_output_b(
             stdout_b, stderr_b = proc.communicate()
             returncode = proc.returncode
 
-    SUCCESS = 0
-    if check and returncode != SUCCESS:
-        raise CalledProcessError(returncode, cmd, SUCCESS, stdout_b, stderr_b)
+    if check and returncode:
+        raise CalledProcessError(returncode, cmd, stdout_b, stderr_b)
 
     return returncode, stdout_b, stderr_b
 

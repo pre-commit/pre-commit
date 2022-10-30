@@ -178,6 +178,6 @@ def test_get_docker_path_in_docker_windows(in_docker):
 
 def test_get_docker_path_in_docker_docker_in_docker(in_docker):
     # won't be able to discover "self" container in true docker-in-docker
-    err = CalledProcessError(1, (), 0, b'', b'')
+    err = CalledProcessError(1, (), b'', b'')
     with mock.patch.object(docker, 'cmd_output_b', side_effect=err):
         assert docker._get_docker_path('/project') == '/project'
