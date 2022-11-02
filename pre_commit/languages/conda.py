@@ -77,10 +77,27 @@ def install_environment(
             'environment.yml', cwd=prefix.prefix_dir,
         )
         if additional_dependencies:
-            cmd_output_b(
-                conda_exe, 'install', '-p', env_dir, *additional_dependencies,
-                cwd=prefix.prefix_dir,
-            )
+            conda_dependancies = [
+                conda_dep.split()[-1]
+                for conda_dep in additional_dependencies
+                if not conda_dep.startswith('pip install')
+            ]
+            pip_dependancies = [
+                pip_dep.split()[-1]
+                for pip_dep in additional_dependencies
+                if pip_dep.startswith('pip install')
+            ]
+            if conda_dependancies:
+                cmd_output_b(
+                    conda_exe, 'install', '-p', env_dir, *conda_dependancies,
+                    cwd=prefix.prefix_dir,
+                )
+            if pip_dependancies:
+                cmd_output_b(
+                    conda_exe, 'run', '-p', 'pip',
+                    '--yes', env_dir, *pip_dependancies,
+                    cwd=prefix.prefix_dir,
+                )
 
 
 def run_hook(
