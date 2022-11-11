@@ -3,7 +3,6 @@ from __future__ import annotations
 import contextlib
 import functools
 import os.path
-import platform
 import shutil
 import sys
 import tempfile
@@ -99,10 +98,7 @@ def install_rust_with_toolchain(toolchain: str) -> None:
             if parse_shebang.find_executable('rustup') is None:
                 # We did not detect rustup and need to download it first.
                 if sys.platform == 'win32':  # pragma: win32 cover
-                    if platform.machine() == 'x86_64':
-                        url = 'https://win.rustup.rs/x86_64'
-                    else:
-                        url = 'https://win.rustup.rs/i686'
+                    url = 'https://win.rustup.rs/x86_64'
                 else:  # pragma: win32 no cover
                     url = 'https://sh.rustup.rs'
 
