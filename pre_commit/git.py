@@ -150,8 +150,8 @@ def get_staged_files(cwd: str | None = None) -> list[str]:
 
 def intent_to_add_files() -> list[str]:
     _, stdout, _ = cmd_output(
-        'git', 'diff', '--ignore-submodules', '--diff-filter=A',
-        '--name-only', '-z',
+        'git', 'diff', '--no-ext-diff', '--ignore-submodules',
+        '--diff-filter=A', '--name-only', '-z',
     )
     return zsplit(stdout)
 
