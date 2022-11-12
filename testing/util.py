@@ -67,6 +67,7 @@ def run_opts(
         color=False,
         verbose=False,
         hook=None,
+        tags=(),
         remote_branch='',
         local_branch='',
         from_ref='',
@@ -84,12 +85,14 @@ def run_opts(
 ):
     # These are mutually exclusive
     assert not (all_files and files)
+    assert not (hook and tags)
     return auto_namedtuple(
         all_files=all_files,
         files=files,
         color=color,
         verbose=verbose,
         hook=hook,
+        tags=tags,
         remote_branch=remote_branch,
         local_branch=local_branch,
         from_ref=from_ref,

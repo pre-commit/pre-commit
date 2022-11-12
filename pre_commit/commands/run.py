@@ -150,7 +150,7 @@ def _run_single_hook(
 ) -> tuple[bool, bytes]:
     filenames = classifier.filenames_for_hook(hook)
 
-    if hook.id in skips or hook.alias in skips:
+    if _hook_is_skipped(skips, hook):
         output.write(
             _full_msg(
                 start=hook.name,
@@ -323,6 +323,25 @@ def _has_unstaged_config(config_file: str) -> bool:
     # be explicit, other git errors don't mean it has an unstaged config.
     return retcode == 1
 
+def _hook_should_run(args: argparse.Namespace, hook: Hook) -> bool:
+    if args.hook_stage not in hook.stages:
+        return False
+
+    if args.tags:
+        return len(set(hook.tags) & set(args.tags)) > 0
+    
+    return (
+        not args.hook
+        or hook.id == args.hook
+        or hook.alias == args.hook
+    )
+
+def _hook_is_skipped(skips: Sequence[str], hook: Hook) -> bool:
+    return (
+        hook.id in skips
+        or hook.alias in skips
+        or len(set(hook.tags) & set(skips)) > 0
+    )
 
 def run(
         config_file: str,
@@ -409,8 +428,7 @@ def run(
         hooks = [
             hook
             for hook in all_hooks(config, store)
-            if not args.hook or hook.id == args.hook or hook.alias == args.hook
-            if args.hook_stage in hook.stages
+            if _hook_should_run(args, hook)
         ]
 
         if args.hook and not hooks:
@@ -418,12 +436,17 @@ def run(
                 f'No hook with id `{args.hook}` in stage `{args.hook_stage}`',
             )
             return 1
+        if args.tags and not hooks:
+            output.write_line(
+                f'No hooks with tags matching `{args.tags}` in stage `{args.hook_stage}`'
+            )
+            return 1
 
         skips = _get_skips(environ)
         to_install = [
             hook
             for hook in hooks
-            if hook.id not in skips and hook.alias not in skips
+            if not _hook_is_skipped(skips, hook)
         ]
         install_hook_envs(to_install, store)
 

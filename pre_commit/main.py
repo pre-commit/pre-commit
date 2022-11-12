@@ -57,7 +57,9 @@ def _add_hook_type_option(parser: argparse.ArgumentParser) -> None:
 
 
 def _add_run_options(parser: argparse.ArgumentParser) -> None:
-    parser.add_argument('hook', nargs='?', help='A single hook-id to run')
+    hooks_mutex_group = parser.add_mutually_exclusive_group(required=False)
+    hooks_mutex_group.add_argument('hook', nargs='?', help='A single hook-id to run')
+    hooks_mutex_group.add_argument('--tags', nargs='+', default=[], help='Tag groups to run')
     parser.add_argument('--verbose', '-v', action='store_true', default=False)
     mutex_group = parser.add_mutually_exclusive_group(required=False)
     mutex_group.add_argument(
