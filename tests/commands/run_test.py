@@ -144,14 +144,21 @@ def _do_run(cap_out, store, repo, args, environ={}, config_file=C.CONFIG_FILE):
 
 def _test_run(
     cap_out, store, repo, opts, expected_outputs, expected_ret, stage,
-    config_file=C.CONFIG_FILE, environ_override=None
+    config_file=C.CONFIG_FILE, environ_override=None,
 ):
     if stage:
         stage_a_file()
     if environ_override is None:
         environ_override = {}
     args = run_opts(**opts)
-    ret, printed = _do_run(cap_out, store, repo, args, config_file=config_file, environ=environ_override)
+    ret, printed = _do_run(
+        cap_out,
+        store,
+        repo,
+        args,
+        config_file=config_file,
+        environ=environ_override,
+    )
 
     assert ret == expected_ret, (ret, expected_ret, printed)
     for expected_output_part in expected_outputs:
@@ -369,13 +376,19 @@ def test_show_diff_on_failure(
         ),
         (
             {'tags': ['bar', 'baz']},
-            (b'No hooks with tags matching `[\'bar\', \'baz\']` in stage `commit`',),
+            (
+                b'No hooks with tags matching `[\'bar\', \'baz\']`',
+                b'in stage `commit`',
+            ),
             1,
             True,
         ),
         (
             {'tags': ['bar', 'baz'], 'hook_stage': 'push'},
-            (b'No hooks with tags matching `[\'bar\', \'baz\']` in stage `push`',),
+            (
+                b'No hooks with tags matching `[\'bar\', \'baz\']`',
+                b'in stage `push`',
+            ),
             1,
             True,
         ),
@@ -633,6 +646,7 @@ def test_skip_aliased_hook(cap_out, store, aliased_repo):
     for msg in (b'Bash hook', b'Skipped'):
         assert printed.count(msg) == 1
 
+
 def test_skip_tag(cap_out, store, repo_with_passing_hook):
     _test_run(
         cap_out,
@@ -642,7 +656,7 @@ def test_skip_tag(cap_out, store, repo_with_passing_hook):
         (b'Bash hook', b'Skipped'),
         0,
         True,
-        environ_override={'SKIP': 'foo'}
+        environ_override={'SKIP': 'foo'},
     )
 
 

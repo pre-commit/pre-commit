@@ -100,6 +100,7 @@ def _ns(
         rewrite_command=rewrite_command,
         files=(),
         hook=None,
+        tags=(),
         verbose=False,
         show_diff_on_failure=False,
     )
