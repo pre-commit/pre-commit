@@ -1015,6 +1015,7 @@ def test_manifest_hooks(tempdir_factory, store):
             'post-commit', 'manual', 'post-checkout', 'push', 'post-merge',
             'post-rewrite',
         ),
+        tags=['foo'],
         types=['file'],
         types_or=[],
         verbose=False,
