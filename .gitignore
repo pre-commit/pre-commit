@@ -4,3 +4,4 @@
 /.tox
 /dist
 .vscode/
+.idea/
