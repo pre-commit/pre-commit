@@ -132,7 +132,7 @@ def test_validate_warn_on_unknown_keys_at_repo_level(tmpdir, caplog):
     f = tmpdir.join('cfg.yaml')
     f.write(
         'repos:\n'
-        '-   repo: https://gitlab.com/pycqa/flake8\n'
+        '-   repo: https://github.com/pycqa/flake8\n'
         '    rev: 3.7.7\n'
         '    hooks:\n'
         '    -   id: flake8\n'
@@ -150,7 +150,7 @@ def test_validate_warn_on_unknown_keys_at_repo_level(tmpdir, caplog):
         (
             'pre_commit',
             logging.WARNING,
-            'Unexpected key(s) present on https://gitlab.com/pycqa/flake8: '
+            'Unexpected key(s) present on https://github.com/pycqa/flake8: '
             'args',
         ),
     ]
@@ -160,7 +160,7 @@ def test_validate_warn_on_unknown_keys_at_top_level(tmpdir, caplog):
     f = tmpdir.join('cfg.yaml')
     f.write(
         'repos:\n'
-        '-   repo: https://gitlab.com/pycqa/flake8\n'
+        '-   repo: https://github.com/pycqa/flake8\n'
         '    rev: 3.7.7\n'
         '    hooks:\n'
         '    -   id: flake8\n'
@@ -210,7 +210,7 @@ def test_ci_key_must_be_map():
 )
 def test_warn_mutable_rev_ok(caplog, rev):
     config_obj = {
-        'repo': 'https://gitlab.com/pycqa/flake8',
+        'repo': 'https://github.com/pycqa/flake8',
         'rev': rev,
         'hooks': [{'id': 'flake8'}],
     }
@@ -231,7 +231,7 @@ def test_warn_mutable_rev_ok(caplog, rev):
 )
 def test_warn_mutable_rev_invalid(caplog, rev):
     config_obj = {
-        'repo': 'https://gitlab.com/pycqa/flake8',
+        'repo': 'https://github.com/pycqa/flake8',
         'rev': rev,
         'hooks': [{'id': 'flake8'}],
     }
@@ -241,7 +241,7 @@ def test_warn_mutable_rev_invalid(caplog, rev):
         (
             'pre_commit',
             logging.WARNING,
-            "The 'rev' field of repo 'https://gitlab.com/pycqa/flake8' "
+            "The 'rev' field of repo 'https://github.com/pycqa/flake8' "
             'appears to be a mutable reference (moving tag / branch).  '
             'Mutable references are never updated after first install and are '
             'not supported.  '
