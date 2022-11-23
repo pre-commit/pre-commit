@@ -35,6 +35,7 @@ from testing.util import get_resource_path
 from testing.util import skipif_cant_run_coursier
 from testing.util import skipif_cant_run_docker
 from testing.util import skipif_cant_run_lua
+from testing.util import skipif_cant_run_sbt
 from testing.util import skipif_cant_run_swift
 from testing.util import xfailif_windows
 
@@ -1150,3 +1151,40 @@ def test_local_lua_additional_dependencies(store):
     ret, out = _hook_run(hook, (), color=False)
     assert b'Luacheck' in out
     assert ret == 0
+
+
+@skipif_cant_run_sbt
+def test_sbt_hook(
+        sbt_project_with_touch_command,
+        tempdir_factory,
+        store,
+):
+    # arrange
+    project_root = sbt_project_with_touch_command
+    hooks_repo = make_repo(tempdir_factory, 'sbt_hooks_repo')
+    config = make_config_from_repo(hooks_repo)
+    hook = _get_hook(config, store, 'sbt-create-files')
+
+    # act
+    with cwd(project_root):
+        ret, out = _hook_run(
+            hook,
+            ['file3.txt', 'file4 with space.txt'],
+            color=False,
+        )
+
+    # assert
+    output = out.decode('UTF-8')
+    assert ret == 0
+    file1 = project_root.joinpath('file1.txt').absolute()
+    assert file1.exists()
+    assert f'Creating file: {file1}' in output
+    file2 = project_root.joinpath('file2 with space.txt').absolute()
+    assert file2.exists()
+    assert f'Creating file: {file2}' in output
+    file3 = project_root.joinpath('file3.txt').absolute()
+    assert file3.exists()
+    assert f'Creating file: {file3}' in output
+    file4 = project_root.joinpath('file4 with space.txt').absolute()
+    assert file4.exists()
+    assert f'Creating file: {file4}' in output

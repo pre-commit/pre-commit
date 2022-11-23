@@ -21,6 +21,7 @@ from pre_commit.languages import python
 from pre_commit.languages import r
 from pre_commit.languages import ruby
 from pre_commit.languages import rust
+from pre_commit.languages import sbt
 from pre_commit.languages import script
 from pre_commit.languages import swift
 from pre_commit.languages import system
@@ -60,6 +61,7 @@ languages = {
     'r': Language(name='r', ENVIRONMENT_DIR=r.ENVIRONMENT_DIR, get_default_version=r.get_default_version, health_check=r.health_check, install_environment=r.install_environment, run_hook=r.run_hook),  # noqa: E501
     'ruby': Language(name='ruby', ENVIRONMENT_DIR=ruby.ENVIRONMENT_DIR, get_default_version=ruby.get_default_version, health_check=ruby.health_check, install_environment=ruby.install_environment, run_hook=ruby.run_hook),  # noqa: E501
     'rust': Language(name='rust', ENVIRONMENT_DIR=rust.ENVIRONMENT_DIR, get_default_version=rust.get_default_version, health_check=rust.health_check, install_environment=rust.install_environment, run_hook=rust.run_hook),  # noqa: E501
+    'sbt': Language(name='sbt', ENVIRONMENT_DIR=sbt.ENVIRONMENT_DIR, get_default_version=sbt.get_default_version, health_check=sbt.health_check, install_environment=sbt.install_environment, run_hook=sbt.run_hook),  # noqa: E501
     'script': Language(name='script', ENVIRONMENT_DIR=script.ENVIRONMENT_DIR, get_default_version=script.get_default_version, health_check=script.health_check, install_environment=script.install_environment, run_hook=script.run_hook),  # noqa: E501
     'swift': Language(name='swift', ENVIRONMENT_DIR=swift.ENVIRONMENT_DIR, get_default_version=swift.get_default_version, health_check=swift.health_check, install_environment=swift.install_environment, run_hook=swift.run_hook),  # noqa: E501
     'system': Language(name='system', ENVIRONMENT_DIR=system.ENVIRONMENT_DIR, get_default_version=system.get_default_version, health_check=system.health_check, install_environment=system.install_environment, run_hook=system.run_hook),  # noqa: E501

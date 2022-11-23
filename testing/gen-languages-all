@@ -6,7 +6,7 @@ import sys
 LANGUAGES = (
     'conda', 'coursier', 'dart', 'docker', 'docker_image', 'dotnet', 'fail',
     'golang', 'lua', 'node', 'perl', 'pygrep', 'python', 'r', 'ruby', 'rust',
-    'script', 'swift', 'system',
+    'sbt', 'script', 'swift', 'system',
 )
 FIELDS = (
     'ENVIRONMENT_DIR', 'get_default_version', 'health_check',

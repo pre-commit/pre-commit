@@ -1,0 +1,6 @@
+-   id: sbt-create-files
+    name: touch
+    entry: touch
+    args: ["file1.txt", "\"file2 with space.txt\""]
+    description: "creates files provided by `args` or `files`"
+    language: sbt

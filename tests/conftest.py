@@ -4,6 +4,7 @@ import functools
 import io
 import logging
 import os.path
+from pathlib import Path
 from unittest import mock
 
 import pytest
@@ -16,6 +17,7 @@ from pre_commit.util import cmd_output
 from pre_commit.util import make_executable
 from testing.fixtures import git_dir
 from testing.fixtures import make_consuming_repo
+from testing.fixtures import make_repo
 from testing.fixtures import write_config
 from testing.util import cwd
 from testing.util import git_commit
@@ -250,3 +252,9 @@ def set_git_templatedir(tmpdir_factory):
     tdir = str(tmpdir_factory.mktemp('git_template_dir'))
     with envcontext((('GIT_TEMPLATE_DIR', tdir),)):
         yield
+
+
+@pytest.fixture
+def sbt_project_with_touch_command(tempdir_factory):
+    project_repo = make_repo(tempdir_factory, 'sbt_repo_with_touch_command')
+    return Path(project_repo)

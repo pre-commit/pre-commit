@@ -54,6 +54,10 @@ skipif_cant_run_lua = pytest.mark.skipif(
     os.name == 'nt',
     reason="lua isn't installed or can't be found",
 )
+skipif_cant_run_sbt = pytest.mark.skipif(
+    parse_shebang.find_executable('sbt') is None,
+    reason="SBT isn't installed or can't be found",
+)
 skipif_cant_run_swift = pytest.mark.skipif(
     parse_shebang.find_executable('swift') is None,
     reason="swift isn't installed or can't be found",
