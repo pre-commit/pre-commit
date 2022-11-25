@@ -102,7 +102,11 @@ def _install_hook_script(
             hook_file.write('#!/bin/sh\n')
 
         hook_file.write(before + TEMPLATE_START)
-        hook_file.write(f'INSTALL_PYTHON={shlex.quote(sys.executable)}\n')
+        sys_exec = sys.executable
+        if sys.platform == 'win32':  # pragma: win32 cover
+            # shlex does not escape on non-nix: https://docs.python.org/3/library/shlex.html#parsing-rules
+            sys_exec = sys_exec.replace('\\', '\\\\')
+        hook_file.write(f'INSTALL_PYTHON={shlex.quote(sys_exec)}\n')
         # TODO: python3.8+: shlex.join
         args_s = ' '.join(shlex.quote(part) for part in args)
         hook_file.write(f'ARGS=({args_s})\n')
