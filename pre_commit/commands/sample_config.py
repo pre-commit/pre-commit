@@ -1,7 +1,3 @@
-# TODO: maybe `git ls-remote git://github.com/pre-commit/pre-commit-hooks` to
-# determine the latest revision?  This adds ~200ms from my tests (and is
-# significantly faster than https:// or http://).  For now, periodically
-# manually updating the revision is fine.
 from __future__ import annotations
 SAMPLE_CONFIG = '''\
 # See https://pre-commit.com for more information
