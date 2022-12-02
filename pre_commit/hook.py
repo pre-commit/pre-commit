@@ -36,6 +36,7 @@ class Hook(NamedTuple):
     require_serial: bool
     stages: Sequence[str]
     verbose: bool
+    run_all: bool
 
     @property
     def cmd(self) -> tuple[str, ...]:

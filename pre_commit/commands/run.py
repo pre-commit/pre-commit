@@ -126,9 +126,11 @@ class Classifier:
         return Classifier(filenames)
 
 
-def _get_skips(environ: MutableMapping[str, str]) -> set[str]:
+def _get_skips(environ: MutableMapping[str, str], args: argparse.Namespace, hooks: list[Hook]) -> set[str]:
     skips = environ.get('SKIP', '')
-    return {skip.strip() for skip in skips.split(',') if skip.strip()}
+    environ_skips = {skip.strip() for skip in skips.split(',') if skip.strip()}
+    context_skips = {h.id for h in hooks if args.all_files and not h.run_all}
+    return environ_skips | context_skips
 
 
 SKIPPED = 'Skipped'
@@ -419,7 +421,7 @@ def run(
             )
             return 1
 
-        skips = _get_skips(environ)
+        skips = _get_skips(environ, args, hooks)
         to_install = [
             hook
             for hook in hooks
