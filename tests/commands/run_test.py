@@ -594,7 +594,7 @@ def test_compute_cols(hooks, expected):
     ),
 )
 def test_get_skips(environ, expected_output):
-    ret = _get_skips(environ)
+    ret = _get_skips(environ, args=mock.MagicMock(), hooks=mock.MagicMock())
     assert ret == expected_output
 
 

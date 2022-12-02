@@ -126,7 +126,11 @@ class Classifier:
         return Classifier(filenames)
 
 
-def _get_skips(environ: MutableMapping[str, str], args: argparse.Namespace, hooks: list[Hook]) -> set[str]:
+def _get_skips(
+        environ: MutableMapping[str, str],
+        args: argparse.Namespace,
+        hooks: list[Hook],
+) -> set[str]:
     skips = environ.get('SKIP', '')
     environ_skips = {skip.strip() for skip in skips.split(',') if skip.strip()}
     context_skips = {h.id for h in hooks if args.all_files and not h.run_all}

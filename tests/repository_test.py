@@ -1019,6 +1019,7 @@ def test_manifest_hooks(tempdir_factory, store):
         types_or=[],
         verbose=False,
         fail_fast=False,
+        run_all=True,
     )
 
 
