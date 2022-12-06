@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import contextlib
 import os.path
+import re
 from typing import Generator
 from typing import Sequence
 
@@ -58,9 +59,15 @@ def install_environment(
         )
 
         # Determine tool from the packaged file <tool_name>.<version>.nupkg
+        # https://learn.microsoft.com/en-us/nuget/concepts/package-versioning#version-basics
+        tool_name_re = re.compile(r'(.*)\.\d+\.\d+\.\d+(-.*)?\.nupkg')
+
         build_outputs = os.listdir(os.path.join(prefix.prefix_dir, build_dir))
         for output in build_outputs:
-            tool_name = output.split('.')[0]
+
+            tool_name_match = tool_name_re.match(output)
+            assert tool_name_match
+            tool_name = tool_name_match.group(1)
 
             # Install to bin dir
             helpers.run_setup_cmd(
