@@ -6,6 +6,7 @@ import pytest
 
 from pre_commit import envcontext
 from pre_commit.languages import r
+from pre_commit.util import win_exe
 from testing.fixtures import make_config_from_repo
 from testing.fixtures import make_repo
 from tests.repository_test import _get_hook_no_install
@@ -133,7 +134,7 @@ def test_r_parsing_file_local(tempdir_factory, store):
 
 
 def test_rscript_exec_relative_to_r_home():
-    expected = os.path.join('r_home_dir', 'bin', 'Rscript')
+    expected = os.path.join('r_home_dir', 'bin', win_exe('Rscript'))
     with envcontext.envcontext((('R_HOME', 'r_home_dir'),)):
         assert r._rscript_exec() == expected
 
