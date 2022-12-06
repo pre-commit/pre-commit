@@ -68,3 +68,23 @@ def test_installs_with_bootstrapped_rustup(tmpdir, language_version):
 
     with rust.in_env(prefix, language_version):
         assert cmd_output('hello_world')[1] == 'Hello, world!\n'
+
+
+def test_installs_with_existing_rustup(tmpdir):
+    tmpdir.join('src', 'main.rs').ensure().write(
+        'fn main() {\n'
+        '    println!("Hello, world!");\n'
+        '}\n',
+    )
+    tmpdir.join('Cargo.toml').ensure().write(
+        '[package]\n'
+        'name = "hello_world"\n'
+        'version = "0.1.0"\n'
+        'edition = "2021"\n',
+    )
+    prefix = Prefix(str(tmpdir))
+
+    assert parse_shebang.find_executable('rustup') is not None
+    rust.install_environment(prefix, '1.56.0', ())
+    with rust.in_env(prefix, '1.56.0'):
+        assert cmd_output('hello_world')[1] == 'Hello, world!\n'
