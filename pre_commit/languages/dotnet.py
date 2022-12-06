@@ -57,6 +57,16 @@ def install_environment(
             ),
         )
 
+        with open(prefix.path('nuget.config'), 'w') as f:
+            f.write(
+                '<?xml version="1.0" encoding="utf-8"?>'
+                '<configuration>'
+                '  <packageSources>'
+                '    <clear />'
+                '  </packageSources>'
+                '</configuration>',
+            )
+
         # Determine tool from the packaged file <tool_name>.<version>.nupkg
         build_outputs = os.listdir(os.path.join(prefix.prefix_dir, build_dir))
         for output in build_outputs:
