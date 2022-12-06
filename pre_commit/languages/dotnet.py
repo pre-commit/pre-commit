@@ -2,6 +2,9 @@ from __future__ import annotations
 
 import contextlib
 import os.path
+import re
+import xml.etree.ElementTree
+import zipfile
 from typing import Generator
 from typing import Sequence
 
@@ -57,10 +60,29 @@ def install_environment(
             ),
         )
 
-        # Determine tool from the packaged file <tool_name>.<version>.nupkg
-        build_outputs = os.listdir(os.path.join(prefix.prefix_dir, build_dir))
-        for output in build_outputs:
-            tool_name = output.split('.')[0]
+        nupkg_dir = prefix.path(build_dir)
+        nupkgs = [x for x in os.listdir(nupkg_dir) if x.endswith('.nupkg')]
+
+        if not nupkgs:
+            raise AssertionError('could not find any build outputs to install')
+
+        for nupkg in nupkgs:
+            with zipfile.ZipFile(os.path.join(nupkg_dir, nupkg)) as f:
+                nuspec, = (x for x in f.namelist() if x.endswith('.nuspec'))
+                with f.open(nuspec) as spec:
+                    tree = xml.etree.ElementTree.parse(spec)
+
+            namespace = re.match(r'{.*}', tree.getroot().tag)
+            if not namespace:
+                raise AssertionError('could not parse namespace from nuspec')
+
+            tool_id_element = tree.find(f'.//{namespace[0]}id')
+            if tool_id_element is None:
+                raise AssertionError('expected to find an "id" element')
+
+            tool_id = tool_id_element.text
+            if not tool_id:
+                raise AssertionError('"id" element missing tool name')
 
             # Install to bin dir
             helpers.run_setup_cmd(
@@ -69,7 +91,7 @@ def install_environment(
                     'dotnet', 'tool', 'install',
                     '--tool-path', os.path.join(envdir, BIN_DIR),
                     '--add-source', build_dir,
-                    tool_name,
+                    tool_id,
                 ),
             )
 

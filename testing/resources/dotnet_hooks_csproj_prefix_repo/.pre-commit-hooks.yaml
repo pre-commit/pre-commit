@@ -1,0 +1,5 @@
+-   id: dotnet-example-hook
+    name: dotnet example hook
+    entry: testeroni.tool
+    language: dotnet
+    files: ''
