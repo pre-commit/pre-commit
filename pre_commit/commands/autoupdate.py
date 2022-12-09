@@ -6,6 +6,8 @@ from typing import Any
 from typing import NamedTuple
 from typing import Sequence
 
+from semver import VersionInfo
+
 import pre_commit.constants as C
 from pre_commit import git
 from pre_commit import output
@@ -24,6 +26,17 @@ from pre_commit.util import yaml_dump
 from pre_commit.util import yaml_load
 
 
+def _semver_parse(s: str) -> VersionInfo:
+    try:
+        return VersionInfo.parse(s)
+    except ValueError:
+        return VersionInfo(0, build=s)
+
+
+def _semver_is_stable(s: VersionInfo) -> bool:
+    return s == s.finalize_version()
+
+
 class RevInfo(NamedTuple):
     repo: str
     rev: str
@@ -33,42 +46,73 @@ class RevInfo(NamedTuple):
     def from_config(cls, config: dict[str, Any]) -> RevInfo:
         return cls(config['repo'], config['rev'], None)
 
-    def update(self, tags_only: bool, freeze: bool) -> RevInfo:
+    def update_semver(self, stable_only: bool) -> str | None:
+        remote_tags = cmd_output('git', 'ls-remote', self.repo)[1]
+        all_tags = [
+            row.rsplit('\t')[1]
+            for row in remote_tags.strip().split('\n')
+        ]
+        all_tags = [
+            tag.removeprefix('refs/tags/').removesuffix('^{}')
+            for tag in all_tags
+        ]
+        all_versions = [(_semver_parse(tag), tag) for tag in all_tags]
+        if stable_only:
+            all_versions = [
+                version for version in all_versions
+                if _semver_is_stable(version[0])
+            ]
+        if not all_versions:
+            return None
+        newest_version = max(all_versions)
+        return newest_version[1]
+
+    def update(
+        self,
+        tags_only: bool,
+        freeze: bool,
+        semver: bool,
+        semver_stable_only: bool,
+    ) -> RevInfo:
         git_cmd = ('git', *git.NO_FS_MONITOR)
 
-        if tags_only:
-            tag_cmd = (
-                *git_cmd, 'describe',
-                'FETCH_HEAD', '--tags', '--abbrev=0',
-            )
-        else:
-            tag_cmd = (
-                *git_cmd, 'describe',
-                'FETCH_HEAD', '--tags', '--exact',
-            )
-
-        with tmpdir() as tmp:
-            git.init_repo(tmp, self.repo)
-            cmd_output_b(
-                *git_cmd, 'fetch', 'origin', 'HEAD', '--tags',
-                cwd=tmp,
-            )
-
-            try:
-                rev = cmd_output(*tag_cmd, cwd=tmp)[1].strip()
-            except CalledProcessError:
-                cmd = (*git_cmd, 'rev-parse', 'FETCH_HEAD')
-                rev = cmd_output(*cmd, cwd=tmp)[1].strip()
+        rev = None
+        if semver:
+            rev = self.update_semver(semver_stable_only)
+        if rev is None:
+            if tags_only:
+                tag_cmd = (
+                    *git_cmd, 'describe',
+                    'FETCH_HEAD', '--tags', '--abbrev=0',
+                )
             else:
-                if tags_only:
-                    rev = git.get_best_candidate_tag(rev, tmp)
+                tag_cmd = (
+                    *git_cmd, 'describe',
+                    'FETCH_HEAD', '--tags', '--exact',
+                )
 
-            frozen = None
-            if freeze:
-                exact_rev_cmd = (*git_cmd, 'rev-parse', rev)
-                exact = cmd_output(*exact_rev_cmd, cwd=tmp)[1].strip()
-                if exact != rev:
-                    rev, frozen = exact, rev
+            with tmpdir() as tmp:
+                git.init_repo(tmp, self.repo)
+                cmd_output_b(
+                    *git_cmd, 'fetch', 'origin', 'HEAD', '--tags',
+                    cwd=tmp,
+                )
+
+                try:
+                    rev = cmd_output(*tag_cmd, cwd=tmp)[1].strip()
+                except CalledProcessError:
+                    cmd = (*git_cmd, 'rev-parse', 'FETCH_HEAD')
+                    rev = cmd_output(*cmd, cwd=tmp)[1].strip()
+                else:
+                    if tags_only:
+                        rev = git.get_best_candidate_tag(rev, tmp)
+
+        frozen = None
+        if freeze:
+            exact_rev_cmd = (*git_cmd, 'rev-parse', rev)
+            exact = cmd_output(*exact_rev_cmd, cwd=tmp)[1].strip()
+            if exact != rev:
+                rev, frozen = exact, rev
         return self._replace(rev=rev, frozen=frozen)
 
 
@@ -147,6 +191,8 @@ def autoupdate(
         config_file: str,
         store: Store,
         tags_only: bool,
+        semver: bool,
+        semver_stable_only: bool,
         freeze: bool,
         repos: Sequence[str] = (),
 ) -> int:
@@ -167,7 +213,12 @@ def autoupdate(
             continue
 
         output.write(f'Updating {info.repo} ... ')
-        new_info = info.update(tags_only=tags_only, freeze=freeze)
+        new_info = info.update(
+            tags_only=tags_only,
+            freeze=freeze,
+            semver=semver,
+            semver_stable_only=semver_stable_only,
+        )
         try:
             _check_hooks_still_exist_at_rev(repo_config, new_info, store)
         except RepositoryCannotBeUpdatedError as error:

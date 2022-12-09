@@ -200,6 +200,18 @@ def main(argv: Sequence[str] | None = None) -> int:
     )
     _add_config_option(autoupdate_parser)
     autoupdate_parser.add_argument(
+        '--semver', action='store_true',
+        help=(
+            'Use the highest version according to semantic versoning.'
+        ),
+    )
+    autoupdate_parser.add_argument(
+        '--semver-prerelease', action='store_true',
+        help=(
+            'Use pre-release versions according to semver.'
+        ),
+    )
+    autoupdate_parser.add_argument(
         '--bleeding-edge', action='store_true',
         help=(
             'Update to the bleeding edge of `HEAD` instead of the latest '
@@ -355,6 +367,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             return autoupdate(
                 args.config, store,
                 tags_only=not args.bleeding_edge,
+                semver=args.semver,
+                semver_stable_only=not args.semver_prerelease,
                 freeze=args.freeze,
                 repos=args.repos,
             )

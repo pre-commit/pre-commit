@@ -69,7 +69,10 @@ def test_rev_info_from_config():
 def test_rev_info_update_up_to_date_repo(up_to_date):
     config = make_config_from_repo(up_to_date)
     info = RevInfo.from_config(config)
-    new_info = info.update(tags_only=False, freeze=False)
+    new_info = info.update(
+        tags_only=False, freeze=False,
+        semver=False, semver_stable_only=False,
+    )
     assert info == new_info
 
 
@@ -78,7 +81,10 @@ def test_rev_info_update_out_of_date_repo(out_of_date):
         out_of_date.path, rev=out_of_date.original_rev,
     )
     info = RevInfo.from_config(config)
-    new_info = info.update(tags_only=False, freeze=False)
+    new_info = info.update(
+        tags_only=False, freeze=False,
+        semver=False, semver_stable_only=False,
+    )
     assert new_info.rev == out_of_date.head_rev
 
 
@@ -91,7 +97,10 @@ def test_rev_info_update_non_master_default_branch(out_of_date):
 def test_rev_info_update_tags_even_if_not_tags_only(tagged):
     config = make_config_from_repo(tagged.path, rev=tagged.original_rev)
     info = RevInfo.from_config(config)
-    new_info = info.update(tags_only=False, freeze=False)
+    new_info = info.update(
+        tags_only=False, freeze=False,
+        semver=False, semver_stable_only=False,
+    )
     assert new_info.rev == 'v1.2.3'
 
 
@@ -99,7 +108,10 @@ def test_rev_info_update_tags_only_does_not_pick_tip(tagged):
     git_commit(cwd=tagged.path)
     config = make_config_from_repo(tagged.path, rev=tagged.original_rev)
     info = RevInfo.from_config(config)
-    new_info = info.update(tags_only=True, freeze=False)
+    new_info = info.update(
+        tags_only=True, freeze=False,
+        semver=False, semver_stable_only=False,
+    )
     assert new_info.rev == 'v1.2.3'
 
 
@@ -107,7 +119,10 @@ def test_rev_info_update_tags_prefers_version_tag(tagged, out_of_date):
     cmd_output('git', 'tag', 'latest', cwd=out_of_date.path)
     config = make_config_from_repo(tagged.path, rev=tagged.original_rev)
     info = RevInfo.from_config(config)
-    new_info = info.update(tags_only=True, freeze=False)
+    new_info = info.update(
+        tags_only=True, freeze=False,
+        semver=False, semver_stable_only=False,
+    )
     assert new_info.rev == 'v1.2.3'
 
 
@@ -117,15 +132,75 @@ def test_rev_info_update_tags_non_version_tag(out_of_date):
         out_of_date.path, rev=out_of_date.original_rev,
     )
     info = RevInfo.from_config(config)
-    new_info = info.update(tags_only=True, freeze=False)
+    new_info = info.update(
+        tags_only=True, freeze=False,
+        semver=False, semver_stable_only=False,
+    )
     assert new_info.rev == 'latest'
+
+
+def test_rev_info_update_semver_non_version_tag(out_of_date):
+    cmd_output('git', 'tag', 'latest', cwd=out_of_date.path)
+    config = make_config_from_repo(
+        out_of_date.path, rev=out_of_date.original_rev,
+    )
+    info = RevInfo.from_config(config)
+    new_info = info.update(
+        tags_only=True, freeze=False,
+        semver=True, semver_stable_only=True,
+    )
+    assert new_info.rev == 'v1.2.3'
+
+
+def test_rev_info_update_semver_prerelease_non_version_tag(out_of_date):
+    cmd_output('git', 'tag', 'latest', cwd=out_of_date.path)
+    config = make_config_from_repo(
+        out_of_date.path, rev=out_of_date.original_rev,
+    )
+    info = RevInfo.from_config(config)
+    new_info = info.update(
+        tags_only=True, freeze=False,
+        semver=True, semver_stable_only=False,
+    )
+    assert new_info.rev == 'v1.2.3'
+
+
+def test_rev_info_update_semver_new_version_tags(out_of_date):
+    cmd_output('git', 'tag', 'v1.2.4', cwd=out_of_date.path)
+    cmd_output('git', 'tag', 'v1.2.5-pre.1', cwd=out_of_date.path)
+    config = make_config_from_repo(
+        out_of_date.path, rev=out_of_date.original_rev,
+    )
+    info = RevInfo.from_config(config)
+    new_info = info.update(
+        tags_only=True, freeze=False,
+        semver=True, semver_stable_only=False,
+    )
+    assert new_info.rev == 'v1.2.4'
+
+
+def test_rev_info_update_semver_prerelease_new_version_tags(out_of_date):
+    cmd_output('git', 'tag', 'v1.2.4', cwd=out_of_date.path)
+    cmd_output('git', 'tag', 'v1.2.5-pre.1', cwd=out_of_date.path)
+    config = make_config_from_repo(
+        out_of_date.path, rev=out_of_date.original_rev,
+    )
+    info = RevInfo.from_config(config)
+    new_info = info.update(
+        tags_only=True, freeze=False,
+        semver=True, semver_stable_only=False,
+    )
+    assert new_info.rev == 'v1.2.5-pre.1'
 
 
 def test_rev_info_update_freeze_tag(tagged):
     git_commit(cwd=tagged.path)
     config = make_config_from_repo(tagged.path, rev=tagged.original_rev)
     info = RevInfo.from_config(config)
-    new_info = info.update(tags_only=True, freeze=True)
+    new_info = info.update(
+        tags_only=True, freeze=True,
+        semver=False, semver_stable_only=False,
+    )
     assert new_info.rev == tagged.head_rev
     assert new_info.frozen == 'v1.2.3'
 
@@ -135,7 +210,10 @@ def test_rev_info_update_does_not_freeze_if_already_sha(out_of_date):
         out_of_date.path, rev=out_of_date.original_rev,
     )
     info = RevInfo.from_config(config)
-    new_info = info.update(tags_only=True, freeze=True)
+    new_info = info.update(
+        tags_only=True, freeze=True,
+        semver=False, semver_stable_only=False,
+    )
     assert new_info.rev == out_of_date.head_rev
     assert new_info.frozen is None
 
@@ -151,7 +229,10 @@ def test_autoupdate_up_to_date_repo(up_to_date, tmpdir, store):
     cfg = tmpdir.join(C.CONFIG_FILE)
     cfg.write(contents)
 
-    assert autoupdate(str(cfg), store, freeze=False, tags_only=False) == 0
+    assert autoupdate(
+        str(cfg), store, freeze=False, tags_only=False,
+        semver=False, semver_stable_only=False,
+    ) == 0
     assert cfg.read() == contents
 
 
@@ -175,7 +256,10 @@ def test_autoupdate_old_revision_broken(tempdir_factory, in_tmpdir, store):
     write_config('.', config)
     with open(C.CONFIG_FILE) as f:
         before = f.read()
-    assert autoupdate(C.CONFIG_FILE, store, freeze=False, tags_only=False) == 0
+    assert autoupdate(
+        C.CONFIG_FILE, store, freeze=False, tags_only=False,
+        semver=False, semver_stable_only=False,
+    ) == 0
     with open(C.CONFIG_FILE) as f:
         after = f.read()
     assert before != after
@@ -193,7 +277,10 @@ def test_autoupdate_out_of_date_repo(out_of_date, tmpdir, store):
     cfg = tmpdir.join(C.CONFIG_FILE)
     cfg.write(fmt.format(out_of_date.path, out_of_date.original_rev))
 
-    assert autoupdate(str(cfg), store, freeze=False, tags_only=False) == 0
+    assert autoupdate(
+        str(cfg), store, freeze=False, tags_only=False,
+        semver=False, semver_stable_only=False,
+    ) == 0
     assert cfg.read() == fmt.format(out_of_date.path, out_of_date.head_rev)
 
 
@@ -229,7 +316,10 @@ def test_autoupdate_only_one_to_update(up_to_date, out_of_date, tmpdir, store):
     )
     cfg.write(before)
 
-    assert autoupdate(str(cfg), store, freeze=False, tags_only=False) == 0
+    assert autoupdate(
+        str(cfg), store, freeze=False, tags_only=False,
+        semver=False, semver_stable_only=False,
+    ) == 0
     assert cfg.read() == fmt.format(
         up_to_date, git.head_rev(up_to_date),
         out_of_date.path, out_of_date.head_rev,
@@ -251,6 +341,7 @@ def test_autoupdate_out_of_date_repo_with_correct_repo_name(
     repo_name = f'file://{out_of_date.path}'
     ret = autoupdate(
         C.CONFIG_FILE, store, freeze=False, tags_only=False,
+        semver=False, semver_stable_only=False,
         repos=(repo_name,),
     )
     with open(C.CONFIG_FILE) as f:
@@ -274,6 +365,7 @@ def test_autoupdate_out_of_date_repo_with_wrong_repo_name(
     # It will not update it, because the name doesn't match
     ret = autoupdate(
         C.CONFIG_FILE, store, freeze=False, tags_only=False,
+        semver=False, semver_stable_only=False,
         repos=('dne',),
     )
     with open(C.CONFIG_FILE) as f:
@@ -295,7 +387,10 @@ def test_does_not_reformat(tmpdir, out_of_date, store):
     cfg = tmpdir.join(C.CONFIG_FILE)
     cfg.write(fmt.format(out_of_date.path, out_of_date.original_rev))
 
-    assert autoupdate(str(cfg), store, freeze=False, tags_only=False) == 0
+    assert autoupdate(
+        str(cfg), store, freeze=False, tags_only=False,
+        semver=False, semver_stable_only=False,
+    ) == 0
     expected = fmt.format(out_of_date.path, out_of_date.head_rev)
     assert cfg.read() == expected
 
@@ -315,7 +410,10 @@ def test_does_not_change_mixed_endlines_read(up_to_date, tmpdir, store):
     expected = fmt.format(up_to_date, git.head_rev(up_to_date)).encode()
     cfg.write_binary(expected)
 
-    assert autoupdate(str(cfg), store, freeze=False, tags_only=False) == 0
+    assert autoupdate(
+        str(cfg), store, freeze=False, tags_only=False,
+        semver=False, semver_stable_only=False,
+    ) == 0
     assert cfg.read_binary() == expected
 
 
@@ -334,7 +432,10 @@ def test_does_not_change_mixed_endlines_write(tmpdir, out_of_date, store):
         fmt.format(out_of_date.path, out_of_date.original_rev).encode(),
     )
 
-    assert autoupdate(str(cfg), store, freeze=False, tags_only=False) == 0
+    assert autoupdate(
+        str(cfg), store, freeze=False, tags_only=False,
+        semver=False, semver_stable_only=False,
+    ) == 0
     expected = fmt.format(out_of_date.path, out_of_date.head_rev).encode()
     assert cfg.read_binary() == expected
 
@@ -360,7 +461,10 @@ def test_loses_formatting_when_not_detectable(out_of_date, store, tmpdir):
     cfg = tmpdir.join(C.CONFIG_FILE)
     cfg.write(config)
 
-    assert autoupdate(str(cfg), store, freeze=False, tags_only=False) == 0
+    assert autoupdate(
+        str(cfg), store, freeze=False, tags_only=False,
+        semver=False, semver_stable_only=False,
+    ) == 0
     expected = (
         f'repos:\n'
         f'-   repo: {out_of_date.path}\n'
@@ -375,7 +479,10 @@ def test_autoupdate_tagged_repo(tagged, in_tmpdir, store):
     config = make_config_from_repo(tagged.path, rev=tagged.original_rev)
     write_config('.', config)
 
-    assert autoupdate(C.CONFIG_FILE, store, freeze=False, tags_only=False) == 0
+    assert autoupdate(
+        C.CONFIG_FILE, store, freeze=False, tags_only=False,
+        semver=False, semver_stable_only=False,
+    ) == 0
     with open(C.CONFIG_FILE) as f:
         assert 'v1.2.3' in f.read()
 
@@ -384,13 +491,19 @@ def test_autoupdate_freeze(tagged, in_tmpdir, store):
     config = make_config_from_repo(tagged.path, rev=tagged.original_rev)
     write_config('.', config)
 
-    assert autoupdate(C.CONFIG_FILE, store, freeze=True, tags_only=False) == 0
+    assert autoupdate(
+        C.CONFIG_FILE, store, freeze=True, tags_only=False,
+        semver=False, semver_stable_only=False,
+    ) == 0
     with open(C.CONFIG_FILE) as f:
         expected = f'rev: {tagged.head_rev}  # frozen: v1.2.3'
         assert expected in f.read()
 
     # if we un-freeze it should remove the frozen comment
-    assert autoupdate(C.CONFIG_FILE, store, freeze=False, tags_only=False) == 0
+    assert autoupdate(
+        C.CONFIG_FILE, store, freeze=False, tags_only=False,
+        semver=False, semver_stable_only=False,
+    ) == 0
     with open(C.CONFIG_FILE) as f:
         assert 'rev: v1.2.3\n' in f.read()
 
@@ -402,7 +515,10 @@ def test_autoupdate_tags_only(tagged, in_tmpdir, store):
     config = make_config_from_repo(tagged.path, rev=tagged.original_rev)
     write_config('.', config)
 
-    assert autoupdate(C.CONFIG_FILE, store, freeze=False, tags_only=True) == 0
+    assert autoupdate(
+        C.CONFIG_FILE, store, freeze=False, tags_only=True,
+        semver=False, semver_stable_only=False,
+    ) == 0
     with open(C.CONFIG_FILE) as f:
         assert 'v1.2.3' in f.read()
 
@@ -416,7 +532,10 @@ def test_autoupdate_latest_no_config(out_of_date, in_tmpdir, store):
     cmd_output('git', 'rm', '-r', ':/', cwd=out_of_date.path)
     git_commit(cwd=out_of_date.path)
 
-    assert autoupdate(C.CONFIG_FILE, store, freeze=False, tags_only=False) == 1
+    assert autoupdate(
+        C.CONFIG_FILE, store, freeze=False, tags_only=False,
+        semver=False, semver_stable_only=False,
+    ) == 1
     with open(C.CONFIG_FILE) as f:
         assert out_of_date.original_rev in f.read()
 
@@ -427,7 +546,10 @@ def test_hook_disppearing_repo_raises(hook_disappearing, store):
         rev=hook_disappearing.original_rev,
         hooks=[{'id': 'foo'}],
     )
-    info = RevInfo.from_config(config).update(tags_only=False, freeze=False)
+    info = RevInfo.from_config(config).update(
+        tags_only=False, freeze=False,
+        semver=False, semver_stable_only=False,
+    )
     with pytest.raises(RepositoryCannotBeUpdatedError):
         _check_hooks_still_exist_at_rev(config, info, store)
 
@@ -443,14 +565,20 @@ def test_autoupdate_hook_disappearing_repo(hook_disappearing, tmpdir, store):
     cfg = tmpdir.join(C.CONFIG_FILE)
     cfg.write(contents)
 
-    assert autoupdate(str(cfg), store, freeze=False, tags_only=False) == 1
+    assert autoupdate(
+        str(cfg), store, freeze=False, tags_only=False,
+        semver=False, semver_stable_only=False,
+    ) == 1
     assert cfg.read() == contents
 
 
 def test_autoupdate_local_hooks(in_git_dir, store):
     config = sample_local_config()
     add_config_to_repo('.', config)
-    assert autoupdate(C.CONFIG_FILE, store, freeze=False, tags_only=False) == 0
+    assert autoupdate(
+        C.CONFIG_FILE, store, freeze=False, tags_only=False,
+        semver=False, semver_stable_only=False,
+    ) == 0
     new_config_written = read_config('.')
     assert len(new_config_written['repos']) == 1
     assert new_config_written['repos'][0] == config
@@ -465,7 +593,10 @@ def test_autoupdate_local_hooks_with_out_of_date_repo(
     local_config = sample_local_config()
     config = {'repos': [local_config, stale_config]}
     write_config('.', config)
-    assert autoupdate(C.CONFIG_FILE, store, freeze=False, tags_only=False) == 0
+    assert autoupdate(
+        C.CONFIG_FILE, store, freeze=False, tags_only=False,
+        semver=False, semver_stable_only=False,
+    ) == 0
     new_config_written = read_config('.')
     assert len(new_config_written['repos']) == 2
     assert new_config_written['repos'][0] == local_config
@@ -479,7 +610,10 @@ def test_autoupdate_meta_hooks(tmpdir, store):
         '    hooks:\n'
         '    -   id: check-useless-excludes\n',
     )
-    assert autoupdate(str(cfg), store, freeze=False, tags_only=True) == 0
+    assert autoupdate(
+        str(cfg), store, freeze=False, tags_only=True,
+        semver=False, semver_stable_only=False,
+    ) == 0
     assert cfg.read() == (
         'repos:\n'
         '-   repo: meta\n'
@@ -498,7 +632,10 @@ def test_updates_old_format_to_new_format(tmpdir, capsys, store):
         '        entry: ./bin/foo.sh\n'
         '        language: script\n',
     )
-    assert autoupdate(str(cfg), store, freeze=False, tags_only=True) == 0
+    assert autoupdate(
+        str(cfg), store, freeze=False, tags_only=True,
+        semver=False, semver_stable_only=False,
+    ) == 0
     contents = cfg.read()
     assert contents == (
         'repos:\n'
@@ -528,6 +665,9 @@ def test_maintains_rev_quoting_style(tmpdir, out_of_date, store):
     cfg = tmpdir.join(C.CONFIG_FILE)
     cfg.write(fmt.format(path=out_of_date.path, rev=out_of_date.original_rev))
 
-    assert autoupdate(str(cfg), store, freeze=False, tags_only=False) == 0
+    assert autoupdate(
+        str(cfg), store, freeze=False, tags_only=False,
+        semver=False, semver_stable_only=False,
+    ) == 0
     expected = fmt.format(path=out_of_date.path, rev=out_of_date.head_rev)
     assert cfg.read() == expected
