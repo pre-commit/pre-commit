@@ -28,7 +28,6 @@ from pre_commit.staged_files_only import staged_files_only
 from pre_commit.store import Store
 from pre_commit.util import cmd_output_b
 
-
 logger = logging.getLogger('pre_commit')
 
 

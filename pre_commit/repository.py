@@ -18,7 +18,6 @@ from pre_commit.store import Store
 from pre_commit.util import parse_version
 from pre_commit.util import rmtree
 
-
 logger = logging.getLogger('pre_commit')
 
 

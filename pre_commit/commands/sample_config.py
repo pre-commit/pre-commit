@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 SAMPLE_CONFIG = '''\
 # See https://pre-commit.com for more information
 # See https://pre-commit.com/hooks.html for more hooks

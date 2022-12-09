@@ -16,7 +16,6 @@ from pre_commit.store import Store
 from pre_commit.util import make_executable
 from pre_commit.util import resource_text
 
-
 logger = logging.getLogger(__name__)
 
 # This is used to identify the hook file we install

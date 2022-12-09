@@ -14,7 +14,6 @@ from pre_commit.util import cmd_output
 from pre_commit.util import resource_bytesio
 from testing.util import xfailif_windows
 
-
 ACTUAL_GET_DEFAULT_VERSION = ruby.get_default_version.__wrapped__
 
 

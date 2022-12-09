@@ -27,7 +27,6 @@ from pre_commit.error_handler import error_handler
 from pre_commit.logging_handler import logging_handler
 from pre_commit.store import Store
 
-
 logger = logging.getLogger('pre_commit')
 
 # https://github.com/pre-commit/pre-commit/issues/217

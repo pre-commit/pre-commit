@@ -15,7 +15,6 @@ from testing.util import cwd
 from testing.util import get_resource_path
 from testing.util import git_commit
 
-
 FOO_CONTENTS = '\n'.join(('1', '2', '3', '4', '5', '6', '7', '8', ''))
 
 

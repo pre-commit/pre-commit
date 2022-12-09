@@ -18,7 +18,6 @@ from pre_commit.util import cmd_output_b
 from pre_commit.util import resource_text
 from pre_commit.util import rmtree
 
-
 logger = logging.getLogger('pre_commit')
 
 

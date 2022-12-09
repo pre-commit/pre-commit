@@ -12,7 +12,6 @@ from pre_commit.util import cmd_output
 from pre_commit.util import cmd_output_b
 from testing.auto_namedtuple import auto_namedtuple
 
-
 TESTING_DIR = os.path.abspath(os.path.dirname(__file__))
 
 

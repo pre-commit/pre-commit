@@ -6,12 +6,10 @@ import sys
 from typing import Callable
 from typing import Generator
 
-
 if sys.platform == 'win32':  # pragma: no cover (windows)
     import msvcrt
 
     # https://docs.microsoft.com/en-us/cpp/c-runtime-library/reference/locking
-
     # on windows we lock "regions" of files, we don't care about the actual
     # byte region so we'll just pick *some* number here.
     _region = 0xffff

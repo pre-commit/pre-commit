@@ -10,7 +10,6 @@ import tarfile
 import tempfile
 from typing import Sequence
 
-
 # This is a script for generating the tarred resources for git repo
 # dependencies.  Currently it's just for "vendoring" ruby support packages.
 

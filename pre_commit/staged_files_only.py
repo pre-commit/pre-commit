@@ -12,7 +12,6 @@ from pre_commit.util import cmd_output
 from pre_commit.util import cmd_output_b
 from pre_commit.xargs import xargs
 
-
 logger = logging.getLogger('pre_commit')
 
 # without forcing submodule.recurse=0, changes in nested submodules will be

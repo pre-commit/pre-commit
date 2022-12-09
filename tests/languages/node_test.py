@@ -16,7 +16,6 @@ from pre_commit.prefix import Prefix
 from pre_commit.util import cmd_output
 from testing.util import xfailif_windows
 
-
 ACTUAL_GET_DEFAULT_VERSION = node.get_default_version.__wrapped__
 
 
