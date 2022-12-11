@@ -173,13 +173,20 @@ def test_python_venv(tempdir_factory, store):
     )
 
 
-def test_versioned_python_hook(tempdir_factory, store):
-    _test_hook_repo(
-        tempdir_factory, store, 'python3_hooks_repo',
-        'python3-hook',
-        [os.devnull],
-        f'3\n[{os.devnull!r}]\nHello World\n'.encode(),
-    )
+def test_language_versioned_python_hook(tempdir_factory, store):
+    # we patch this force virtualenv executing with `-p` since we can't
+    # reliably have multiple pythons available in CI
+    with mock.patch.object(
+            python,
+            '_sys_executable_matches',
+            return_value=False,
+    ):
+        _test_hook_repo(
+            tempdir_factory, store, 'python3_hooks_repo',
+            'python3-hook',
+            [os.devnull],
+            f'3\n[{os.devnull!r}]\nHello World\n'.encode(),
+        )
 
 
 @skipif_cant_run_coursier  # pragma: win32 no cover
