@@ -335,7 +335,7 @@ def test_run_versioned_ruby_hook(tempdir_factory, store):
         tempdir_factory, store, 'ruby_versioned_hooks_repo',
         'ruby_hook',
         [os.devnull],
-        b'2.5.1\nHello world from a ruby hook\n',
+        b'3.1.0\nHello world from a ruby hook\n',
     )
 
 
@@ -357,7 +357,7 @@ def test_run_ruby_hook_with_disable_shared_gems(
             tempdir_factory, store, 'ruby_versioned_hooks_repo',
             'ruby_hook',
             [os.devnull],
-            b'2.5.1\nHello world from a ruby hook\n',
+            b'3.1.0\nHello world from a ruby hook\n',
         )
 
 
