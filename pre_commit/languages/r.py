@@ -15,6 +15,7 @@ from pre_commit.languages import helpers
 from pre_commit.prefix import Prefix
 from pre_commit.util import clean_path_on_failure
 from pre_commit.util import cmd_output_b
+from pre_commit.util import win_exe
 
 ENVIRONMENT_DIR = 'renv'
 RSCRIPT_OPTS = ('--no-save', '--no-restore', '--no-site-file', '--no-environ')
@@ -63,7 +64,7 @@ def _rscript_exec() -> str:
     if r_home is None:
         return 'Rscript'
     else:
-        return os.path.join(r_home, 'bin', 'Rscript')
+        return os.path.join(r_home, 'bin', win_exe('Rscript'))
 
 
 def _entry_validate(entry: Sequence[str]) -> None:
