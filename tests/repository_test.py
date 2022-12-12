@@ -173,30 +173,20 @@ def test_python_venv(tempdir_factory, store):
     )
 
 
-@xfailif_windows  # pragma: win32 no cover  # no python 2 in GHA
-def test_switch_language_versions_doesnt_clobber(tempdir_factory, store):
-    # We're using the python3 repo because it prints the python version
-    path = make_repo(tempdir_factory, 'python3_hooks_repo')
-
-    def run_on_version(version, expected_output):
-        config = make_config_from_repo(path)
-        config['hooks'][0]['language_version'] = version
-        hook = _get_hook(config, store, 'python3-hook')
-        ret, out = _hook_run(hook, [], color=False)
-        assert ret == 0
-        assert _norm_out(out) == expected_output
-
-    run_on_version('python2', b'2\n[]\nHello World\n')
-    run_on_version('python3', b'3\n[]\nHello World\n')
-
-
-def test_versioned_python_hook(tempdir_factory, store):
-    _test_hook_repo(
-        tempdir_factory, store, 'python3_hooks_repo',
-        'python3-hook',
-        [os.devnull],
-        f'3\n[{os.devnull!r}]\nHello World\n'.encode(),
-    )
+def test_language_versioned_python_hook(tempdir_factory, store):
+    # we patch this force virtualenv executing with `-p` since we can't
+    # reliably have multiple pythons available in CI
+    with mock.patch.object(
+            python,
+            '_sys_executable_matches',
+            return_value=False,
+    ):
+        _test_hook_repo(
+            tempdir_factory, store, 'python3_hooks_repo',
+            'python3-hook',
+            [os.devnull],
+            f'3\n[{os.devnull!r}]\nHello World\n'.encode(),
+        )
 
 
 @skipif_cant_run_coursier  # pragma: win32 no cover
@@ -345,7 +335,7 @@ def test_run_versioned_ruby_hook(tempdir_factory, store):
         tempdir_factory, store, 'ruby_versioned_hooks_repo',
         'ruby_hook',
         [os.devnull],
-        b'2.5.1\nHello world from a ruby hook\n',
+        b'3.1.0\nHello world from a ruby hook\n',
     )
 
 
@@ -367,7 +357,7 @@ def test_run_ruby_hook_with_disable_shared_gems(
             tempdir_factory, store, 'ruby_versioned_hooks_repo',
             'ruby_hook',
             [os.devnull],
-            b'2.5.1\nHello world from a ruby hook\n',
+            b'3.1.0\nHello world from a ruby hook\n',
         )
 
 
@@ -883,7 +873,7 @@ def test_tags_on_repositories(in_tmpdir, tempdir_factory, store):
 @pytest.fixture
 def local_python_config():
     # Make a "local" hooks repo that just installs our other hooks repo
-    repo_path = get_resource_path('python3_hooks_repo')
+    repo_path = get_resource_path('python_hooks_repo')
     manifest = load_manifest(os.path.join(repo_path, C.MANIFEST_FILE))
     hooks = [
         dict(hook, additional_dependencies=[repo_path]) for hook in manifest
@@ -892,23 +882,12 @@ def local_python_config():
 
 
 def test_local_python_repo(store, local_python_config):
-    hook = _get_hook(local_python_config, store, 'python3-hook')
+    hook = _get_hook(local_python_config, store, 'foo')
     # language_version should have been adjusted to the interpreter version
     assert hook.language_version != C.DEFAULT
     ret, out = _hook_run(hook, ('filename',), color=False)
     assert ret == 0
-    assert _norm_out(out) == b"3\n['filename']\nHello World\n"
-
-
-@xfailif_windows  # pragma: win32 no cover  # no python2 in GHA
-def test_local_python_repo_python2(store, local_python_config):
-    local_python_config['hooks'][0]['language_version'] = 'python2'
-    hook = _get_hook(local_python_config, store, 'python3-hook')
-    # language_version should have been adjusted to the interpreter version
-    assert hook.language_version != C.DEFAULT
-    ret, out = _hook_run(hook, ('filename',), color=False)
-    assert ret == 0
-    assert _norm_out(out) == b"2\n['filename']\nHello World\n"
+    assert _norm_out(out) == b"['filename']\nHello World\n"
 
 
 def test_default_language_version(store, local_python_config):
