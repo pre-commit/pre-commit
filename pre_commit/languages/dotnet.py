@@ -3,6 +3,7 @@ from __future__ import annotations
 import contextlib
 import os.path
 import re
+import tempfile
 import xml.etree.ElementTree
 import zipfile
 from typing import Generator
@@ -36,6 +37,22 @@ def in_env(prefix: Prefix) -> Generator[None, None, None]:
     envdir = prefix.path(directory)
     with envcontext(get_env_patch(envdir)):
         yield
+
+
+@contextlib.contextmanager
+def _nuget_config_no_sources() -> Generator[str, None, None]:
+    with tempfile.TemporaryDirectory() as tmpdir:
+        nuget_config = os.path.join(tmpdir, 'nuget.config')
+        with open(nuget_config, 'w') as f:
+            f.write(
+                '<?xml version="1.0" encoding="utf-8"?>'
+                '<configuration>'
+                '  <packageSources>'
+                '    <clear />'
+                '  </packageSources>'
+                '</configuration>',
+            )
+        yield nuget_config
 
 
 def install_environment(
@@ -85,15 +102,17 @@ def install_environment(
                 raise AssertionError('"id" element missing tool name')
 
             # Install to bin dir
-            helpers.run_setup_cmd(
-                prefix,
-                (
-                    'dotnet', 'tool', 'install',
-                    '--tool-path', os.path.join(envdir, BIN_DIR),
-                    '--add-source', build_dir,
-                    tool_id,
-                ),
-            )
+            with _nuget_config_no_sources() as nuget_config:
+                helpers.run_setup_cmd(
+                    prefix,
+                    (
+                        'dotnet', 'tool', 'install',
+                        '--configfile', nuget_config,
+                        '--tool-path', os.path.join(envdir, BIN_DIR),
+                        '--add-source', build_dir,
+                        tool_id,
+                    ),
+                )
 
         # Clean the git dir, ignoring the environment dir
         clean_cmd = ('git', 'clean', '-ffxd', '-e', f'{ENVIRONMENT_DIR}-*')
