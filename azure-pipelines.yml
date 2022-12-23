@@ -15,7 +15,7 @@ resources:
 jobs:
 - template: job--python-tox.yml@asottile
   parameters:
-    toxenvs: [py37]
+    toxenvs: [py38]
     os: windows
     additional_variables:
       TEMP: C:\Temp
@@ -34,7 +34,7 @@ jobs:
       displayName: install R
 - template: job--python-tox.yml@asottile
   parameters:
-    toxenvs: [py37]
+    toxenvs: [py38]
     os: linux
     name_postfix: _latest_git
     pre_test:
@@ -52,7 +52,7 @@ jobs:
       displayName: install R
 - template: job--python-tox.yml@asottile
   parameters:
-    toxenvs: [py37, py38, py39]
+    toxenvs: [py38, py39, py310]
     os: linux
     pre_test:
     - task: UseRubyVersion@0
