@@ -1,3 +1,43 @@
+2.21.0 - 2022-12-25
+===================
+
+### Features
+- Require new-enough virtualenv to prevent 3.10 breakage
+    - #2467 PR by @asottile.
+- Respect aliases with `SKIP` for environment install.
+    - #2480 PR by @kmARC.
+    - #2478 issue by @kmARC.
+- Allow `pre-commit run --files` against unmerged paths.
+    - #2484 PR by @asottile.
+- Also apply regex warnings to `repo: local` hooks.
+    - #2524 PR by @chrisRedwine.
+    - #2521 issue by @asottile.
+- `rust` is now a "first class" language -- supporting `language_version` and
+  installation when not present.
+    - #2534 PR by @Holzhaus.
+- `r` now uses more-reliable binary installation.
+    - #2460 PR by @lorenzwalthert.
+- `GIT_ALLOW_PROTOCOL` is now passed through for git operations.
+    - #2555 PR by @asottile.
+- `GIT_ASKPASS` is now passed through for git operations.
+    - #2564 PR by @mattp-.
+- Remove `toml` dependency by using `cargo add` directly.
+    - #2568 PR by @m-rsha.
+- Support `dotnet` hooks which have dotted prefixes.
+    - #2641 PR by @rkm.
+    - #2629 issue by @rkm.
+
+### Fixes
+- Properly adjust `--commit-msg-filename` if run from a sub directory.
+    - #2459 PR by @asottile.
+- Simplify `--intent-to-add` detection by using `git diff`.
+    - #2580 PR by @m-rsha.
+- Fix `R.exe` selection on windows.
+    - #2605 PR by @lorenzwalthert.
+    - #2599 issue by @SInginc.
+- Skip default `nuget` source when installing `dotnet` packages.
+    - #2642 PR by @rkm.
+
 2.20.0 - 2022-07-10
 ===================
 
