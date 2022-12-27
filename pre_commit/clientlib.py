@@ -114,8 +114,7 @@ LOCAL = 'local'
 META = 'meta'
 
 
-# should inherit from cfgv.Conditional if sha support is dropped
-class WarnMutableRev(cfgv.ConditionalOptional):
+class WarnMutableRev(cfgv.Conditional):
     def check(self, dct: dict[str, Any]) -> None:
         super().check(dct)
 
@@ -169,36 +168,6 @@ class OptionalSensibleRegexAtTop(cfgv.OptionalNoDefault):
                     fr'{self.key!r} field to forward slashes, so you '
                     fr'can use / instead of {fwd_slash_re}',
                 )
-
-
-class MigrateShaToRev:
-    key = 'rev'
-
-    @staticmethod
-    def _cond(key: str) -> cfgv.Conditional:
-        return cfgv.Conditional(
-            key, cfgv.check_string,
-            condition_key='repo',
-            condition_value=cfgv.NotIn(LOCAL, META),
-            ensure_absent=True,
-        )
-
-    def check(self, dct: dict[str, Any]) -> None:
-        if dct.get('repo') in {LOCAL, META}:
-            self._cond('rev').check(dct)
-            self._cond('sha').check(dct)
-        elif 'sha' in dct and 'rev' in dct:
-            raise cfgv.ValidationError('Cannot specify both sha and rev')
-        elif 'sha' in dct:
-            self._cond('sha').check(dct)
-        else:
-            self._cond('rev').check(dct)
-
-    def apply_default(self, dct: dict[str, Any]) -> None:
-        if 'sha' in dct:
-            dct['rev'] = dct.pop('sha')
-
-    remove_default = cfgv.Required.remove_default
 
 
 def _entry(modname: str) -> str:
@@ -324,14 +293,11 @@ CONFIG_REPO_DICT = cfgv.Map(
         'repo', META,
     ),
 
-    MigrateShaToRev(),
     WarnMutableRev(
-        'rev',
-        cfgv.check_string,
-        '',
-        'repo',
-        cfgv.NotIn(LOCAL, META),
-        True,
+        'rev', cfgv.check_string,
+        condition_key='repo',
+        condition_value=cfgv.NotIn(LOCAL, META),
+        ensure_absent=True,
     ),
     cfgv.WarnAdditionalKeys(('repo', 'rev', 'hooks'), warn_unknown_keys_repo),
 )
