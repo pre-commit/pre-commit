@@ -14,7 +14,6 @@ from pre_commit.clientlib import CONFIG_SCHEMA
 from pre_commit.clientlib import DEFAULT_LANGUAGE_VERSION
 from pre_commit.clientlib import MANIFEST_SCHEMA
 from pre_commit.clientlib import META_HOOK_DICT
-from pre_commit.clientlib import MigrateShaToRev
 from pre_commit.clientlib import OptionalSensibleRegexAtHook
 from pre_commit.clientlib import OptionalSensibleRegexAtTop
 from pre_commit.clientlib import validate_config_main
@@ -415,48 +414,6 @@ def test_mains_not_ok(tmpdir, fn):
 def test_valid_manifests(manifest_obj, expected):
     ret = is_valid_according_to_schema(manifest_obj, MANIFEST_SCHEMA)
     assert ret is expected
-
-
-@pytest.mark.parametrize(
-    'dct',
-    (
-        {'repo': 'local'}, {'repo': 'meta'},
-        {'repo': 'wat', 'sha': 'wat'}, {'repo': 'wat', 'rev': 'wat'},
-    ),
-)
-def test_migrate_sha_to_rev_ok(dct):
-    MigrateShaToRev().check(dct)
-
-
-def test_migrate_sha_to_rev_dont_specify_both():
-    with pytest.raises(cfgv.ValidationError) as excinfo:
-        MigrateShaToRev().check({'repo': 'a', 'sha': 'b', 'rev': 'c'})
-    msg, = excinfo.value.args
-    assert msg == 'Cannot specify both sha and rev'
-
-
-@pytest.mark.parametrize(
-    'dct',
-    (
-        {'repo': 'a'},
-        {'repo': 'meta', 'sha': 'a'}, {'repo': 'meta', 'rev': 'a'},
-    ),
-)
-def test_migrate_sha_to_rev_conditional_check_failures(dct):
-    with pytest.raises(cfgv.ValidationError):
-        MigrateShaToRev().check(dct)
-
-
-def test_migrate_to_sha_apply_default():
-    dct = {'repo': 'a', 'sha': 'b'}
-    MigrateShaToRev().apply_default(dct)
-    assert dct == {'repo': 'a', 'rev': 'b'}
-
-
-def test_migrate_to_sha_ok():
-    dct = {'repo': 'a', 'rev': 'b'}
-    MigrateShaToRev().apply_default(dct)
-    assert dct == {'repo': 'a', 'rev': 'b'}
 
 
 @pytest.mark.parametrize(
