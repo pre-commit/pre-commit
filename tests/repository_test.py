@@ -133,9 +133,11 @@ def test_python_hook(tempdir_factory, store):
 def test_python_hook_default_version(tempdir_factory, store):
     # make sure that this continues to work for platforms where default
     # language detection does not work
-    returns_default = mock.Mock(return_value=C.DEFAULT)
-    lang = languages['python']._replace(get_default_version=returns_default)
-    with mock.patch.dict(languages, python=lang):
+    with mock.patch.object(
+            python,
+            'get_default_version',
+            return_value=C.DEFAULT,
+    ):
         test_python_hook(tempdir_factory, store)
 
 
@@ -247,9 +249,11 @@ def test_run_a_node_hook(tempdir_factory, store):
 def test_run_a_node_hook_default_version(tempdir_factory, store):
     # make sure that this continues to work for platforms where node is not
     # installed at the system
-    returns_default = mock.Mock(return_value=C.DEFAULT)
-    lang = languages['node']._replace(get_default_version=returns_default)
-    with mock.patch.dict(languages, node=lang):
+    with mock.patch.object(
+            node,
+            'get_default_version',
+            return_value=C.DEFAULT,
+    ):
         test_run_a_node_hook(tempdir_factory, store)
 
 
