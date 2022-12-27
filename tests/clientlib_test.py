@@ -120,14 +120,6 @@ def test_validate_config_main_ok():
     assert not validate_config_main(('.pre-commit-config.yaml',))
 
 
-def test_validate_config_old_list_format_ok(tmpdir, cap_out):
-    f = tmpdir.join('cfg.yaml')
-    f.write('-  {repo: meta, hooks: [{id: identity}]}')
-    assert not validate_config_main((f.strpath,))
-    msg = '[WARNING] normalizing pre-commit configuration to a top-level map'
-    assert msg in cap_out.get()
-
-
 def test_validate_warn_on_unknown_keys_at_repo_level(tmpdir, caplog):
     f = tmpdir.join('cfg.yaml')
     f.write(
