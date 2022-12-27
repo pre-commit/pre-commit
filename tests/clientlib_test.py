@@ -16,8 +16,6 @@ from pre_commit.clientlib import MANIFEST_SCHEMA
 from pre_commit.clientlib import META_HOOK_DICT
 from pre_commit.clientlib import OptionalSensibleRegexAtHook
 from pre_commit.clientlib import OptionalSensibleRegexAtTop
-from pre_commit.clientlib import validate_config_main
-from pre_commit.clientlib import validate_manifest_main
 from testing.fixtures import sample_local_config
 
 
@@ -109,70 +107,6 @@ def test_config_schema_does_not_contain_defaults():
     """
     for item in CONFIG_HOOK_DICT.items:
         assert not isinstance(item, cfgv.Optional)
-
-
-def test_validate_manifest_main_ok():
-    assert not validate_manifest_main(('.pre-commit-hooks.yaml',))
-
-
-def test_validate_config_main_ok():
-    assert not validate_config_main(('.pre-commit-config.yaml',))
-
-
-def test_validate_warn_on_unknown_keys_at_repo_level(tmpdir, caplog):
-    f = tmpdir.join('cfg.yaml')
-    f.write(
-        'repos:\n'
-        '-   repo: https://gitlab.com/pycqa/flake8\n'
-        '    rev: 3.7.7\n'
-        '    hooks:\n'
-        '    -   id: flake8\n'
-        '    args: [--some-args]\n',
-    )
-    ret_val = validate_config_main((f.strpath,))
-    assert not ret_val
-    assert caplog.record_tuples == [
-        (
-            'pre_commit',
-            logging.WARNING,
-            'pre-commit-validate-config is deprecated -- '
-            'use `pre-commit validate-config` instead.',
-        ),
-        (
-            'pre_commit',
-            logging.WARNING,
-            'Unexpected key(s) present on https://gitlab.com/pycqa/flake8: '
-            'args',
-        ),
-    ]
-
-
-def test_validate_warn_on_unknown_keys_at_top_level(tmpdir, caplog):
-    f = tmpdir.join('cfg.yaml')
-    f.write(
-        'repos:\n'
-        '-   repo: https://gitlab.com/pycqa/flake8\n'
-        '    rev: 3.7.7\n'
-        '    hooks:\n'
-        '    -   id: flake8\n'
-        'foo:\n'
-        '    id: 1.0.0\n',
-    )
-    ret_val = validate_config_main((f.strpath,))
-    assert not ret_val
-    assert caplog.record_tuples == [
-        (
-            'pre_commit',
-            logging.WARNING,
-            'pre-commit-validate-config is deprecated -- '
-            'use `pre-commit validate-config` instead.',
-        ),
-        (
-            'pre_commit',
-            logging.WARNING,
-            'Unexpected key(s) present at root: foo',
-        ),
-    ]
 
 
 def test_ci_map_key_allowed_at_top_level(caplog):
@@ -359,18 +293,6 @@ def test_validate_optional_sensible_regex_at_top_level(caplog, regex, warning):
     cfgv.validate(config_obj, CONFIG_SCHEMA)
 
     assert caplog.record_tuples == [('pre_commit', logging.WARNING, warning)]
-
-
-@pytest.mark.parametrize('fn', (validate_config_main, validate_manifest_main))
-def test_mains_not_ok(tmpdir, fn):
-    not_yaml = tmpdir.join('f.notyaml')
-    not_yaml.write('{')
-    not_schema = tmpdir.join('notconfig.yaml')
-    not_schema.write('{}')
-
-    assert fn(('does-not-exist',))
-    assert fn((not_yaml.strpath,))
-    assert fn((not_schema.strpath,))
 
 
 @pytest.mark.parametrize(

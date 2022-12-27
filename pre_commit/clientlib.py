@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import argparse
 import functools
 import logging
 import re
@@ -13,12 +12,8 @@ import cfgv
 from identify.identify import ALL_TAGS
 
 import pre_commit.constants as C
-from pre_commit.color import add_color_option
-from pre_commit.commands.validate_config import validate_config
-from pre_commit.commands.validate_manifest import validate_manifest
 from pre_commit.errors import FatalError
 from pre_commit.languages.all import all_languages
-from pre_commit.logging_handler import logging_handler
 from pre_commit.util import parse_version
 from pre_commit.util import yaml_load
 
@@ -42,14 +37,6 @@ def check_min_version(version: str) -> None:
             f'{C.VERSION} is installed.  '
             f'Perhaps run `pip install --upgrade pre-commit`.',
         )
-
-
-def _make_argparser(filenames_help: str) -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser()
-    parser.add_argument('filenames', nargs='*', help=filenames_help)
-    parser.add_argument('-V', '--version', action='version', version=C.VERSION)
-    add_color_option(parser)
-    return parser
 
 
 MANIFEST_HOOK_DICT = cfgv.Map(
@@ -95,19 +82,6 @@ load_manifest = functools.partial(
     load_strategy=yaml_load,
     exc_tp=InvalidManifestError,
 )
-
-
-def validate_manifest_main(argv: Sequence[str] | None = None) -> int:
-    parser = _make_argparser('Manifest filenames.')
-    args = parser.parse_args(argv)
-
-    with logging_handler(args.color):
-        logger.warning(
-            'pre-commit-validate-manifest is deprecated -- '
-            'use `pre-commit validate-manifest` instead.',
-        )
-
-        return validate_manifest(args.filenames)
 
 
 LOCAL = 'local'
@@ -363,16 +337,3 @@ load_config = functools.partial(
     load_strategy=yaml_load,
     exc_tp=InvalidConfigError,
 )
-
-
-def validate_config_main(argv: Sequence[str] | None = None) -> int:
-    parser = _make_argparser('Config filenames.')
-    args = parser.parse_args(argv)
-
-    with logging_handler(args.color):
-        logger.warning(
-            'pre-commit-validate-config is deprecated -- '
-            'use `pre-commit validate-config` instead.',
-        )
-
-        return validate_config(args.filenames)

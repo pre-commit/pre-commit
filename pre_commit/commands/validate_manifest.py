@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+from typing import Sequence
+
 from pre_commit import clientlib
 
 
-def validate_manifest(filenames: list[str]) -> int:
+def validate_manifest(filenames: Sequence[str]) -> int:
     ret = 0
 
     for filename in filenames:
