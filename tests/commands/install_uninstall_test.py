@@ -739,20 +739,22 @@ def test_commit_msg_legacy(commit_msg_repo, tempdir_factory, store):
 
 def test_post_commit_integration(tempdir_factory, store):
     path = git_dir(tempdir_factory)
-    config = [
-        {
-            'repo': 'local',
-            'hooks': [{
-                'id': 'post-commit',
-                'name': 'Post commit',
-                'entry': 'touch post-commit.tmp',
-                'language': 'system',
-                'always_run': True,
-                'verbose': True,
-                'stages': ['post-commit'],
-            }],
-        },
-    ]
+    config = {
+        'repos': [
+            {
+                'repo': 'local',
+                'hooks': [{
+                    'id': 'post-commit',
+                    'name': 'Post commit',
+                    'entry': 'touch post-commit.tmp',
+                    'language': 'system',
+                    'always_run': True,
+                    'verbose': True,
+                    'stages': ['post-commit'],
+                }],
+            },
+        ],
+    }
     write_config(path, config)
     with cwd(path):
         _get_commit_output(tempdir_factory)
@@ -765,20 +767,22 @@ def test_post_commit_integration(tempdir_factory, store):
 
 def test_post_merge_integration(tempdir_factory, store):
     path = git_dir(tempdir_factory)
-    config = [
-        {
-            'repo': 'local',
-            'hooks': [{
-                'id': 'post-merge',
-                'name': 'Post merge',
-                'entry': 'touch post-merge.tmp',
-                'language': 'system',
-                'always_run': True,
-                'verbose': True,
-                'stages': ['post-merge'],
-            }],
-        },
-    ]
+    config = {
+        'repos': [
+            {
+                'repo': 'local',
+                'hooks': [{
+                    'id': 'post-merge',
+                    'name': 'Post merge',
+                    'entry': 'touch post-merge.tmp',
+                    'language': 'system',
+                    'always_run': True,
+                    'verbose': True,
+                    'stages': ['post-merge'],
+                }],
+            },
+        ],
+    }
     write_config(path, config)
     with cwd(path):
         #  create a simple diamond of commits for a non-trivial merge
@@ -807,20 +811,22 @@ def test_post_merge_integration(tempdir_factory, store):
 
 def test_post_rewrite_integration(tempdir_factory, store):
     path = git_dir(tempdir_factory)
-    config = [
-        {
-            'repo': 'local',
-            'hooks': [{
-                'id': 'post-rewrite',
-                'name': 'Post rewrite',
-                'entry': 'touch post-rewrite.tmp',
-                'language': 'system',
-                'always_run': True,
-                'verbose': True,
-                'stages': ['post-rewrite'],
-            }],
-        },
-    ]
+    config = {
+        'repos': [
+            {
+                'repo': 'local',
+                'hooks': [{
+                    'id': 'post-rewrite',
+                    'name': 'Post rewrite',
+                    'entry': 'touch post-rewrite.tmp',
+                    'language': 'system',
+                    'always_run': True,
+                    'verbose': True,
+                    'stages': ['post-rewrite'],
+                }],
+            },
+        ],
+    }
     write_config(path, config)
     with cwd(path):
         open('init', 'a').close()
@@ -836,21 +842,23 @@ def test_post_rewrite_integration(tempdir_factory, store):
 
 def test_post_checkout_integration(tempdir_factory, store):
     path = git_dir(tempdir_factory)
-    config = [
-        {
-            'repo': 'local',
-            'hooks': [{
-                'id': 'post-checkout',
-                'name': 'Post checkout',
-                'entry': 'bash -c "echo ${PRE_COMMIT_TO_REF}"',
-                'language': 'system',
-                'always_run': True,
-                'verbose': True,
-                'stages': ['post-checkout'],
-            }],
-        },
-        {'repo': 'meta', 'hooks': [{'id': 'identity'}]},
-    ]
+    config = {
+        'repos': [
+            {
+                'repo': 'local',
+                'hooks': [{
+                    'id': 'post-checkout',
+                    'name': 'Post checkout',
+                    'entry': 'bash -c "echo ${PRE_COMMIT_TO_REF}"',
+                    'language': 'system',
+                    'always_run': True,
+                    'verbose': True,
+                    'stages': ['post-checkout'],
+                }],
+            },
+            {'repo': 'meta', 'hooks': [{'id': 'identity'}]},
+        ],
+    }
     write_config(path, config)
     with cwd(path):
         cmd_output('git', 'add', '.')
