@@ -1,0 +1,23 @@
+name: main
+
+on:
+  push:
+    branches: [main, test-me-*]
+    tags:
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  main-windows:
+    uses: asottile/workflows/.github/workflows/tox.yml@v1.2.0
+    with:
+      env: '["py38"]'
+      os: windows-latest
+  main-linux:
+    uses: asottile/workflows/.github/workflows/tox.yml@v1.2.0
+    with:
+      env: '["py38", "py39", "py310"]'
+      os: ubuntu-latest
