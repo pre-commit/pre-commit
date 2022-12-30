@@ -26,4 +26,4 @@ fi
 mkdir -p /tmp/swift
 tar -xf "$TGZ" --strip 1 --directory /tmp/swift
 
-echo '##vso[task.prependpath]/tmp/swift/usr/bin'
+echo '/tmp/swift/usr/bin' >> "$GITHUB_PATH"

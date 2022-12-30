@@ -12,4 +12,4 @@ curl --location --silent --output "$ARTIFACT" "$COURSIER_URL"
 echo "$COURSIER_HASH  $ARTIFACT" | sha256sum --check
 chmod ugo+x /tmp/coursier/cs
 
-echo '##vso[task.prependpath]/tmp/coursier'
+echo '/tmp/coursier' >> "$GITHUB_PATH"
