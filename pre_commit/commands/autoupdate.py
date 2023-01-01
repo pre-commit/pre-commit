@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os.path
 import re
+import tempfile
 from typing import Any
 from typing import NamedTuple
 from typing import Sequence
@@ -19,7 +20,6 @@ from pre_commit.store import Store
 from pre_commit.util import CalledProcessError
 from pre_commit.util import cmd_output
 from pre_commit.util import cmd_output_b
-from pre_commit.util import tmpdir
 from pre_commit.util import yaml_dump
 from pre_commit.util import yaml_load
 
@@ -47,7 +47,7 @@ class RevInfo(NamedTuple):
                 'FETCH_HEAD', '--tags', '--exact',
             )
 
-        with tmpdir() as tmp:
+        with tempfile.TemporaryDirectory() as tmp:
             git.init_repo(tmp, self.repo)
             cmd_output_b(
                 *git_cmd, 'fetch', 'origin', 'HEAD', '--tags',

@@ -9,7 +9,6 @@ import shutil
 import stat
 import subprocess
 import sys
-import tempfile
 from types import TracebackType
 from typing import Any
 from typing import Callable
@@ -50,18 +49,6 @@ def clean_path_on_failure(path: str) -> Generator[None, None, None]:
         if os.path.exists(path):
             rmtree(path)
         raise
-
-
-@contextlib.contextmanager
-def tmpdir() -> Generator[str, None, None]:
-    """Contextmanager to create a temporary directory.  It will be cleaned up
-    afterwards.
-    """
-    tempdir = tempfile.mkdtemp()
-    try:
-        yield tempdir
-    finally:
-        rmtree(tempdir)
 
 
 def resource_bytesio(filename: str) -> IO[bytes]:
