@@ -15,7 +15,7 @@ from pre_commit.hook import Hook
 from pre_commit.languages import helpers
 from pre_commit.prefix import Prefix
 from pre_commit.util import win_exe
-from pre_commit.util import yaml_load
+from pre_commit.yaml import yaml_load
 
 ENVIRONMENT_DIR = 'dartenv'
 

@@ -4,12 +4,11 @@ import shlex
 from unittest import mock
 
 import pytest
-import yaml
 
 import pre_commit.constants as C
 from pre_commit import envcontext
 from pre_commit import git
-from pre_commit import util
+from pre_commit import yaml
 from pre_commit.commands.autoupdate import _check_hooks_still_exist_at_rev
 from pre_commit.commands.autoupdate import autoupdate
 from pre_commit.commands.autoupdate import RepositoryCannotBeUpdatedError
@@ -206,7 +205,7 @@ def test_autoupdate_with_core_useBuiltinFSMonitor(out_of_date, tmpdir, store):
 
 
 def test_autoupdate_pure_yaml(out_of_date, tmpdir, store):
-    with mock.patch.object(util, 'Dumper', yaml.SafeDumper):
+    with mock.patch.object(yaml, 'Dumper', yaml.yaml.SafeDumper):
         test_autoupdate_out_of_date_repo(out_of_date, tmpdir, store)
 
 

@@ -20,8 +20,8 @@ from pre_commit.store import Store
 from pre_commit.util import CalledProcessError
 from pre_commit.util import cmd_output
 from pre_commit.util import cmd_output_b
-from pre_commit.util import yaml_dump
-from pre_commit.util import yaml_load
+from pre_commit.yaml import yaml_dump
+from pre_commit.yaml import yaml_load
 
 
 class RevInfo(NamedTuple):

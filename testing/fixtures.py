@@ -12,8 +12,8 @@ from pre_commit import git
 from pre_commit.clientlib import CONFIG_SCHEMA
 from pre_commit.clientlib import load_manifest
 from pre_commit.util import cmd_output
-from pre_commit.util import yaml_dump
-from pre_commit.util import yaml_load
+from pre_commit.yaml import yaml_dump
+from pre_commit.yaml import yaml_load
 from testing.util import get_resource_path
 from testing.util import git_commit
 
