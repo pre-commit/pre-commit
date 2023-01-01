@@ -14,7 +14,6 @@ from identify.identify import ALL_TAGS
 import pre_commit.constants as C
 from pre_commit.errors import FatalError
 from pre_commit.languages.all import all_languages
-from pre_commit.util import parse_version
 from pre_commit.util import yaml_load
 
 logger = logging.getLogger('pre_commit')
@@ -28,6 +27,11 @@ def check_type_tag(tag: str) -> None:
             f'Type tag {tag!r} is not recognized.  '
             f'Try upgrading identify and pre-commit?',
         )
+
+
+def parse_version(s: str) -> tuple[int, ...]:
+    """poor man's version comparison"""
+    return tuple(int(p) for p in s.split('.'))
 
 
 def check_min_version(version: str) -> None:

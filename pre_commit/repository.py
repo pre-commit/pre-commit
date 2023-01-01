@@ -10,12 +10,12 @@ import pre_commit.constants as C
 from pre_commit.clientlib import load_manifest
 from pre_commit.clientlib import LOCAL
 from pre_commit.clientlib import META
+from pre_commit.clientlib import parse_version
 from pre_commit.hook import Hook
 from pre_commit.languages.all import languages
 from pre_commit.languages.helpers import environment_dir
 from pre_commit.prefix import Prefix
 from pre_commit.store import Store
-from pre_commit.util import parse_version
 from pre_commit.util import rmtree
 
 

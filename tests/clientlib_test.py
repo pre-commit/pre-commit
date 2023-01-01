@@ -16,6 +16,7 @@ from pre_commit.clientlib import MANIFEST_SCHEMA
 from pre_commit.clientlib import META_HOOK_DICT
 from pre_commit.clientlib import OptionalSensibleRegexAtHook
 from pre_commit.clientlib import OptionalSensibleRegexAtTop
+from pre_commit.clientlib import parse_version
 from testing.fixtures import sample_local_config
 
 
@@ -382,6 +383,12 @@ def test_meta_check_hooks_apply_only_at_top_level():
 def test_default_language_version_invalid(mapping):
     with pytest.raises(cfgv.ValidationError):
         cfgv.validate(mapping, DEFAULT_LANGUAGE_VERSION)
+
+
+def test_parse_version():
+    assert parse_version('0.0') == parse_version('0.0')
+    assert parse_version('0.1') > parse_version('0.0')
+    assert parse_version('2.1') >= parse_version('2')
 
 
 def test_minimum_pre_commit_version_failing():

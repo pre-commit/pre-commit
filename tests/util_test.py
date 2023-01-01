@@ -12,7 +12,6 @@ from pre_commit.util import cmd_output
 from pre_commit.util import cmd_output_b
 from pre_commit.util import cmd_output_p
 from pre_commit.util import make_executable
-from pre_commit.util import parse_version
 from pre_commit.util import rmtree
 
 
@@ -96,12 +95,6 @@ def test_cmd_output_no_shebang(tmpdir, fn):
     assert ret == 1
     assert isinstance(out, bytes)
     assert out.endswith(b'\n')
-
-
-def test_parse_version():
-    assert parse_version('0.0') == parse_version('0.0')
-    assert parse_version('0.1') > parse_version('0.0')
-    assert parse_version('2.1') >= parse_version('2')
 
 
 def test_rmtree_read_only_directories(tmpdir):
