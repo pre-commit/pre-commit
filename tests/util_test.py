@@ -14,7 +14,6 @@ from pre_commit.util import cmd_output_p
 from pre_commit.util import make_executable
 from pre_commit.util import parse_version
 from pre_commit.util import rmtree
-from pre_commit.util import tmpdir
 
 
 def test_CalledProcessError_str():
@@ -72,12 +71,6 @@ def test_clean_path_on_failure_cleans_for_system_exit(in_tmpdir):
             raise MySystemExit
 
     assert not os.path.exists('foo')
-
-
-def test_tmpdir():
-    with tmpdir() as tempdir:
-        assert os.path.exists(tempdir)
-    assert not os.path.exists(tempdir)
 
 
 def test_cmd_output_exe_not_found():

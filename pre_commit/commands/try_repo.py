@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import logging
 import os.path
+import tempfile
 
 import pre_commit.constants as C
 from pre_commit import git
@@ -11,7 +12,6 @@ from pre_commit.clientlib import load_manifest
 from pre_commit.commands.run import run
 from pre_commit.store import Store
 from pre_commit.util import cmd_output_b
-from pre_commit.util import tmpdir
 from pre_commit.util import yaml_dump
 from pre_commit.xargs import xargs
 
@@ -49,7 +49,7 @@ def _repo_ref(tmpdir: str, repo: str, ref: str | None) -> tuple[str, str]:
 
 
 def try_repo(args: argparse.Namespace) -> int:
-    with tmpdir() as tempdir:
+    with tempfile.TemporaryDirectory() as tempdir:
         repo, ref = _repo_ref(tempdir, args.repo, args.ref)
 
         store = Store(tempdir)
