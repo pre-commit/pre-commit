@@ -16,27 +16,18 @@ def _test_r_parsing(
     tempdir_factory,
     store,
     hook_id,
-    expected_hook_expr={},
-    expected_args={},
-    config={},
-    expect_path_prefix=True,
+    expected_hook_expr=(),
+    expected_args=(),
+    config=None,
 ):
-    repo_path = 'r_hooks_repo'
-    path = make_repo(tempdir_factory, repo_path)
-    config = config or make_config_from_repo(path)
+    repo = make_repo(tempdir_factory, 'r_hooks_repo')
+    config = make_config_from_repo(repo)
     hook = _get_hook_no_install(config, store, hook_id)
     ret = r._cmd_from_hook(hook)
-    expected_cmd = 'Rscript'
-    expected_opts = (
-        '--no-save', '--no-restore', '--no-site-file', '--no-environ',
-    )
-    expected_path = os.path.join(
-        hook.prefix.prefix_dir if expect_path_prefix else '',
-        f'{hook_id}.R',
-    )
+    expected_path = os.path.join(hook.prefix.prefix_dir, f'{hook_id}.R')
     expected = (
-        expected_cmd,
-        *expected_opts,
+        'Rscript',
+        '--no-save', '--no-restore', '--no-site-file', '--no-environ',
         *(expected_hook_expr or (expected_path,)),
         *expected_args,
     )
@@ -84,9 +75,7 @@ def test_r_parsing_expr_no_opts_no_args2(tempdir_factory, store):
 def test_r_parsing_expr_opts_no_args2(tempdir_factory, store):
     with pytest.raises(ValueError) as execinfo:
         r._entry_validate(
-            [
-                'Rscript', '--vanilla', '-e', '1+1', '-e', 'letters',
-            ],
+            ['Rscript', '--vanilla', '-e', '1+1', '-e', 'letters'],
         )
     msg = execinfo.value.args
     assert msg == (
@@ -112,24 +101,21 @@ def test_r_parsing_expr_non_Rscirpt(tempdir_factory, store):
 
 
 def test_r_parsing_file_local(tempdir_factory, store):
-    path = 'path/to/script.R'
-    hook_id = 'local-r'
     config = {
         'repo': 'local',
         'hooks': [{
-            'id': hook_id,
+            'id': 'local-r',
             'name': 'local-r',
-            'entry': f'Rscript {path}',
+            'entry': 'Rscript path/to/script.R',
             'language': 'r',
         }],
     }
-    _test_r_parsing(
-        tempdir_factory,
-        store,
-        hook_id=hook_id,
-        expected_hook_expr=(path,),
-        config=config,
-        expect_path_prefix=False,
+    hook = _get_hook_no_install(config, store, 'local-r')
+    ret = r._cmd_from_hook(hook)
+    assert ret == (
+        'Rscript',
+        '--no-save', '--no-restore', '--no-site-file', '--no-environ',
+        hook.prefix.path('path/to/script.R'),
     )
 
 
