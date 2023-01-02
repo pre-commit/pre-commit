@@ -10,7 +10,6 @@ from pre_commit.hook import Hook
 from pre_commit.languages import helpers
 from pre_commit.prefix import Prefix
 from pre_commit.util import CalledProcessError
-from pre_commit.util import clean_path_on_failure
 from pre_commit.util import cmd_output_b
 
 ENVIRONMENT_DIR = 'docker'
@@ -101,9 +100,8 @@ def install_environment(
 
     # Docker doesn't really have relevant disk environment, but pre-commit
     # still needs to cleanup its state files on failure
-    with clean_path_on_failure(directory):
-        build_docker_image(prefix, pull=True)
-        os.mkdir(directory)
+    build_docker_image(prefix, pull=True)
+    os.mkdir(directory)
 
 
 def get_docker_user() -> tuple[str, ...]:  # pragma: win32 no cover

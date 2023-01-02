@@ -16,7 +16,6 @@ from pre_commit.envcontext import Var
 from pre_commit.hook import Hook
 from pre_commit.languages import helpers
 from pre_commit.prefix import Prefix
-from pre_commit.util import clean_path_on_failure
 
 ENVIRONMENT_DIR = 'dotnetenv'
 BIN_DIR = 'bin'
@@ -64,59 +63,58 @@ def install_environment(
     helpers.assert_no_additional_deps('dotnet', additional_dependencies)
 
     envdir = prefix.path(helpers.environment_dir(ENVIRONMENT_DIR, version))
-    with clean_path_on_failure(envdir):
-        build_dir = 'pre-commit-build'
+    build_dir = 'pre-commit-build'
 
-        # Build & pack nupkg file
-        helpers.run_setup_cmd(
-            prefix,
-            (
-                'dotnet', 'pack',
-                '--configuration', 'Release',
-                '--output', build_dir,
-            ),
-        )
+    # Build & pack nupkg file
+    helpers.run_setup_cmd(
+        prefix,
+        (
+            'dotnet', 'pack',
+            '--configuration', 'Release',
+            '--output', build_dir,
+        ),
+    )
 
-        nupkg_dir = prefix.path(build_dir)
-        nupkgs = [x for x in os.listdir(nupkg_dir) if x.endswith('.nupkg')]
+    nupkg_dir = prefix.path(build_dir)
+    nupkgs = [x for x in os.listdir(nupkg_dir) if x.endswith('.nupkg')]
 
-        if not nupkgs:
-            raise AssertionError('could not find any build outputs to install')
+    if not nupkgs:
+        raise AssertionError('could not find any build outputs to install')
 
-        for nupkg in nupkgs:
-            with zipfile.ZipFile(os.path.join(nupkg_dir, nupkg)) as f:
-                nuspec, = (x for x in f.namelist() if x.endswith('.nuspec'))
-                with f.open(nuspec) as spec:
-                    tree = xml.etree.ElementTree.parse(spec)
+    for nupkg in nupkgs:
+        with zipfile.ZipFile(os.path.join(nupkg_dir, nupkg)) as f:
+            nuspec, = (x for x in f.namelist() if x.endswith('.nuspec'))
+            with f.open(nuspec) as spec:
+                tree = xml.etree.ElementTree.parse(spec)
 
-            namespace = re.match(r'{.*}', tree.getroot().tag)
-            if not namespace:
-                raise AssertionError('could not parse namespace from nuspec')
+        namespace = re.match(r'{.*}', tree.getroot().tag)
+        if not namespace:
+            raise AssertionError('could not parse namespace from nuspec')
 
-            tool_id_element = tree.find(f'.//{namespace[0]}id')
-            if tool_id_element is None:
-                raise AssertionError('expected to find an "id" element')
+        tool_id_element = tree.find(f'.//{namespace[0]}id')
+        if tool_id_element is None:
+            raise AssertionError('expected to find an "id" element')
 
-            tool_id = tool_id_element.text
-            if not tool_id:
-                raise AssertionError('"id" element missing tool name')
+        tool_id = tool_id_element.text
+        if not tool_id:
+            raise AssertionError('"id" element missing tool name')
 
-            # Install to bin dir
-            with _nuget_config_no_sources() as nuget_config:
-                helpers.run_setup_cmd(
-                    prefix,
-                    (
-                        'dotnet', 'tool', 'install',
-                        '--configfile', nuget_config,
-                        '--tool-path', os.path.join(envdir, BIN_DIR),
-                        '--add-source', build_dir,
-                        tool_id,
-                    ),
-                )
+        # Install to bin dir
+        with _nuget_config_no_sources() as nuget_config:
+            helpers.run_setup_cmd(
+                prefix,
+                (
+                    'dotnet', 'tool', 'install',
+                    '--configfile', nuget_config,
+                    '--tool-path', os.path.join(envdir, BIN_DIR),
+                    '--add-source', build_dir,
+                    tool_id,
+                ),
+            )
 
-        # Clean the git dir, ignoring the environment dir
-        clean_cmd = ('git', 'clean', '-ffxd', '-e', f'{ENVIRONMENT_DIR}-*')
-        helpers.run_setup_cmd(prefix, clean_cmd)
+    # Clean the git dir, ignoring the environment dir
+    clean_cmd = ('git', 'clean', '-ffxd', '-e', f'{ENVIRONMENT_DIR}-*')
+    helpers.run_setup_cmd(prefix, clean_cmd)
 
 
 def run_hook(

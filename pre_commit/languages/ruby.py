@@ -17,7 +17,6 @@ from pre_commit.hook import Hook
 from pre_commit.languages import helpers
 from pre_commit.prefix import Prefix
 from pre_commit.util import CalledProcessError
-from pre_commit.util import clean_path_on_failure
 from pre_commit.util import resource_bytesio
 
 ENVIRONMENT_DIR = 'rbenv'
@@ -115,33 +114,30 @@ def _install_ruby(
 def install_environment(
         prefix: Prefix, version: str, additional_dependencies: Sequence[str],
 ) -> None:
-    additional_dependencies = tuple(additional_dependencies)
-    directory = helpers.environment_dir(ENVIRONMENT_DIR, version)
-    with clean_path_on_failure(prefix.path(directory)):
-        if version != 'system':  # pragma: win32 no cover
-            _install_rbenv(prefix, version)
-            with in_env(prefix, version):
-                # Need to call this before installing so rbenv's directories
-                # are set up
-                helpers.run_setup_cmd(prefix, ('rbenv', 'init', '-'))
-                if version != C.DEFAULT:
-                    _install_ruby(prefix, version)
-                # Need to call this after installing to set up the shims
-                helpers.run_setup_cmd(prefix, ('rbenv', 'rehash'))
-
+    if version != 'system':  # pragma: win32 no cover
+        _install_rbenv(prefix, version)
         with in_env(prefix, version):
-            helpers.run_setup_cmd(
-                prefix, ('gem', 'build', *prefix.star('.gemspec')),
-            )
-            helpers.run_setup_cmd(
-                prefix,
-                (
-                    'gem', 'install',
-                    '--no-document', '--no-format-executable',
-                    '--no-user-install',
-                    *prefix.star('.gem'), *additional_dependencies,
-                ),
-            )
+            # Need to call this before installing so rbenv's directories
+            # are set up
+            helpers.run_setup_cmd(prefix, ('rbenv', 'init', '-'))
+            if version != C.DEFAULT:
+                _install_ruby(prefix, version)
+            # Need to call this after installing to set up the shims
+            helpers.run_setup_cmd(prefix, ('rbenv', 'rehash'))
+
+    with in_env(prefix, version):
+        helpers.run_setup_cmd(
+            prefix, ('gem', 'build', *prefix.star('.gemspec')),
+        )
+        helpers.run_setup_cmd(
+            prefix,
+            (
+                'gem', 'install',
+                '--no-document', '--no-format-executable',
+                '--no-user-install',
+                *prefix.star('.gem'), *additional_dependencies,
+            ),
+        )
 
 
 def run_hook(

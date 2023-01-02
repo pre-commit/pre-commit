@@ -12,7 +12,6 @@ from pre_commit.envcontext import Var
 from pre_commit.hook import Hook
 from pre_commit.languages import helpers
 from pre_commit.prefix import Prefix
-from pre_commit.util import clean_path_on_failure
 
 ENVIRONMENT_DIR = 'perl_env'
 get_default_version = helpers.basic_get_default_version
@@ -52,11 +51,10 @@ def install_environment(
 ) -> None:
     helpers.assert_version_default('perl', version)
 
-    with clean_path_on_failure(_envdir(prefix, version)):
-        with in_env(prefix, version):
-            helpers.run_setup_cmd(
-                prefix, ('cpan', '-T', '.', *additional_dependencies),
-            )
+    with in_env(prefix, version):
+        helpers.run_setup_cmd(
+            prefix, ('cpan', '-T', '.', *additional_dependencies),
+        )
 
 
 def run_hook(

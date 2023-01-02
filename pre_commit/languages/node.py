@@ -16,7 +16,6 @@ from pre_commit.hook import Hook
 from pre_commit.languages import helpers
 from pre_commit.languages.python import bin_dir
 from pre_commit.prefix import Prefix
-from pre_commit.util import clean_path_on_failure
 from pre_commit.util import cmd_output
 from pre_commit.util import cmd_output_b
 from pre_commit.util import rmtree
@@ -85,41 +84,37 @@ def health_check(prefix: Prefix, language_version: str) -> str | None:
 def install_environment(
         prefix: Prefix, version: str, additional_dependencies: Sequence[str],
 ) -> None:
-    additional_dependencies = tuple(additional_dependencies)
     assert prefix.exists('package.json')
     envdir = _envdir(prefix, version)
 
     # https://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx?f=255&MSPPError=-2147217396#maxpath
     if sys.platform == 'win32':  # pragma: no cover
         envdir = fr'\\?\{os.path.normpath(envdir)}'
-    with clean_path_on_failure(envdir):
-        cmd = [
-            sys.executable, '-mnodeenv', '--prebuilt', '--clean-src', envdir,
-        ]
-        if version != C.DEFAULT:
-            cmd.extend(['-n', version])
-        cmd_output_b(*cmd)
+    cmd = [sys.executable, '-mnodeenv', '--prebuilt', '--clean-src', envdir]
+    if version != C.DEFAULT:
+        cmd.extend(['-n', version])
+    cmd_output_b(*cmd)
 
-        with in_env(prefix, version):
-            # https://npm.community/t/npm-install-g-git-vs-git-clone-cd-npm-install-g/5449
-            # install as if we installed from git
+    with in_env(prefix, version):
+        # https://npm.community/t/npm-install-g-git-vs-git-clone-cd-npm-install-g/5449
+        # install as if we installed from git
 
-            local_install_cmd = (
-                'npm', 'install', '--dev', '--prod',
-                '--ignore-prepublish', '--no-progress', '--no-save',
-            )
-            helpers.run_setup_cmd(prefix, local_install_cmd)
+        local_install_cmd = (
+            'npm', 'install', '--dev', '--prod',
+            '--ignore-prepublish', '--no-progress', '--no-save',
+        )
+        helpers.run_setup_cmd(prefix, local_install_cmd)
 
-            _, pkg, _ = cmd_output('npm', 'pack', cwd=prefix.prefix_dir)
-            pkg = prefix.path(pkg.strip())
+        _, pkg, _ = cmd_output('npm', 'pack', cwd=prefix.prefix_dir)
+        pkg = prefix.path(pkg.strip())
 
-            install = ('npm', 'install', '-g', pkg, *additional_dependencies)
-            helpers.run_setup_cmd(prefix, install)
+        install = ('npm', 'install', '-g', pkg, *additional_dependencies)
+        helpers.run_setup_cmd(prefix, install)
 
-            # clean these up after installation
-            if prefix.exists('node_modules'):  # pragma: win32 no cover
-                rmtree(prefix.path('node_modules'))
-            os.remove(pkg)
+        # clean these up after installation
+        if prefix.exists('node_modules'):  # pragma: win32 no cover
+            rmtree(prefix.path('node_modules'))
+        os.remove(pkg)
 
 
 def run_hook(

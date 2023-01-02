@@ -13,7 +13,6 @@ from pre_commit.envcontext import Var
 from pre_commit.hook import Hook
 from pre_commit.languages import helpers
 from pre_commit.prefix import Prefix
-from pre_commit.util import clean_path_on_failure
 from pre_commit.util import cmd_output
 
 ENVIRONMENT_DIR = 'lua_env'
@@ -64,22 +63,21 @@ def install_environment(
     helpers.assert_version_default('lua', version)
 
     envdir = _envdir(prefix)
-    with clean_path_on_failure(envdir):
-        with in_env(prefix):
-            # luarocks doesn't bootstrap a tree prior to installing
-            # so ensure the directory exists.
-            os.makedirs(envdir, exist_ok=True)
+    with in_env(prefix):
+        # luarocks doesn't bootstrap a tree prior to installing
+        # so ensure the directory exists.
+        os.makedirs(envdir, exist_ok=True)
 
-            # Older luarocks (e.g., 2.4.2) expect the rockspec as an arg
-            for rockspec in prefix.star('.rockspec'):
-                make_cmd = ('luarocks', '--tree', envdir, 'make', rockspec)
-                helpers.run_setup_cmd(prefix, make_cmd)
+        # Older luarocks (e.g., 2.4.2) expect the rockspec as an arg
+        for rockspec in prefix.star('.rockspec'):
+            make_cmd = ('luarocks', '--tree', envdir, 'make', rockspec)
+            helpers.run_setup_cmd(prefix, make_cmd)
 
-            # luarocks can't install multiple packages at once
-            # so install them individually.
-            for dependency in additional_dependencies:
-                cmd = ('luarocks', '--tree', envdir, 'install', dependency)
-                helpers.run_setup_cmd(prefix, cmd)
+        # luarocks can't install multiple packages at once
+        # so install them individually.
+        for dependency in additional_dependencies:
+            cmd = ('luarocks', '--tree', envdir, 'install', dependency)
+            helpers.run_setup_cmd(prefix, cmd)
 
 
 def run_hook(
