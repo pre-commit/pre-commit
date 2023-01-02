@@ -50,15 +50,16 @@ def _write_state(prefix: Prefix, venv: str, state: object) -> None:
 
 def _hook_installed(hook: Hook) -> bool:
     lang = languages[hook.language]
+    if lang.ENVIRONMENT_DIR is None:
+        return True
+
     venv = environment_dir(lang.ENVIRONMENT_DIR, hook.language_version)
     return (
-        venv is None or (
-            (
-                _read_state(hook.prefix, venv) ==
-                _state(hook.additional_dependencies)
-            ) and
-            not lang.health_check(hook.prefix, hook.language_version)
-        )
+        (
+            _read_state(hook.prefix, venv) ==
+            _state(hook.additional_dependencies)
+        ) and
+        not lang.health_check(hook.prefix, hook.language_version)
     )
 
 

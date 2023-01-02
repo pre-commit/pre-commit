@@ -6,7 +6,6 @@ import random
 import re
 from typing import Any
 from typing import NoReturn
-from typing import overload
 from typing import Sequence
 
 import pre_commit.constants as C
@@ -48,17 +47,8 @@ def run_setup_cmd(prefix: Prefix, cmd: tuple[str, ...], **kwargs: Any) -> None:
     cmd_output_b(*cmd, cwd=prefix.prefix_dir, **kwargs)
 
 
-@overload
-def environment_dir(d: None, language_version: str) -> None: ...
-@overload
-def environment_dir(d: str, language_version: str) -> str: ...
-
-
-def environment_dir(d: str | None, language_version: str) -> str | None:
-    if d is None:
-        return None
-    else:
-        return f'{d}-{language_version}'
+def environment_dir(d: str, language_version: str) -> str:
+    return f'{d}-{language_version}'
 
 
 def assert_version_default(binary: str, version: str) -> None:
