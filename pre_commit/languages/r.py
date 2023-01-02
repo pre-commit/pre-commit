@@ -44,19 +44,11 @@ def _get_env_dir(prefix: Prefix, version: str) -> str:
     return prefix.path(helpers.environment_dir(ENVIRONMENT_DIR, version))
 
 
-def _prefix_if_non_local_file_entry(
-    entry: Sequence[str],
-    prefix: Prefix,
-    src: str,
-) -> Sequence[str]:
+def _prefix_if_file_entry(entry: list[str], prefix: Prefix) -> Sequence[str]:
     if entry[1] == '-e':
         return entry[1:]
     else:
-        if src == 'local':
-            path = entry[1]
-        else:
-            path = prefix.path(entry[1])
-        return (path,)
+        return (prefix.path(entry[1]),)
 
 
 def _rscript_exec() -> str:
@@ -67,7 +59,7 @@ def _rscript_exec() -> str:
         return os.path.join(r_home, 'bin', win_exe('Rscript'))
 
 
-def _entry_validate(entry: Sequence[str]) -> None:
+def _entry_validate(entry: list[str]) -> None:
     """
     Allowed entries:
     # Rscript -e expr
@@ -91,8 +83,8 @@ def _cmd_from_hook(hook: Hook) -> tuple[str, ...]:
     _entry_validate(entry)
 
     return (
-        *entry[:1], *RSCRIPT_OPTS,
-        *_prefix_if_non_local_file_entry(entry, hook.prefix, hook.src),
+        entry[0], *RSCRIPT_OPTS,
+        *_prefix_if_file_entry(entry, hook.prefix),
         *hook.args,
     )
 
