@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import logging
 import os
 from typing import Any
@@ -22,8 +23,21 @@ from pre_commit.util import rmtree
 logger = logging.getLogger('pre_commit')
 
 
+def _state(additional_deps: Sequence[str]) -> object:
+    return {'additional_dependencies': sorted(additional_deps)}
+
+
 def _state_filename(venv: str) -> str:
-    return os.path.join(venv, '.install_state_v2')
+    return os.path.join(venv, f'.install_state_v{C.INSTALLED_STATE_VERSION}')
+
+
+def _read_state(venv: str) -> object | None:
+    filename = _state_filename(venv)
+    if not os.path.exists(filename):
+        return None
+    else:
+        with open(filename) as f:
+            return json.load(f)
 
 
 def _hook_installed(hook: Hook) -> bool:
@@ -37,7 +51,7 @@ def _hook_installed(hook: Hook) -> bool:
         hook.language_version,
     )
     return (
-        os.path.exists(_state_filename(venv)) and
+        _read_state(venv) == _state(hook.additional_dependencies) and
         not lang.health_check(hook.prefix, hook.language_version)
     )
 
@@ -73,8 +87,13 @@ def _hook_install(hook: Hook) -> None:
                 f'your environment\n\n'
                 f'more info:\n\n{health_error}',
             )
-        # touch state file to indicate we're installed
-        open(_state_filename(venv), 'a+').close()
+        # Write our state to indicate we're installed
+        state_filename = _state_filename(venv)
+        staging = f'{state_filename}staging'
+        with open(staging, 'w') as state_file:
+            state_file.write(json.dumps(_state(hook.additional_dependencies)))
+        # Move the file into place atomically to indicate we've installed
+        os.replace(staging, state_filename)
 
 
 def _hook(
