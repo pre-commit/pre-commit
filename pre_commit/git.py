@@ -93,11 +93,6 @@ def get_git_common_dir(git_root: str = '.') -> str:
         return get_git_dir(git_root)
 
 
-def get_remote_url(git_root: str) -> str:
-    _, out, _ = cmd_output('git', 'config', 'remote.origin.url', cwd=git_root)
-    return out.strip()
-
-
 def is_in_merge_conflict() -> bool:
     git_dir = get_git_dir('.')
     return (
