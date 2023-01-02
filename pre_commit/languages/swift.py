@@ -12,7 +12,6 @@ from pre_commit.envcontext import Var
 from pre_commit.hook import Hook
 from pre_commit.languages import helpers
 from pre_commit.prefix import Prefix
-from pre_commit.util import clean_path_on_failure
 from pre_commit.util import cmd_output_b
 
 ENVIRONMENT_DIR = 'swift_env'
@@ -46,14 +45,13 @@ def install_environment(
     )
 
     # Build the swift package
-    with clean_path_on_failure(directory):
-        os.mkdir(directory)
-        cmd_output_b(
-            'swift', 'build',
-            '-C', prefix.prefix_dir,
-            '-c', BUILD_CONFIG,
-            '--build-path', os.path.join(directory, BUILD_DIR),
-        )
+    os.mkdir(directory)
+    cmd_output_b(
+        'swift', 'build',
+        '-C', prefix.prefix_dir,
+        '-c', BUILD_CONFIG,
+        '--build-path', os.path.join(directory, BUILD_DIR),
+    )
 
 
 def run_hook(

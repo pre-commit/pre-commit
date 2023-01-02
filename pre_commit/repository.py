@@ -16,6 +16,7 @@ from pre_commit.languages.all import languages
 from pre_commit.languages.helpers import environment_dir
 from pre_commit.prefix import Prefix
 from pre_commit.store import Store
+from pre_commit.util import clean_path_on_failure
 from pre_commit.util import rmtree
 
 
@@ -26,26 +27,17 @@ def _state(additional_deps: Sequence[str]) -> object:
     return {'additional_dependencies': sorted(additional_deps)}
 
 
-def _state_filename(prefix: Prefix, venv: str) -> str:
-    return prefix.path(venv, f'.install_state_v{C.INSTALLED_STATE_VERSION}')
+def _state_filename(venv: str) -> str:
+    return os.path.join(venv, f'.install_state_v{C.INSTALLED_STATE_VERSION}')
 
 
-def _read_state(prefix: Prefix, venv: str) -> object | None:
-    filename = _state_filename(prefix, venv)
+def _read_state(venv: str) -> object | None:
+    filename = _state_filename(venv)
     if not os.path.exists(filename):
         return None
     else:
         with open(filename) as f:
             return json.load(f)
-
-
-def _write_state(prefix: Prefix, venv: str, state: object) -> None:
-    state_filename = _state_filename(prefix, venv)
-    staging = f'{state_filename}staging'
-    with open(staging, 'w') as state_file:
-        state_file.write(json.dumps(state))
-    # Move the file into place atomically to indicate we've installed
-    os.replace(staging, state_filename)
 
 
 def _hook_installed(hook: Hook) -> bool:
@@ -54,11 +46,9 @@ def _hook_installed(hook: Hook) -> bool:
         return True
 
     venv = environment_dir(lang.ENVIRONMENT_DIR, hook.language_version)
+    venv = hook.prefix.path(venv)
     return (
-        (
-            _read_state(hook.prefix, venv) ==
-            _state(hook.additional_dependencies)
-        ) and
+        _read_state(venv) == _state(hook.additional_dependencies) and
         not lang.health_check(hook.prefix, hook.language_version)
     )
 
@@ -70,26 +60,34 @@ def _hook_install(hook: Hook) -> None:
 
     lang = languages[hook.language]
     assert lang.ENVIRONMENT_DIR is not None
+
     venv = environment_dir(lang.ENVIRONMENT_DIR, hook.language_version)
+    venv = hook.prefix.path(venv)
 
     # There's potentially incomplete cleanup from previous runs
     # Clean it up!
-    if hook.prefix.exists(venv):
-        rmtree(hook.prefix.path(venv))
+    if os.path.exists(venv):
+        rmtree(venv)
 
-    lang.install_environment(
-        hook.prefix, hook.language_version, hook.additional_dependencies,
-    )
-    health_error = lang.health_check(hook.prefix, hook.language_version)
-    if health_error:
-        raise AssertionError(
-            f'BUG: expected environment for {hook.language} to be healthy '
-            f'immediately after install, please open an issue describing '
-            f'your environment\n\n'
-            f'more info:\n\n{health_error}',
+    with clean_path_on_failure(venv):
+        lang.install_environment(
+            hook.prefix, hook.language_version, hook.additional_dependencies,
         )
-    # Write our state to indicate we're installed
-    _write_state(hook.prefix, venv, _state(hook.additional_dependencies))
+        health_error = lang.health_check(hook.prefix, hook.language_version)
+        if health_error:
+            raise AssertionError(
+                f'BUG: expected environment for {hook.language} to be healthy '
+                f'immediately after install, please open an issue describing '
+                f'your environment\n\n'
+                f'more info:\n\n{health_error}',
+            )
+        # Write our state to indicate we're installed
+        state_filename = _state_filename(venv)
+        staging = f'{state_filename}staging'
+        with open(staging, 'w') as state_file:
+            state_file.write(json.dumps(_state(hook.additional_dependencies)))
+        # Move the file into place atomically to indicate we've installed
+        os.replace(staging, state_filename)
 
 
 def _hook(

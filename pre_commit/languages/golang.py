@@ -14,7 +14,6 @@ from pre_commit.envcontext import Var
 from pre_commit.hook import Hook
 from pre_commit.languages import helpers
 from pre_commit.prefix import Prefix
-from pre_commit.util import clean_path_on_failure
 from pre_commit.util import cmd_output
 from pre_commit.util import cmd_output_b
 from pre_commit.util import rmtree
@@ -65,31 +64,30 @@ def install_environment(
         helpers.environment_dir(ENVIRONMENT_DIR, C.DEFAULT),
     )
 
-    with clean_path_on_failure(directory):
-        remote = git.get_remote_url(prefix.prefix_dir)
-        repo_src_dir = os.path.join(directory, 'src', guess_go_dir(remote))
+    remote = git.get_remote_url(prefix.prefix_dir)
+    repo_src_dir = os.path.join(directory, 'src', guess_go_dir(remote))
 
-        # Clone into the goenv we'll create
-        cmd = ('git', 'clone', '--recursive', '.', repo_src_dir)
-        helpers.run_setup_cmd(prefix, cmd)
+    # Clone into the goenv we'll create
+    cmd = ('git', 'clone', '--recursive', '.', repo_src_dir)
+    helpers.run_setup_cmd(prefix, cmd)
 
-        if sys.platform == 'cygwin':  # pragma: no cover
-            _, gopath, _ = cmd_output('cygpath', '-w', directory)
-            gopath = gopath.strip()
-        else:
-            gopath = directory
-        env = dict(os.environ, GOPATH=gopath)
-        env.pop('GOBIN', None)
-        cmd_output_b('go', 'install', './...', cwd=repo_src_dir, env=env)
-        for dependency in additional_dependencies:
-            cmd_output_b(
-                'go', 'install', dependency, cwd=repo_src_dir, env=env,
-            )
-        # Same some disk space, we don't need these after installation
-        rmtree(prefix.path(directory, 'src'))
-        pkgdir = prefix.path(directory, 'pkg')
-        if os.path.exists(pkgdir):  # pragma: no cover (go<1.10)
-            rmtree(pkgdir)
+    if sys.platform == 'cygwin':  # pragma: no cover
+        _, gopath, _ = cmd_output('cygpath', '-w', directory)
+        gopath = gopath.strip()
+    else:
+        gopath = directory
+    env = dict(os.environ, GOPATH=gopath)
+    env.pop('GOBIN', None)
+    cmd_output_b('go', 'install', './...', cwd=repo_src_dir, env=env)
+    for dependency in additional_dependencies:
+        cmd_output_b(
+            'go', 'install', dependency, cwd=repo_src_dir, env=env,
+        )
+    # Same some disk space, we don't need these after installation
+    rmtree(prefix.path(directory, 'src'))
+    pkgdir = prefix.path(directory, 'pkg')
+    if os.path.exists(pkgdir):  # pragma: no cover (go<1.10)
+        rmtree(pkgdir)
 
 
 def run_hook(

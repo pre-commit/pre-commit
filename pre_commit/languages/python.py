@@ -17,7 +17,6 @@ from pre_commit.languages import helpers
 from pre_commit.parse_shebang import find_executable
 from pre_commit.prefix import Prefix
 from pre_commit.util import CalledProcessError
-from pre_commit.util import clean_path_on_failure
 from pre_commit.util import cmd_output
 from pre_commit.util import cmd_output_b
 from pre_commit.util import win_exe
@@ -215,10 +214,9 @@ def install_environment(
         venv_cmd.extend(('-p', python))
     install_cmd = ('python', '-mpip', 'install', '.', *additional_dependencies)
 
-    with clean_path_on_failure(envdir):
-        cmd_output_b(*venv_cmd, cwd='/')
-        with in_env(prefix, version):
-            helpers.run_setup_cmd(prefix, install_cmd)
+    cmd_output_b(*venv_cmd, cwd='/')
+    with in_env(prefix, version):
+        helpers.run_setup_cmd(prefix, install_cmd)
 
 
 def run_hook(

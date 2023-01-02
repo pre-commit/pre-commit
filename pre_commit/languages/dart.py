@@ -14,7 +14,6 @@ from pre_commit.envcontext import Var
 from pre_commit.hook import Hook
 from pre_commit.languages import helpers
 from pre_commit.prefix import Prefix
-from pre_commit.util import clean_path_on_failure
 from pre_commit.util import win_exe
 from pre_commit.util import yaml_load
 
@@ -67,38 +66,37 @@ def install_environment(
                 env=dart_env,
             )
 
-    with clean_path_on_failure(envdir):
-        os.makedirs(bin_dir)
+    os.makedirs(bin_dir)
 
-        with tempfile.TemporaryDirectory() as tmp:
-            _install_dir(prefix, tmp)
+    with tempfile.TemporaryDirectory() as tmp:
+        _install_dir(prefix, tmp)
 
-        for dep_s in additional_dependencies:
-            with tempfile.TemporaryDirectory() as dep_tmp:
-                dep, _, version = dep_s.partition(':')
-                if version:
-                    dep_cmd: tuple[str, ...] = (dep, '--version', version)
-                else:
-                    dep_cmd = (dep,)
+    for dep_s in additional_dependencies:
+        with tempfile.TemporaryDirectory() as dep_tmp:
+            dep, _, version = dep_s.partition(':')
+            if version:
+                dep_cmd: tuple[str, ...] = (dep, '--version', version)
+            else:
+                dep_cmd = (dep,)
 
-                helpers.run_setup_cmd(
-                    prefix,
-                    ('dart', 'pub', 'cache', 'add', *dep_cmd),
-                    env={**os.environ, 'PUB_CACHE': dep_tmp},
+            helpers.run_setup_cmd(
+                prefix,
+                ('dart', 'pub', 'cache', 'add', *dep_cmd),
+                env={**os.environ, 'PUB_CACHE': dep_tmp},
+            )
+
+            # try and find the 'pubspec.yaml' that just got added
+            for root, _, filenames in os.walk(dep_tmp):
+                if 'pubspec.yaml' in filenames:
+                    with tempfile.TemporaryDirectory() as copied:
+                        pkg = os.path.join(copied, 'pkg')
+                        shutil.copytree(root, pkg)
+                        _install_dir(Prefix(pkg), dep_tmp)
+                    break
+            else:
+                raise AssertionError(
+                    f'could not find pubspec.yaml for {dep_s}',
                 )
-
-                # try and find the 'pubspec.yaml' that just got added
-                for root, _, filenames in os.walk(dep_tmp):
-                    if 'pubspec.yaml' in filenames:
-                        with tempfile.TemporaryDirectory() as copied:
-                            pkg = os.path.join(copied, 'pkg')
-                            shutil.copytree(root, pkg)
-                            _install_dir(Prefix(pkg), dep_tmp)
-                        break
-                else:
-                    raise AssertionError(
-                        f'could not find pubspec.yaml for {dep_s}',
-                    )
 
 
 def run_hook(

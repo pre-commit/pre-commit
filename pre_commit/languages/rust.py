@@ -18,7 +18,6 @@ from pre_commit.envcontext import Var
 from pre_commit.hook import Hook
 from pre_commit.languages import helpers
 from pre_commit.prefix import Prefix
-from pre_commit.util import clean_path_on_failure
 from pre_commit.util import cmd_output_b
 from pre_commit.util import make_executable
 from pre_commit.util import win_exe
@@ -143,28 +142,27 @@ def install_environment(
     }
     lib_deps = set(additional_dependencies) - cli_deps
 
-    with clean_path_on_failure(directory):
-        packages_to_install: set[tuple[str, ...]] = {('--path', '.')}
-        for cli_dep in cli_deps:
-            cli_dep = cli_dep[len('cli:'):]
-            package, _, crate_version = cli_dep.partition(':')
-            if crate_version != '':
-                packages_to_install.add((package, '--version', crate_version))
-            else:
-                packages_to_install.add((package,))
+    packages_to_install: set[tuple[str, ...]] = {('--path', '.')}
+    for cli_dep in cli_deps:
+        cli_dep = cli_dep[len('cli:'):]
+        package, _, crate_version = cli_dep.partition(':')
+        if crate_version != '':
+            packages_to_install.add((package, '--version', crate_version))
+        else:
+            packages_to_install.add((package,))
 
-        with in_env(prefix, version):
-            if version != 'system':
-                install_rust_with_toolchain(_rust_toolchain(version))
+    with in_env(prefix, version):
+        if version != 'system':
+            install_rust_with_toolchain(_rust_toolchain(version))
 
-            if len(lib_deps) > 0:
-                _add_dependencies(prefix, lib_deps)
+        if len(lib_deps) > 0:
+            _add_dependencies(prefix, lib_deps)
 
-            for args in packages_to_install:
-                cmd_output_b(
-                    'cargo', 'install', '--bins', '--root', directory, *args,
-                    cwd=prefix.prefix_dir,
-                )
+        for args in packages_to_install:
+            cmd_output_b(
+                'cargo', 'install', '--bins', '--root', directory, *args,
+                cwd=prefix.prefix_dir,
+            )
 
 
 def run_hook(

@@ -13,7 +13,6 @@ from pre_commit.envcontext import UNSET
 from pre_commit.hook import Hook
 from pre_commit.languages import helpers
 from pre_commit.prefix import Prefix
-from pre_commit.util import clean_path_on_failure
 from pre_commit.util import cmd_output_b
 from pre_commit.util import win_exe
 
@@ -95,54 +94,53 @@ def install_environment(
         additional_dependencies: Sequence[str],
 ) -> None:
     env_dir = _get_env_dir(prefix, version)
-    with clean_path_on_failure(env_dir):
-        os.makedirs(env_dir, exist_ok=True)
-        shutil.copy(prefix.path('renv.lock'), env_dir)
-        shutil.copytree(prefix.path('renv'), os.path.join(env_dir, 'renv'))
+    os.makedirs(env_dir, exist_ok=True)
+    shutil.copy(prefix.path('renv.lock'), env_dir)
+    shutil.copytree(prefix.path('renv'), os.path.join(env_dir, 'renv'))
 
-        r_code_inst_environment = f"""\
-            prefix_dir <- {prefix.prefix_dir!r}
-            options(
-                repos = c(CRAN = "https://cran.rstudio.com"),
-                renv.consent = TRUE
-            )
-            source("renv/activate.R")
-            renv::restore()
-            activate_statement <- paste0(
-              'suppressWarnings({{',
-              'old <- setwd("', getwd(), '"); ',
-              'source("renv/activate.R"); ',
-              'setwd(old); ',
-              'renv::load("', getwd(), '");}})'
-            )
-            writeLines(activate_statement, 'activate.R')
-            is_package <- tryCatch(
-              {{
-                  path_desc <- file.path(prefix_dir, 'DESCRIPTION')
-                  suppressWarnings(desc <- read.dcf(path_desc))
-                  "Package" %in% colnames(desc)
-              }},
-              error = function(...) FALSE
-            )
-            if (is_package) {{
-                renv::install(prefix_dir)
-            }}
-            """
-
-        cmd_output_b(
-            _rscript_exec(), '--vanilla', '-e',
-            _inline_r_setup(r_code_inst_environment),
-            cwd=env_dir,
+    r_code_inst_environment = f"""\
+        prefix_dir <- {prefix.prefix_dir!r}
+        options(
+            repos = c(CRAN = "https://cran.rstudio.com"),
+            renv.consent = TRUE
         )
-        if additional_dependencies:
-            r_code_inst_add = 'renv::install(commandArgs(trailingOnly = TRUE))'
-            with in_env(prefix, version):
-                cmd_output_b(
-                    _rscript_exec(), *RSCRIPT_OPTS, '-e',
-                    _inline_r_setup(r_code_inst_add),
-                    *additional_dependencies,
-                    cwd=env_dir,
-                )
+        source("renv/activate.R")
+        renv::restore()
+        activate_statement <- paste0(
+          'suppressWarnings({{',
+          'old <- setwd("', getwd(), '"); ',
+          'source("renv/activate.R"); ',
+          'setwd(old); ',
+          'renv::load("', getwd(), '");}})'
+        )
+        writeLines(activate_statement, 'activate.R')
+        is_package <- tryCatch(
+          {{
+              path_desc <- file.path(prefix_dir, 'DESCRIPTION')
+              suppressWarnings(desc <- read.dcf(path_desc))
+              "Package" %in% colnames(desc)
+          }},
+          error = function(...) FALSE
+        )
+        if (is_package) {{
+            renv::install(prefix_dir)
+        }}
+        """
+
+    cmd_output_b(
+        _rscript_exec(), '--vanilla', '-e',
+        _inline_r_setup(r_code_inst_environment),
+        cwd=env_dir,
+    )
+    if additional_dependencies:
+        r_code_inst_add = 'renv::install(commandArgs(trailingOnly = TRUE))'
+        with in_env(prefix, version):
+            cmd_output_b(
+                _rscript_exec(), *RSCRIPT_OPTS, '-e',
+                _inline_r_setup(r_code_inst_add),
+                *additional_dependencies,
+                cwd=env_dir,
+            )
 
 
 def _inline_r_setup(code: str) -> str:

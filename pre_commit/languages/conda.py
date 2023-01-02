@@ -13,7 +13,6 @@ from pre_commit.envcontext import Var
 from pre_commit.hook import Hook
 from pre_commit.languages import helpers
 from pre_commit.prefix import Prefix
-from pre_commit.util import clean_path_on_failure
 from pre_commit.util import cmd_output_b
 
 ENVIRONMENT_DIR = 'conda'
@@ -71,16 +70,15 @@ def install_environment(
     conda_exe = _conda_exe()
 
     env_dir = prefix.path(directory)
-    with clean_path_on_failure(env_dir):
+    cmd_output_b(
+        conda_exe, 'env', 'create', '-p', env_dir, '--file',
+        'environment.yml', cwd=prefix.prefix_dir,
+    )
+    if additional_dependencies:
         cmd_output_b(
-            conda_exe, 'env', 'create', '-p', env_dir, '--file',
-            'environment.yml', cwd=prefix.prefix_dir,
+            conda_exe, 'install', '-p', env_dir, *additional_dependencies,
+            cwd=prefix.prefix_dir,
         )
-        if additional_dependencies:
-            cmd_output_b(
-                conda_exe, 'install', '-p', env_dir, *additional_dependencies,
-                cwd=prefix.prefix_dir,
-            )
 
 
 def run_hook(
