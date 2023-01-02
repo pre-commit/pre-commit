@@ -18,11 +18,6 @@ get_default_version = helpers.basic_get_default_version
 health_check = helpers.basic_health_check
 
 
-def _envdir(prefix: Prefix, version: str) -> str:
-    directory = helpers.environment_dir(ENVIRONMENT_DIR, version)
-    return prefix.path(directory)
-
-
 def get_env_patch(venv: str) -> PatchesT:
     return (
         ('PATH', (os.path.join(venv, 'bin'), os.pathsep, Var('PATH'))),
@@ -42,7 +37,8 @@ def in_env(
         prefix: Prefix,
         language_version: str,
 ) -> Generator[None, None, None]:
-    with envcontext(get_env_patch(_envdir(prefix, language_version))):
+    envdir = helpers.environment_dir(prefix, ENVIRONMENT_DIR, language_version)
+    with envcontext(get_env_patch(envdir)):
         yield
 
 

@@ -463,11 +463,12 @@ def test_additional_rust_cli_dependencies_installed(
     # A small rust package with no dependencies.
     config['hooks'][0]['additional_dependencies'] = [dep]
     hook = _get_hook(config, store, 'rust-hook')
-    binaries = os.listdir(
-        hook.prefix.path(
-            helpers.environment_dir(rust.ENVIRONMENT_DIR, 'system'), 'bin',
-        ),
+    envdir = helpers.environment_dir(
+        hook.prefix,
+        rust.ENVIRONMENT_DIR,
+        'system',
     )
+    binaries = os.listdir(os.path.join(envdir, 'bin'))
     # normalize for windows
     binaries = [os.path.splitext(binary)[0] for binary in binaries]
     assert 'shellharden' in binaries
@@ -482,11 +483,12 @@ def test_additional_rust_lib_dependencies_installed(
     deps = ['shellharden:3.1.0', 'git-version']
     config['hooks'][0]['additional_dependencies'] = deps
     hook = _get_hook(config, store, 'rust-hook')
-    binaries = os.listdir(
-        hook.prefix.path(
-            helpers.environment_dir(rust.ENVIRONMENT_DIR, 'system'), 'bin',
-        ),
+    envdir = helpers.environment_dir(
+        hook.prefix,
+        rust.ENVIRONMENT_DIR,
+        'system',
     )
+    binaries = os.listdir(os.path.join(envdir, 'bin'))
     # normalize for windows
     binaries = [os.path.splitext(binary)[0] for binary in binaries]
     assert 'rust-hello-world' in binaries
@@ -672,11 +674,12 @@ def test_additional_golang_dependencies_installed(
     deps = ['golang.org/x/example/hello@latest']
     config['hooks'][0]['additional_dependencies'] = deps
     hook = _get_hook(config, store, 'golang-hook')
-    binaries = os.listdir(
-        hook.prefix.path(
-            helpers.environment_dir(golang.ENVIRONMENT_DIR, C.DEFAULT), 'bin',
-        ),
+    envdir = helpers.environment_dir(
+        hook.prefix,
+        golang.ENVIRONMENT_DIR,
+        C.DEFAULT,
     )
+    binaries = os.listdir(os.path.join(envdir, 'bin'))
     # normalize for windows
     binaries = [os.path.splitext(binary)[0] for binary in binaries]
     assert 'hello' in binaries
@@ -792,9 +795,13 @@ def test_control_c_control_c_on_install(tempdir_factory, store):
 
     # Should have made an environment, however this environment is broken!
     hook, = hooks
-    assert hook.prefix.exists(
-        helpers.environment_dir(python.ENVIRONMENT_DIR, hook.language_version),
+    envdir = helpers.environment_dir(
+        hook.prefix,
+        python.ENVIRONMENT_DIR,
+        hook.language_version,
     )
+
+    assert os.path.exists(envdir)
 
     # However, it should be perfectly runnable (reinstall after botched
     # install)
@@ -811,10 +818,12 @@ def test_invalidated_virtualenv(tempdir_factory, store):
     hook = _get_hook(config, store, 'foo')
 
     # Simulate breaking of the virtualenv
-    libdir = hook.prefix.path(
-        helpers.environment_dir(python.ENVIRONMENT_DIR, hook.language_version),
-        'lib', hook.language_version,
+    envdir = helpers.environment_dir(
+        hook.prefix,
+        python.ENVIRONMENT_DIR,
+        hook.language_version,
     )
+    libdir = os.path.join(envdir, 'lib', hook.language_version)
     paths = [
         os.path.join(libdir, p) for p in ('site.py', 'site.pyc', '__pycache__')
     ]

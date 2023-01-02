@@ -31,8 +31,7 @@ def get_env_patch(venv: str) -> PatchesT:
 
 @contextlib.contextmanager
 def in_env(prefix: Prefix) -> Generator[None, None, None]:
-    directory = helpers.environment_dir(ENVIRONMENT_DIR, C.DEFAULT)
-    envdir = prefix.path(directory)
+    envdir = helpers.environment_dir(prefix, ENVIRONMENT_DIR, C.DEFAULT)
     with envcontext(get_env_patch(envdir)):
         yield
 
@@ -44,7 +43,7 @@ def install_environment(
 ) -> None:
     helpers.assert_version_default('dart', version)
 
-    envdir = prefix.path(helpers.environment_dir(ENVIRONMENT_DIR, version))
+    envdir = helpers.environment_dir(prefix, ENVIRONMENT_DIR, version)
     bin_dir = os.path.join(envdir, 'bin')
 
     def _install_dir(prefix_p: Prefix, pub_cache: str) -> None:

@@ -36,11 +36,6 @@ def get_default_version() -> str:
         return C.DEFAULT
 
 
-def _envdir(prefix: Prefix, version: str) -> str:
-    directory = helpers.environment_dir(ENVIRONMENT_DIR, version)
-    return prefix.path(directory)
-
-
 def get_env_patch(venv: str) -> PatchesT:
     if sys.platform == 'cygwin':  # pragma: no cover
         _, win_venv, _ = cmd_output('cygpath', '-w', venv)
@@ -68,7 +63,8 @@ def in_env(
         prefix: Prefix,
         language_version: str,
 ) -> Generator[None, None, None]:
-    with envcontext(get_env_patch(_envdir(prefix, language_version))):
+    envdir = helpers.environment_dir(prefix, ENVIRONMENT_DIR, language_version)
+    with envcontext(get_env_patch(envdir)):
         yield
 
 
@@ -85,7 +81,7 @@ def install_environment(
         prefix: Prefix, version: str, additional_dependencies: Sequence[str],
 ) -> None:
     assert prefix.exists('package.json')
-    envdir = _envdir(prefix, version)
+    envdir = helpers.environment_dir(prefix, ENVIRONMENT_DIR, version)
 
     # https://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx?f=255&MSPPError=-2147217396#maxpath
     if sys.platform == 'win32':  # pragma: no cover

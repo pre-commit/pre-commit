@@ -71,9 +71,7 @@ def in_env(
         prefix: Prefix,
         language_version: str,
 ) -> Generator[None, None, None]:
-    envdir = prefix.path(
-        helpers.environment_dir(ENVIRONMENT_DIR, language_version),
-    )
+    envdir = helpers.environment_dir(prefix, ENVIRONMENT_DIR, language_version)
     with envcontext(get_env_patch(envdir, language_version)):
         yield
 
@@ -88,14 +86,14 @@ def _install_rbenv(
         prefix: Prefix,
         version: str,
 ) -> None:  # pragma: win32 no cover
-    directory = helpers.environment_dir(ENVIRONMENT_DIR, version)
+    envdir = helpers.environment_dir(prefix, ENVIRONMENT_DIR, version)
 
     _extract_resource('rbenv.tar.gz', prefix.path('.'))
-    shutil.move(prefix.path('rbenv'), prefix.path(directory))
+    shutil.move(prefix.path('rbenv'), envdir)
 
     # Only install ruby-build if the version is specified
     if version != C.DEFAULT:
-        plugins_dir = prefix.path(directory, 'plugins')
+        plugins_dir = os.path.join(envdir, 'plugins')
         _extract_resource('ruby-download.tar.gz', plugins_dir)
         _extract_resource('ruby-build.tar.gz', plugins_dir)
 

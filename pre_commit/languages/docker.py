@@ -94,9 +94,7 @@ def install_environment(
     helpers.assert_version_default('docker', version)
     helpers.assert_no_additional_deps('docker', additional_dependencies)
 
-    directory = prefix.path(
-        helpers.environment_dir(ENVIRONMENT_DIR, C.DEFAULT),
-    )
+    directory = helpers.environment_dir(prefix, ENVIRONMENT_DIR, C.DEFAULT)
 
     # Docker doesn't really have relevant disk environment, but pre-commit
     # still needs to cleanup its state files on failure

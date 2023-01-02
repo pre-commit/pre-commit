@@ -35,7 +35,7 @@ def install_environment(
             'executables in the application search path',
         )
 
-    envdir = prefix.path(helpers.environment_dir(ENVIRONMENT_DIR, version))
+    envdir = helpers.environment_dir(prefix, ENVIRONMENT_DIR, version)
     channel = prefix.path('.pre-commit-channel')
     for app_descriptor in os.listdir(channel):
         _, app_file = os.path.split(app_descriptor)
@@ -62,11 +62,10 @@ def get_env_patch(target_dir: str) -> PatchesT:   # pragma: win32 no cover
 @contextlib.contextmanager
 def in_env(
         prefix: Prefix,
+        language_version: str,
 ) -> Generator[None, None, None]:   # pragma: win32 no cover
-    target_dir = prefix.path(
-        helpers.environment_dir(ENVIRONMENT_DIR, get_default_version()),
-    )
-    with envcontext(get_env_patch(target_dir)):
+    envdir = helpers.environment_dir(prefix, ENVIRONMENT_DIR, language_version)
+    with envcontext(get_env_patch(envdir)):
         yield
 
 
@@ -75,5 +74,5 @@ def run_hook(
         file_args: Sequence[str],
         color: bool,
 ) -> tuple[int, bytes]:   # pragma: win32 no cover
-    with in_env(hook.prefix):
+    with in_env(hook.prefix, hook.language_version):
         return helpers.run_xargs(hook, hook.cmd, file_args, color=color)
