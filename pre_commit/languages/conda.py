@@ -44,8 +44,7 @@ def in_env(
         prefix: Prefix,
         language_version: str,
 ) -> Generator[None, None, None]:
-    directory = helpers.environment_dir(ENVIRONMENT_DIR, language_version)
-    envdir = prefix.path(directory)
+    envdir = helpers.environment_dir(prefix, ENVIRONMENT_DIR, language_version)
     with envcontext(get_env_patch(envdir)):
         yield
 
@@ -65,11 +64,10 @@ def install_environment(
         additional_dependencies: Sequence[str],
 ) -> None:
     helpers.assert_version_default('conda', version)
-    directory = helpers.environment_dir(ENVIRONMENT_DIR, version)
 
     conda_exe = _conda_exe()
 
-    env_dir = prefix.path(directory)
+    env_dir = helpers.environment_dir(prefix, ENVIRONMENT_DIR, version)
     cmd_output_b(
         conda_exe, 'env', 'create', '-p', env_dir, '--file',
         'environment.yml', cwd=prefix.prefix_dir,

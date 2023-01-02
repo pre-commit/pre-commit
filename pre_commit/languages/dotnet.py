@@ -32,8 +32,7 @@ def get_env_patch(venv: str) -> PatchesT:
 
 @contextlib.contextmanager
 def in_env(prefix: Prefix) -> Generator[None, None, None]:
-    directory = helpers.environment_dir(ENVIRONMENT_DIR, C.DEFAULT)
-    envdir = prefix.path(directory)
+    envdir = helpers.environment_dir(prefix, ENVIRONMENT_DIR, C.DEFAULT)
     with envcontext(get_env_patch(envdir)):
         yield
 
@@ -62,7 +61,7 @@ def install_environment(
     helpers.assert_version_default('dotnet', version)
     helpers.assert_no_additional_deps('dotnet', additional_dependencies)
 
-    envdir = prefix.path(helpers.environment_dir(ENVIRONMENT_DIR, version))
+    envdir = helpers.environment_dir(prefix, ENVIRONMENT_DIR, version)
     build_dir = 'pre-commit-build'
 
     # Build & pack nupkg file

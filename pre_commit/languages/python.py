@@ -156,15 +156,13 @@ def in_env(
         prefix: Prefix,
         language_version: str,
 ) -> Generator[None, None, None]:
-    directory = helpers.environment_dir(ENVIRONMENT_DIR, language_version)
-    envdir = prefix.path(directory)
+    envdir = helpers.environment_dir(prefix, ENVIRONMENT_DIR, language_version)
     with envcontext(get_env_patch(envdir)):
         yield
 
 
 def health_check(prefix: Prefix, language_version: str) -> str | None:
-    directory = helpers.environment_dir(ENVIRONMENT_DIR, language_version)
-    envdir = prefix.path(directory)
+    envdir = helpers.environment_dir(prefix, ENVIRONMENT_DIR, language_version)
     pyvenv_cfg = os.path.join(envdir, 'pyvenv.cfg')
 
     # created with "old" virtualenv
@@ -207,7 +205,7 @@ def install_environment(
         version: str,
         additional_dependencies: Sequence[str],
 ) -> None:
-    envdir = prefix.path(helpers.environment_dir(ENVIRONMENT_DIR, version))
+    envdir = helpers.environment_dir(prefix, ENVIRONMENT_DIR, version)
     venv_cmd = [sys.executable, '-mvirtualenv', envdir]
     python = norm_version(version)
     if python is not None:

@@ -44,14 +44,10 @@ def get_env_patch(d: str) -> PatchesT:  # pragma: win32 no cover
     )
 
 
-def _envdir(prefix: Prefix) -> str:  # pragma: win32 no cover
-    directory = helpers.environment_dir(ENVIRONMENT_DIR, C.DEFAULT)
-    return prefix.path(directory)
-
-
 @contextlib.contextmanager  # pragma: win32 no cover
 def in_env(prefix: Prefix) -> Generator[None, None, None]:
-    with envcontext(get_env_patch(_envdir(prefix))):
+    envdir = helpers.environment_dir(prefix, ENVIRONMENT_DIR, C.DEFAULT)
+    with envcontext(get_env_patch(envdir)):
         yield
 
 
@@ -62,7 +58,7 @@ def install_environment(
 ) -> None:  # pragma: win32 no cover
     helpers.assert_version_default('lua', version)
 
-    envdir = _envdir(prefix)
+    envdir = helpers.environment_dir(prefix, ENVIRONMENT_DIR, C.DEFAULT)
     with in_env(prefix):
         # luarocks doesn't bootstrap a tree prior to installing
         # so ensure the directory exists.

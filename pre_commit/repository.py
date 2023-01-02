@@ -45,8 +45,11 @@ def _hook_installed(hook: Hook) -> bool:
     if lang.ENVIRONMENT_DIR is None:
         return True
 
-    venv = environment_dir(lang.ENVIRONMENT_DIR, hook.language_version)
-    venv = hook.prefix.path(venv)
+    venv = environment_dir(
+        hook.prefix,
+        lang.ENVIRONMENT_DIR,
+        hook.language_version,
+    )
     return (
         _read_state(venv) == _state(hook.additional_dependencies) and
         not lang.health_check(hook.prefix, hook.language_version)
@@ -61,8 +64,11 @@ def _hook_install(hook: Hook) -> None:
     lang = languages[hook.language]
     assert lang.ENVIRONMENT_DIR is not None
 
-    venv = environment_dir(lang.ENVIRONMENT_DIR, hook.language_version)
-    venv = hook.prefix.path(venv)
+    venv = environment_dir(
+        hook.prefix,
+        lang.ENVIRONMENT_DIR,
+        hook.language_version,
+    )
 
     # There's potentially incomplete cleanup from previous runs
     # Clean it up!

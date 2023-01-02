@@ -34,13 +34,9 @@ def in_env(
         prefix: Prefix,
         language_version: str,
 ) -> Generator[None, None, None]:
-    envdir = _get_env_dir(prefix, language_version)
+    envdir = helpers.environment_dir(prefix, ENVIRONMENT_DIR, language_version)
     with envcontext(get_env_patch(envdir)):
         yield
-
-
-def _get_env_dir(prefix: Prefix, version: str) -> str:
-    return prefix.path(helpers.environment_dir(ENVIRONMENT_DIR, version))
 
 
 def _prefix_if_file_entry(entry: list[str], prefix: Prefix) -> Sequence[str]:
@@ -93,7 +89,7 @@ def install_environment(
         version: str,
         additional_dependencies: Sequence[str],
 ) -> None:
-    env_dir = _get_env_dir(prefix, version)
+    env_dir = helpers.environment_dir(prefix, ENVIRONMENT_DIR, version)
     os.makedirs(env_dir, exist_ok=True)
     shutil.copy(prefix.path('renv.lock'), env_dir)
     shutil.copytree(prefix.path('renv'), os.path.join(env_dir, 'renv'))

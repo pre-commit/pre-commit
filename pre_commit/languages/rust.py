@@ -48,11 +48,6 @@ def _rust_toolchain(language_version: str) -> str:
         return language_version
 
 
-def _envdir(prefix: Prefix, version: str) -> str:
-    directory = helpers.environment_dir(ENVIRONMENT_DIR, version)
-    return prefix.path(directory)
-
-
 def get_env_patch(target_dir: str, version: str) -> PatchesT:
     return (
         ('CARGO_HOME', target_dir),
@@ -71,9 +66,8 @@ def in_env(
     prefix: Prefix,
     language_version: str,
 ) -> Generator[None, None, None]:
-    with envcontext(
-        get_env_patch(_envdir(prefix, language_version), language_version),
-    ):
+    envdir = helpers.environment_dir(prefix, ENVIRONMENT_DIR, language_version)
+    with envcontext(get_env_patch(envdir, language_version)):
         yield
 
 
@@ -125,7 +119,7 @@ def install_environment(
         version: str,
         additional_dependencies: Sequence[str],
 ) -> None:
-    directory = _envdir(prefix, version)
+    envdir = helpers.environment_dir(prefix, ENVIRONMENT_DIR, version)
 
     # There are two cases where we might want to specify more dependencies:
     # as dependencies for the library being built, and as binary packages
@@ -160,7 +154,7 @@ def install_environment(
 
         for args in packages_to_install:
             cmd_output_b(
-                'cargo', 'install', '--bins', '--root', directory, *args,
+                'cargo', 'install', '--bins', '--root', envdir, *args,
                 cwd=prefix.prefix_dir,
             )
 

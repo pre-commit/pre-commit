@@ -31,9 +31,7 @@ def get_env_patch(venv: str) -> PatchesT:
 
 @contextlib.contextmanager
 def in_env(prefix: Prefix) -> Generator[None, None, None]:
-    envdir = prefix.path(
-        helpers.environment_dir(ENVIRONMENT_DIR, C.DEFAULT),
-    )
+    envdir = helpers.environment_dir(prefix, ENVIRONMENT_DIR, C.DEFAULT)
     with envcontext(get_env_patch(envdir)):
         yield
 
@@ -60,9 +58,7 @@ def install_environment(
         additional_dependencies: Sequence[str],
 ) -> None:
     helpers.assert_version_default('golang', version)
-    directory = prefix.path(
-        helpers.environment_dir(ENVIRONMENT_DIR, C.DEFAULT),
-    )
+    directory = helpers.environment_dir(prefix, ENVIRONMENT_DIR, C.DEFAULT)
 
     remote = git.get_remote_url(prefix.prefix_dir)
     repo_src_dir = os.path.join(directory, 'src', guess_go_dir(remote))

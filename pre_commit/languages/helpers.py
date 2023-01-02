@@ -47,8 +47,8 @@ def run_setup_cmd(prefix: Prefix, cmd: tuple[str, ...], **kwargs: Any) -> None:
     cmd_output_b(*cmd, cwd=prefix.prefix_dir, **kwargs)
 
 
-def environment_dir(d: str, language_version: str) -> str:
-    return f'{d}-{language_version}'
+def environment_dir(prefix: Prefix, d: str, language_version: str) -> str:
+    return prefix.path(f'{d}-{language_version}')
 
 
 def assert_version_default(binary: str, version: str) -> None:

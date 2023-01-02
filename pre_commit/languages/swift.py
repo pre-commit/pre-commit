@@ -28,9 +28,7 @@ def get_env_patch(venv: str) -> PatchesT:  # pragma: win32 no cover
 
 @contextlib.contextmanager  # pragma: win32 no cover
 def in_env(prefix: Prefix) -> Generator[None, None, None]:
-    envdir = prefix.path(
-        helpers.environment_dir(ENVIRONMENT_DIR, C.DEFAULT),
-    )
+    envdir = helpers.environment_dir(prefix, ENVIRONMENT_DIR, C.DEFAULT)
     with envcontext(get_env_patch(envdir)):
         yield
 
@@ -40,17 +38,15 @@ def install_environment(
 ) -> None:  # pragma: win32 no cover
     helpers.assert_version_default('swift', version)
     helpers.assert_no_additional_deps('swift', additional_dependencies)
-    directory = prefix.path(
-        helpers.environment_dir(ENVIRONMENT_DIR, C.DEFAULT),
-    )
+    envdir = helpers.environment_dir(prefix, ENVIRONMENT_DIR, C.DEFAULT)
 
     # Build the swift package
-    os.mkdir(directory)
+    os.mkdir(envdir)
     cmd_output_b(
         'swift', 'build',
         '-C', prefix.prefix_dir,
         '-c', BUILD_CONFIG,
-        '--build-path', os.path.join(directory, BUILD_DIR),
+        '--build-path', os.path.join(envdir, BUILD_DIR),
     )
 
 
