@@ -380,17 +380,36 @@ def test_swift_hook(tempdir_factory, store):
     )
 
 
-def test_golang_hook(tempdir_factory, store):
+def test_golang_system_hook(tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'golang_hooks_repo',
-        'golang-hook', [], b'hello world\n',
+        'golang-hook', ['system'], b'hello world from system\n',
+        config_kwargs={
+            'hooks': [{
+                'id': 'golang-hook',
+                'language_version': 'system',
+            }],
+        },
+    )
+
+
+def test_golang_versioned_hook(tempdir_factory, store):
+    _test_hook_repo(
+        tempdir_factory, store, 'golang_hooks_repo',
+        'golang-hook', [], b'hello world from go1.18.4\n',
+        config_kwargs={
+            'hooks': [{
+                'id': 'golang-hook',
+                'language_version': '1.18.4',
+            }],
+        },
     )
 
 
 def test_golang_hook_still_works_when_gobin_is_set(tempdir_factory, store):
     gobin_dir = tempdir_factory.get()
     with envcontext((('GOBIN', gobin_dir),)):
-        test_golang_hook(tempdir_factory, store)
+        test_golang_system_hook(tempdir_factory, store)
     assert os.listdir(gobin_dir) == []
 
 
@@ -677,7 +696,7 @@ def test_additional_golang_dependencies_installed(
     envdir = helpers.environment_dir(
         hook.prefix,
         golang.ENVIRONMENT_DIR,
-        C.DEFAULT,
+        golang.get_default_version(),
     )
     binaries = os.listdir(os.path.join(envdir, 'bin'))
     # normalize for windows
