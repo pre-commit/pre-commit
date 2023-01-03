@@ -14,7 +14,7 @@ from identify.identify import ALL_TAGS
 import pre_commit.constants as C
 from pre_commit.errors import FatalError
 from pre_commit.languages.all import all_languages
-from pre_commit.util import yaml_load
+from pre_commit.yaml import yaml_load
 
 logger = logging.getLogger('pre_commit')
 

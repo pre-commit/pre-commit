@@ -5,7 +5,7 @@ import textwrap
 
 import yaml
 
-from pre_commit.util import yaml_load
+from pre_commit.yaml import yaml_load
 
 
 def _is_header_line(line: str) -> bool:

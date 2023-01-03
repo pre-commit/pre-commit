@@ -12,8 +12,8 @@ from pre_commit.clientlib import load_manifest
 from pre_commit.commands.run import run
 from pre_commit.store import Store
 from pre_commit.util import cmd_output_b
-from pre_commit.util import yaml_dump
 from pre_commit.xargs import xargs
+from pre_commit.yaml import yaml_dump
 
 logger = logging.getLogger(__name__)
 
