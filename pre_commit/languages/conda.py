@@ -40,11 +40,8 @@ def get_env_patch(env: str) -> PatchesT:
 
 
 @contextlib.contextmanager
-def in_env(
-        prefix: Prefix,
-        language_version: str,
-) -> Generator[None, None, None]:
-    envdir = helpers.environment_dir(prefix, ENVIRONMENT_DIR, language_version)
+def in_env(prefix: Prefix, version: str) -> Generator[None, None, None]:
+    envdir = helpers.environment_dir(prefix, ENVIRONMENT_DIR, version)
     with envcontext(get_env_patch(envdir)):
         yield
 
@@ -88,5 +85,4 @@ def run_hook(
     #       can run them without which is much quicker and produces a better
     #       output.
     # cmd = ('conda', 'run', '-p', env_dir) + hook.cmd
-    with in_env(hook.prefix, hook.language_version):
-        return helpers.run_xargs(hook, hook.cmd, file_args, color=color)
+    return helpers.run_xargs(hook, hook.cmd, file_args, color=color)

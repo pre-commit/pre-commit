@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import contextlib
 import multiprocessing
 import os
 import random
 import re
 from typing import Any
+from typing import Generator
 from typing import NoReturn
 from typing import Sequence
 
@@ -84,7 +86,12 @@ def no_install(
         version: str,
         additional_dependencies: Sequence[str],
 ) -> NoReturn:
-    raise AssertionError('This type is not installable')
+    raise AssertionError('This language is not installable')
+
+
+@contextlib.contextmanager
+def no_env(prefix: Prefix, version: str) -> Generator[None, None, None]:
+    yield
 
 
 def target_concurrency(hook: Hook) -> int:

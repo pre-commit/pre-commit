@@ -7,7 +7,6 @@ import tempfile
 from typing import Generator
 from typing import Sequence
 
-import pre_commit.constants as C
 from pre_commit.envcontext import envcontext
 from pre_commit.envcontext import PatchesT
 from pre_commit.envcontext import Var
@@ -30,8 +29,8 @@ def get_env_patch(venv: str) -> PatchesT:
 
 
 @contextlib.contextmanager
-def in_env(prefix: Prefix) -> Generator[None, None, None]:
-    envdir = helpers.environment_dir(prefix, ENVIRONMENT_DIR, C.DEFAULT)
+def in_env(prefix: Prefix, version: str) -> Generator[None, None, None]:
+    envdir = helpers.environment_dir(prefix, ENVIRONMENT_DIR, version)
     with envcontext(get_env_patch(envdir)):
         yield
 
@@ -103,5 +102,4 @@ def run_hook(
         file_args: Sequence[str],
         color: bool,
 ) -> tuple[int, bytes]:
-    with in_env(hook.prefix):
-        return helpers.run_xargs(hook, hook.cmd, file_args, color=color)
+    return helpers.run_xargs(hook, hook.cmd, file_args, color=color)

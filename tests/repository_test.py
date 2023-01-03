@@ -44,7 +44,8 @@ def _norm_out(b):
 
 
 def _hook_run(hook, filenames, color):
-    return languages[hook.language].run_hook(hook, filenames, color)
+    with languages[hook.language].in_env(hook.prefix, hook.language_version):
+        return languages[hook.language].run_hook(hook, filenames, color)
 
 
 def _get_hook_no_install(repo_config, store, hook_id):

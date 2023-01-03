@@ -164,5 +164,4 @@ def run_hook(
         file_args: Sequence[str],
         color: bool,
 ) -> tuple[int, bytes]:
-    with in_env(hook.prefix, hook.language_version):
-        return helpers.run_xargs(hook, hook.cmd, file_args, color=color)
+    return helpers.run_xargs(hook, hook.cmd, file_args, color=color)

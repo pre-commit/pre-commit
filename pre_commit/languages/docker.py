@@ -5,7 +5,6 @@ import json
 import os
 from typing import Sequence
 
-import pre_commit.constants as C
 from pre_commit.hook import Hook
 from pre_commit.languages import helpers
 from pre_commit.prefix import Prefix
@@ -16,6 +15,7 @@ ENVIRONMENT_DIR = 'docker'
 PRE_COMMIT_LABEL = 'PRE_COMMIT'
 get_default_version = helpers.basic_get_default_version
 health_check = helpers.basic_health_check
+in_env = helpers.no_env  # no special environment for docker
 
 
 def _is_in_docker() -> bool:
@@ -94,7 +94,7 @@ def install_environment(
     helpers.assert_version_default('docker', version)
     helpers.assert_no_additional_deps('docker', additional_dependencies)
 
-    directory = helpers.environment_dir(prefix, ENVIRONMENT_DIR, C.DEFAULT)
+    directory = helpers.environment_dir(prefix, ENVIRONMENT_DIR, version)
 
     # Docker doesn't really have relevant disk environment, but pre-commit
     # still needs to cleanup its state files on failure

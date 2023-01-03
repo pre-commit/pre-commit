@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from typing import ContextManager
 from typing import Protocol
 from typing import Sequence
 
@@ -48,6 +49,14 @@ class Language(Protocol):
             version: str,
             additional_dependencies: Sequence[str],
     ) -> None:
+        ...
+
+    # modify the environment for hook execution
+    def in_env(
+            self,
+            prefix: Prefix,
+            version: str,
+    ) -> ContextManager[None]:
         ...
 
     # execute a hook and return the exit code and output
