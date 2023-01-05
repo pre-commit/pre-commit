@@ -99,7 +99,7 @@ def cmd_output_b(
     _setdefault_kwargs(kwargs)
 
     try:
-        cmd = parse_shebang.normalize_cmd(cmd)
+        cmd = parse_shebang.normalize_cmd(cmd, env=kwargs.get('env'))
     except parse_shebang.ExecutableNotFoundError as e:
         returncode, stdout_b, stderr_b = e.to_output()
     else:

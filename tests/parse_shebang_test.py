@@ -75,10 +75,10 @@ def test_find_executable_path_ext(in_tmpdir):
     env_path = {'PATH': os.path.dirname(exe_path)}
     env_path_ext = dict(env_path, PATHEXT=os.pathsep.join(('.exe', '.myext')))
     assert parse_shebang.find_executable('run') is None
-    assert parse_shebang.find_executable('run', _environ=env_path) is None
-    ret = parse_shebang.find_executable('run.myext', _environ=env_path)
+    assert parse_shebang.find_executable('run', env=env_path) is None
+    ret = parse_shebang.find_executable('run.myext', env=env_path)
     assert ret == exe_path
-    ret = parse_shebang.find_executable('run', _environ=env_path_ext)
+    ret = parse_shebang.find_executable('run', env=env_path_ext)
     assert ret == exe_path
 
 

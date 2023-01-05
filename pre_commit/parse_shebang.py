@@ -20,13 +20,13 @@ def parse_filename(filename: str) -> tuple[str, ...]:
 
 
 def find_executable(
-        exe: str, _environ: Mapping[str, str] | None = None,
+        exe: str, *, env: Mapping[str, str] | None = None,
 ) -> str | None:
     exe = os.path.normpath(exe)
     if os.sep in exe:
         return exe
 
-    environ = _environ if _environ is not None else os.environ
+    environ = env if env is not None else os.environ
 
     if 'PATHEXT' in environ:
         exts = environ['PATHEXT'].split(os.pathsep)
@@ -43,12 +43,12 @@ def find_executable(
         return None
 
 
-def normexe(orig: str) -> str:
+def normexe(orig: str, *, env: Mapping[str, str] | None = None) -> str:
     def _error(msg: str) -> NoReturn:
         raise ExecutableNotFoundError(f'Executable `{orig}` {msg}')
 
     if os.sep not in orig and (not os.altsep or os.altsep not in orig):
-        exe = find_executable(orig)
+        exe = find_executable(orig, env=env)
         if exe is None:
             _error('not found')
         return exe
@@ -62,7 +62,11 @@ def normexe(orig: str) -> str:
         return orig
 
 
-def normalize_cmd(cmd: tuple[str, ...]) -> tuple[str, ...]:
+def normalize_cmd(
+        cmd: tuple[str, ...],
+        *,
+        env: Mapping[str, str] | None = None,
+) -> tuple[str, ...]:
     """Fixes for the following issues on windows
     - https://bugs.python.org/issue8557
     - windows does not parse shebangs
@@ -70,12 +74,12 @@ def normalize_cmd(cmd: tuple[str, ...]) -> tuple[str, ...]:
     This function also makes deep-path shebangs work just fine
     """
     # Use PATH to determine the executable
-    exe = normexe(cmd[0])
+    exe = normexe(cmd[0], env=env)
 
     # Figure out the shebang from the resulting command
     cmd = parse_filename(exe) + (exe,) + cmd[1:]
 
     # This could have given us back another bare executable
-    exe = normexe(cmd[0])
+    exe = normexe(cmd[0], env=env)
 
     return (exe,) + cmd[1:]
