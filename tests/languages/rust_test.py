@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from typing import Mapping
 from unittest import mock
 
 import pytest
@@ -48,7 +49,9 @@ def test_installs_with_bootstrapped_rustup(tmpdir, language_version):
 
     original_find_executable = parse_shebang.find_executable
 
-    def mocked_find_executable(exe: str) -> str | None:
+    def mocked_find_executable(
+            exe: str, *, env: Mapping[str, str] | None = None,
+    ) -> str | None:
         """
         Return `None` the first time `find_executable` is called to ensure
         that the bootstrapping code is executed, then just let the function
@@ -59,7 +62,7 @@ def test_installs_with_bootstrapped_rustup(tmpdir, language_version):
         find_executable_exes.append(exe)
         if len(find_executable_exes) == 1:
             return None
-        return original_find_executable(exe)
+        return original_find_executable(exe, env=env)
 
     with mock.patch.object(parse_shebang, 'find_executable') as find_exe_mck:
         find_exe_mck.side_effect = mocked_find_executable

@@ -248,7 +248,7 @@ def test_install_idempotent(tempdir_factory, store):
 def _path_without_us():
     # Choose a path which *probably* doesn't include us
     env = dict(os.environ)
-    exe = find_executable('pre-commit', _environ=env)
+    exe = find_executable('pre-commit', env=env)
     while exe:
         parts = env['PATH'].split(os.pathsep)
         after = [
@@ -258,7 +258,7 @@ def _path_without_us():
         if parts == after:
             raise AssertionError(exe, parts)
         env['PATH'] = os.pathsep.join(after)
-        exe = find_executable('pre-commit', _environ=env)
+        exe = find_executable('pre-commit', env=env)
     return env['PATH']
 
 
@@ -276,18 +276,19 @@ def test_environment_not_sourced(tempdir_factory, store):
 
         # Use a specific homedir to ignore --user installs
         homedir = tempdir_factory.get()
-        ret, out = git_commit(
-            env={
-                'HOME': homedir,
-                'PATH': _path_without_us(),
-                # Git needs this to make a commit
-                'GIT_AUTHOR_NAME': os.environ['GIT_AUTHOR_NAME'],
-                'GIT_COMMITTER_NAME': os.environ['GIT_COMMITTER_NAME'],
-                'GIT_AUTHOR_EMAIL': os.environ['GIT_AUTHOR_EMAIL'],
-                'GIT_COMMITTER_EMAIL': os.environ['GIT_COMMITTER_EMAIL'],
-            },
-            check=False,
-        )
+        env = {
+            'HOME': homedir,
+            'PATH': _path_without_us(),
+            # Git needs this to make a commit
+            'GIT_AUTHOR_NAME': os.environ['GIT_AUTHOR_NAME'],
+            'GIT_COMMITTER_NAME': os.environ['GIT_COMMITTER_NAME'],
+            'GIT_AUTHOR_EMAIL': os.environ['GIT_AUTHOR_EMAIL'],
+            'GIT_COMMITTER_EMAIL': os.environ['GIT_COMMITTER_EMAIL'],
+        }
+        if os.name == 'nt' and 'PATHEXT' in os.environ:  # pragma: no cover
+            env['PATHEXT'] = os.environ['PATHEXT']
+
+        ret, out = git_commit(env=env, check=False)
         assert ret == 1
         assert out == (
             '`pre-commit` not found.  '
