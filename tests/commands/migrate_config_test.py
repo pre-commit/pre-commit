@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+import pytest
+
 import pre_commit.constants as C
+from pre_commit.clientlib import InvalidConfigError
 from pre_commit.commands.migrate_config import migrate_config
 
 
@@ -129,3 +132,13 @@ def test_migrate_config_sha_to_rev(tmpdir):
         '    rev: v1.2.0\n'
         '    hooks: []\n'
     )
+
+
+def test_migrate_config_invalid_yaml(tmpdir):
+    contents = '['
+    cfg = tmpdir.join(C.CONFIG_FILE)
+    cfg.write(contents)
+    with tmpdir.as_cwd(), pytest.raises(InvalidConfigError) as excinfo:
+        migrate_config(C.CONFIG_FILE)
+    expected = '\n==> File .pre-commit-config.yaml\n=====> '
+    assert str(excinfo.value).startswith(expected)
