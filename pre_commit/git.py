@@ -3,7 +3,9 @@ from __future__ import annotations
 import logging
 import os.path
 import sys
+from distutils.version import LooseVersion
 from typing import Mapping
+import re
 
 from pre_commit.errors import FatalError
 from pre_commit.util import CalledProcessError
@@ -236,10 +238,19 @@ def get_best_candidate_tag(rev: str, git_repo: str) -> str:
     Multiple tags can exist on a SHA. Sometimes a moving tag is attached
     to a version tag. Try to pick the tag that looks like a version.
     """
-    tags = cmd_output(
-        'git', *NO_FS_MONITOR, 'tag', '--points-at', rev, cwd=git_repo,
-    )[1].splitlines()
-    for tag in tags:
-        if '.' in tag:
-            return tag
+    all_tag_cmd = ('git', *NO_FS_MONITOR, 'tag', '-l')
+    all_tags = cmd_output(*all_tag_cmd, cwd=git_repo)[1].strip().splitlines()
+    all_tags = sorted(all_tags, key=LooseVersion)
+    numbers_and_dots = re.compile("^v|\d+(\.\d+)*$")
+    filtered_all_tags = [ver for ver in all_tags if numbers_and_dots.match(ver)]
+    try:  # or check for empty list
+        rev = filtered_all_tags[-1]
+    except IndexError:
+        tags = cmd_output(
+            'git', *NO_FS_MONITOR, 'tag', '--points-at', rev, cwd=git_repo,
+        )[1].splitlines()
+        for tag in tags:
+            if '.' in tag:
+                return tag
+
     return rev
