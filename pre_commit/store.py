@@ -204,16 +204,6 @@ class Store:
                 with open(target_file, 'w') as f:
                     f.write(contents)
 
-            env = git.no_git_env()
-
-            # initialize the git repository so it looks more like cloned repos
-            def _git_cmd(*args: str) -> None:
-                cmd_output_b('git', *args, cwd=directory, env=env)
-
-            git.init_repo(directory, '<<unknown>>')
-            _git_cmd('add', '.')
-            git.commit(repo=directory)
-
         return self._new_repo(
             'local', C.LOCAL_REPO_VERSION, deps, make_local_strategy,
         )
