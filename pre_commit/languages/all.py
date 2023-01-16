@@ -4,7 +4,6 @@ from typing import ContextManager
 from typing import Protocol
 from typing import Sequence
 
-from pre_commit.hook import Hook
 from pre_commit.languages import conda
 from pre_commit.languages import coursier
 from pre_commit.languages import dart
@@ -62,8 +61,12 @@ class Language(Protocol):
     # execute a hook and return the exit code and output
     def run_hook(
             self,
-            hook: Hook,
+            prefix: Prefix,
+            entry: str,
+            args: Sequence[str],
             file_args: Sequence[str],
+            *,
+            require_serial: bool,
             color: bool,
     ) -> tuple[int, bytes]:
         ...

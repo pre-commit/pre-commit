@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import logging
-import shlex
 from typing import Any
 from typing import NamedTuple
 from typing import Sequence
@@ -36,10 +35,6 @@ class Hook(NamedTuple):
     require_serial: bool
     stages: Sequence[str]
     verbose: bool
-
-    @property
-    def cmd(self) -> tuple[str, ...]:
-        return (*shlex.split(self.entry), *self.args)
 
     @property
     def install_key(self) -> tuple[Prefix, str, str, tuple[str, ...]]:

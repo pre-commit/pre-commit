@@ -10,7 +10,6 @@ from typing import Sequence
 from pre_commit.envcontext import envcontext
 from pre_commit.envcontext import PatchesT
 from pre_commit.envcontext import Var
-from pre_commit.hook import Hook
 from pre_commit.languages import helpers
 from pre_commit.prefix import Prefix
 from pre_commit.util import win_exe
@@ -20,6 +19,7 @@ ENVIRONMENT_DIR = 'dartenv'
 
 get_default_version = helpers.basic_get_default_version
 health_check = helpers.basic_health_check
+run_hook = helpers.basic_run_hook
 
 
 def get_env_patch(venv: str) -> PatchesT:
@@ -95,11 +95,3 @@ def install_environment(
                 raise AssertionError(
                     f'could not find pubspec.yaml for {dep_s}',
                 )
-
-
-def run_hook(
-        hook: Hook,
-        file_args: Sequence[str],
-        color: bool,
-) -> tuple[int, bytes]:
-    return helpers.run_xargs(hook, hook.cmd, file_args, color=color)

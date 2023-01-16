@@ -12,7 +12,6 @@ from pre_commit import parse_shebang
 from pre_commit.languages import helpers
 from pre_commit.prefix import Prefix
 from pre_commit.util import CalledProcessError
-from testing.auto_namedtuple import auto_namedtuple
 
 
 @pytest.fixture
@@ -94,31 +93,22 @@ def test_assert_no_additional_deps():
     )
 
 
-SERIAL_FALSE = auto_namedtuple(require_serial=False)
-SERIAL_TRUE = auto_namedtuple(require_serial=True)
-
-
 def test_target_concurrency_normal():
     with mock.patch.object(multiprocessing, 'cpu_count', return_value=123):
         with mock.patch.dict(os.environ, {}, clear=True):
-            assert helpers.target_concurrency(SERIAL_FALSE) == 123
-
-
-def test_target_concurrency_cpu_count_require_serial_true():
-    with mock.patch.dict(os.environ, {}, clear=True):
-        assert helpers.target_concurrency(SERIAL_TRUE) == 1
+            assert helpers.target_concurrency() == 123
 
 
 def test_target_concurrency_testing_env_var():
     with mock.patch.dict(
             os.environ, {'PRE_COMMIT_NO_CONCURRENCY': '1'}, clear=True,
     ):
-        assert helpers.target_concurrency(SERIAL_FALSE) == 1
+        assert helpers.target_concurrency() == 1
 
 
 def test_target_concurrency_on_travis():
     with mock.patch.dict(os.environ, {'TRAVIS': '1'}, clear=True):
-        assert helpers.target_concurrency(SERIAL_FALSE) == 2
+        assert helpers.target_concurrency() == 2
 
 
 def test_target_concurrency_cpu_count_not_implemented():
@@ -126,10 +116,20 @@ def test_target_concurrency_cpu_count_not_implemented():
             multiprocessing, 'cpu_count', side_effect=NotImplementedError,
     ):
         with mock.patch.dict(os.environ, {}, clear=True):
-            assert helpers.target_concurrency(SERIAL_FALSE) == 1
+            assert helpers.target_concurrency() == 1
 
 
 def test_shuffled_is_deterministic():
     seq = [str(i) for i in range(10)]
     expected = ['4', '0', '5', '1', '8', '6', '2', '3', '7', '9']
     assert helpers._shuffled(seq) == expected
+
+
+def test_xargs_require_serial_is_not_shuffled():
+    ret, out = helpers.run_xargs(
+        ('echo',), [str(i) for i in range(10)],
+        require_serial=True,
+        color=False,
+    )
+    assert ret == 0
+    assert out.strip() == b'0 1 2 3 4 5 6 7 8 9'

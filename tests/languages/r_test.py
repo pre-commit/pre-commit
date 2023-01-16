@@ -23,7 +23,7 @@ def _test_r_parsing(
     repo = make_repo(tempdir_factory, 'r_hooks_repo')
     config = make_config_from_repo(repo)
     hook = _get_hook_no_install(config, store, hook_id)
-    ret = r._cmd_from_hook(hook)
+    ret = r._cmd_from_hook(hook.prefix, hook.entry, hook.args)
     expected_path = os.path.join(hook.prefix.prefix_dir, f'{hook_id}.R')
     expected = (
         'Rscript',
@@ -111,7 +111,7 @@ def test_r_parsing_file_local(tempdir_factory, store):
         }],
     }
     hook = _get_hook_no_install(config, store, 'local-r')
-    ret = r._cmd_from_hook(hook)
+    ret = r._cmd_from_hook(hook.prefix, hook.entry, hook.args)
     assert ret == (
         'Rscript',
         '--no-save', '--no-restore', '--no-site-file', '--no-environ',

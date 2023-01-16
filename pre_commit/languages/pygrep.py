@@ -8,8 +8,8 @@ from typing import Pattern
 from typing import Sequence
 
 from pre_commit import output
-from pre_commit.hook import Hook
 from pre_commit.languages import helpers
+from pre_commit.prefix import Prefix
 from pre_commit.xargs import xargs
 
 ENVIRONMENT_DIR = None
@@ -88,12 +88,16 @@ FNS = {
 
 
 def run_hook(
-        hook: Hook,
+        prefix: Prefix,
+        entry: str,
+        args: Sequence[str],
         file_args: Sequence[str],
+        *,
+        require_serial: bool,
         color: bool,
 ) -> tuple[int, bytes]:
-    exe = (sys.executable, '-m', __name__) + tuple(hook.args) + (hook.entry,)
-    return xargs(exe, file_args, color=color)
+    cmd = (sys.executable, '-m', __name__, *args, entry)
+    return xargs(cmd, file_args, color=color)
 
 
 def main(argv: Sequence[str] | None = None) -> int:

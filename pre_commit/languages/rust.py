@@ -15,7 +15,6 @@ from pre_commit import parse_shebang
 from pre_commit.envcontext import envcontext
 from pre_commit.envcontext import PatchesT
 from pre_commit.envcontext import Var
-from pre_commit.hook import Hook
 from pre_commit.languages import helpers
 from pre_commit.prefix import Prefix
 from pre_commit.util import cmd_output_b
@@ -24,6 +23,7 @@ from pre_commit.util import win_exe
 
 ENVIRONMENT_DIR = 'rustenv'
 health_check = helpers.basic_health_check
+run_hook = helpers.basic_run_hook
 
 
 @functools.lru_cache(maxsize=1)
@@ -154,11 +154,3 @@ def install_environment(
                 'cargo', 'install', '--bins', '--root', envdir, *args,
                 cwd=prefix.prefix_dir,
             )
-
-
-def run_hook(
-        hook: Hook,
-        file_args: Sequence[str],
-        color: bool,
-) -> tuple[int, bytes]:
-    return helpers.run_xargs(hook, hook.cmd, file_args, color=color)
