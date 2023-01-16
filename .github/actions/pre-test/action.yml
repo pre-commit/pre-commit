@@ -19,6 +19,7 @@ runs:
       echo 'C:\Strawberry\perl\site\bin' >> "$GITHUB_PATH"
       echo 'C:\Strawberry\c\bin' >> "$GITHUB_PATH"
 
+      testing/get-coursier.sh
       testing/get-dart.sh
   - name: setup (linux)
     shell: bash
