@@ -16,6 +16,7 @@ ENVIRONMENT_DIR = None
 get_default_version = helpers.basic_get_default_version
 health_check = helpers.basic_health_check
 install_environment = helpers.no_install
+in_env = helpers.no_env
 
 
 def _process_filename_by_line(pattern: Pattern[bytes], filename: str) -> int:

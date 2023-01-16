@@ -62,12 +62,9 @@ def get_env_patch(target_dir: str, version: str) -> PatchesT:
 
 
 @contextlib.contextmanager
-def in_env(
-    prefix: Prefix,
-    language_version: str,
-) -> Generator[None, None, None]:
-    envdir = helpers.environment_dir(prefix, ENVIRONMENT_DIR, language_version)
-    with envcontext(get_env_patch(envdir, language_version)):
+def in_env(prefix: Prefix, version: str) -> Generator[None, None, None]:
+    envdir = helpers.environment_dir(prefix, ENVIRONMENT_DIR, version)
+    with envcontext(get_env_patch(envdir, version)):
         yield
 
 
@@ -164,5 +161,4 @@ def run_hook(
         file_args: Sequence[str],
         color: bool,
 ) -> tuple[int, bytes]:
-    with in_env(hook.prefix, hook.language_version):
-        return helpers.run_xargs(hook, hook.cmd, file_args, color=color)
+    return helpers.run_xargs(hook, hook.cmd, file_args, color=color)
