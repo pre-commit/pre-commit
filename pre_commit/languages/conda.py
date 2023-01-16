@@ -10,7 +10,6 @@ from pre_commit.envcontext import PatchesT
 from pre_commit.envcontext import SubstitutionT
 from pre_commit.envcontext import UNSET
 from pre_commit.envcontext import Var
-from pre_commit.hook import Hook
 from pre_commit.languages import helpers
 from pre_commit.prefix import Prefix
 from pre_commit.util import cmd_output_b
@@ -18,6 +17,7 @@ from pre_commit.util import cmd_output_b
 ENVIRONMENT_DIR = 'conda'
 get_default_version = helpers.basic_get_default_version
 health_check = helpers.basic_health_check
+run_hook = helpers.basic_run_hook
 
 
 def get_env_patch(env: str) -> PatchesT:
@@ -74,15 +74,3 @@ def install_environment(
             conda_exe, 'install', '-p', env_dir, *additional_dependencies,
             cwd=prefix.prefix_dir,
         )
-
-
-def run_hook(
-        hook: Hook,
-        file_args: Sequence[str],
-        color: bool,
-) -> tuple[int, bytes]:
-    # TODO: Some rare commands need to be run using `conda run` but mostly we
-    #       can run them without which is much quicker and produces a better
-    #       output.
-    # cmd = ('conda', 'run', '-p', env_dir) + hook.cmd
-    return helpers.run_xargs(hook, hook.cmd, file_args, color=color)

@@ -12,7 +12,6 @@ from pre_commit.envcontext import envcontext
 from pre_commit.envcontext import PatchesT
 from pre_commit.envcontext import UNSET
 from pre_commit.envcontext import Var
-from pre_commit.hook import Hook
 from pre_commit.languages import helpers
 from pre_commit.languages.python import bin_dir
 from pre_commit.prefix import Prefix
@@ -21,6 +20,7 @@ from pre_commit.util import cmd_output_b
 from pre_commit.util import rmtree
 
 ENVIRONMENT_DIR = 'node_env'
+run_hook = helpers.basic_run_hook
 
 
 @functools.lru_cache(maxsize=1)
@@ -108,11 +108,3 @@ def install_environment(
         if prefix.exists('node_modules'):  # pragma: win32 no cover
             rmtree(prefix.path('node_modules'))
         os.remove(pkg)
-
-
-def run_hook(
-        hook: Hook,
-        file_args: Sequence[str],
-        color: bool,
-) -> tuple[int, bytes]:
-    return helpers.run_xargs(hook, hook.cmd, file_args, color=color)

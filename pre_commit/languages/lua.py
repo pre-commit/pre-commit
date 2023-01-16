@@ -9,7 +9,6 @@ from typing import Sequence
 from pre_commit.envcontext import envcontext
 from pre_commit.envcontext import PatchesT
 from pre_commit.envcontext import Var
-from pre_commit.hook import Hook
 from pre_commit.languages import helpers
 from pre_commit.prefix import Prefix
 from pre_commit.util import cmd_output
@@ -17,6 +16,7 @@ from pre_commit.util import cmd_output
 ENVIRONMENT_DIR = 'lua_env'
 get_default_version = helpers.basic_get_default_version
 health_check = helpers.basic_health_check
+run_hook = helpers.basic_run_hook
 
 
 def _get_lua_version() -> str:  # pragma: win32 no cover
@@ -73,11 +73,3 @@ def install_environment(
         for dependency in additional_dependencies:
             cmd = ('luarocks', '--tree', envdir, 'install', dependency)
             helpers.run_setup_cmd(prefix, cmd)
-
-
-def run_hook(
-    hook: Hook,
-    file_args: Sequence[str],
-    color: bool,
-) -> tuple[int, bytes]:  # pragma: win32 no cover
-    return helpers.run_xargs(hook, hook.cmd, file_args, color=color)

@@ -9,13 +9,13 @@ from typing import Sequence
 from pre_commit.envcontext import envcontext
 from pre_commit.envcontext import PatchesT
 from pre_commit.envcontext import Var
-from pre_commit.hook import Hook
 from pre_commit.languages import helpers
 from pre_commit.prefix import Prefix
 
 ENVIRONMENT_DIR = 'perl_env'
 get_default_version = helpers.basic_get_default_version
 health_check = helpers.basic_health_check
+run_hook = helpers.basic_run_hook
 
 
 def get_env_patch(venv: str) -> PatchesT:
@@ -48,11 +48,3 @@ def install_environment(
         helpers.run_setup_cmd(
             prefix, ('cpan', '-T', '.', *additional_dependencies),
         )
-
-
-def run_hook(
-        hook: Hook,
-        file_args: Sequence[str],
-        color: bool,
-) -> tuple[int, bytes]:
-    return helpers.run_xargs(hook, hook.cmd, file_args, color=color)

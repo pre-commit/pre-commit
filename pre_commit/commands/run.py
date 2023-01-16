@@ -190,7 +190,14 @@ def _run_single_hook(
         time_before = time.time()
         language = languages[hook.language]
         with language.in_env(hook.prefix, hook.language_version):
-            retcode, out = language.run_hook(hook, filenames, use_color)
+            retcode, out = language.run_hook(
+                hook.prefix,
+                hook.entry,
+                hook.args,
+                filenames,
+                require_serial=hook.require_serial,
+                color=use_color,
+            )
         duration = round(time.time() - time_before, 2) or 0
         diff_after = _get_diff()
 

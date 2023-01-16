@@ -5,6 +5,7 @@ import multiprocessing
 import os
 import random
 import re
+import shlex
 from typing import Any
 from typing import Generator
 from typing import NoReturn
@@ -12,7 +13,6 @@ from typing import Sequence
 
 import pre_commit.constants as C
 from pre_commit import parse_shebang
-from pre_commit.hook import Hook
 from pre_commit.prefix import Prefix
 from pre_commit.util import cmd_output_b
 from pre_commit.xargs import xargs
@@ -94,8 +94,8 @@ def no_env(prefix: Prefix, version: str) -> Generator[None, None, None]:
     yield
 
 
-def target_concurrency(hook: Hook) -> int:
-    if hook.require_serial or 'PRE_COMMIT_NO_CONCURRENCY' in os.environ:
+def target_concurrency() -> int:
+    if 'PRE_COMMIT_NO_CONCURRENCY' in os.environ:
         return 1
     else:
         # Travis appears to have a bunch of CPUs, but we can't use them all.
@@ -119,13 +119,39 @@ def _shuffled(seq: Sequence[str]) -> list[str]:
 
 
 def run_xargs(
-        hook: Hook,
         cmd: tuple[str, ...],
         file_args: Sequence[str],
-        **kwargs: Any,
+        *,
+        require_serial: bool,
+        color: bool,
 ) -> tuple[int, bytes]:
-    # Shuffle the files so that they more evenly fill out the xargs partitions,
-    # but do it deterministically in case a hook cares about ordering.
-    file_args = _shuffled(file_args)
-    kwargs['target_concurrency'] = target_concurrency(hook)
-    return xargs(cmd, file_args, **kwargs)
+    if require_serial:
+        jobs = 1
+    else:
+        # Shuffle the files so that they more evenly fill out the xargs
+        # partitions, but do it deterministically in case a hook cares about
+        # ordering.
+        file_args = _shuffled(file_args)
+        jobs = target_concurrency()
+    return xargs(cmd, file_args, target_concurrency=jobs, color=color)
+
+
+def hook_cmd(entry: str, args: Sequence[str]) -> tuple[str, ...]:
+    return (*shlex.split(entry), *args)
+
+
+def basic_run_hook(
+        prefix: Prefix,
+        entry: str,
+        args: Sequence[str],
+        file_args: Sequence[str],
+        *,
+        require_serial: bool,
+        color: bool,
+) -> tuple[int, bytes]:
+    return run_xargs(
+        hook_cmd(entry, args),
+        file_args,
+        require_serial=require_serial,
+        color=color,
+    )

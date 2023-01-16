@@ -10,7 +10,6 @@ from typing import Sequence
 from pre_commit.envcontext import envcontext
 from pre_commit.envcontext import PatchesT
 from pre_commit.envcontext import UNSET
-from pre_commit.hook import Hook
 from pre_commit.languages import helpers
 from pre_commit.prefix import Prefix
 from pre_commit.util import cmd_output_b
@@ -70,15 +69,15 @@ def _entry_validate(entry: list[str]) -> None:
         )
 
 
-def _cmd_from_hook(hook: Hook) -> tuple[str, ...]:
-    entry = shlex.split(hook.entry)
-    _entry_validate(entry)
+def _cmd_from_hook(
+        prefix: Prefix,
+        entry: str,
+        args: Sequence[str],
+) -> tuple[str, ...]:
+    cmd = shlex.split(entry)
+    _entry_validate(cmd)
 
-    return (
-        entry[0], *RSCRIPT_OPTS,
-        *_prefix_if_file_entry(entry, hook.prefix),
-        *hook.args,
-    )
+    return (cmd[0], *RSCRIPT_OPTS, *_prefix_if_file_entry(cmd, prefix), *args)
 
 
 def install_environment(
@@ -149,10 +148,18 @@ def _inline_r_setup(code: str) -> str:
 
 
 def run_hook(
-        hook: Hook,
+        prefix: Prefix,
+        entry: str,
+        args: Sequence[str],
         file_args: Sequence[str],
+        *,
+        require_serial: bool,
         color: bool,
 ) -> tuple[int, bytes]:
+    cmd = _cmd_from_hook(prefix, entry, args)
     return helpers.run_xargs(
-        hook, _cmd_from_hook(hook), file_args, color=color,
+        cmd,
+        file_args,
+        require_serial=require_serial,
+        color=color,
     )

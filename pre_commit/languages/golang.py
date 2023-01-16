@@ -22,7 +22,6 @@ import pre_commit.constants as C
 from pre_commit.envcontext import envcontext
 from pre_commit.envcontext import PatchesT
 from pre_commit.envcontext import Var
-from pre_commit.hook import Hook
 from pre_commit.languages import helpers
 from pre_commit.prefix import Prefix
 from pre_commit.util import cmd_output
@@ -30,6 +29,7 @@ from pre_commit.util import rmtree
 
 ENVIRONMENT_DIR = 'golangenv'
 health_check = helpers.basic_health_check
+run_hook = helpers.basic_run_hook
 
 _ARCH_ALIASES = {
     'x86_64': 'amd64',
@@ -157,11 +157,3 @@ def install_environment(
     pkgdir = os.path.join(env_dir, 'pkg')
     if os.path.exists(pkgdir):  # pragma: no branch (always true on windows?)
         rmtree(pkgdir)
-
-
-def run_hook(
-        hook: Hook,
-        file_args: Sequence[str],
-        color: bool,
-) -> tuple[int, bytes]:
-    return helpers.run_xargs(hook, hook.cmd, file_args, color=color)

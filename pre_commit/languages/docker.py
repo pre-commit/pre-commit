@@ -5,7 +5,6 @@ import json
 import os
 from typing import Sequence
 
-from pre_commit.hook import Hook
 from pre_commit.languages import helpers
 from pre_commit.prefix import Prefix
 from pre_commit.util import CalledProcessError
@@ -123,16 +122,25 @@ def docker_cmd() -> tuple[str, ...]:  # pragma: win32 no cover
 
 
 def run_hook(
-        hook: Hook,
+        prefix: Prefix,
+        entry: str,
+        args: Sequence[str],
         file_args: Sequence[str],
+        *,
+        require_serial: bool,
         color: bool,
 ) -> tuple[int, bytes]:  # pragma: win32 no cover
     # Rebuild the docker image in case it has gone missing, as many people do
     # automated cleanup of docker images.
-    build_docker_image(hook.prefix, pull=False)
+    build_docker_image(prefix, pull=False)
 
-    entry_exe, *cmd_rest = hook.cmd
+    entry_exe, *cmd_rest = helpers.hook_cmd(entry, args)
 
-    entry_tag = ('--entrypoint', entry_exe, docker_tag(hook.prefix))
+    entry_tag = ('--entrypoint', entry_exe, docker_tag(prefix))
     cmd = (*docker_cmd(), *entry_tag, *cmd_rest)
-    return helpers.run_xargs(hook, cmd, file_args, color=color)
+    return helpers.run_xargs(
+        cmd,
+        file_args,
+        require_serial=require_serial,
+        color=color,
+    )
