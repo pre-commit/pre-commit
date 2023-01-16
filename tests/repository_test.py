@@ -34,7 +34,6 @@ from testing.util import cwd
 from testing.util import get_resource_path
 from testing.util import skipif_cant_run_docker
 from testing.util import skipif_cant_run_lua
-from testing.util import skipif_cant_run_swift
 from testing.util import xfailif_windows
 
 
@@ -326,14 +325,6 @@ def test_system_hook_with_spaces(tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'system_hook_with_spaces_repo',
         'system-hook-with-spaces', [os.devnull], b'Hello World\n',
-    )
-
-
-@skipif_cant_run_swift  # pragma: win32 no cover
-def test_swift_hook(tempdir_factory, store):
-    _test_hook_repo(
-        tempdir_factory, store, 'swift_hooks_repo',
-        'swift-hooks-repo', [], b'Hello, world!\n',
     )
 
 

@@ -6,7 +6,6 @@ import subprocess
 
 import pytest
 
-from pre_commit import parse_shebang
 from pre_commit.util import CalledProcessError
 from pre_commit.util import cmd_output
 from pre_commit.util import cmd_output_b
@@ -49,10 +48,6 @@ skipif_cant_run_docker = pytest.mark.skipif(
 skipif_cant_run_lua = pytest.mark.skipif(
     os.name == 'nt',
     reason="lua isn't installed or can't be found",
-)
-skipif_cant_run_swift = pytest.mark.skipif(
-    parse_shebang.find_executable('swift') is None,
-    reason="swift isn't installed or can't be found",
 )
 xfailif_windows = pytest.mark.xfail(os.name == 'nt', reason='windows')
 
