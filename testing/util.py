@@ -42,10 +42,6 @@ def cmd_output_mocked_pre_commit_home(
     return ret, out.replace('\r\n', '\n'), None
 
 
-skipif_cant_run_coursier = pytest.mark.skipif(
-    os.name == 'nt' or parse_shebang.find_executable('cs') is None,
-    reason="coursier isn't installed or can't be found",
-)
 skipif_cant_run_docker = pytest.mark.skipif(
     os.name == 'nt' or not docker_is_running(),
     reason="Docker isn't running or can't be accessed",
