@@ -64,7 +64,7 @@ def _entry_validate(entry: list[str]) -> None:
             raise ValueError('You can supply at most one expression.')
     elif len(entry) > 2:
         raise ValueError(
-            'The only valid syntax is `Rscript -e {expr}`',
+            'The only valid syntax is `Rscript -e {expr}`'
             'or `Rscript path/to/hook/script`',
         )
 
