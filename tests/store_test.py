@@ -9,6 +9,7 @@ import pytest
 
 from pre_commit import git
 from pre_commit.store import _get_default_directory
+from pre_commit.store import _LOCAL_RESOURCES
 from pre_commit.store import Store
 from pre_commit.util import CalledProcessError
 from pre_commit.util import cmd_output
@@ -188,7 +189,7 @@ def test_local_resources_reflects_reality():
         for res in os.listdir('pre_commit/resources')
         if res.startswith('empty_template_')
     }
-    assert on_disk == {os.path.basename(x) for x in Store.LOCAL_RESOURCES}
+    assert on_disk == {os.path.basename(x) for x in _LOCAL_RESOURCES}
 
 
 def test_mark_config_as_used(store, tmpdir):

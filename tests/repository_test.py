@@ -88,47 +88,6 @@ def _test_hook_repo(
     assert _norm_out(out) == expected
 
 
-def test_conda_hook(tempdir_factory, store):
-    _test_hook_repo(
-        tempdir_factory, store, 'conda_hooks_repo',
-        'sys-exec', [os.devnull],
-        b'conda-default\n',
-    )
-
-
-def test_conda_with_additional_dependencies_hook(tempdir_factory, store):
-    _test_hook_repo(
-        tempdir_factory, store, 'conda_hooks_repo',
-        'additional-deps', [os.devnull],
-        b'OK\n',
-        config_kwargs={
-            'hooks': [{
-                'id': 'additional-deps',
-                'args': ['-c', 'import tzdata; print("OK")'],
-                'additional_dependencies': ['python-tzdata'],
-            }],
-        },
-    )
-
-
-def test_local_conda_additional_dependencies(store):
-    config = {
-        'repo': 'local',
-        'hooks': [{
-            'id': 'local-conda',
-            'name': 'local-conda',
-            'entry': 'python',
-            'language': 'conda',
-            'args': ['-c', 'import botocore; print("OK")'],
-            'additional_dependencies': ['botocore'],
-        }],
-    }
-    hook = _get_hook(config, store, 'local-conda')
-    ret, out = _hook_run(hook, (), color=False)
-    assert ret == 0
-    assert _norm_out(out) == b'OK\n'
-
-
 def test_python_hook(tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'python_hooks_repo',
