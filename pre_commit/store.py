@@ -36,6 +36,26 @@ def _get_default_directory() -> str:
     return os.path.realpath(ret)
 
 
+_LOCAL_RESOURCES = (
+    'Cargo.toml', 'main.go', 'go.mod', 'main.rs', '.npmignore',
+    'package.json', 'pre-commit-package-dev-1.rockspec',
+    'pre_commit_placeholder_package.gemspec', 'setup.py',
+    'environment.yml', 'Makefile.PL', 'pubspec.yaml',
+    'renv.lock', 'renv/activate.R', 'renv/LICENSE.renv',
+)
+
+
+def _make_local_repo(directory: str) -> None:
+    for resource in _LOCAL_RESOURCES:
+        resource_dirname, resource_basename = os.path.split(resource)
+        contents = resource_text(f'empty_template_{resource_basename}')
+        target_dir = os.path.join(directory, resource_dirname)
+        target_file = os.path.join(target_dir, resource_basename)
+        os.makedirs(target_dir, exist_ok=True)
+        with open(target_file, 'w') as f:
+            f.write(contents)
+
+
 class Store:
     get_default_directory = staticmethod(_get_default_directory)
 
@@ -185,27 +205,9 @@ class Store:
 
         return self._new_repo(repo, ref, deps, clone_strategy)
 
-    LOCAL_RESOURCES = (
-        'Cargo.toml', 'main.go', 'go.mod', 'main.rs', '.npmignore',
-        'package.json', 'pre-commit-package-dev-1.rockspec',
-        'pre_commit_placeholder_package.gemspec', 'setup.py',
-        'environment.yml', 'Makefile.PL', 'pubspec.yaml',
-        'renv.lock', 'renv/activate.R', 'renv/LICENSE.renv',
-    )
-
     def make_local(self, deps: Sequence[str]) -> str:
-        def make_local_strategy(directory: str) -> None:
-            for resource in self.LOCAL_RESOURCES:
-                resource_dirname, resource_basename = os.path.split(resource)
-                contents = resource_text(f'empty_template_{resource_basename}')
-                target_dir = os.path.join(directory, resource_dirname)
-                target_file = os.path.join(target_dir, resource_basename)
-                os.makedirs(target_dir, exist_ok=True)
-                with open(target_file, 'w') as f:
-                    f.write(contents)
-
         return self._new_repo(
-            'local', C.LOCAL_REPO_VERSION, deps, make_local_strategy,
+            'local', C.LOCAL_REPO_VERSION, deps, _make_local_repo,
         )
 
     def _create_config_table(self, db: sqlite3.Connection) -> None:
