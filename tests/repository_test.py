@@ -227,54 +227,6 @@ def test_node_hook_with_npm_userconfig_set(tempdir_factory, store, tmpdir):
         test_run_a_node_hook(tempdir_factory, store)
 
 
-def test_r_hook(tempdir_factory, store):
-    _test_hook_repo(
-        tempdir_factory, store, 'r_hooks_repo',
-        'hello-world', [os.devnull],
-        b'Hello, World, from R!\n',
-    )
-
-
-def test_r_inline_hook(tempdir_factory, store):
-    _test_hook_repo(
-        tempdir_factory, store, 'r_hooks_repo',
-        'hello-world-inline', ['some-file'],
-        b'Hi-there, some-file, from R!\n',
-    )
-
-
-def test_r_with_additional_dependencies_hook(tempdir_factory, store):
-    _test_hook_repo(
-        tempdir_factory, store, 'r_hooks_repo',
-        'additional-deps', [os.devnull],
-        b'OK\n',
-        config_kwargs={
-            'hooks': [{
-                'id': 'additional-deps',
-                'additional_dependencies': ['cachem@1.0.4'],
-            }],
-        },
-    )
-
-
-def test_r_local_with_additional_dependencies_hook(store):
-    config = {
-        'repo': 'local',
-        'hooks': [{
-            'id': 'local-r',
-            'name': 'local-r',
-            'entry': 'Rscript -e',
-            'language': 'r',
-            'args': ['if (packageVersion("R6") == "2.1.3") cat("OK\n")'],
-            'additional_dependencies': ['R6@2.1.3'],
-        }],
-    }
-    hook = _get_hook(config, store, 'local-r')
-    ret, out = _hook_run(hook, (), color=False)
-    assert ret == 0
-    assert _norm_out(out) == b'OK\n'
-
-
 def test_run_a_ruby_hook(tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'ruby_hooks_repo',
