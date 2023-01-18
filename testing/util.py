@@ -45,10 +45,6 @@ skipif_cant_run_docker = pytest.mark.skipif(
     os.name == 'nt' or not docker_is_running(),
     reason="Docker isn't running or can't be accessed",
 )
-skipif_cant_run_lua = pytest.mark.skipif(
-    os.name == 'nt',
-    reason="lua isn't installed or can't be found",
-)
 xfailif_windows = pytest.mark.xfail(os.name == 'nt', reason='windows')
 
 

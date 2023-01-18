@@ -33,7 +33,6 @@ from testing.fixtures import modify_manifest
 from testing.util import cwd
 from testing.util import get_resource_path
 from testing.util import skipif_cant_run_docker
-from testing.util import skipif_cant_run_lua
 from testing.util import xfailif_windows
 
 
@@ -993,29 +992,3 @@ def test_non_installable_hook_error_for_additional_dependencies(store, caplog):
         'using language `system` which does not install an environment.  '
         'Perhaps you meant to use a specific language?'
     )
-
-
-@skipif_cant_run_lua  # pragma: win32 no cover
-def test_lua_hook(tempdir_factory, store):
-    _test_hook_repo(
-        tempdir_factory, store, 'lua_repo',
-        'hello-world-lua', [], b'hello world\n',
-    )
-
-
-@skipif_cant_run_lua  # pragma: win32 no cover
-def test_local_lua_additional_dependencies(store):
-    config = {
-        'repo': 'local',
-        'hooks': [{
-            'id': 'local-lua',
-            'name': 'local-lua',
-            'entry': 'luacheck --version',
-            'language': 'lua',
-            'additional_dependencies': ['luacheck'],
-        }],
-    }
-    hook = _get_hook(config, store, 'local-lua')
-    ret, out = _hook_run(hook, (), color=False)
-    assert b'Luacheck' in out
-    assert ret == 0
