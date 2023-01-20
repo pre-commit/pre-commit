@@ -156,14 +156,11 @@ def get_all_files() -> list[str]:
 
 
 def get_changed_files(old: str, new: str) -> list[str]:
-    diff_cmd = ('git', 'diff', '--name-only', '--no-ext-diff', '-z')
-    try:
-        _, out, _ = cmd_output(*diff_cmd, f'{old}...{new}')
-    except CalledProcessError:  # pragma: no cover (new git)
-        # on newer git where old and new do not have a merge base git fails
-        # so we try a full diff (this is what old git did for us!)
-        _, out, _ = cmd_output(*diff_cmd, f'{old}..{new}')
-
+    _, out, _ = cmd_output(
+        'git', 'diff-tree',
+        '--name-only', '--raw', '-z',
+        old, new,
+    )
     return zsplit(out)
 
 
