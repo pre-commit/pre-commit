@@ -23,6 +23,7 @@ from pre_commit.languages import ruby
 from pre_commit.languages import rust
 from pre_commit.languages.all import languages
 from pre_commit.prefix import Prefix
+from pre_commit.repository import _hook_installed
 from pre_commit.repository import all_hooks
 from pre_commit.repository import install_hook_envs
 from pre_commit.util import cmd_output
@@ -560,6 +561,21 @@ def test_additional_dependencies_roll_forward(tempdir_factory, store):
     # should not have affected original
     with python.in_env(hook1.prefix, hook1.language_version):
         assert 'mccabe' not in cmd_output('pip', 'freeze', '-l')[1]
+
+
+@pytest.mark.parametrize('v', ('v1', 'v2'))
+def test_repository_state_compatibility(tempdir_factory, store, v):
+    path = make_repo(tempdir_factory, 'python_hooks_repo')
+
+    config = make_config_from_repo(path)
+    hook = _get_hook(config, store, 'foo')
+    envdir = helpers.environment_dir(
+        hook.prefix,
+        python.ENVIRONMENT_DIR,
+        hook.language_version,
+    )
+    os.remove(os.path.join(envdir, f'.install_state_{v}'))
+    assert _hook_installed(hook) is True
 
 
 def test_additional_ruby_dependencies_installed(tempdir_factory, store):
