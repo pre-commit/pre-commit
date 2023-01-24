@@ -1,3 +1,37 @@
+3.0.0 - 2023-01-23
+==================
+
+### Features
+- Make `language: golang` bootstrap `go` if not present.
+    - #2651 PR by @taoufik07.
+    - #2649 issue by @taoufik07.
+- `language: coursier` now supports `additional_dependencies` and `repo: local`
+    - #2702 PR by @asottile.
+- Upgrade `ruby-build` to `20221225`.
+    - #2718 PR by @jalessio.
+
+### Fixes
+- Improve error message for invalid yaml for `pre-commit autoupdate`.
+    - #2686 PR by @asottile.
+    - #2685 issue by @CarstenGrohmann.
+- `repo: local` no longer provisions an empty `git` repo.
+    - #2699 PR by @asottile.
+
+### Updating
+- Drop support for python<3.8
+    - #2655 PR by @asottile.
+- Drop support for top-level list, use `pre-commit migrate-config` to update.
+    - #2656 PR by @asottile.
+- Drop support for `sha` to specify revision, use `pre-commit migrate-config`
+  to update.
+    - #2657 PR by @asottile.
+- Remove `pre-commit-validate-config` and `pre-commit-validate-manifest`, use
+  `pre-commit validate-config` and `pre-commit validate-manifest` instead.
+    - #2658 PR by @asottile.
+- `language: golang` hooks must use `go.mod` to specify dependencies
+    - #2672 PR by @taoufik07.
+
+
 2.21.0 - 2022-12-25
 ===================
 
