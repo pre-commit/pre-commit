@@ -5,8 +5,6 @@ import importlib.metadata
 CONFIG_FILE = '.pre-commit-config.yaml'
 MANIFEST_FILE = '.pre-commit-hooks.yaml'
 
-# Bump when installation changes in a backwards / forwards incompatible way
-INSTALLED_STATE_VERSION = '1'
 # Bump when modifying `empty_template`
 LOCAL_REPO_VERSION = '1'
 
