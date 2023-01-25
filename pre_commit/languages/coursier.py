@@ -28,45 +28,44 @@ def install_environment(
     helpers.assert_version_default('coursier', version)
 
     # Support both possible executable names (either "cs" or "coursier")
-    executable = find_executable('cs') or find_executable('coursier')
-    if executable is None:
+    cs = find_executable('cs') or find_executable('coursier')
+    if cs is None:
         raise AssertionError(
             'pre-commit requires system-installed "cs" or "coursier" '
             'executables in the application search path',
         )
 
     envdir = helpers.environment_dir(prefix, ENVIRONMENT_DIR, version)
-    channel = prefix.path('.pre-commit-channel')
-    if os.path.isdir(channel):
-        for app_descriptor in os.listdir(channel):
-            _, app_file = os.path.split(app_descriptor)
-            app, _ = os.path.splitext(app_file)
-            helpers.run_setup_cmd(
-                prefix,
-                (
-                    executable,
-                    'install',
+
+    def _install(*opts: str) -> None:
+        assert cs is not None
+        helpers.run_setup_cmd(prefix, (cs, 'fetch', *opts))
+        helpers.run_setup_cmd(prefix, (cs, 'install', '--dir', envdir, *opts))
+
+    with in_env(prefix, version):
+        channel = prefix.path('.pre-commit-channel')
+        if os.path.isdir(channel):
+            for app_descriptor in os.listdir(channel):
+                _, app_file = os.path.split(app_descriptor)
+                app, _ = os.path.splitext(app_file)
+                _install(
                     '--default-channels=false',
                     '--channel', channel,
-                    '--dir', envdir,
                     app,
-                ),
+                )
+        elif not additional_dependencies:
+            raise FatalError(
+                'expected .pre-commit-channel dir or additional_dependencies',
             )
-    elif not additional_dependencies:
-        raise FatalError(
-            'expected .pre-commit-channel dir or additional_dependencies',
-        )
 
-    if additional_dependencies:
-        install_cmd = (
-            executable, 'install', '--dir', envdir, *additional_dependencies,
-        )
-        helpers.run_setup_cmd(prefix, install_cmd)
+        if additional_dependencies:
+            _install(*additional_dependencies)
 
 
 def get_env_patch(target_dir: str) -> PatchesT:
     return (
         ('PATH', (target_dir, os.pathsep, Var('PATH'))),
+        ('COURSIER_CACHE', os.path.join(target_dir, '.cs-cache')),
     )
 
 
