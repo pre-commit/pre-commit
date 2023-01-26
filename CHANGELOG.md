@@ -1,3 +1,10 @@
+3.0.1 - 2023-01-26
+==================
+
+### Fixes
+- Ensure coursier hooks are available offline after install.
+    - #2723 PR by @asottile.
+
 3.0.0 - 2023-01-23
 ==================
 
