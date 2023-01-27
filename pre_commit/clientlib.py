@@ -30,6 +30,7 @@ HOOK_TYPES = (
     'pre-commit',
     'pre-merge-commit',
     'pre-push',
+    'pre-rebase',
     'prepare-commit-msg',
 )
 # `manual` is not invoked by any installed git hook.  See #719

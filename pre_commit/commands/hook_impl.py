@@ -73,6 +73,8 @@ def _ns(
         local_branch: str | None = None,
         from_ref: str | None = None,
         to_ref: str | None = None,
+        pre_rebase_upstream: str | None = None,
+        pre_rebase_branch: str | None = None,
         remote_name: str | None = None,
         remote_url: str | None = None,
         commit_msg_filename: str | None = None,
@@ -89,6 +91,8 @@ def _ns(
         local_branch=local_branch,
         from_ref=from_ref,
         to_ref=to_ref,
+        pre_rebase_upstream=pre_rebase_upstream,
+        pre_rebase_branch=pre_rebase_branch,
         remote_name=remote_name,
         remote_url=remote_url,
         commit_msg_filename=commit_msg_filename,
@@ -185,6 +189,12 @@ def _check_args_length(hook_type: str, args: Sequence[str]) -> None:
                 f'hook-impl for {hook_type} expected 1, 2, or 3 arguments '
                 f'but got {len(args)}: {args}',
             )
+    elif hook_type == 'pre-rebase':
+        if len(args) < 1 or len(args) > 2:
+            raise SystemExit(
+                f'hook-impl for {hook_type} expected 1 or 2 arguments '
+                f'but got {len(args)}: {args}',
+            )
     elif hook_type in _EXPECTED_ARG_LENGTH_BY_HOOK:
         expected = _EXPECTED_ARG_LENGTH_BY_HOOK[hook_type]
         if len(args) != expected:
@@ -231,6 +241,13 @@ def _run_ns(
         return _ns(hook_type, color, is_squash_merge=args[0])
     elif hook_type == 'post-rewrite':
         return _ns(hook_type, color, rewrite_command=args[0])
+    elif hook_type == 'pre-rebase' and len(args) == 1:
+        return _ns(hook_type, color, pre_rebase_upstream=args[0])
+    elif hook_type == 'pre-rebase' and len(args) == 2:
+        return _ns(
+            hook_type, color, pre_rebase_upstream=args[0],
+            pre_rebase_branch=args[1],
+        )
     else:
         raise AssertionError(f'unexpected hook type: {hook_type}')
 

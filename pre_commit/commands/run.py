@@ -254,6 +254,7 @@ def _all_filenames(args: argparse.Namespace) -> Collection[str]:
     # these hooks do not operate on files
     if args.hook_stage in {
         'post-checkout', 'post-commit', 'post-merge', 'post-rewrite',
+        'pre-rebase',
     }:
         return ()
     elif args.hook_stage in {'prepare-commit-msg', 'commit-msg'}:
@@ -388,6 +389,10 @@ def run(
         # new names
         environ['PRE_COMMIT_FROM_REF'] = args.from_ref
         environ['PRE_COMMIT_TO_REF'] = args.to_ref
+
+    if args.pre_rebase_upstream and args.pre_rebase_branch:
+        environ['PRE_COMMIT_PRE_REBASE_UPSTREAM'] = args.pre_rebase_upstream
+        environ['PRE_COMMIT_PRE_REBASE_BRANCH'] = args.pre_rebase_branch
 
     if (
         args.remote_name and args.remote_url and

@@ -522,6 +522,7 @@ def test_manifest_hooks(tempdir_factory, store):
             'pre-commit',
             'pre-merge-commit',
             'pre-push',
+            'pre-rebase',
             'prepare-commit-msg',
             'manual',
         ],

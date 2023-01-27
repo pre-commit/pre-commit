@@ -108,6 +108,17 @@ def _add_run_options(parser: argparse.ArgumentParser) -> None:
         ),
     )
     parser.add_argument(
+        '--pre-rebase-upstream', help=(
+            'The upstream from which the series was forked.'
+        ),
+    )
+    parser.add_argument(
+        '--pre-rebase-branch', help=(
+            'The branch being rebased, and is not set when  '
+            'rebasing the current branch.'
+        ),
+    )
+    parser.add_argument(
         '--commit-msg-filename',
         help='Filename to check when running during `commit-msg`',
     )
