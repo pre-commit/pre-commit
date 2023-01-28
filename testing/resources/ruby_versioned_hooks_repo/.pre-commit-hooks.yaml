@@ -2,5 +2,5 @@
     name: Ruby Hook
     entry: ruby_hook
     language: ruby
-    language_version: 3.1.0
+    language_version: 3.2.0
     files: \.rb$
