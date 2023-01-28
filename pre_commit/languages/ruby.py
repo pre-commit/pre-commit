@@ -39,6 +39,7 @@ def get_env_patch(
         ('GEM_HOME', os.path.join(venv, 'gems')),
         ('GEM_PATH', UNSET),
         ('BUNDLE_IGNORE_CONFIG', '1'),
+        ('BUNDLE_GEMFILE', os.devnull),
     )
     if language_version == 'system':
         patches += (
