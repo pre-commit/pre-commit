@@ -16,6 +16,7 @@ def run_language(
         file_args: Sequence[str] = (),
         version: str = C.DEFAULT,
         deps: Sequence[str] = (),
+        is_local: bool = False,
 ) -> tuple[int, bytes]:
     prefix = Prefix(str(path))
 
@@ -26,6 +27,7 @@ def run_language(
             exe,
             args,
             file_args,
+            is_local=is_local,
             require_serial=True,
             color=False,
         )

@@ -127,6 +127,7 @@ def run_hook(
         args: Sequence[str],
         file_args: Sequence[str],
         *,
+        is_local: bool,
         require_serial: bool,
         color: bool,
 ) -> tuple[int, bytes]:  # pragma: win32 no cover

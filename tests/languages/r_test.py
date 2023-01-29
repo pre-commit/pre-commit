@@ -14,7 +14,12 @@ from testing.language_helpers import run_language
 
 
 def test_r_parsing_file_no_opts_no_args(tmp_path):
-    cmd = r._cmd_from_hook(Prefix(str(tmp_path)), 'Rscript some-script.R', ())
+    cmd = r._cmd_from_hook(
+        Prefix(str(tmp_path)),
+        'Rscript some-script.R',
+        (),
+        is_local=False,
+    )
     assert cmd == (
         'Rscript',
         '--no-save', '--no-restore', '--no-site-file', '--no-environ',
@@ -38,6 +43,7 @@ def test_r_parsing_file_no_opts_args(tmp_path):
         Prefix(str(tmp_path)),
         'Rscript some-script.R',
         ('--no-cache',),
+        is_local=False,
     )
     assert cmd == (
         'Rscript',
@@ -48,11 +54,30 @@ def test_r_parsing_file_no_opts_args(tmp_path):
 
 
 def test_r_parsing_expr_no_opts_no_args1(tmp_path):
-    cmd = r._cmd_from_hook(Prefix(str(tmp_path)), "Rscript -e '1+1'", ())
+    cmd = r._cmd_from_hook(
+        Prefix(str(tmp_path)),
+        "Rscript -e '1+1'",
+        (),
+        is_local=False,
+    )
     assert cmd == (
         'Rscript',
         '--no-save', '--no-restore', '--no-site-file', '--no-environ',
         '-e', '1+1',
+    )
+
+
+def test_r_parsing_local_hook_path_is_not_expanded(tmp_path):
+    cmd = r._cmd_from_hook(
+        Prefix(str(tmp_path)),
+        'Rscript path/to/thing.R',
+        (),
+        is_local=True,
+    )
+    assert cmd == (
+        'Rscript',
+        '--no-save', '--no-restore', '--no-site-file', '--no-environ',
+        'path/to/thing.R',
     )
 
 
