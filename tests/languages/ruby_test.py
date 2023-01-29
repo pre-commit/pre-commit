@@ -71,10 +71,10 @@ def test_install_ruby_default(fake_gem_prefix):
 
 @xfailif_windows  # pragma: win32 no cover
 def test_install_ruby_with_version(fake_gem_prefix):
-    ruby.install_environment(fake_gem_prefix, '3.1.0', ())
+    ruby.install_environment(fake_gem_prefix, '3.2.0', ())
 
     # Should be able to activate and use rbenv install
-    with ruby.in_env(fake_gem_prefix, '3.1.0'):
+    with ruby.in_env(fake_gem_prefix, '3.2.0'):
         cmd_output('rbenv', 'install', '--help')
 
 
