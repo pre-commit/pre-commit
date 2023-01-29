@@ -195,6 +195,7 @@ def _run_single_hook(
                 hook.entry,
                 hook.args,
                 filenames,
+                is_local=hook.src == 'local',
                 require_serial=hook.require_serial,
                 color=use_color,
             )

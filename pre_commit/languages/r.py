@@ -35,8 +35,13 @@ def in_env(prefix: Prefix, version: str) -> Generator[None, None, None]:
         yield
 
 
-def _prefix_if_file_entry(entry: list[str], prefix: Prefix) -> Sequence[str]:
-    if entry[1] == '-e':
+def _prefix_if_file_entry(
+        entry: list[str],
+        prefix: Prefix,
+        *,
+        is_local: bool,
+) -> Sequence[str]:
+    if entry[1] == '-e' or is_local:
         return entry[1:]
     else:
         return (prefix.path(entry[1]),)
@@ -73,11 +78,14 @@ def _cmd_from_hook(
         prefix: Prefix,
         entry: str,
         args: Sequence[str],
+        *,
+        is_local: bool,
 ) -> tuple[str, ...]:
     cmd = shlex.split(entry)
     _entry_validate(cmd)
 
-    return (cmd[0], *RSCRIPT_OPTS, *_prefix_if_file_entry(cmd, prefix), *args)
+    cmd_part = _prefix_if_file_entry(cmd, prefix, is_local=is_local)
+    return (cmd[0], *RSCRIPT_OPTS, *cmd_part, *args)
 
 
 def install_environment(
@@ -153,10 +161,11 @@ def run_hook(
         args: Sequence[str],
         file_args: Sequence[str],
         *,
+        is_local: bool,
         require_serial: bool,
         color: bool,
 ) -> tuple[int, bytes]:
-    cmd = _cmd_from_hook(prefix, entry, args)
+    cmd = _cmd_from_hook(prefix, entry, args, is_local=is_local)
     return helpers.run_xargs(
         cmd,
         file_args,

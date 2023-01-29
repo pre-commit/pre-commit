@@ -48,6 +48,7 @@ def _hook_run(hook, filenames, color):
             hook.entry,
             hook.args,
             filenames,
+            is_local=hook.src == 'local',
             require_serial=hook.require_serial,
             color=color,
         )
