@@ -1,3 +1,13 @@
+3.0.2 - 2023-01-29
+==================
+
+### Fixes
+- Prevent local `Gemfile` from interfering with hook execution.
+    - #2727 PR by @asottile.
+- Fix `language: r`, `repo: local` hooks
+    - pre-commit-ci/issues#107 by @lorenzwalthert.
+    - #2728 PR by @asottile.
+
 3.0.1 - 2023-01-26
 ==================
 
