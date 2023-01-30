@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from typing import Mapping
 from unittest import mock
 
 import pytest
@@ -8,8 +7,8 @@ import pytest
 import pre_commit.constants as C
 from pre_commit import parse_shebang
 from pre_commit.languages import rust
-from pre_commit.prefix import Prefix
-from pre_commit.util import cmd_output
+from pre_commit.store import _make_local_repo
+from testing.language_helpers import run_language
 
 ACTUAL_GET_DEFAULT_VERSION = rust.get_default_version.__wrapped__
 
@@ -30,64 +29,78 @@ def test_uses_default_when_rust_is_not_available(cmd_output_b_mck):
     assert ACTUAL_GET_DEFAULT_VERSION() == C.DEFAULT
 
 
-@pytest.mark.parametrize('language_version', (C.DEFAULT, '1.56.0'))
-def test_installs_with_bootstrapped_rustup(tmpdir, language_version):
-    tmpdir.join('src', 'main.rs').ensure().write(
+def _make_hello_world(tmp_path):
+    src_dir = tmp_path.joinpath('src')
+    src_dir.mkdir()
+    src_dir.joinpath('main.rs').write_text(
         'fn main() {\n'
         '    println!("Hello, world!");\n'
         '}\n',
     )
-    tmpdir.join('Cargo.toml').ensure().write(
+    tmp_path.joinpath('Cargo.toml').write_text(
         '[package]\n'
         'name = "hello_world"\n'
         'version = "0.1.0"\n'
         'edition = "2021"\n',
     )
-    prefix = Prefix(str(tmpdir))
 
-    find_executable_exes = []
 
-    original_find_executable = parse_shebang.find_executable
+def test_installs_rust_missing_rustup(tmp_path):
+    _make_hello_world(tmp_path)
 
-    def mocked_find_executable(
-            exe: str, *, env: Mapping[str, str] | None = None,
-    ) -> str | None:
-        """
-        Return `None` the first time `find_executable` is called to ensure
-        that the bootstrapping code is executed, then just let the function
-        work as normal.
+    # pretend like `rustup` doesn't exist so it gets bootstrapped
+    calls = []
+    orig = parse_shebang.find_executable
 
-        Also log the arguments to ensure that everything works as expected.
-        """
-        find_executable_exes.append(exe)
-        if len(find_executable_exes) == 1:
+    def mck(exe, env=None):
+        calls.append(exe)
+        if len(calls) == 1:
+            assert exe == 'rustup'
             return None
-        return original_find_executable(exe, env=env)
+        return orig(exe, env=env)
 
-    with mock.patch.object(parse_shebang, 'find_executable') as find_exe_mck:
-        find_exe_mck.side_effect = mocked_find_executable
-        rust.install_environment(prefix, language_version, ())
-        assert find_executable_exes == ['rustup', 'rustup', 'cargo']
-
-    with rust.in_env(prefix, language_version):
-        assert cmd_output('hello_world')[1] == 'Hello, world!\n'
+    with mock.patch.object(parse_shebang, 'find_executable', side_effect=mck):
+        ret = run_language(tmp_path, rust, 'hello_world', version='1.56.0')
+    assert calls == ['rustup', 'rustup', 'cargo', 'hello_world']
+    assert ret == (0, b'Hello, world!\n')
 
 
-def test_installs_with_existing_rustup(tmpdir):
-    tmpdir.join('src', 'main.rs').ensure().write(
-        'fn main() {\n'
-        '    println!("Hello, world!");\n'
-        '}\n',
-    )
-    tmpdir.join('Cargo.toml').ensure().write(
-        '[package]\n'
-        'name = "hello_world"\n'
-        'version = "0.1.0"\n'
-        'edition = "2021"\n',
-    )
-    prefix = Prefix(str(tmpdir))
-
+@pytest.mark.parametrize('version', (C.DEFAULT, '1.56.0'))
+def test_language_version_with_rustup(tmp_path, version):
     assert parse_shebang.find_executable('rustup') is not None
-    rust.install_environment(prefix, '1.56.0', ())
-    with rust.in_env(prefix, '1.56.0'):
-        assert cmd_output('hello_world')[1] == 'Hello, world!\n'
+
+    _make_hello_world(tmp_path)
+
+    ret = run_language(tmp_path, rust, 'hello_world', version=version)
+    assert ret == (0, b'Hello, world!\n')
+
+
+@pytest.mark.parametrize('dep', ('cli:shellharden:4.2.0', 'cli:shellharden'))
+def test_rust_cli_additional_dependencies(tmp_path, dep):
+    _make_local_repo(str(tmp_path))
+
+    t_sh = tmp_path.joinpath('t.sh')
+    t_sh.write_text('echo $hi\n')
+
+    assert rust.get_default_version() == 'system'
+    ret = run_language(
+        tmp_path,
+        rust,
+        'shellharden --transform',
+        deps=(dep,),
+        args=(str(t_sh),),
+    )
+    assert ret == (0, b'echo "$hi"\n')
+
+
+def test_run_lib_additional_dependencies(tmp_path):
+    _make_hello_world(tmp_path)
+
+    deps = ('shellharden:4.2.0', 'git-version')
+    ret = run_language(tmp_path, rust, 'hello_world', deps=deps)
+    assert ret == (0, b'Hello, world!\n')
+
+    bin_dir = tmp_path.joinpath('rustenv-system', 'bin')
+    assert bin_dir.is_dir()
+    assert not bin_dir.joinpath('shellharden').exists()
+    assert not bin_dir.joinpath('shellharden.exe').exists()

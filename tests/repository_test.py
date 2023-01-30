@@ -20,7 +20,6 @@ from pre_commit.languages import helpers
 from pre_commit.languages import node
 from pre_commit.languages import python
 from pre_commit.languages import ruby
-from pre_commit.languages import rust
 from pre_commit.languages.all import languages
 from pre_commit.prefix import Prefix
 from pre_commit.repository import _hook_installed
@@ -367,54 +366,6 @@ func main() {
     assert _norm_out(out) == b'hello hello world\n'
 
 
-def test_rust_hook(tempdir_factory, store):
-    _test_hook_repo(
-        tempdir_factory, store, 'rust_hooks_repo',
-        'rust-hook', [], b'hello world\n',
-    )
-
-
-@pytest.mark.parametrize('dep', ('cli:shellharden:3.1.0', 'cli:shellharden'))
-def test_additional_rust_cli_dependencies_installed(
-        tempdir_factory, store, dep,
-):
-    path = make_repo(tempdir_factory, 'rust_hooks_repo')
-    config = make_config_from_repo(path)
-    # A small rust package with no dependencies.
-    config['hooks'][0]['additional_dependencies'] = [dep]
-    hook = _get_hook(config, store, 'rust-hook')
-    envdir = helpers.environment_dir(
-        hook.prefix,
-        rust.ENVIRONMENT_DIR,
-        'system',
-    )
-    binaries = os.listdir(os.path.join(envdir, 'bin'))
-    # normalize for windows
-    binaries = [os.path.splitext(binary)[0] for binary in binaries]
-    assert 'shellharden' in binaries
-
-
-def test_additional_rust_lib_dependencies_installed(
-        tempdir_factory, store,
-):
-    path = make_repo(tempdir_factory, 'rust_hooks_repo')
-    config = make_config_from_repo(path)
-    # A small rust package with no dependencies.
-    deps = ['shellharden:3.1.0', 'git-version']
-    config['hooks'][0]['additional_dependencies'] = deps
-    hook = _get_hook(config, store, 'rust-hook')
-    envdir = helpers.environment_dir(
-        hook.prefix,
-        rust.ENVIRONMENT_DIR,
-        'system',
-    )
-    binaries = os.listdir(os.path.join(envdir, 'bin'))
-    # normalize for windows
-    binaries = [os.path.splitext(binary)[0] for binary in binaries]
-    assert 'rust-hello-world' in binaries
-    assert 'shellharden' not in binaries
-
-
 def test_missing_executable(tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'not_found_exe',
@@ -635,23 +586,6 @@ def test_local_golang_additional_dependencies(store):
     ret, out = _hook_run(hook, (), color=False)
     assert ret == 0
     assert _norm_out(out) == b'Hello, Go examples!\n'
-
-
-def test_local_rust_additional_dependencies(store):
-    config = {
-        'repo': 'local',
-        'hooks': [{
-            'id': 'hello',
-            'name': 'hello',
-            'entry': 'hello',
-            'language': 'rust',
-            'additional_dependencies': ['cli:hello-cli:0.2.2'],
-        }],
-    }
-    hook = _get_hook(config, store, 'hello')
-    ret, out = _hook_run(hook, (), color=False)
-    assert ret == 0
-    assert _norm_out(out) == b'Hello World!\n'
 
 
 def test_fail_hooks(store):
