@@ -36,5 +36,5 @@ runs:
       testing/get-coursier.sh
       testing/get-dart.sh
       testing/get-swift.sh
-  - uses: asottile/workflows/.github/actions/latest-git@v1.2.0
+  - uses: asottile/workflows/.github/actions/latest-git@v1.4.0
     if: inputs.env == 'py38' && runner.os == 'Linux'
