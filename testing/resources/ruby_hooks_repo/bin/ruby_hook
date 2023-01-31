@@ -1,3 +1,0 @@
-#!/usr/bin/env ruby
-
-puts 'Hello world from a ruby hook'

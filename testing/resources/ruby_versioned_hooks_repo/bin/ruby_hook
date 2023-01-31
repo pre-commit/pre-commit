@@ -1,4 +1,0 @@
-#!/usr/bin/env ruby
-
-puts RUBY_VERSION
-puts 'Hello world from a ruby hook'
