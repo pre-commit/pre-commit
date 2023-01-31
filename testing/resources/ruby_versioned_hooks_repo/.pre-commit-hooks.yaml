@@ -1,6 +1,0 @@
--   id: ruby_hook
-    name: Ruby Hook
-    entry: ruby_hook
-    language: ruby
-    language_version: 3.2.0
-    files: \.rb$

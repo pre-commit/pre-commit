@@ -19,7 +19,6 @@ from pre_commit.languages import golang
 from pre_commit.languages import helpers
 from pre_commit.languages import node
 from pre_commit.languages import python
-from pre_commit.languages import ruby
 from pre_commit.languages.all import languages
 from pre_commit.prefix import Prefix
 from pre_commit.repository import _hook_installed
@@ -33,7 +32,6 @@ from testing.fixtures import modify_manifest
 from testing.util import cwd
 from testing.util import get_resource_path
 from testing.util import skipif_cant_run_docker
-from testing.util import xfailif_windows
 
 
 def _norm_out(b):
@@ -225,52 +223,6 @@ def test_node_hook_with_npm_userconfig_set(tempdir_factory, store, tmpdir):
     cfg.write('cache=/dne\n')
     with mock.patch.dict(os.environ, NPM_CONFIG_USERCONFIG=str(cfg)):
         test_run_a_node_hook(tempdir_factory, store)
-
-
-def test_run_a_ruby_hook(tempdir_factory, store):
-    _test_hook_repo(
-        tempdir_factory, store, 'ruby_hooks_repo',
-        'ruby_hook', [os.devnull], b'Hello world from a ruby hook\n',
-    )
-
-
-def test_run_a_ruby_hook_with_user_install_set(tempdir_factory, store, tmpdir):
-    gemrc = tmpdir.join('gemrc')
-    gemrc.write('gem: --user-install\n')
-    with envcontext((('GEMRC', str(gemrc)),)):
-        test_run_a_ruby_hook(tempdir_factory, store)
-
-
-@xfailif_windows  # pragma: win32 no cover
-def test_run_versioned_ruby_hook(tempdir_factory, store):
-    _test_hook_repo(
-        tempdir_factory, store, 'ruby_versioned_hooks_repo',
-        'ruby_hook',
-        [os.devnull],
-        b'3.2.0\nHello world from a ruby hook\n',
-    )
-
-
-@xfailif_windows  # pragma: win32 no cover
-def test_run_ruby_hook_with_disable_shared_gems(
-        tempdir_factory,
-        store,
-        tmpdir,
-):
-    """Make sure a Gemfile in the project doesn't interfere."""
-    tmpdir.join('Gemfile').write('gem "lol_hai"')
-    tmpdir.join('.bundle').mkdir()
-    tmpdir.join('.bundle', 'config').write(
-        'BUNDLE_DISABLE_SHARED_GEMS: true\n'
-        'BUNDLE_PATH: vendor/gem\n',
-    )
-    with cwd(tmpdir.strpath):
-        _test_hook_repo(
-            tempdir_factory, store, 'ruby_versioned_hooks_repo',
-            'ruby_hook',
-            [os.devnull],
-            b'3.2.0\nHello world from a ruby hook\n',
-        )
 
 
 def test_system_hook_with_spaces(tempdir_factory, store):
@@ -528,16 +480,6 @@ def test_repository_state_compatibility(tempdir_factory, store, v):
     )
     os.remove(os.path.join(envdir, f'.install_state_{v}'))
     assert _hook_installed(hook) is True
-
-
-def test_additional_ruby_dependencies_installed(tempdir_factory, store):
-    path = make_repo(tempdir_factory, 'ruby_hooks_repo')
-    config = make_config_from_repo(path)
-    config['hooks'][0]['additional_dependencies'] = ['tins']
-    hook = _get_hook(config, store, 'ruby_hook')
-    with ruby.in_env(hook.prefix, hook.language_version):
-        output = cmd_output('gem', 'list', '--local')[1]
-        assert 'tins' in output
 
 
 def test_additional_node_dependencies_installed(tempdir_factory, store):
