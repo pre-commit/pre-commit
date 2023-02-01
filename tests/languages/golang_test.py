@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-import re
 from unittest import mock
 
 import pytest
+import re_assert
 
 import pre_commit.constants as C
 from pre_commit.languages import golang
@@ -40,4 +40,4 @@ def test_golang_infer_go_version_default():
     version = ACTUAL_INFER_GO_VERSION(C.DEFAULT)
 
     assert version != C.DEFAULT
-    assert re.match(r'^\d+\.\d+\.\d+$', version)
+    re_assert.Matches(r'^\d+\.\d+(?:\.\d+)?$').assert_matches(version)
