@@ -1,5 +1,0 @@
--   id: foo
-    name: Foo
-    entry: foo
-    language: node
-    files: \.js$
