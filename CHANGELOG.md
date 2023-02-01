@@ -1,3 +1,11 @@
+3.0.3 - 2023-02-01
+==================
+
+### Fixes
+- Revert "Prevent local `Gemfile` from interfering with hook execution.".
+    - #2739 issue by @Roguelazer.
+    - #2740 PR by @asottile.
+
 3.0.2 - 2023-01-29
 ==================
 
