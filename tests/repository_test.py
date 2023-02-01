@@ -17,7 +17,6 @@ from pre_commit.envcontext import envcontext
 from pre_commit.hook import Hook
 from pre_commit.languages import golang
 from pre_commit.languages import helpers
-from pre_commit.languages import node
 from pre_commit.languages import python
 from pre_commit.languages.all import languages
 from pre_commit.prefix import Prefix
@@ -191,38 +190,6 @@ def test_run_a_docker_image_hook(tempdir_factory, store, hook_id):
         hook_id,
         ['Hello World from docker'], b'Hello World from docker\n',
     )
-
-
-def test_run_a_node_hook(tempdir_factory, store):
-    _test_hook_repo(
-        tempdir_factory, store, 'node_hooks_repo',
-        'foo', [os.devnull], b'Hello World\n',
-    )
-
-
-def test_run_a_node_hook_default_version(tempdir_factory, store):
-    # make sure that this continues to work for platforms where node is not
-    # installed at the system
-    with mock.patch.object(
-            node,
-            'get_default_version',
-            return_value=C.DEFAULT,
-    ):
-        test_run_a_node_hook(tempdir_factory, store)
-
-
-def test_run_versioned_node_hook(tempdir_factory, store):
-    _test_hook_repo(
-        tempdir_factory, store, 'node_versioned_hooks_repo',
-        'versioned-node-hook', [os.devnull], b'v9.3.0\nHello World\n',
-    )
-
-
-def test_node_hook_with_npm_userconfig_set(tempdir_factory, store, tmpdir):
-    cfg = tmpdir.join('cfg')
-    cfg.write('cache=/dne\n')
-    with mock.patch.dict(os.environ, NPM_CONFIG_USERCONFIG=str(cfg)):
-        test_run_a_node_hook(tempdir_factory, store)
 
 
 def test_system_hook_with_spaces(tempdir_factory, store):
@@ -480,17 +447,6 @@ def test_repository_state_compatibility(tempdir_factory, store, v):
     )
     os.remove(os.path.join(envdir, f'.install_state_{v}'))
     assert _hook_installed(hook) is True
-
-
-def test_additional_node_dependencies_installed(tempdir_factory, store):
-    path = make_repo(tempdir_factory, 'node_hooks_repo')
-    config = make_config_from_repo(path)
-    # Careful to choose a small package that's not depped by npm
-    config['hooks'][0]['additional_dependencies'] = ['lodash']
-    hook = _get_hook(config, store, 'foo')
-    with node.in_env(hook.prefix, hook.language_version):
-        output = cmd_output('npm', 'ls', '-g')[1]
-        assert 'lodash' in output
 
 
 def test_additional_golang_dependencies_installed(

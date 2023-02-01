@@ -13,7 +13,9 @@ from pre_commit import envcontext
 from pre_commit import parse_shebang
 from pre_commit.languages import node
 from pre_commit.prefix import Prefix
+from pre_commit.store import _make_local_repo
 from pre_commit.util import cmd_output
+from testing.language_helpers import run_language
 from testing.util import xfailif_windows
 
 
@@ -109,3 +111,42 @@ def test_installs_without_links_outside_env(tmpdir):
 
     with node.in_env(prefix, 'system'):
         assert cmd_output('foo')[1] == 'success!\n'
+
+
+def _make_hello_world(tmp_path):
+    package_json = '''\
+{"name": "t", "version": "0.0.1", "bin": {"node-hello": "./bin/main.js"}}
+'''
+    tmp_path.joinpath('package.json').write_text(package_json)
+    bin_dir = tmp_path.joinpath('bin')
+    bin_dir.mkdir()
+    bin_dir.joinpath('main.js').write_text(
+        '#!/usr/bin/env node\n'
+        'console.log("Hello World");\n',
+    )
+
+
+def test_node_hook_system(tmp_path):
+    _make_hello_world(tmp_path)
+    ret = run_language(tmp_path, node, 'node-hello')
+    assert ret == (0, b'Hello World\n')
+
+
+def test_node_with_user_config_set(tmp_path):
+    cfg = tmp_path.joinpath('cfg')
+    cfg.write_text('cache=/dne\n')
+    with envcontext.envcontext((('NPM_CONFIG_USERCONFIG', str(cfg)),)):
+        test_node_hook_system(tmp_path)
+
+
+@pytest.mark.parametrize('version', (C.DEFAULT, '18.13.0'))
+def test_node_hook_versions(tmp_path, version):
+    _make_hello_world(tmp_path)
+    ret = run_language(tmp_path, node, 'node-hello', version=version)
+    assert ret == (0, b'Hello World\n')
+
+
+def test_node_additional_deps(tmp_path):
+    _make_local_repo(str(tmp_path))
+    ret, out = run_language(tmp_path, node, 'npm ls -g', deps=('lodash',))
+    assert b' lodash@' in out
