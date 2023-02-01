@@ -123,8 +123,9 @@ def test_ruby_hook_language_version(tmp_path):
 def test_ruby_with_bundle_disable_shared_gems(tmp_path):
     workdir = tmp_path.joinpath('workdir')
     workdir.mkdir()
-    # this Gemfile is missing `source`
-    workdir.joinpath('Gemfile').write_text('gem "lol_hai"\n')
+    # this needs a `source` or there's a deprecation warning
+    # silencing this with `BUNDLE_GEMFILE` breaks some tools (#2739)
+    workdir.joinpath('Gemfile').write_text('source ""\ngem "lol_hai"\n')
     # this bundle config causes things to be written elsewhere
     bundle = workdir.joinpath('.bundle')
     bundle.mkdir()
@@ -134,5 +135,5 @@ def test_ruby_with_bundle_disable_shared_gems(tmp_path):
     )
 
     with cwd(workdir):
-        # `3.2.0` has new enough `gem` requiring `source` and reading `.bundle`
+        # `3.2.0` has new enough `gem` reading `.bundle`
         test_ruby_hook_language_version(tmp_path)
