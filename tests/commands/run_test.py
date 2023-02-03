@@ -766,6 +766,47 @@ def test_lots_of_files(store, tempdir_factory):
         )
 
 
+def test_no_textconv(cap_out, store, repo_with_passing_hook):
+    # git textconv filters can hide changes from hooks
+    with open('.gitattributes', 'w') as fp:
+        fp.write('*.jpeg diff=empty\n')
+
+    with open('.git/config', 'a') as fp:
+        fp.write('[diff "empty"]\n')
+        fp.write('textconv = "true"\n')
+
+    config = {
+        'repo': 'local',
+        'hooks': [
+            {
+                'id': 'extend-jpeg',
+                'name': 'extend-jpeg',
+                'language': 'system',
+                'entry': (
+                    f'{shlex.quote(sys.executable)} -c "import sys; '
+                    'open(sys.argv[1], \'ab\').write(b\'\\x00\')"'
+                ),
+                'types': ['jpeg'],
+            },
+        ],
+    }
+    add_config_to_repo(repo_with_passing_hook, config)
+
+    stage_a_file('example.jpeg')
+
+    _test_run(
+        cap_out,
+        store,
+        repo_with_passing_hook,
+        {},
+        (
+            b'Failed',
+        ),
+        expected_ret=1,
+        stage=False,
+    )
+
+
 def test_stages(cap_out, store, repo_with_passing_hook):
     config = {
         'repo': 'local',

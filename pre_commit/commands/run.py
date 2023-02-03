@@ -272,7 +272,8 @@ def _all_filenames(args: argparse.Namespace) -> Collection[str]:
 
 def _get_diff() -> bytes:
     _, out, _ = cmd_output_b(
-        'git', 'diff', '--no-ext-diff', '--ignore-submodules', check=False,
+        'git', 'diff', '--no-ext-diff', '--no-textconv', '--ignore-submodules',
+        check=False,
     )
     return out
 
@@ -326,8 +327,7 @@ def _has_unmerged_paths() -> bool:
 
 def _has_unstaged_config(config_file: str) -> bool:
     retcode, _, _ = cmd_output_b(
-        'git', 'diff', '--no-ext-diff', '--exit-code', config_file,
-        check=False,
+        'git', 'diff', '--quiet', '--no-ext-diff', config_file, check=False,
     )
     # be explicit, other git errors don't mean it has an unstaged config.
     return retcode == 1
