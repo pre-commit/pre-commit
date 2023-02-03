@@ -1,3 +1,11 @@
+3.0.4 - 2023-02-03
+==================
+
+### Fixes
+- Fix hook diff detection for files affected by `--textconv`.
+    - #2743 PR by @adamchainz.
+    - #2743 issue by @adamchainz.
+
 3.0.3 - 2023-02-01
 ==================
 
