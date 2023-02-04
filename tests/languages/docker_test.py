@@ -11,6 +11,8 @@ import pytest
 
 from pre_commit.languages import docker
 from pre_commit.util import CalledProcessError
+from testing.language_helpers import run_language
+from testing.util import xfailif_windows
 
 DOCKER_CGROUP_EXAMPLE = b'''\
 12:hugetlb:/docker/c33988ec7651ebc867cb24755eaf637a6734088bc7eef59d5799293a9e5450f7
@@ -181,3 +183,15 @@ def test_get_docker_path_in_docker_docker_in_docker(in_docker):
     err = CalledProcessError(1, (), b'', b'')
     with mock.patch.object(docker, 'cmd_output_b', side_effect=err):
         assert docker._get_docker_path('/project') == '/project'
+
+
+@xfailif_windows  # pragma: win32 no cover
+def test_docker_hook(tmp_path):
+    dockerfile = '''\
+FROM ubuntu:22.04
+CMD ["echo", "This is overwritten by the entry"']
+'''
+    tmp_path.joinpath('Dockerfile').write_text(dockerfile)
+
+    ret = run_language(tmp_path, docker, 'echo hello hello world')
+    assert ret == (0, b'hello hello world\n')

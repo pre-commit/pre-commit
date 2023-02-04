@@ -1,8 +1,0 @@
--   id: echo-entrypoint
-    name: echo (via --entrypoint)
-    language: docker_image
-    entry: --entrypoint echo ubuntu:focal
--   id: echo-cmd
-    name: echo (via cmd)
-    language: docker_image
-    entry: ubuntu:focal echo

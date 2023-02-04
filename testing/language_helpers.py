@@ -20,9 +20,10 @@ def run_language(
     prefix = Prefix(str(path))
     version = version or language.get_default_version()
 
-    language.install_environment(prefix, version, deps)
-    health_error = language.health_check(prefix, version)
-    assert health_error is None, health_error
+    if language.ENVIRONMENT_DIR is not None:
+        language.install_environment(prefix, version, deps)
+        health_error = language.health_check(prefix, version)
+        assert health_error is None, health_error
     with language.in_env(prefix, version):
         ret, out = language.run_hook(
             prefix,
