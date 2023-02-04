@@ -6,22 +6,11 @@ import subprocess
 
 import pytest
 
-from pre_commit.util import CalledProcessError
 from pre_commit.util import cmd_output
-from pre_commit.util import cmd_output_b
 from testing.auto_namedtuple import auto_namedtuple
 
 
 TESTING_DIR = os.path.abspath(os.path.dirname(__file__))
-
-
-def docker_is_running() -> bool:  # pragma: win32 no cover
-    try:
-        cmd_output_b('docker', 'ps')
-    except CalledProcessError:  # pragma: no cover
-        return False
-    else:
-        return True
 
 
 def get_resource_path(path):
@@ -41,10 +30,6 @@ def cmd_output_mocked_pre_commit_home(
     return ret, out.replace('\r\n', '\n'), None
 
 
-skipif_cant_run_docker = pytest.mark.skipif(
-    os.name == 'nt' or not docker_is_running(),
-    reason="Docker isn't running or can't be accessed",
-)
 xfailif_windows = pytest.mark.xfail(os.name == 'nt', reason='windows')
 
 

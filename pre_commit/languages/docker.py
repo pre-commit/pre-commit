@@ -138,9 +138,8 @@ def run_hook(
     entry_exe, *cmd_rest = helpers.hook_cmd(entry, args)
 
     entry_tag = ('--entrypoint', entry_exe, docker_tag(prefix))
-    cmd = (*docker_cmd(), *entry_tag, *cmd_rest)
     return helpers.run_xargs(
-        cmd,
+        (*docker_cmd(), *entry_tag, *cmd_rest),
         file_args,
         require_serial=require_serial,
         color=color,

@@ -30,7 +30,6 @@ from testing.fixtures import make_repo
 from testing.fixtures import modify_manifest
 from testing.util import cwd
 from testing.util import get_resource_path
-from testing.util import skipif_cant_run_docker
 
 
 def _norm_out(b):
@@ -161,45 +160,6 @@ def test_language_versioned_python_hook(tempdir_factory, store):
             [os.devnull],
             f'3\n[{os.devnull!r}]\nHello World\n'.encode(),
         )
-
-
-@skipif_cant_run_docker  # pragma: win32 no cover
-def test_run_a_docker_hook(tempdir_factory, store):
-    _test_hook_repo(
-        tempdir_factory, store, 'docker_hooks_repo',
-        'docker-hook',
-        ['Hello World from docker'], b'Hello World from docker\n',
-    )
-
-
-@skipif_cant_run_docker  # pragma: win32 no cover
-def test_run_a_docker_hook_with_entry_args(tempdir_factory, store):
-    _test_hook_repo(
-        tempdir_factory, store, 'docker_hooks_repo',
-        'docker-hook-arg',
-        ['Hello World from docker'], b'Hello World from docker',
-    )
-
-
-@skipif_cant_run_docker  # pragma: win32 no cover
-def test_run_a_failing_docker_hook(tempdir_factory, store):
-    _test_hook_repo(
-        tempdir_factory, store, 'docker_hooks_repo',
-        'docker-hook-failing',
-        ['Hello World from docker'],
-        mock.ANY,  # an error message about `bork` not existing
-        expected_return_code=127,
-    )
-
-
-@skipif_cant_run_docker  # pragma: win32 no cover
-@pytest.mark.parametrize('hook_id', ('echo-entrypoint', 'echo-cmd'))
-def test_run_a_docker_image_hook(tempdir_factory, store, hook_id):
-    _test_hook_repo(
-        tempdir_factory, store, 'docker_image_hooks_repo',
-        hook_id,
-        ['Hello World from docker'], b'Hello World from docker\n',
-    )
 
 
 def test_system_hook_with_spaces(tempdir_factory, store):
