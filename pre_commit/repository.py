@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import shlex
 from typing import Any
 from typing import Sequence
 
@@ -67,6 +68,14 @@ def _hook_install(hook: Hook) -> None:
     logger.info(f'Installing environment for {hook.src}.')
     logger.info('Once installed this environment will be reused.')
     logger.info('This may take a few minutes...')
+
+    if hook.language == 'python_venv':
+        logger.warning(
+            f'`repo: {hook.src}` uses deprecated `language: python_venv`.  '
+            f'This is an alias for `language: python`.  '
+            f'Often `pre-commit autoupdate --repo {shlex.quote(hook.src)}` '
+            f'will fix this.',
+        )
 
     lang = languages[hook.language]
     assert lang.ENVIRONMENT_DIR is not None
