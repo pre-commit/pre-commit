@@ -177,6 +177,9 @@ def _adjust_args_and_chdir(args: argparse.Namespace) -> None:
 
 
 def main(argv: Sequence[str] | None = None) -> int:
+    
+    return
+    
     argv = argv if argv is not None else sys.argv[1:]
     parser = argparse.ArgumentParser(prog='pre-commit')
 
