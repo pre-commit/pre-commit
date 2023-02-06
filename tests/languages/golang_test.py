@@ -6,8 +6,11 @@ import pytest
 import re_assert
 
 import pre_commit.constants as C
+from pre_commit.envcontext import envcontext
 from pre_commit.languages import golang
 from pre_commit.languages import helpers
+from pre_commit.store import _make_local_repo
+from testing.language_helpers import run_language
 
 
 ACTUAL_GET_DEFAULT_VERSION = golang.get_default_version.__wrapped__
@@ -41,3 +44,93 @@ def test_golang_infer_go_version_default():
 
     assert version != C.DEFAULT
     re_assert.Matches(r'^\d+\.\d+(?:\.\d+)?$').assert_matches(version)
+
+
+def _make_hello_world(tmp_path):
+    go_mod = '''\
+module golang-hello-world
+
+go 1.18
+
+require github.com/BurntSushi/toml v1.1.0
+'''
+    go_sum = '''\
+github.com/BurntSushi/toml v1.1.0 h1:ksErzDEI1khOiGPgpwuI7x2ebx/uXQNw7xJpn9Eq1+I=
+github.com/BurntSushi/toml v1.1.0/go.mod h1:CxXYINrC8qIiEnFrOxCa7Jy5BFHlXnUU2pbicEuybxQ=
+'''  # noqa: E501
+    hello_world_go = '''\
+package main
+
+
+import (
+        "fmt"
+        "github.com/BurntSushi/toml"
+)
+
+type Config struct {
+        What string
+}
+
+func main() {
+        var conf Config
+        toml.Decode("What = 'world'\\n", &conf)
+        fmt.Printf("hello %v\\n", conf.What)
+}
+'''
+    tmp_path.joinpath('go.mod').write_text(go_mod)
+    tmp_path.joinpath('go.sum').write_text(go_sum)
+    mod_dir = tmp_path.joinpath('golang-hello-world')
+    mod_dir.mkdir()
+    main_file = mod_dir.joinpath('main.go')
+    main_file.write_text(hello_world_go)
+
+
+def test_golang_system(tmp_path):
+    _make_hello_world(tmp_path)
+
+    ret = run_language(tmp_path, golang, 'golang-hello-world')
+    assert ret == (0, b'hello world\n')
+
+
+def test_golang_default_version(tmp_path):
+    _make_hello_world(tmp_path)
+
+    ret = run_language(
+        tmp_path,
+        golang,
+        'golang-hello-world',
+        version=C.DEFAULT,
+    )
+    assert ret == (0, b'hello world\n')
+
+
+def test_golang_versioned(tmp_path):
+    _make_local_repo(str(tmp_path))
+
+    ret, out = run_language(
+        tmp_path,
+        golang,
+        'go version',
+        version='1.18.4',
+    )
+
+    assert ret == 0
+    assert out.startswith(b'go version go1.18.4')
+
+
+def test_local_golang_additional_deps(tmp_path):
+    _make_local_repo(str(tmp_path))
+
+    ret = run_language(
+        tmp_path,
+        golang,
+        'hello',
+        deps=('golang.org/x/example/hello@latest',),
+    )
+
+    assert ret == (0, b'Hello, Go examples!\n')
+
+
+def test_golang_hook_still_works_when_gobin_is_set(tmp_path):
+    with envcontext((('GOBIN', str(tmp_path.joinpath('gobin'))),)):
+        test_golang_system(tmp_path)

@@ -246,3 +246,27 @@ def test_mark_config_as_used_readonly(tmpdir):
     # should be skipped due to readonly
     store.mark_config_used(str(cfg))
     assert store.select_all_configs() == []
+
+
+def test_clone_with_recursive_submodules(store, tmp_path):
+    sub = tmp_path.joinpath('sub')
+    sub.mkdir()
+    sub.joinpath('submodule').write_text('i am a submodule')
+    cmd_output('git', '-C', str(sub), 'init', '.')
+    cmd_output('git', '-C', str(sub), 'add', '.')
+    git.commit(str(sub))
+
+    repo = tmp_path.joinpath('repo')
+    repo.mkdir()
+    repo.joinpath('repository').write_text('i am a repo')
+    cmd_output('git', '-C', str(repo), 'init', '.')
+    cmd_output('git', '-C', str(repo), 'add', '.')
+    cmd_output('git', '-C', str(repo), 'submodule', 'add', str(sub), 'sub')
+    git.commit(str(repo))
+
+    rev = git.head_rev(str(repo))
+    ret = store.clone(str(repo), rev)
+
+    assert os.path.exists(ret)
+    assert os.path.exists(os.path.join(ret, str(repo), 'repository'))
+    assert os.path.exists(os.path.join(ret, str(sub), 'submodule'))
