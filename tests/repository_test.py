@@ -10,12 +10,9 @@ import pytest
 import re_assert
 
 import pre_commit.constants as C
-from pre_commit import git
 from pre_commit.clientlib import CONFIG_SCHEMA
 from pre_commit.clientlib import load_manifest
-from pre_commit.envcontext import envcontext
 from pre_commit.hook import Hook
-from pre_commit.languages import golang
 from pre_commit.languages import helpers
 from pre_commit.languages import python
 from pre_commit.languages.all import languages
@@ -167,92 +164,6 @@ def test_system_hook_with_spaces(tempdir_factory, store):
         tempdir_factory, store, 'system_hook_with_spaces_repo',
         'system-hook-with-spaces', [os.devnull], b'Hello World\n',
     )
-
-
-def test_golang_system_hook(tempdir_factory, store):
-    _test_hook_repo(
-        tempdir_factory, store, 'golang_hooks_repo',
-        'golang-hook', ['system'], b'hello world from system\n',
-        config_kwargs={
-            'hooks': [{
-                'id': 'golang-hook',
-                'language_version': 'system',
-            }],
-        },
-    )
-
-
-def test_golang_versioned_hook(tempdir_factory, store):
-    _test_hook_repo(
-        tempdir_factory, store, 'golang_hooks_repo',
-        'golang-hook', [], b'hello world from go1.18.4\n',
-        config_kwargs={
-            'hooks': [{
-                'id': 'golang-hook',
-                'language_version': '1.18.4',
-            }],
-        },
-    )
-
-
-def test_golang_hook_still_works_when_gobin_is_set(tempdir_factory, store):
-    gobin_dir = tempdir_factory.get()
-    with envcontext((('GOBIN', gobin_dir),)):
-        test_golang_system_hook(tempdir_factory, store)
-    assert os.listdir(gobin_dir) == []
-
-
-def test_golang_with_recursive_submodule(tmpdir, tempdir_factory, store):
-    sub_go = '''\
-package sub
-
-import "fmt"
-
-func Func() {
-    fmt.Println("hello hello world")
-}
-'''
-    sub = tmpdir.join('sub').ensure_dir()
-    sub.join('sub.go').write(sub_go)
-    cmd_output('git', '-C', str(sub), 'init', '.')
-    cmd_output('git', '-C', str(sub), 'add', '.')
-    git.commit(str(sub))
-
-    pre_commit_hooks = '''\
--   id: example
-    name: example
-    entry: example
-    language: golang
-    verbose: true
-'''
-    go_mod = '''\
-module github.com/asottile/example
-
-go 1.14
-'''
-    main_go = '''\
-package main
-
-import "github.com/asottile/example/sub"
-
-func main() {
-    sub.Func()
-}
-'''
-    repo = tmpdir.join('repo').ensure_dir()
-    repo.join('.pre-commit-hooks.yaml').write(pre_commit_hooks)
-    repo.join('go.mod').write(go_mod)
-    repo.join('main.go').write(main_go)
-    cmd_output('git', '-C', str(repo), 'init', '.')
-    cmd_output('git', '-C', str(repo), 'add', '.')
-    cmd_output('git', '-C', str(repo), 'submodule', 'add', str(sub), 'sub')
-    git.commit(str(repo))
-
-    config = make_config_from_repo(str(repo))
-    hook = _get_hook(config, store, 'example')
-    ret, out = _hook_run(hook, (), color=False)
-    assert ret == 0
-    assert _norm_out(out) == b'hello hello world\n'
 
 
 def test_missing_executable(tempdir_factory, store):
@@ -417,43 +328,6 @@ def test_repository_state_compatibility(tempdir_factory, store, v):
     )
     os.remove(os.path.join(envdir, f'.install_state_{v}'))
     assert _hook_installed(hook) is True
-
-
-def test_additional_golang_dependencies_installed(
-        tempdir_factory, store,
-):
-    path = make_repo(tempdir_factory, 'golang_hooks_repo')
-    config = make_config_from_repo(path)
-    # A small go package
-    deps = ['golang.org/x/example/hello@latest']
-    config['hooks'][0]['additional_dependencies'] = deps
-    hook = _get_hook(config, store, 'golang-hook')
-    envdir = helpers.environment_dir(
-        hook.prefix,
-        golang.ENVIRONMENT_DIR,
-        golang.get_default_version(),
-    )
-    binaries = os.listdir(os.path.join(envdir, 'bin'))
-    # normalize for windows
-    binaries = [os.path.splitext(binary)[0] for binary in binaries]
-    assert 'hello' in binaries
-
-
-def test_local_golang_additional_dependencies(store):
-    config = {
-        'repo': 'local',
-        'hooks': [{
-            'id': 'hello',
-            'name': 'hello',
-            'entry': 'hello',
-            'language': 'golang',
-            'additional_dependencies': ['golang.org/x/example/hello@latest'],
-        }],
-    }
-    hook = _get_hook(config, store, 'hello')
-    ret, out = _hook_run(hook, (), color=False)
-    assert ret == 0
-    assert _norm_out(out) == b'Hello, Go examples!\n'
 
 
 def test_fail_hooks(store):
