@@ -64,10 +64,10 @@ to implement.  The current implemented languages are at varying levels:
 - 0th class - pre-commit does not require any dependencies for these languages
   as they're not actually languages (current examples: fail, pygrep)
 - 1st class - pre-commit will bootstrap a full interpreter requiring nothing to
-  be installed globally (current examples: node, ruby, rust)
+  be installed globally (current examples: go, node, ruby, rust)
 - 2nd class - pre-commit requires the user to install the language globally but
-  will install tools in an isolated fashion (current examples: python, go,
-  swift, docker).
+  will install tools in an isolated fashion (current examples: python, swift,
+  docker).
 - 3rd class - pre-commit requires the user to install both the tool and the
   language globally (current examples: script, system)
 
