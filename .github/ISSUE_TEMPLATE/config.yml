@@ -2,5 +2,7 @@ blank_issues_enabled: false
 contact_links:
 - name: documentation
   url: https://pre-commit.com
+  about: please check the docs first
 - name: pre-commit.ci issues
   url: https://github.com/pre-commit-ci/issues
+  about: please report issues about pre-commit.ci here
