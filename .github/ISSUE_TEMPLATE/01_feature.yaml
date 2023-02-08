@@ -1,0 +1,38 @@
+name: feature request
+description: something new
+body:
+  - type: markdown
+    attributes:
+      value: |
+         this is for issues for `pre-commit` (the framework).
+         if you are reporting an issue for [pre-commit.ci] please report it at [pre-commit-ci/issues]
+
+         [pre-commit.ci]: https://pre-commit.ci
+         [pre-commit-ci/issues]: https://github.com/pre-commit-ci/issues
+  - type: input
+    id: search
+    attributes:
+      label: search you tried in the issue tracker
+      placeholder: ...
+    validations:
+      required: true
+  - type: markdown
+    attributes:
+      value: |
+        95% of issues created are duplicates.
+        please try extra hard to find them first.
+        it's very unlikely your feature idea is a new one.
+  - type: textarea
+    id: freeform
+    attributes:
+      label: describe your actual problem
+      placeholder: 'I want to do ... I tried ... It does not work because ...'
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: pre-commit --version
+      placeholder: pre-commit x.x.x
+    validations:
+      required: true

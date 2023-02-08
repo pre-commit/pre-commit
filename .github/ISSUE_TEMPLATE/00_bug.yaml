@@ -16,6 +16,12 @@ body:
       placeholder: ...
     validations:
       required: true
+  - type: markdown
+    attributes:
+      value: |
+        95% of issues created are duplicates.
+        please try extra hard to find them first.
+        it's very unlikely your problem is unique.
   - type: textarea
     id: freeform
     attributes:

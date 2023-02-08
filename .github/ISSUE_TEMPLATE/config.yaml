@@ -1,0 +1,6 @@
+blank_issues_enabled: false
+contact_links:
+- name: documentation
+  url: https://pre-commit.com
+- name: pre-commit.ci issues
+  url: https://github.com/pre-commit-ci/issues
