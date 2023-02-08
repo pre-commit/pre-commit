@@ -1,9 +1,0 @@
-<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <TargetFramework>net7.0</TargetFramework>
-    <PackAsTool>true</PackAsTool>
-    <ToolCommandName>testeroni.tool</ToolCommandName>
-    <PackageOutputPath>./nupkg</PackageOutputPath>
-  </PropertyGroup>
-</Project>

@@ -109,7 +109,3 @@ def install_environment(
                     tool_id,
                 ),
             )
-
-    # Clean the git dir, ignoring the environment dir
-    clean_cmd = ('git', 'clean', '-ffxd', '-e', f'{ENVIRONMENT_DIR}-*')
-    helpers.run_setup_cmd(prefix, clean_cmd)
