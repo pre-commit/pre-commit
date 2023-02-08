@@ -625,22 +625,6 @@ def test_manifest_hooks(tempdir_factory, store):
     )
 
 
-@pytest.mark.parametrize(
-    'repo',
-    (
-        'dotnet_hooks_csproj_repo',
-        'dotnet_hooks_sln_repo',
-        'dotnet_hooks_combo_repo',
-        'dotnet_hooks_csproj_prefix_repo',
-    ),
-)
-def test_dotnet_hook(tempdir_factory, store, repo):
-    _test_hook_repo(
-        tempdir_factory, store, repo,
-        'dotnet-example-hook', [], b'Hello from dotnet!\n',
-    )
-
-
 def test_non_installable_hook_error_for_language_version(store, caplog):
     config = {
         'repo': 'local',
