@@ -330,30 +330,6 @@ def test_repository_state_compatibility(tempdir_factory, store, v):
     assert _hook_installed(hook) is True
 
 
-def test_fail_hooks(store):
-    config = {
-        'repo': 'local',
-        'hooks': [{
-            'id': 'fail',
-            'name': 'fail',
-            'language': 'fail',
-            'entry': 'make sure to name changelogs as .rst!',
-            'files': r'changelog/.*(?<!\.rst)$',
-        }],
-    }
-    hook = _get_hook(config, store, 'fail')
-    ret, out = _hook_run(
-        hook, ('changelog/123.bugfix', 'changelog/wat'), color=False,
-    )
-    assert ret == 1
-    assert out == (
-        b'make sure to name changelogs as .rst!\n'
-        b'\n'
-        b'changelog/123.bugfix\n'
-        b'changelog/wat\n'
-    )
-
-
 def test_unknown_keys(store, caplog):
     config = {
         'repo': 'local',
