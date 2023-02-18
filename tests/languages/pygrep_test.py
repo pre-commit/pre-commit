@@ -3,6 +3,7 @@ from __future__ import annotations
 import pytest
 
 from pre_commit.languages import pygrep
+from testing.language_helpers import run_language
 
 
 @pytest.fixture
@@ -13,6 +14,9 @@ def some_files(tmpdir):
     tmpdir.join('f4').write_binary(b'foo\npattern\nbar\n')
     tmpdir.join('f5').write_binary(b'[INFO] hi\npattern\nbar')
     tmpdir.join('f6').write_binary(b"pattern\nbarwith'foo\n")
+    tmpdir.join('f7').write_binary(b"hello'hi\nworld\n")
+    tmpdir.join('f8').write_binary(b'foo\nbar\nbaz\n')
+    tmpdir.join('f9').write_binary(b'[WARN] hi\n')
     with tmpdir.as_cwd():
         yield
 
@@ -125,3 +129,16 @@ def test_multiline_multiline_flag_is_enabled(cap_out):
     out = cap_out.get()
     assert ret == 1
     assert out == 'f1:1:foo\nbar\n'
+
+
+def test_grep_hook_matching(some_files, tmp_path):
+    ret = run_language(
+        tmp_path, pygrep, 'ello', file_args=('f7', 'f8', 'f9'),
+    )
+    assert ret == (1, b"f7:1:hello'hi\n")
+
+
+@pytest.mark.parametrize('regex', ('nope', "foo'bar", r'^\[INFO\]'))
+def test_grep_hook_not_matching(regex, some_files, tmp_path):
+    ret = run_language(tmp_path, pygrep, regex, file_args=('f7', 'f8', 'f9'))
+    assert ret == (0, b'')

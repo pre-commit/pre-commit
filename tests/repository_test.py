@@ -226,52 +226,6 @@ def test_output_isatty(tempdir_factory, store):
     )
 
 
-def _make_grep_repo(entry, store, args=()):
-    config = {
-        'repo': 'local',
-        'hooks': [{
-            'id': 'grep-hook',
-            'name': 'grep-hook',
-            'language': 'pygrep',
-            'entry': entry,
-            'args': args,
-            'types': ['text'],
-        }],
-    }
-    return _get_hook(config, store, 'grep-hook')
-
-
-@pytest.fixture
-def greppable_files(tmpdir):
-    with tmpdir.as_cwd():
-        cmd_output_b('git', 'init', '.')
-        tmpdir.join('f1').write_binary(b"hello'hi\nworld\n")
-        tmpdir.join('f2').write_binary(b'foo\nbar\nbaz\n')
-        tmpdir.join('f3').write_binary(b'[WARN] hi\n')
-        yield tmpdir
-
-
-def test_grep_hook_matching(greppable_files, store):
-    hook = _make_grep_repo('ello', store)
-    ret, out = _hook_run(hook, ('f1', 'f2', 'f3'), color=False)
-    assert ret == 1
-    assert _norm_out(out) == b"f1:1:hello'hi\n"
-
-
-def test_grep_hook_case_insensitive(greppable_files, store):
-    hook = _make_grep_repo('ELLO', store, args=['-i'])
-    ret, out = _hook_run(hook, ('f1', 'f2', 'f3'), color=False)
-    assert ret == 1
-    assert _norm_out(out) == b"f1:1:hello'hi\n"
-
-
-@pytest.mark.parametrize('regex', ('nope', "foo'bar", r'^\[INFO\]'))
-def test_grep_hook_not_matching(regex, greppable_files, store):
-    hook = _make_grep_repo(regex, store)
-    ret, out = _hook_run(hook, ('f1', 'f2', 'f3'), color=False)
-    assert (ret, out) == (0, b'')
-
-
 def _norm_pwd(path):
     # Under windows bash's temp and windows temp is different.
     # This normalizes to the bash /tmp
