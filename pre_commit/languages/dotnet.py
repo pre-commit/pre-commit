@@ -61,7 +61,7 @@ def install_environment(
     helpers.assert_no_additional_deps('dotnet', additional_dependencies)
 
     envdir = helpers.environment_dir(prefix, ENVIRONMENT_DIR, version)
-    build_dir = 'pre-commit-build'
+    build_dir = prefix.path('pre-commit-build')
 
     # Build & pack nupkg file
     helpers.run_setup_cmd(
@@ -69,7 +69,7 @@ def install_environment(
         (
             'dotnet', 'pack',
             '--configuration', 'Release',
-            '--output', build_dir,
+            '--property', f'PackageOutputPath={build_dir}',
         ),
     )
 
