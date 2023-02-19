@@ -15,7 +15,6 @@ from pre_commit.envcontext import UNSET
 from pre_commit.envcontext import Var
 from pre_commit.languages import helpers
 from pre_commit.prefix import Prefix
-from pre_commit.util import CalledProcessError
 from pre_commit.util import resource_bytesio
 
 ENVIRONMENT_DIR = 'rbenv'
