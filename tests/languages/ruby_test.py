@@ -37,7 +37,7 @@ def test_uses_system_if_both_gem_and_ruby_are_available(find_exe_mck):
 
 @pytest.mark.parametrize(
     'filename',
-    ('rbenv.tar.gz', 'ruby-build.tar.gz', 'ruby-download.tar.gz'),
+    ('rbenv.tar.gz', 'ruby-build.tar.gz'),
 )
 def test_archive_root_stat(filename):
     with resource_bytesio(filename) as f:
