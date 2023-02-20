@@ -2,14 +2,14 @@ from __future__ import annotations
 
 from typing import Sequence
 
-from pre_commit.languages import helpers
+from pre_commit import lang_base
 from pre_commit.prefix import Prefix
 
 ENVIRONMENT_DIR = None
-get_default_version = helpers.basic_get_default_version
-health_check = helpers.basic_health_check
-install_environment = helpers.no_install
-in_env = helpers.no_env
+get_default_version = lang_base.basic_get_default_version
+health_check = lang_base.basic_health_check
+install_environment = lang_base.no_install
+in_env = lang_base.no_env
 
 
 def run_hook(

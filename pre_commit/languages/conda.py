@@ -5,19 +5,19 @@ import os
 from typing import Generator
 from typing import Sequence
 
+from pre_commit import lang_base
 from pre_commit.envcontext import envcontext
 from pre_commit.envcontext import PatchesT
 from pre_commit.envcontext import SubstitutionT
 from pre_commit.envcontext import UNSET
 from pre_commit.envcontext import Var
-from pre_commit.languages import helpers
 from pre_commit.prefix import Prefix
 from pre_commit.util import cmd_output_b
 
 ENVIRONMENT_DIR = 'conda'
-get_default_version = helpers.basic_get_default_version
-health_check = helpers.basic_health_check
-run_hook = helpers.basic_run_hook
+get_default_version = lang_base.basic_get_default_version
+health_check = lang_base.basic_health_check
+run_hook = lang_base.basic_run_hook
 
 
 def get_env_patch(env: str) -> PatchesT:
@@ -41,7 +41,7 @@ def get_env_patch(env: str) -> PatchesT:
 
 @contextlib.contextmanager
 def in_env(prefix: Prefix, version: str) -> Generator[None, None, None]:
-    envdir = helpers.environment_dir(prefix, ENVIRONMENT_DIR, version)
+    envdir = lang_base.environment_dir(prefix, ENVIRONMENT_DIR, version)
     with envcontext(get_env_patch(envdir)):
         yield
 
@@ -60,11 +60,11 @@ def install_environment(
         version: str,
         additional_dependencies: Sequence[str],
 ) -> None:
-    helpers.assert_version_default('conda', version)
+    lang_base.assert_version_default('conda', version)
 
     conda_exe = _conda_exe()
 
-    env_dir = helpers.environment_dir(prefix, ENVIRONMENT_DIR, version)
+    env_dir = lang_base.environment_dir(prefix, ENVIRONMENT_DIR, version)
     cmd_output_b(
         conda_exe, 'env', 'create', '-p', env_dir, '--file',
         'environment.yml', cwd=prefix.prefix_dir,

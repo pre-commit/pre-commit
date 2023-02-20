@@ -7,18 +7,18 @@ import shutil
 from typing import Generator
 from typing import Sequence
 
+from pre_commit import lang_base
 from pre_commit.envcontext import envcontext
 from pre_commit.envcontext import PatchesT
 from pre_commit.envcontext import UNSET
-from pre_commit.languages import helpers
 from pre_commit.prefix import Prefix
 from pre_commit.util import cmd_output_b
 from pre_commit.util import win_exe
 
 ENVIRONMENT_DIR = 'renv'
 RSCRIPT_OPTS = ('--no-save', '--no-restore', '--no-site-file', '--no-environ')
-get_default_version = helpers.basic_get_default_version
-health_check = helpers.basic_health_check
+get_default_version = lang_base.basic_get_default_version
+health_check = lang_base.basic_health_check
 
 
 def get_env_patch(venv: str) -> PatchesT:
@@ -30,7 +30,7 @@ def get_env_patch(venv: str) -> PatchesT:
 
 @contextlib.contextmanager
 def in_env(prefix: Prefix, version: str) -> Generator[None, None, None]:
-    envdir = helpers.environment_dir(prefix, ENVIRONMENT_DIR, version)
+    envdir = lang_base.environment_dir(prefix, ENVIRONMENT_DIR, version)
     with envcontext(get_env_patch(envdir)):
         yield
 
@@ -93,7 +93,7 @@ def install_environment(
         version: str,
         additional_dependencies: Sequence[str],
 ) -> None:
-    env_dir = helpers.environment_dir(prefix, ENVIRONMENT_DIR, version)
+    env_dir = lang_base.environment_dir(prefix, ENVIRONMENT_DIR, version)
     os.makedirs(env_dir, exist_ok=True)
     shutil.copy(prefix.path('renv.lock'), env_dir)
     shutil.copytree(prefix.path('renv'), os.path.join(env_dir, 'renv'))
@@ -166,7 +166,7 @@ def run_hook(
         color: bool,
 ) -> tuple[int, bytes]:
     cmd = _cmd_from_hook(prefix, entry, args, is_local=is_local)
-    return helpers.run_xargs(
+    return lang_base.run_xargs(
         cmd,
         file_args,
         require_serial=require_serial,

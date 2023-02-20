@@ -8,11 +8,11 @@ from typing import Generator
 from typing import Sequence
 
 import pre_commit.constants as C
+from pre_commit import lang_base
 from pre_commit.envcontext import envcontext
 from pre_commit.envcontext import PatchesT
 from pre_commit.envcontext import UNSET
 from pre_commit.envcontext import Var
-from pre_commit.languages import helpers
 from pre_commit.parse_shebang import find_executable
 from pre_commit.prefix import Prefix
 from pre_commit.util import CalledProcessError
@@ -21,7 +21,7 @@ from pre_commit.util import cmd_output_b
 from pre_commit.util import win_exe
 
 ENVIRONMENT_DIR = 'py_env'
-run_hook = helpers.basic_run_hook
+run_hook = lang_base.basic_run_hook
 
 
 @functools.lru_cache(maxsize=None)
@@ -153,13 +153,13 @@ def norm_version(version: str) -> str | None:
 
 @contextlib.contextmanager
 def in_env(prefix: Prefix, version: str) -> Generator[None, None, None]:
-    envdir = helpers.environment_dir(prefix, ENVIRONMENT_DIR, version)
+    envdir = lang_base.environment_dir(prefix, ENVIRONMENT_DIR, version)
     with envcontext(get_env_patch(envdir)):
         yield
 
 
-def health_check(prefix: Prefix, language_version: str) -> str | None:
-    envdir = helpers.environment_dir(prefix, ENVIRONMENT_DIR, language_version)
+def health_check(prefix: Prefix, version: str) -> str | None:
+    envdir = lang_base.environment_dir(prefix, ENVIRONMENT_DIR, version)
     pyvenv_cfg = os.path.join(envdir, 'pyvenv.cfg')
 
     # created with "old" virtualenv
@@ -202,7 +202,7 @@ def install_environment(
         version: str,
         additional_dependencies: Sequence[str],
 ) -> None:
-    envdir = helpers.environment_dir(prefix, ENVIRONMENT_DIR, version)
+    envdir = lang_base.environment_dir(prefix, ENVIRONMENT_DIR, version)
     venv_cmd = [sys.executable, '-mvirtualenv', envdir]
     python = norm_version(version)
     if python is not None:
@@ -211,4 +211,4 @@ def install_environment(
 
     cmd_output_b(*venv_cmd, cwd='/')
     with in_env(prefix, version):
-        helpers.run_setup_cmd(prefix, install_cmd)
+        lang_base.setup_cmd(prefix, install_cmd)

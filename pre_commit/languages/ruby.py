@@ -9,23 +9,23 @@ from typing import Generator
 from typing import Sequence
 
 import pre_commit.constants as C
+from pre_commit import lang_base
 from pre_commit.envcontext import envcontext
 from pre_commit.envcontext import PatchesT
 from pre_commit.envcontext import UNSET
 from pre_commit.envcontext import Var
-from pre_commit.languages import helpers
 from pre_commit.prefix import Prefix
 from pre_commit.util import CalledProcessError
 from pre_commit.util import resource_bytesio
 
 ENVIRONMENT_DIR = 'rbenv'
-health_check = helpers.basic_health_check
-run_hook = helpers.basic_run_hook
+health_check = lang_base.basic_health_check
+run_hook = lang_base.basic_run_hook
 
 
 @functools.lru_cache(maxsize=1)
 def get_default_version() -> str:
-    if all(helpers.exe_exists(exe) for exe in ('ruby', 'gem')):
+    if all(lang_base.exe_exists(exe) for exe in ('ruby', 'gem')):
         return 'system'
     else:
         return C.DEFAULT
@@ -68,7 +68,7 @@ def get_env_patch(
 
 @contextlib.contextmanager
 def in_env(prefix: Prefix, version: str) -> Generator[None, None, None]:
-    envdir = helpers.environment_dir(prefix, ENVIRONMENT_DIR, version)
+    envdir = lang_base.environment_dir(prefix, ENVIRONMENT_DIR, version)
     with envcontext(get_env_patch(envdir, version)):
         yield
 
@@ -83,7 +83,7 @@ def _install_rbenv(
         prefix: Prefix,
         version: str,
 ) -> None:  # pragma: win32 no cover
-    envdir = helpers.environment_dir(prefix, ENVIRONMENT_DIR, version)
+    envdir = lang_base.environment_dir(prefix, ENVIRONMENT_DIR, version)
 
     _extract_resource('rbenv.tar.gz', prefix.path('.'))
     shutil.move(prefix.path('rbenv'), envdir)
@@ -100,10 +100,10 @@ def _install_ruby(
         version: str,
 ) -> None:  # pragma: win32 no cover
     try:
-        helpers.run_setup_cmd(prefix, ('rbenv', 'download', version))
+        lang_base.setup_cmd(prefix, ('rbenv', 'download', version))
     except CalledProcessError:  # pragma: no cover (usually find with download)
         # Failed to download from mirror for some reason, build it instead
-        helpers.run_setup_cmd(prefix, ('rbenv', 'install', version))
+        lang_base.setup_cmd(prefix, ('rbenv', 'install', version))
 
 
 def install_environment(
@@ -114,17 +114,17 @@ def install_environment(
         with in_env(prefix, version):
             # Need to call this before installing so rbenv's directories
             # are set up
-            helpers.run_setup_cmd(prefix, ('rbenv', 'init', '-'))
+            lang_base.setup_cmd(prefix, ('rbenv', 'init', '-'))
             if version != C.DEFAULT:
                 _install_ruby(prefix, version)
             # Need to call this after installing to set up the shims
-            helpers.run_setup_cmd(prefix, ('rbenv', 'rehash'))
+            lang_base.setup_cmd(prefix, ('rbenv', 'rehash'))
 
     with in_env(prefix, version):
-        helpers.run_setup_cmd(
+        lang_base.setup_cmd(
             prefix, ('gem', 'build', *prefix.star('.gemspec')),
         )
-        helpers.run_setup_cmd(
+        lang_base.setup_cmd(
             prefix,
             (
                 'gem', 'install',

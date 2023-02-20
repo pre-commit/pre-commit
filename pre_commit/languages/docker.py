@@ -5,16 +5,16 @@ import json
 import os
 from typing import Sequence
 
-from pre_commit.languages import helpers
+from pre_commit import lang_base
 from pre_commit.prefix import Prefix
 from pre_commit.util import CalledProcessError
 from pre_commit.util import cmd_output_b
 
 ENVIRONMENT_DIR = 'docker'
 PRE_COMMIT_LABEL = 'PRE_COMMIT'
-get_default_version = helpers.basic_get_default_version
-health_check = helpers.basic_health_check
-in_env = helpers.no_env  # no special environment for docker
+get_default_version = lang_base.basic_get_default_version
+health_check = lang_base.basic_health_check
+in_env = lang_base.no_env  # no special environment for docker
 
 
 def _is_in_docker() -> bool:
@@ -84,16 +84,16 @@ def build_docker_image(
         cmd += ('--pull',)
     # This must come last for old versions of docker.  See #477
     cmd += ('.',)
-    helpers.run_setup_cmd(prefix, cmd)
+    lang_base.setup_cmd(prefix, cmd)
 
 
 def install_environment(
         prefix: Prefix, version: str, additional_dependencies: Sequence[str],
 ) -> None:  # pragma: win32 no cover
-    helpers.assert_version_default('docker', version)
-    helpers.assert_no_additional_deps('docker', additional_dependencies)
+    lang_base.assert_version_default('docker', version)
+    lang_base.assert_no_additional_deps('docker', additional_dependencies)
 
-    directory = helpers.environment_dir(prefix, ENVIRONMENT_DIR, version)
+    directory = lang_base.environment_dir(prefix, ENVIRONMENT_DIR, version)
 
     # Docker doesn't really have relevant disk environment, but pre-commit
     # still needs to cleanup its state files on failure
@@ -135,10 +135,10 @@ def run_hook(
     # automated cleanup of docker images.
     build_docker_image(prefix, pull=False)
 
-    entry_exe, *cmd_rest = helpers.hook_cmd(entry, args)
+    entry_exe, *cmd_rest = lang_base.hook_cmd(entry, args)
 
     entry_tag = ('--entrypoint', entry_exe, docker_tag(prefix))
-    return helpers.run_xargs(
+    return lang_base.run_xargs(
         (*docker_cmd(), *entry_tag, *cmd_rest),
         file_args,
         require_serial=require_serial,
