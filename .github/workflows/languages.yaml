@@ -1,0 +1,82 @@
+name: languages
+
+on:
+  push:
+    branches: [main, test-me-*]
+    tags:
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  vars:
+    runs-on: ubuntu-latest
+    outputs:
+      languages: ${{ steps.vars.outputs.languages }}
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+    - uses: actions/setup-python@v4
+      with:
+        python-version: 3.8
+    - name: install deps
+      run: python -mpip install -e . -r requirements-dev.txt
+    - name: vars
+      run: testing/languages ${{ github.event_name == 'push' && '--all' || '' }}
+      id: vars
+  language:
+    needs: [vars]
+    runs-on: ${{ matrix.os }}
+    if: needs.vars.outputs.languages != '[]'
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.vars.outputs.languages) }}
+    steps:
+    - uses: asottile/workflows/.github/actions/fast-checkout@v1.4.0
+    - uses: actions/setup-python@v4
+      with:
+        python-version: 3.8
+
+    - run: echo "$CONDA\Scripts" >> "$GITHUB_PATH"
+      shell: bash
+      if: matrix.os == 'windows-latest' && matrix.language == 'conda'
+    - run: testing/get-coursier.sh
+      shell: bash
+      if: matrix.language == 'coursier'
+    - run: testing/get-dart.sh
+      shell: bash
+      if: matrix.language == 'dart'
+    - run: |
+        sudo apt-get update
+        sudo apt-get install -y --no-install-recommends \
+          lua5.3 \
+          liblua5.3-dev \
+          luarocks
+      if: matrix.os == 'ubuntu-latest' && matrix.language == 'lua'
+    - run: |
+        echo 'C:\Strawberry\perl\bin' >> "$GITHUB_PATH"
+        echo 'C:\Strawberry\perl\site\bin' >> "$GITHUB_PATH"
+        echo 'C:\Strawberry\c\bin' >> "$GITHUB_PATH"
+      shell: bash
+      if: matrix.os == 'windows-latest' && matrix.language == 'perl'
+    - run: testing/get-swift.sh
+      if: matrix.os == 'ubuntu-latest' && matrix.language == 'swift'
+
+    - name: install deps
+      run: python -mpip install -e . -r requirements-dev.txt
+    - name: run tests
+      run: coverage run -m pytest tests/languages/${{ matrix.language }}_test.py
+    - name: check coverage
+      run: coverage report --include pre_commit/languages/${{ matrix.language }}.py,tests/languages/${{ matrix.language }}_test.py
+  collector:
+    needs: [language]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+    - name: check for failures
+      if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
+      run: echo job failed && exit 1

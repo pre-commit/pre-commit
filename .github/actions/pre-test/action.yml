@@ -5,36 +5,5 @@ inputs:
 runs:
   using: composite
   steps:
-  - name: setup (windows)
-    shell: bash
-    if: runner.os == 'Windows'
-    run: |
-      set -x
-
-      echo 'TEMP=C:\TEMP' >> "$GITHUB_ENV"
-
-      echo "$CONDA\Scripts" >> "$GITHUB_PATH"
-
-      echo 'C:\Strawberry\perl\bin' >> "$GITHUB_PATH"
-      echo 'C:\Strawberry\perl\site\bin' >> "$GITHUB_PATH"
-      echo 'C:\Strawberry\c\bin' >> "$GITHUB_PATH"
-
-      testing/get-coursier.sh
-      testing/get-dart.sh
-  - name: setup (linux)
-    shell: bash
-    if: runner.os == 'Linux'
-    run: |
-      set -x
-
-      sudo apt-get update
-      sudo apt-get install -y --no-install-recommends \
-        lua5.3 \
-        liblua5.3-dev \
-        luarocks
-
-      testing/get-coursier.sh
-      testing/get-dart.sh
-      testing/get-swift.sh
   - uses: asottile/workflows/.github/actions/latest-git@v1.4.0
     if: inputs.env == 'py38' && runner.os == 'Linux'
