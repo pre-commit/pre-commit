@@ -12,6 +12,7 @@ from pre_commit.languages import python
 from pre_commit.prefix import Prefix
 from pre_commit.util import make_executable
 from pre_commit.util import win_exe
+from testing.language_helpers import run_language
 
 
 def test_read_pyvenv_cfg(tmpdir):
@@ -210,3 +211,25 @@ def test_unhealthy_then_replaced(python_dir):
     os.replace(f'{py_exe}.tmp', py_exe)
 
     assert python.health_check(prefix, C.DEFAULT) is None
+
+
+def test_language_versioned_python_hook(tmp_path):
+    setup_py = '''\
+from setuptools import setup
+setup(
+    name='example',
+    py_modules=['mod'],
+    entry_points={'console_scripts': ['myexe=mod:main']},
+)
+'''
+    tmp_path.joinpath('setup.py').write_text(setup_py)
+    tmp_path.joinpath('mod.py').write_text('def main(): print("ohai")')
+
+    # we patch this to force virtualenv executing with `-p` since we can't
+    # reliably have multiple pythons available in CI
+    with mock.patch.object(
+            python,
+            '_sys_executable_matches',
+            return_value=False,
+    ):
+        assert run_language(tmp_path, python, 'myexe') == (0, b'ohai\n')
