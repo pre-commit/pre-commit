@@ -7,8 +7,10 @@ import random
 import re
 import shlex
 from typing import Any
+from typing import ContextManager
 from typing import Generator
 from typing import NoReturn
+from typing import Protocol
 from typing import Sequence
 
 import pre_commit.constants as C
@@ -20,6 +22,47 @@ from pre_commit.xargs import xargs
 FIXED_RANDOM_SEED = 1542676187
 
 SHIMS_RE = re.compile(r'[/\\]shims[/\\]')
+
+
+class Language(Protocol):
+    # Use `None` for no installation / environment
+    @property
+    def ENVIRONMENT_DIR(self) -> str | None: ...
+    # return a value to replace `'default` for `language_version`
+    def get_default_version(self) -> str: ...
+    # return whether the environment is healthy (or should be rebuilt)
+    def health_check(self, prefix: Prefix, version: str) -> str | None: ...
+
+    # install a repository for the given language and language_version
+    def install_environment(
+            self,
+            prefix: Prefix,
+            version: str,
+            additional_dependencies: Sequence[str],
+    ) -> None:
+        ...
+
+    # modify the environment for hook execution
+    def in_env(
+            self,
+            prefix: Prefix,
+            version: str,
+    ) -> ContextManager[None]:
+        ...
+
+    # execute a hook and return the exit code and output
+    def run_hook(
+            self,
+            prefix: Prefix,
+            entry: str,
+            args: Sequence[str],
+            file_args: Sequence[str],
+            *,
+            is_local: bool,
+            require_serial: bool,
+            color: bool,
+    ) -> tuple[int, bytes]:
+        ...
 
 
 def exe_exists(exe: str) -> bool:
@@ -45,7 +88,7 @@ def exe_exists(exe: str) -> bool:
     )
 
 
-def run_setup_cmd(prefix: Prefix, cmd: tuple[str, ...], **kwargs: Any) -> None:
+def setup_cmd(prefix: Prefix, cmd: tuple[str, ...], **kwargs: Any) -> None:
     cmd_output_b(*cmd, cwd=prefix.prefix_dir, **kwargs)
 
 

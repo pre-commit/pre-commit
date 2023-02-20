@@ -11,19 +11,19 @@ from typing import Generator
 from typing import Sequence
 
 import pre_commit.constants as C
+from pre_commit import lang_base
 from pre_commit import parse_shebang
 from pre_commit.envcontext import envcontext
 from pre_commit.envcontext import PatchesT
 from pre_commit.envcontext import Var
-from pre_commit.languages import helpers
 from pre_commit.prefix import Prefix
 from pre_commit.util import cmd_output_b
 from pre_commit.util import make_executable
 from pre_commit.util import win_exe
 
 ENVIRONMENT_DIR = 'rustenv'
-health_check = helpers.basic_health_check
-run_hook = helpers.basic_run_hook
+health_check = lang_base.basic_health_check
+run_hook = lang_base.basic_run_hook
 
 
 @functools.lru_cache(maxsize=1)
@@ -63,7 +63,7 @@ def get_env_patch(target_dir: str, version: str) -> PatchesT:
 
 @contextlib.contextmanager
 def in_env(prefix: Prefix, version: str) -> Generator[None, None, None]:
-    envdir = helpers.environment_dir(prefix, ENVIRONMENT_DIR, version)
+    envdir = lang_base.environment_dir(prefix, ENVIRONMENT_DIR, version)
     with envcontext(get_env_patch(envdir, version)):
         yield
 
@@ -78,7 +78,7 @@ def _add_dependencies(
         crate = f'{name}@{spec or "*"}'
         crates.append(crate)
 
-    helpers.run_setup_cmd(prefix, ('cargo', 'add', *crates))
+    lang_base.setup_cmd(prefix, ('cargo', 'add', *crates))
 
 
 def install_rust_with_toolchain(toolchain: str) -> None:
@@ -116,7 +116,7 @@ def install_environment(
         version: str,
         additional_dependencies: Sequence[str],
 ) -> None:
-    envdir = helpers.environment_dir(prefix, ENVIRONMENT_DIR, version)
+    envdir = lang_base.environment_dir(prefix, ENVIRONMENT_DIR, version)
 
     # There are two cases where we might want to specify more dependencies:
     # as dependencies for the library being built, and as binary packages

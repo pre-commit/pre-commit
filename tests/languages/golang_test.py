@@ -6,9 +6,9 @@ import pytest
 import re_assert
 
 import pre_commit.constants as C
+from pre_commit import lang_base
 from pre_commit.envcontext import envcontext
 from pre_commit.languages import golang
-from pre_commit.languages import helpers
 from pre_commit.store import _make_local_repo
 from testing.language_helpers import run_language
 
@@ -18,7 +18,7 @@ ACTUAL_GET_DEFAULT_VERSION = golang.get_default_version.__wrapped__
 
 @pytest.fixture
 def exe_exists_mck():
-    with mock.patch.object(helpers, 'exe_exists') as mck:
+    with mock.patch.object(lang_base, 'exe_exists') as mck:
         yield mck
 
 

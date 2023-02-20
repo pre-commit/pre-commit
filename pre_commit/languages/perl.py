@@ -6,16 +6,16 @@ import shlex
 from typing import Generator
 from typing import Sequence
 
+from pre_commit import lang_base
 from pre_commit.envcontext import envcontext
 from pre_commit.envcontext import PatchesT
 from pre_commit.envcontext import Var
-from pre_commit.languages import helpers
 from pre_commit.prefix import Prefix
 
 ENVIRONMENT_DIR = 'perl_env'
-get_default_version = helpers.basic_get_default_version
-health_check = helpers.basic_health_check
-run_hook = helpers.basic_run_hook
+get_default_version = lang_base.basic_get_default_version
+health_check = lang_base.basic_health_check
+run_hook = lang_base.basic_run_hook
 
 
 def get_env_patch(venv: str) -> PatchesT:
@@ -34,7 +34,7 @@ def get_env_patch(venv: str) -> PatchesT:
 
 @contextlib.contextmanager
 def in_env(prefix: Prefix, version: str) -> Generator[None, None, None]:
-    envdir = helpers.environment_dir(prefix, ENVIRONMENT_DIR, version)
+    envdir = lang_base.environment_dir(prefix, ENVIRONMENT_DIR, version)
     with envcontext(get_env_patch(envdir)):
         yield
 
@@ -42,9 +42,9 @@ def in_env(prefix: Prefix, version: str) -> Generator[None, None, None]:
 def install_environment(
         prefix: Prefix, version: str, additional_dependencies: Sequence[str],
 ) -> None:
-    helpers.assert_version_default('perl', version)
+    lang_base.assert_version_default('perl', version)
 
     with in_env(prefix, version):
-        helpers.run_setup_cmd(
+        lang_base.setup_cmd(
             prefix, ('cpan', '-T', '.', *additional_dependencies),
         )

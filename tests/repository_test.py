@@ -10,12 +10,12 @@ import pytest
 import re_assert
 
 import pre_commit.constants as C
+from pre_commit import lang_base
+from pre_commit.all_languages import languages
 from pre_commit.clientlib import CONFIG_SCHEMA
 from pre_commit.clientlib import load_manifest
 from pre_commit.hook import Hook
-from pre_commit.languages import helpers
 from pre_commit.languages import python
-from pre_commit.languages.all import languages
 from pre_commit.prefix import Prefix
 from pre_commit.repository import _hook_installed
 from pre_commit.repository import all_hooks
@@ -275,7 +275,7 @@ def test_repository_state_compatibility(tempdir_factory, store, v):
 
     config = make_config_from_repo(path)
     hook = _get_hook(config, store, 'foo')
-    envdir = helpers.environment_dir(
+    envdir = lang_base.environment_dir(
         hook.prefix,
         python.ENVIRONMENT_DIR,
         hook.language_version,
@@ -327,7 +327,7 @@ def test_control_c_control_c_on_install(tempdir_factory, store):
     # raise as well.
     with pytest.raises(MyKeyboardInterrupt):
         with mock.patch.object(
-            helpers, 'run_setup_cmd', side_effect=MyKeyboardInterrupt,
+            lang_base, 'setup_cmd', side_effect=MyKeyboardInterrupt,
         ):
             with mock.patch.object(
                 shutil, 'rmtree', side_effect=MyKeyboardInterrupt,
@@ -336,7 +336,7 @@ def test_control_c_control_c_on_install(tempdir_factory, store):
 
     # Should have made an environment, however this environment is broken!
     hook, = hooks
-    envdir = helpers.environment_dir(
+    envdir = lang_base.environment_dir(
         hook.prefix,
         python.ENVIRONMENT_DIR,
         hook.language_version,
@@ -359,7 +359,7 @@ def test_invalidated_virtualenv(tempdir_factory, store):
     hook = _get_hook(config, store, 'foo')
 
     # Simulate breaking of the virtualenv
-    envdir = helpers.environment_dir(
+    envdir = lang_base.environment_dir(
         hook.prefix,
         python.ENVIRONMENT_DIR,
         hook.language_version,

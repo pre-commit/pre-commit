@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 from typing import Sequence
 
-from pre_commit.languages.all import Language
+from pre_commit.lang_base import Language
 from pre_commit.prefix import Prefix
 
 

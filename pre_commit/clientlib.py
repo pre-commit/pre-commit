@@ -12,8 +12,8 @@ import cfgv
 from identify.identify import ALL_TAGS
 
 import pre_commit.constants as C
+from pre_commit.all_languages import language_names
 from pre_commit.errors import FatalError
-from pre_commit.languages.all import all_languages
 from pre_commit.yaml import yaml_load
 
 logger = logging.getLogger('pre_commit')
@@ -49,7 +49,7 @@ MANIFEST_HOOK_DICT = cfgv.Map(
     cfgv.Required('id', cfgv.check_string),
     cfgv.Required('name', cfgv.check_string),
     cfgv.Required('entry', cfgv.check_string),
-    cfgv.Required('language', cfgv.check_one_of(all_languages)),
+    cfgv.Required('language', cfgv.check_one_of(language_names)),
     cfgv.Optional('alias', cfgv.check_string, ''),
 
     cfgv.Optional('files', check_string_regex, ''),
@@ -281,8 +281,8 @@ CONFIG_REPO_DICT = cfgv.Map(
 )
 DEFAULT_LANGUAGE_VERSION = cfgv.Map(
     'DefaultLanguageVersion', None,
-    cfgv.NoAdditionalKeys(all_languages),
-    *(cfgv.Optional(x, cfgv.check_string, C.DEFAULT) for x in all_languages),
+    cfgv.NoAdditionalKeys(language_names),
+    *(cfgv.Optional(x, cfgv.check_string, C.DEFAULT) for x in language_names),
 )
 CONFIG_SCHEMA = cfgv.Map(
     'Config', None,

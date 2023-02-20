@@ -6,17 +6,17 @@ import sys
 from typing import Generator
 from typing import Sequence
 
+from pre_commit import lang_base
 from pre_commit.envcontext import envcontext
 from pre_commit.envcontext import PatchesT
 from pre_commit.envcontext import Var
-from pre_commit.languages import helpers
 from pre_commit.prefix import Prefix
 from pre_commit.util import cmd_output
 
 ENVIRONMENT_DIR = 'lua_env'
-get_default_version = helpers.basic_get_default_version
-health_check = helpers.basic_health_check
-run_hook = helpers.basic_run_hook
+get_default_version = lang_base.basic_get_default_version
+health_check = lang_base.basic_health_check
+run_hook = lang_base.basic_run_hook
 
 
 def _get_lua_version() -> str:  # pragma: win32 no cover
@@ -45,7 +45,7 @@ def get_env_patch(d: str) -> PatchesT:  # pragma: win32 no cover
 
 @contextlib.contextmanager  # pragma: win32 no cover
 def in_env(prefix: Prefix, version: str) -> Generator[None, None, None]:
-    envdir = helpers.environment_dir(prefix, ENVIRONMENT_DIR, version)
+    envdir = lang_base.environment_dir(prefix, ENVIRONMENT_DIR, version)
     with envcontext(get_env_patch(envdir)):
         yield
 
@@ -55,9 +55,9 @@ def install_environment(
     version: str,
     additional_dependencies: Sequence[str],
 ) -> None:  # pragma: win32 no cover
-    helpers.assert_version_default('lua', version)
+    lang_base.assert_version_default('lua', version)
 
-    envdir = helpers.environment_dir(prefix, ENVIRONMENT_DIR, version)
+    envdir = lang_base.environment_dir(prefix, ENVIRONMENT_DIR, version)
     with in_env(prefix, version):
         # luarocks doesn't bootstrap a tree prior to installing
         # so ensure the directory exists.
@@ -66,10 +66,10 @@ def install_environment(
         # Older luarocks (e.g., 2.4.2) expect the rockspec as an arg
         for rockspec in prefix.star('.rockspec'):
             make_cmd = ('luarocks', '--tree', envdir, 'make', rockspec)
-            helpers.run_setup_cmd(prefix, make_cmd)
+            lang_base.setup_cmd(prefix, make_cmd)
 
         # luarocks can't install multiple packages at once
         # so install them individually.
         for dependency in additional_dependencies:
             cmd = ('luarocks', '--tree', envdir, 'install', dependency)
-            helpers.run_setup_cmd(prefix, cmd)
+            lang_base.setup_cmd(prefix, cmd)

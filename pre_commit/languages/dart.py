@@ -7,19 +7,19 @@ import tempfile
 from typing import Generator
 from typing import Sequence
 
+from pre_commit import lang_base
 from pre_commit.envcontext import envcontext
 from pre_commit.envcontext import PatchesT
 from pre_commit.envcontext import Var
-from pre_commit.languages import helpers
 from pre_commit.prefix import Prefix
 from pre_commit.util import win_exe
 from pre_commit.yaml import yaml_load
 
 ENVIRONMENT_DIR = 'dartenv'
 
-get_default_version = helpers.basic_get_default_version
-health_check = helpers.basic_health_check
-run_hook = helpers.basic_run_hook
+get_default_version = lang_base.basic_get_default_version
+health_check = lang_base.basic_health_check
+run_hook = lang_base.basic_run_hook
 
 
 def get_env_patch(venv: str) -> PatchesT:
@@ -30,7 +30,7 @@ def get_env_patch(venv: str) -> PatchesT:
 
 @contextlib.contextmanager
 def in_env(prefix: Prefix, version: str) -> Generator[None, None, None]:
-    envdir = helpers.environment_dir(prefix, ENVIRONMENT_DIR, version)
+    envdir = lang_base.environment_dir(prefix, ENVIRONMENT_DIR, version)
     with envcontext(get_env_patch(envdir)):
         yield
 
@@ -40,9 +40,9 @@ def install_environment(
         version: str,
         additional_dependencies: Sequence[str],
 ) -> None:
-    helpers.assert_version_default('dart', version)
+    lang_base.assert_version_default('dart', version)
 
-    envdir = helpers.environment_dir(prefix, ENVIRONMENT_DIR, version)
+    envdir = lang_base.environment_dir(prefix, ENVIRONMENT_DIR, version)
     bin_dir = os.path.join(envdir, 'bin')
 
     def _install_dir(prefix_p: Prefix, pub_cache: str) -> None:
@@ -51,10 +51,10 @@ def install_environment(
         with open(prefix_p.path('pubspec.yaml')) as f:
             pubspec_contents = yaml_load(f)
 
-        helpers.run_setup_cmd(prefix_p, ('dart', 'pub', 'get'), env=dart_env)
+        lang_base.setup_cmd(prefix_p, ('dart', 'pub', 'get'), env=dart_env)
 
         for executable in pubspec_contents['executables']:
-            helpers.run_setup_cmd(
+            lang_base.setup_cmd(
                 prefix_p,
                 (
                     'dart', 'compile', 'exe',
@@ -77,7 +77,7 @@ def install_environment(
             else:
                 dep_cmd = (dep,)
 
-            helpers.run_setup_cmd(
+            lang_base.setup_cmd(
                 prefix,
                 ('dart', 'pub', 'cache', 'add', *dep_cmd),
                 env={**os.environ, 'PUB_CACHE': dep_tmp},

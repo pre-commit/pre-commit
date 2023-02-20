@@ -19,17 +19,17 @@ from typing import Protocol
 from typing import Sequence
 
 import pre_commit.constants as C
+from pre_commit import lang_base
 from pre_commit.envcontext import envcontext
 from pre_commit.envcontext import PatchesT
 from pre_commit.envcontext import Var
-from pre_commit.languages import helpers
 from pre_commit.prefix import Prefix
 from pre_commit.util import cmd_output
 from pre_commit.util import rmtree
 
 ENVIRONMENT_DIR = 'golangenv'
-health_check = helpers.basic_health_check
-run_hook = helpers.basic_run_hook
+health_check = lang_base.basic_health_check
+run_hook = lang_base.basic_run_hook
 
 _ARCH_ALIASES = {
     'x86_64': 'amd64',
@@ -60,7 +60,7 @@ else:  # pragma: win32 no cover
 
 @functools.lru_cache(maxsize=1)
 def get_default_version() -> str:
-    if helpers.exe_exists('go'):
+    if lang_base.exe_exists('go'):
         return 'system'
     else:
         return C.DEFAULT
@@ -121,7 +121,7 @@ def _install_go(version: str, dest: str) -> None:
 
 @contextlib.contextmanager
 def in_env(prefix: Prefix, version: str) -> Generator[None, None, None]:
-    envdir = helpers.environment_dir(prefix, ENVIRONMENT_DIR, version)
+    envdir = lang_base.environment_dir(prefix, ENVIRONMENT_DIR, version)
     with envcontext(get_env_patch(envdir, version)):
         yield
 
@@ -131,7 +131,7 @@ def install_environment(
         version: str,
         additional_dependencies: Sequence[str],
 ) -> None:
-    env_dir = helpers.environment_dir(prefix, ENVIRONMENT_DIR, version)
+    env_dir = lang_base.environment_dir(prefix, ENVIRONMENT_DIR, version)
 
     if version != 'system':
         _install_go(version, env_dir)
@@ -149,9 +149,9 @@ def install_environment(
             os.path.join(env_dir, '.go', 'bin'), os.environ['PATH'],
         ))
 
-    helpers.run_setup_cmd(prefix, ('go', 'install', './...'), env=env)
+    lang_base.setup_cmd(prefix, ('go', 'install', './...'), env=env)
     for dependency in additional_dependencies:
-        helpers.run_setup_cmd(prefix, ('go', 'install', dependency), env=env)
+        lang_base.setup_cmd(prefix, ('go', 'install', dependency), env=env)
 
     # save some disk space -- we don't need this after installation
     pkgdir = os.path.join(env_dir, 'pkg')
