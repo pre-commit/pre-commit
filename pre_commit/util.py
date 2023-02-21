@@ -12,7 +12,6 @@ from types import TracebackType
 from typing import Any
 from typing import Callable
 from typing import Generator
-from typing import IO
 
 from pre_commit import parse_shebang
 
@@ -34,10 +33,6 @@ def clean_path_on_failure(path: str) -> Generator[None, None, None]:
         if os.path.exists(path):
             rmtree(path)
         raise
-
-
-def resource_bytesio(filename: str) -> IO[bytes]:
-    return importlib.resources.open_binary('pre_commit.resources', filename)
 
 
 def resource_text(filename: str) -> str:

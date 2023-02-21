@@ -2,10 +2,12 @@ from __future__ import annotations
 
 import contextlib
 import functools
+import importlib.resources
 import os.path
 import shutil
 import tarfile
 from typing import Generator
+from typing import IO
 from typing import Sequence
 
 import pre_commit.constants as C
@@ -16,11 +18,14 @@ from pre_commit.envcontext import UNSET
 from pre_commit.envcontext import Var
 from pre_commit.prefix import Prefix
 from pre_commit.util import CalledProcessError
-from pre_commit.util import resource_bytesio
 
 ENVIRONMENT_DIR = 'rbenv'
 health_check = lang_base.basic_health_check
 run_hook = lang_base.basic_run_hook
+
+
+def _resource_bytesio(filename: str) -> IO[bytes]:
+    return importlib.resources.open_binary('pre_commit.resources', filename)
 
 
 @functools.lru_cache(maxsize=1)
@@ -74,7 +79,7 @@ def in_env(prefix: Prefix, version: str) -> Generator[None, None, None]:
 
 
 def _extract_resource(filename: str, dest: str) -> None:
-    with resource_bytesio(filename) as bio:
+    with _resource_bytesio(filename) as bio:
         with tarfile.open(fileobj=bio) as tf:
             tf.extractall(dest)
 
