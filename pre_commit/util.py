@@ -62,7 +62,7 @@ class CalledProcessError(RuntimeError):
     def __bytes__(self) -> bytes:
         def _indent_or_none(part: bytes | None) -> bytes:
             if part:
-                return b'\n    ' + part.replace(b'\n', b'\n    ')
+                return b'\n    ' + part.replace(b'\n', b'\n    ').rstrip()
             else:
                 return b' (none)'
 
