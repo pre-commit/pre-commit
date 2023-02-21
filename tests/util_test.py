@@ -16,7 +16,7 @@ from pre_commit.util import rmtree
 
 
 def test_CalledProcessError_str():
-    error = CalledProcessError(1, ('exe',), b'output', b'errors')
+    error = CalledProcessError(1, ('exe',), b'output\n', b'errors\n')
     assert str(error) == (
         "command: ('exe',)\n"
         'return code: 1\n'

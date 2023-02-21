@@ -425,9 +425,7 @@ def test_failed_diff_does_not_discard_changes(in_git_dir, patch_dir):
         r'stdout: \(none\)\n'
         r'stderr:\n'
         r'    error: open\("1"\): Permission denied\n'
-        r'    fatal: cannot hash 1\n'
-        # TODO: not sure why there's weird whitespace here
-        r'    $',
+        r'    fatal: cannot hash 1$',
     ).assert_matches(msg)
 
     # even though it errored, the unstaged changes should still be present
