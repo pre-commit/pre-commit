@@ -25,25 +25,24 @@ from pre_commit.util import cmd_output_b
 from testing.fixtures import make_config_from_repo
 from testing.fixtures import make_repo
 from testing.fixtures import modify_manifest
+from testing.language_helpers import run_language
 from testing.util import cwd
 from testing.util import get_resource_path
 
 
-def _norm_out(b):
-    return b.replace(b'\r\n', b'\n')
-
-
 def _hook_run(hook, filenames, color):
-    with languages[hook.language].in_env(hook.prefix, hook.language_version):
-        return languages[hook.language].run_hook(
-            hook.prefix,
-            hook.entry,
-            hook.args,
-            filenames,
-            is_local=hook.src == 'local',
-            require_serial=hook.require_serial,
-            color=color,
-        )
+    return run_language(
+        path=hook.prefix.prefix_dir,
+        language=languages[hook.language],
+        exe=hook.entry,
+        args=hook.args,
+        file_args=filenames,
+        version=hook.language_version,
+        deps=hook.additional_dependencies,
+        is_local=hook.src == 'local',
+        require_serial=hook.require_serial,
+        color=color,
+    )
 
 
 def _get_hook_no_install(repo_config, store, hook_id):
@@ -77,7 +76,7 @@ def _test_hook_repo(
     hook = _get_hook(config, store, hook_id)
     ret, out = _hook_run(hook, args, color=color)
     assert ret == expected_return_code
-    assert _norm_out(out) == expected
+    assert out == expected
 
 
 def test_python_hook(tempdir_factory, store):
@@ -425,7 +424,7 @@ def test_local_python_repo(store, local_python_config):
     assert hook.language_version != C.DEFAULT
     ret, out = _hook_run(hook, ('filename',), color=False)
     assert ret == 0
-    assert _norm_out(out) == b"['filename']\nHello World\n"
+    assert out == b"['filename']\nHello World\n"
 
 
 def test_default_language_version(store, local_python_config):

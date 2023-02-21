@@ -16,6 +16,8 @@ def run_language(
         version: str | None = None,
         deps: Sequence[str] = (),
         is_local: bool = False,
+        require_serial: bool = True,
+        color: bool = False,
 ) -> tuple[int, bytes]:
     prefix = Prefix(str(path))
     version = version or language.get_default_version()
@@ -31,8 +33,8 @@ def run_language(
             args,
             file_args,
             is_local=is_local,
-            require_serial=True,
-            color=False,
+            require_serial=require_serial,
+            color=color,
         )
         out = out.replace(b'\r\n', b'\n')
         return ret, out
