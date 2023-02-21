@@ -7,6 +7,7 @@ import time
 from typing import Generator
 
 from pre_commit import git
+from pre_commit.errors import FatalError
 from pre_commit.util import CalledProcessError
 from pre_commit.util import cmd_output
 from pre_commit.util import cmd_output_b
@@ -49,12 +50,16 @@ def _intent_to_add_cleared() -> Generator[None, None, None]:
 @contextlib.contextmanager
 def _unstaged_changes_cleared(patch_dir: str) -> Generator[None, None, None]:
     tree = cmd_output('git', 'write-tree')[1].strip()
-    retcode, diff_stdout_binary, _ = cmd_output_b(
+    diff_cmd = (
         'git', 'diff-index', '--ignore-submodules', '--binary',
         '--exit-code', '--no-color', '--no-ext-diff', tree, '--',
-        check=False,
     )
-    if retcode and diff_stdout_binary.strip():
+    retcode, diff_stdout, diff_stderr = cmd_output_b(*diff_cmd, check=False)
+    if retcode == 0:
+        # There weren't any staged files so we don't need to do anything
+        # special
+        yield
+    elif retcode == 1 and diff_stdout.strip():
         patch_filename = f'patch{int(time.time())}-{os.getpid()}'
         patch_filename = os.path.join(patch_dir, patch_filename)
         logger.warning('Unstaged files detected.')
@@ -62,7 +67,7 @@ def _unstaged_changes_cleared(patch_dir: str) -> Generator[None, None, None]:
         # Save the current unstaged changes as a patch
         os.makedirs(patch_dir, exist_ok=True)
         with open(patch_filename, 'wb') as patch_file:
-            patch_file.write(diff_stdout_binary)
+            patch_file.write(diff_stdout)
 
         # prevent recursive post-checkout hooks (#1418)
         no_checkout_env = dict(os.environ, _PRE_COMMIT_SKIP_POST_CHECKOUT='1')
@@ -86,10 +91,12 @@ def _unstaged_changes_cleared(patch_dir: str) -> Generator[None, None, None]:
                 _git_apply(patch_filename)
 
             logger.info(f'Restored changes from {patch_filename}.')
-    else:
-        # There weren't any staged files so we don't need to do anything
-        # special
-        yield
+    else:  # pragma: win32 no cover
+        # some error occurred while requesting the diff
+        e = CalledProcessError(retcode, diff_cmd, b'', diff_stderr)
+        raise FatalError(
+            f'pre-commit failed to diff -- perhaps due to permissions?\n\n{e}',
+        )
 
 
 @contextlib.contextmanager

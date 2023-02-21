@@ -1,12 +1,15 @@
 from __future__ import annotations
 
+import contextlib
 import itertools
 import os.path
 import shutil
 
 import pytest
+import re_assert
 
 from pre_commit import git
+from pre_commit.errors import FatalError
 from pre_commit.staged_files_only import staged_files_only
 from pre_commit.util import cmd_output
 from testing.auto_namedtuple import auto_namedtuple
@@ -14,6 +17,7 @@ from testing.fixtures import git_dir
 from testing.util import cwd
 from testing.util import get_resource_path
 from testing.util import git_commit
+from testing.util import xfailif_windows
 
 
 FOO_CONTENTS = '\n'.join(('1', '2', '3', '4', '5', '6', '7', '8', ''))
@@ -382,3 +386,51 @@ def test_intent_to_add(in_git_dir, patch_dir):
     with staged_files_only(patch_dir):
         assert_no_diff()
     assert git.intent_to_add_files() == ['foo']
+
+
+@contextlib.contextmanager
+def _unreadable(f):
+    orig = os.stat(f).st_mode
+    os.chmod(f, 0o000)
+    try:
+        yield
+    finally:
+        os.chmod(f, orig)
+
+
+@xfailif_windows  # pragma: win32 no cover
+def test_failed_diff_does_not_discard_changes(in_git_dir, patch_dir):
+    # stage 3 files
+    for i in range(3):
+        with open(str(i), 'w') as f:
+            f.write(str(i))
+    cmd_output('git', 'add', '0', '1', '2')
+
+    # modify all of their contents
+    for i in range(3):
+        with open(str(i), 'w') as f:
+            f.write('new contents')
+
+    with _unreadable('1'):
+        with pytest.raises(FatalError) as excinfo:
+            with staged_files_only(patch_dir):
+                raise AssertionError('should have errored on enter')
+
+    # the diff command failed to produce a diff of `1`
+    msg, = excinfo.value.args
+    re_assert.Matches(
+        r'^pre-commit failed to diff -- perhaps due to permissions\?\n\n'
+        r'command: .*\n'
+        r'return code: 128\n'
+        r'stdout: \(none\)\n'
+        r'stderr:\n'
+        r'    error: open\("1"\): Permission denied\n'
+        r'    fatal: cannot hash 1\n'
+        # TODO: not sure why there's weird whitespace here
+        r'    $',
+    ).assert_matches(msg)
+
+    # even though it errored, the unstaged changes should still be present
+    for i in range(3):
+        with open(str(i)) as f:
+            assert f.read() == 'new contents'
