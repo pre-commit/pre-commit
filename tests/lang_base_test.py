@@ -82,6 +82,21 @@ def test_failed_setup_command_does_not_unicode_error():
         lang_base.setup_cmd(Prefix('.'), (sys.executable, '-c', script))
 
 
+def test_environment_dir(tmp_path):
+    ret = lang_base.environment_dir(Prefix(tmp_path), 'langenv', 'default')
+    assert ret == f'{tmp_path}{os.sep}langenv-default'
+
+
+def test_assert_version_default():
+    with pytest.raises(AssertionError) as excinfo:
+        lang_base.assert_version_default('lang', '1.2.3')
+    msg, = excinfo.value.args
+    assert msg == (
+        'for now, pre-commit requires system-installed lang -- '
+        'you selected `language_version: 1.2.3`'
+    )
+
+
 def test_assert_no_additional_deps():
     with pytest.raises(AssertionError) as excinfo:
         lang_base.assert_no_additional_deps('lang', ['hmmm'])
@@ -91,6 +106,14 @@ def test_assert_no_additional_deps():
         'lang -- '
         "you selected `additional_dependencies: ['hmmm']`"
     )
+
+
+def test_no_env_noop(tmp_path):
+    before = os.environ.copy()
+    with lang_base.no_env(Prefix(tmp_path), '1.2.3'):
+        inside = os.environ.copy()
+    after = os.environ.copy()
+    assert before == inside == after
 
 
 def test_target_concurrency_normal():
@@ -133,3 +156,18 @@ def test_xargs_require_serial_is_not_shuffled():
     )
     assert ret == 0
     assert out.strip() == b'0 1 2 3 4 5 6 7 8 9'
+
+
+def test_basic_run_hook(tmp_path):
+    ret, out = lang_base.basic_run_hook(
+        Prefix(tmp_path),
+        'echo hi',
+        ['hello'],
+        ['file', 'file', 'file'],
+        is_local=False,
+        require_serial=False,
+        color=False,
+    )
+    assert ret == 0
+    out = out.replace(b'\r\n', b'\n')
+    assert out == b'hi hello file file file\n'
