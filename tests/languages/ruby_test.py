@@ -9,8 +9,8 @@ import pre_commit.constants as C
 from pre_commit import parse_shebang
 from pre_commit.envcontext import envcontext
 from pre_commit.languages import ruby
+from pre_commit.languages.ruby import _resource_bytesio
 from pre_commit.store import _make_local_repo
-from pre_commit.util import resource_bytesio
 from testing.language_helpers import run_language
 from testing.util import cwd
 from testing.util import xfailif_windows
@@ -40,7 +40,7 @@ def test_uses_system_if_both_gem_and_ruby_are_available(find_exe_mck):
     ('rbenv.tar.gz', 'ruby-build.tar.gz', 'ruby-download.tar.gz'),
 )
 def test_archive_root_stat(filename):
-    with resource_bytesio(filename) as f:
+    with _resource_bytesio(filename) as f:
         with tarfile.open(fileobj=f) as tarf:
             root, _, _ = filename.partition('.')
             assert oct(tarf.getmember(root).mode) == '0o755'
