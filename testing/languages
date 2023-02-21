@@ -1,0 +1,79 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import argparse
+import concurrent.futures
+import json
+import os.path
+import subprocess
+import sys
+
+EXCLUDED = frozenset((
+    ('windows-latest', 'docker'),
+    ('windows-latest', 'docker_image'),
+    ('windows-latest', 'lua'),
+    ('windows-latest', 'swift'),
+))
+
+
+def _lang_files(lang: str) -> frozenset[str]:
+    prog = f'''\
+import json
+import os.path
+import sys
+
+import pre_commit.languages.{lang}
+import tests.languages.{lang}_test
+
+modules = sorted(
+    os.path.relpath(v.__file__)
+    for k, v in sys.modules.items()
+    if k.startswith(('pre_commit.', 'tests.', 'testing.'))
+)
+print(json.dumps(modules))
+'''
+    out = json.loads(subprocess.check_output((sys.executable, '-c', prog)))
+    return frozenset(out)
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--all', action='store_true')
+    args = parser.parse_args()
+
+    langs = [
+        os.path.splitext(fname)[0]
+        for fname in sorted(os.listdir('pre_commit/languages'))
+        if fname.endswith('.py') and fname != '__init__.py'
+    ]
+
+    if not args.all:
+        with concurrent.futures.ThreadPoolExecutor(os.cpu_count()) as exe:
+            by_lang = {
+                lang: files
+                for lang, files in zip(langs, exe.map(_lang_files, langs))
+            }
+
+        diff_cmd = ('git', 'diff', '--name-only', 'origin/main...HEAD')
+        files = set(subprocess.check_output(diff_cmd).decode().splitlines())
+
+        langs = [
+            lang
+            for lang, lang_files in by_lang.items()
+            if lang_files & files
+        ]
+
+    matched = [
+        {'os': os, 'language': lang}
+        for os in ('windows-latest', 'ubuntu-latest')
+        for lang in langs
+        if (os, lang) not in EXCLUDED
+    ]
+
+    with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+        f.write(f'languages={json.dumps(matched)}\n')
+    return 0
+
+
+if __name__ == '__main__':
+    raise SystemExit(main())
