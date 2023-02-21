@@ -43,12 +43,7 @@ class Language(Protocol):
         ...
 
     # modify the environment for hook execution
-    def in_env(
-            self,
-            prefix: Prefix,
-            version: str,
-    ) -> ContextManager[None]:
-        ...
+    def in_env(self, prefix: Prefix, version: str) -> ContextManager[None]: ...
 
     # execute a hook and return the exit code and output
     def run_hook(
