@@ -1,3 +1,21 @@
+3.1.0 - 2023-02-22
+==================
+
+### Fixes
+- Fix `dotnet` for `.sln`-based hooks for dotnet>=7.0.200.
+    - #2763 PR by @m-rsha.
+- Prevent stashing when `diff` fails to execute.
+    - #2774 PR by @asottile.
+    - #2773 issue by @strubbly.
+- Dependencies are no longer sorted in repository key.
+    - #2776 PR by @asottile.
+
+### Updating
+- Deprecate `language: python_venv`.  Use `language: python` instead.
+    - #2746 PR by @asottile.
+    - #2734 issue by @asottile.
+
+
 3.0.4 - 2023-02-03
 ==================
 
