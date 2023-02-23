@@ -125,7 +125,7 @@ class Store:
     @classmethod
     def db_repo_name(cls, repo: str, deps: Sequence[str]) -> str:
         if deps:
-            return f'{repo}:{",".join(sorted(deps))}'
+            return f'{repo}:{",".join(deps)}'
         else:
             return repo
 

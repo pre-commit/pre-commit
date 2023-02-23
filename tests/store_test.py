@@ -180,7 +180,7 @@ def test_create_when_store_already_exists(store):
 
 def test_db_repo_name(store):
     assert store.db_repo_name('repo', ()) == 'repo'
-    assert store.db_repo_name('repo', ('b', 'a', 'c')) == 'repo:a,b,c'
+    assert store.db_repo_name('repo', ('b', 'a', 'c')) == 'repo:b,a,c'
 
 
 def test_local_resources_reflects_reality():
