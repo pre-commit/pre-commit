@@ -33,7 +33,7 @@ def _state_filename_v2(venv: str) -> str:
 
 
 def _state(additional_deps: Sequence[str]) -> object:
-    return {'additional_dependencies': sorted(additional_deps)}
+    return {'additional_dependencies': additional_deps}
 
 
 def _read_state(venv: str) -> object | None:
