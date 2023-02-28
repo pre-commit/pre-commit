@@ -1,3 +1,11 @@
+3.1.1 - 2023-02-27
+==================
+
+### Fixes
+- Fix `rust` with `language_version` and a non-writable host `RUSTUP_HOME`.
+    - pre-commit-ci/issues#173 by @Swiftb0y.
+    - #2788 by @asottile.
+
 3.1.0 - 2023-02-22
 ==================
 
