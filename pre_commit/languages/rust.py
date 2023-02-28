@@ -142,9 +142,14 @@ def install_environment(
         else:
             packages_to_install.add((package,))
 
-    with in_env(prefix, version):
+    with contextlib.ExitStack() as ctx:
+        ctx.enter_context(in_env(prefix, version))
+
         if version != 'system':
             install_rust_with_toolchain(_rust_toolchain(version))
+
+            tmpdir = ctx.enter_context(tempfile.TemporaryDirectory())
+            ctx.enter_context(envcontext((('RUSTUP_HOME', tmpdir),)))
 
         if len(lib_deps) > 0:
             _add_dependencies(prefix, lib_deps)
