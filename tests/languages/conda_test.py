@@ -58,6 +58,7 @@ dependencies: [python, pip]
     )
     assert ret == 0
     assert os.path.basename(out.strip()) == b'conda-default'
+    os.remove(tmp_path.joinpath('environment.yml'))
 
 
 def test_conda_additional_deps(tmp_path):
