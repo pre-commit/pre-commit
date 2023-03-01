@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import contextlib
 import os
+import pathlib
 from typing import Generator
 from typing import Sequence
 
@@ -63,6 +64,13 @@ def install_environment(
     lang_base.assert_version_default('conda', version)
 
     conda_exe = _conda_exe()
+    envfile_dir = pathlib.Path(prefix.prefix_dir)
+    default_environment_yml = '''\
+channels: [conda-forge, defaults]
+dependencies: [openssl]
+'''
+    if not (envfile_dir / "environment.yml").exists():
+        (envfile_dir / "environment.yml").write_text(default_environment_yml)
 
     env_dir = lang_base.environment_dir(prefix, ENVIRONMENT_DIR, version)
     cmd_output_b(
