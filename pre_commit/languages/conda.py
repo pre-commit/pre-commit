@@ -69,8 +69,8 @@ def install_environment(
 channels: [conda-forge, defaults]
 dependencies: [openssl]
 '''
-    if not (envfile_dir / "environment.yml").exists():
-        (envfile_dir / "environment.yml").write_text(default_environment_yml)
+    if not (envfile_dir / 'environment.yml').exists():
+        (envfile_dir / 'environment.yml').write_text(default_environment_yml)
 
     env_dir = lang_base.environment_dir(prefix, ENVIRONMENT_DIR, version)
     cmd_output_b(
