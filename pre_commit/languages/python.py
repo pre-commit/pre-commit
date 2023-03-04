@@ -48,7 +48,7 @@ def _read_pyvenv_cfg(filename: str) -> dict[str, str]:
 
 def bin_dir(venv: str) -> str:
     """On windows there's a different directory for the virtualenv"""
-    bin_part = 'Scripts' if os.name == 'nt' else 'bin'
+    bin_part = 'Scripts' if sys.platform == 'win32' else 'bin'
     return os.path.join(venv, bin_part)
 
 
@@ -137,7 +137,7 @@ def norm_version(version: str) -> str | None:
     elif _sys_executable_matches(version):  # virtualenv defaults to our exe
         return None
 
-    if os.name == 'nt':  # pragma: no cover (windows)
+    if sys.platform == 'win32':  # pragma: no cover (windows)
         version_exec = _find_by_py_launcher(version)
         if version_exec:
             return version_exec

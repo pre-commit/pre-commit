@@ -3,6 +3,7 @@ from __future__ import annotations
 import contextlib
 import os.path
 import subprocess
+import sys
 
 import pytest
 
@@ -30,7 +31,7 @@ def cmd_output_mocked_pre_commit_home(
     return ret, out.replace('\r\n', '\n'), None
 
 
-xfailif_windows = pytest.mark.xfail(os.name == 'nt', reason='windows')
+xfailif_windows = pytest.mark.xfail(sys.platform == 'win32', reason='windows')
 
 
 def run_opts(

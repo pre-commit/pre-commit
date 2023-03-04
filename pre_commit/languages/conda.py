@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import contextlib
 import os
+import sys
 from typing import Generator
 from typing import Sequence
 
@@ -26,7 +27,7 @@ def get_env_patch(env: str) -> PatchesT:
     # $CONDA_PREFIX/Scripts and $CONDA_PREFIX. Whereas the latter only
     # seems to be used for python.exe.
     path: SubstitutionT = (os.path.join(env, 'bin'), os.pathsep, Var('PATH'))
-    if os.name == 'nt':  # pragma: no cover (platform specific)
+    if sys.platform == 'win32':  # pragma: win32 cover
         path = (env, os.pathsep, *path)
         path = (os.path.join(env, 'Scripts'), os.pathsep, *path)
         path = (os.path.join(env, 'Library', 'bin'), os.pathsep, *path)

@@ -187,7 +187,7 @@ def test_xargs_propagate_kwargs_to_cmd():
     assert b'Pre commit is awesome' in stdout
 
 
-@pytest.mark.xfail(os.name == 'nt', reason='posix only')
+@pytest.mark.xfail(sys.platform == 'win32', reason='posix only')
 def test_xargs_color_true_makes_tty():
     retcode, out = xargs.xargs(
         (sys.executable, '-c', 'import sys; print(sys.stdout.isatty())'),
