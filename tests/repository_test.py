@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os.path
 import shutil
+import sys
 from typing import Any
 from unittest import mock
 
@@ -198,7 +199,7 @@ def test_intermixed_stdout_stderr(tempdir_factory, store):
     )
 
 
-@pytest.mark.xfail(os.name == 'nt', reason='ptys are posix-only')
+@pytest.mark.xfail(sys.platform == 'win32', reason='ptys are posix-only')
 def test_output_isatty(tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'stdout_stderr_repo',

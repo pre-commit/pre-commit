@@ -36,10 +36,10 @@ def test_read_pyvenv_cfg_non_utf8(tmpdir):
 
 def test_norm_version_expanduser():
     home = os.path.expanduser('~')
-    if os.name == 'nt':  # pragma: nt cover
+    if sys.platform == 'win32':  # pragma: win32 cover
         path = r'~\python343'
         expected_path = fr'{home}\python343'
-    else:  # pragma: nt no cover
+    else:  # pragma: win32 no cover
         path = '~/.pyenv/versions/3.4.3/bin/python'
         expected_path = f'{home}/.pyenv/versions/3.4.3/bin/python'
     result = python.norm_version(path)

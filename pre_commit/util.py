@@ -119,7 +119,7 @@ def cmd_output(*cmd: str, **kwargs: Any) -> tuple[int, str, str | None]:
     return returncode, stdout, stderr
 
 
-if os.name != 'nt':  # pragma: win32 no cover
+if sys.platform != 'win32':  # pragma: win32 no cover
     from os import openpty
     import termios
 
