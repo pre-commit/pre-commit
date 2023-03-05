@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os.path
+import shlex
 import shutil
 import sys
 from typing import Any
@@ -17,6 +18,7 @@ from pre_commit.clientlib import CONFIG_SCHEMA
 from pre_commit.clientlib import load_manifest
 from pre_commit.hook import Hook
 from pre_commit.languages import python
+from pre_commit.languages import system
 from pre_commit.prefix import Prefix
 from pre_commit.repository import _hook_installed
 from pre_commit.repository import all_hooks
@@ -97,22 +99,6 @@ def test_python_hook_default_version(tempdir_factory, store):
             return_value=C.DEFAULT,
     ):
         test_python_hook(tempdir_factory, store)
-
-
-def test_python_hook_args_with_spaces(tempdir_factory, store):
-    _test_hook_repo(
-        tempdir_factory, store, 'python_hooks_repo',
-        'foo',
-        [],
-        b"['i have spaces', 'and\"\\'quotes', '$and !this']\n"
-        b'Hello World\n',
-        config_kwargs={
-            'hooks': [{
-                'id': 'foo',
-                'args': ['i have spaces', 'and"\'quotes', '$and !this'],
-            }],
-        },
-    )
 
 
 def test_python_hook_weird_setup_cfg(in_git_dir, tempdir_factory, store):
@@ -583,3 +569,14 @@ def test_non_installable_hook_error_for_additional_dependencies(store, caplog):
         'using language `system` which does not install an environment.  '
         'Perhaps you meant to use a specific language?'
     )
+
+
+def test_args_with_spaces_and_quotes(tmp_path):
+    ret = run_language(
+        tmp_path, system,
+        f"{shlex.quote(sys.executable)} -c 'import sys; print(sys.argv[1:])'",
+        ('i have spaces', 'and"\'quotes', '$and !this'),
+    )
+
+    expected = b"['i have spaces', 'and\"\\'quotes', '$and !this']\n"
+    assert ret == (0, expected)
