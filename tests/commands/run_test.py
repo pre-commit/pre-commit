@@ -354,13 +354,13 @@ def test_show_diff_on_failure(
         ({'hook': 'bash_hook'}, (b'Bash hook', b'Passed'), 0, True),
         (
             {'hook': 'nope'},
-            (b'No hook with id `nope` in stage `commit`',),
+            (b'No hook with id `nope` in stage `pre-commit`',),
             1,
             True,
         ),
         (
-            {'hook': 'nope', 'hook_stage': 'push'},
-            (b'No hook with id `nope` in stage `push`',),
+            {'hook': 'nope', 'hook_stage': 'pre-push'},
+            (b'No hook with id `nope` in stage `pre-push`',),
             1,
             True,
         ),
@@ -818,7 +818,7 @@ def test_stages(cap_out, store, repo_with_passing_hook):
                 'language': 'pygrep',
                 'stages': [stage],
             }
-            for i, stage in enumerate(('commit', 'push', 'manual'), 1)
+            for i, stage in enumerate(('pre-commit', 'pre-push', 'manual'), 1)
         ],
     }
     add_config_to_repo(repo_with_passing_hook, config)
@@ -833,8 +833,8 @@ def test_stages(cap_out, store, repo_with_passing_hook):
         assert printed.count(b'hook ') == 1
         return printed
 
-    assert _run_for_stage('commit').startswith(b'hook 1...')
-    assert _run_for_stage('push').startswith(b'hook 2...')
+    assert _run_for_stage('pre-commit').startswith(b'hook 1...')
+    assert _run_for_stage('pre-push').startswith(b'hook 2...')
     assert _run_for_stage('manual').startswith(b'hook 3...')
 
 
@@ -1173,7 +1173,7 @@ def test_args_hook_only(cap_out, store, repo_with_passing_hook):
                 ),
                 'language': 'system',
                 'files': r'\.py$',
-                'stages': ['commit'],
+                'stages': ['pre-commit'],
             },
             {
                 'id': 'do_not_commit',

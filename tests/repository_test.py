@@ -417,7 +417,7 @@ def test_local_python_repo(store, local_python_config):
 def test_default_language_version(store, local_python_config):
     config: dict[str, Any] = {
         'default_language_version': {'python': 'fake'},
-        'default_stages': ['commit'],
+        'default_stages': ['pre-commit'],
         'repos': [local_python_config],
     }
 
@@ -434,18 +434,18 @@ def test_default_language_version(store, local_python_config):
 def test_default_stages(store, local_python_config):
     config: dict[str, Any] = {
         'default_language_version': {'python': C.DEFAULT},
-        'default_stages': ['commit'],
+        'default_stages': ['pre-commit'],
         'repos': [local_python_config],
     }
 
     # `stages` was not set, should default
     hook, = all_hooks(config, store)
-    assert hook.stages == ['commit']
+    assert hook.stages == ['pre-commit']
 
     # `stages` is set, should not default
-    config['repos'][0]['hooks'][0]['stages'] = ['push']
+    config['repos'][0]['hooks'][0]['stages'] = ['pre-push']
     hook, = all_hooks(config, store)
-    assert hook.stages == ['push']
+    assert hook.stages == ['pre-push']
 
 
 def test_hook_id_not_present(tempdir_factory, store, caplog):
@@ -513,11 +513,18 @@ def test_manifest_hooks(tempdir_factory, store):
         name='Bash hook',
         pass_filenames=True,
         require_serial=False,
-        stages=(
-            'commit', 'merge-commit', 'prepare-commit-msg', 'commit-msg',
-            'post-commit', 'manual', 'post-checkout', 'push', 'post-merge',
+        stages=[
+            'commit-msg',
+            'post-checkout',
+            'post-commit',
+            'post-merge',
             'post-rewrite',
-        ),
+            'pre-commit',
+            'pre-merge-commit',
+            'pre-push',
+            'prepare-commit-msg',
+            'manual',
+        ],
         types=['file'],
         types_or=[],
         verbose=False,

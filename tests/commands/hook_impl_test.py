@@ -142,7 +142,7 @@ def test_check_args_length_prepare_commit_msg_error():
 def test_run_ns_pre_commit():
     ns = hook_impl._run_ns('pre-commit', True, (), b'')
     assert ns is not None
-    assert ns.hook_stage == 'commit'
+    assert ns.hook_stage == 'pre-commit'
     assert ns.color is True
 
 
@@ -245,7 +245,7 @@ def test_run_ns_pre_push_updating_branch(push_example):
         ns = hook_impl._run_ns('pre-push', False, args, stdin)
 
     assert ns is not None
-    assert ns.hook_stage == 'push'
+    assert ns.hook_stage == 'pre-push'
     assert ns.color is False
     assert ns.remote_name == 'origin'
     assert ns.remote_url == src

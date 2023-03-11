@@ -46,7 +46,7 @@ def run_opts(
         to_ref='',
         remote_name='',
         remote_url='',
-        hook_stage='commit',
+        hook_stage='pre-commit',
         show_diff_on_failure=False,
         commit_msg_filename='',
         prepare_commit_message_source='',

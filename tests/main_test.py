@@ -216,3 +216,9 @@ def test_expected_fatal_error_no_git_repo(in_tmpdir, cap_out, mock_store_dir):
         'Is it installed, and are you in a Git repository directory?'
     )
     assert cap_out_lines[-1] == f'Check the log at {log_file}'
+
+
+def test_hook_stage_migration(mock_store_dir):
+    with mock.patch.object(main, 'run') as mck:
+        main.main(('run', '--hook-stage', 'commit'))
+    assert mck.call_args[0][2].hook_stage == 'pre-commit'

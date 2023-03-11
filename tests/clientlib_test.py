@@ -12,6 +12,7 @@ from pre_commit.clientlib import CONFIG_HOOK_DICT
 from pre_commit.clientlib import CONFIG_REPO_DICT
 from pre_commit.clientlib import CONFIG_SCHEMA
 from pre_commit.clientlib import DEFAULT_LANGUAGE_VERSION
+from pre_commit.clientlib import MANIFEST_HOOK_DICT
 from pre_commit.clientlib import MANIFEST_SCHEMA
 from pre_commit.clientlib import META_HOOK_DICT
 from pre_commit.clientlib import OptionalSensibleRegexAtHook
@@ -416,3 +417,50 @@ def test_warn_additional(schema):
         x for x in schema.items if isinstance(x, cfgv.WarnAdditionalKeys)
     )
     assert allowed_keys == set(warn_additional.keys)
+
+
+def test_stages_migration_for_default_stages():
+    cfg = {
+        'default_stages': ['commit-msg', 'push', 'commit', 'merge-commit'],
+        'repos': [],
+    }
+    cfgv.validate(cfg, CONFIG_SCHEMA)
+    cfg = cfgv.apply_defaults(cfg, CONFIG_SCHEMA)
+    assert cfg['default_stages'] == [
+        'commit-msg', 'pre-push', 'pre-commit', 'pre-merge-commit',
+    ]
+
+
+def test_manifest_stages_defaulting():
+    dct = {
+        'id': 'fake-hook',
+        'name': 'fake-hook',
+        'entry': 'fake-hook',
+        'language': 'system',
+        'stages': ['commit-msg', 'push', 'commit', 'merge-commit'],
+    }
+    cfgv.validate(dct, MANIFEST_HOOK_DICT)
+    dct = cfgv.apply_defaults(dct, MANIFEST_HOOK_DICT)
+    assert dct['stages'] == [
+        'commit-msg', 'pre-push', 'pre-commit', 'pre-merge-commit',
+    ]
+
+
+def test_config_hook_stages_defaulting_missing():
+    dct = {'id': 'fake-hook'}
+    cfgv.validate(dct, CONFIG_HOOK_DICT)
+    dct = cfgv.apply_defaults(dct, CONFIG_HOOK_DICT)
+    assert dct == {'id': 'fake-hook'}
+
+
+def test_config_hook_stages_defaulting():
+    dct = {
+        'id': 'fake-hook',
+        'stages': ['commit-msg', 'push', 'commit', 'merge-commit'],
+    }
+    cfgv.validate(dct, CONFIG_HOOK_DICT)
+    dct = cfgv.apply_defaults(dct, CONFIG_HOOK_DICT)
+    assert dct == {
+        'id': 'fake-hook',
+        'stages': ['commit-msg', 'pre-push', 'pre-commit', 'pre-merge-commit'],
+    }
