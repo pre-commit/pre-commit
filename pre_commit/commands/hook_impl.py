@@ -84,7 +84,7 @@ def _ns(
 ) -> argparse.Namespace:
     return argparse.Namespace(
         color=color,
-        hook_stage=hook_type.replace('pre-', ''),
+        hook_stage=hook_type,
         remote_branch=remote_branch,
         local_branch=local_branch,
         from_ref=from_ref,

@@ -6,6 +6,7 @@ import re
 import shlex
 import sys
 from typing import Any
+from typing import NamedTuple
 from typing import Sequence
 
 import cfgv
@@ -19,6 +20,20 @@ from pre_commit.yaml import yaml_load
 logger = logging.getLogger('pre_commit')
 
 check_string_regex = cfgv.check_and(cfgv.check_string, cfgv.check_regex)
+
+HOOK_TYPES = (
+    'commit-msg',
+    'post-checkout',
+    'post-commit',
+    'post-merge',
+    'post-rewrite',
+    'pre-commit',
+    'pre-merge-commit',
+    'pre-push',
+    'prepare-commit-msg',
+)
+# `manual` is not invoked by any installed git hook.  See #719
+STAGES = (*HOOK_TYPES, 'manual')
 
 
 def check_type_tag(tag: str) -> None:
@@ -41,6 +56,46 @@ def check_min_version(version: str) -> None:
             f'{C.VERSION} is installed.  '
             f'Perhaps run `pip install --upgrade pre-commit`.',
         )
+
+
+_STAGES = {
+    'commit': 'pre-commit',
+    'merge-commit': 'pre-merge-commit',
+    'push': 'pre-push',
+}
+
+
+def transform_stage(stage: str) -> str:
+    return _STAGES.get(stage, stage)
+
+
+class StagesMigrationNoDefault(NamedTuple):
+    key: str
+    default: Sequence[str]
+
+    def check(self, dct: dict[str, Any]) -> None:
+        if self.key not in dct:
+            return
+
+        val = dct[self.key]
+        cfgv.check_array(cfgv.check_any)(val)
+
+        val = [transform_stage(v) for v in val]
+        cfgv.check_array(cfgv.check_one_of(STAGES))(val)
+
+    def apply_default(self, dct: dict[str, Any]) -> None:
+        if self.key not in dct:
+            return
+        dct[self.key] = [transform_stage(v) for v in dct[self.key]]
+
+    def remove_default(self, dct: dict[str, Any]) -> None:
+        raise NotImplementedError
+
+
+class StagesMigration(StagesMigrationNoDefault):
+    def apply_default(self, dct: dict[str, Any]) -> None:
+        dct.setdefault(self.key, self.default)
+        super().apply_default(dct)
 
 
 MANIFEST_HOOK_DICT = cfgv.Map(
@@ -70,7 +125,7 @@ MANIFEST_HOOK_DICT = cfgv.Map(
     cfgv.Optional('log_file', cfgv.check_string, ''),
     cfgv.Optional('minimum_pre_commit_version', cfgv.check_string, '0'),
     cfgv.Optional('require_serial', cfgv.check_bool, False),
-    cfgv.Optional('stages', cfgv.check_array(cfgv.check_one_of(C.STAGES)), []),
+    StagesMigration('stages', []),
     cfgv.Optional('verbose', cfgv.check_bool, False),
 )
 MANIFEST_SCHEMA = cfgv.Array(MANIFEST_HOOK_DICT)
@@ -241,7 +296,9 @@ CONFIG_HOOK_DICT = cfgv.Map(
         cfgv.OptionalNoDefault(item.key, item.check_fn)
         for item in MANIFEST_HOOK_DICT.items
         if item.key != 'id'
+        if item.key != 'stages'
     ),
+    StagesMigrationNoDefault('stages', []),
     OptionalSensibleRegexAtHook('files', cfgv.check_string),
     OptionalSensibleRegexAtHook('exclude', cfgv.check_string),
 )
@@ -290,17 +347,13 @@ CONFIG_SCHEMA = cfgv.Map(
     cfgv.RequiredRecurse('repos', cfgv.Array(CONFIG_REPO_DICT)),
     cfgv.Optional(
         'default_install_hook_types',
-        cfgv.check_array(cfgv.check_one_of(C.HOOK_TYPES)),
+        cfgv.check_array(cfgv.check_one_of(HOOK_TYPES)),
         ['pre-commit'],
     ),
     cfgv.OptionalRecurse(
         'default_language_version', DEFAULT_LANGUAGE_VERSION, {},
     ),
-    cfgv.Optional(
-        'default_stages',
-        cfgv.check_array(cfgv.check_one_of(C.STAGES)),
-        C.STAGES,
-    ),
+    StagesMigration('default_stages', STAGES),
     cfgv.Optional('files', check_string_regex, ''),
     cfgv.Optional('exclude', check_string_regex, '^$'),
     cfgv.Optional('fail_fast', cfgv.check_bool, False),
