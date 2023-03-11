@@ -563,6 +563,16 @@ def test_merge_conflict_resolved(cap_out, store, in_merge_conflict):
         assert msg in printed
 
 
+def test_rebase(cap_out, store, repo_with_passing_hook):
+    args = run_opts(pre_rebase_upstream='master', pre_rebase_branch='topic')
+    environ: MutableMapping[str, str] = {}
+    ret, printed = _do_run(
+        cap_out, store, repo_with_passing_hook, args, environ,
+    )
+    assert environ['PRE_COMMIT_PRE_REBASE_UPSTREAM'] == 'master'
+    assert environ['PRE_COMMIT_PRE_REBASE_BRANCH'] == 'topic'
+
+
 @pytest.mark.parametrize(
     ('hooks', 'expected'),
     (

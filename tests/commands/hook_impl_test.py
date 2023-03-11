@@ -100,6 +100,8 @@ def test_run_legacy_recursive(tmpdir):
         ('commit-msg', ['.git/COMMIT_EDITMSG']),
         ('post-commit', []),
         ('post-merge', ['1']),
+        ('pre-rebase', ['main', 'topic']),
+        ('pre-rebase', ['main']),
         ('post-checkout', ['old_head', 'new_head', '1']),
         ('post-rewrite', ['amend']),
         # multiple choices for commit-editmsg
@@ -139,11 +141,34 @@ def test_check_args_length_prepare_commit_msg_error():
     )
 
 
+def test_check_args_length_pre_rebase_error():
+    with pytest.raises(SystemExit) as excinfo:
+        hook_impl._check_args_length('pre-rebase', [])
+    msg, = excinfo.value.args
+    assert msg == 'hook-impl for pre-rebase expected 1 or 2 arguments but got 0: []'  # noqa: E501
+
+
 def test_run_ns_pre_commit():
     ns = hook_impl._run_ns('pre-commit', True, (), b'')
     assert ns is not None
     assert ns.hook_stage == 'pre-commit'
     assert ns.color is True
+
+
+def test_run_ns_pre_rebase():
+    ns = hook_impl._run_ns('pre-rebase', True, ('main', 'topic'), b'')
+    assert ns is not None
+    assert ns.hook_stage == 'pre-rebase'
+    assert ns.color is True
+    assert ns.pre_rebase_upstream == 'main'
+    assert ns.pre_rebase_branch == 'topic'
+
+    ns = hook_impl._run_ns('pre-rebase', True, ('main',), b'')
+    assert ns is not None
+    assert ns.hook_stage == 'pre-rebase'
+    assert ns.color is True
+    assert ns.pre_rebase_upstream == 'main'
+    assert ns.pre_rebase_branch is None
 
 
 def test_run_ns_commit_msg():

@@ -810,6 +810,46 @@ def test_post_merge_integration(tempdir_factory, store):
         assert os.path.exists('post-merge.tmp')
 
 
+def test_pre_rebase_integration(tempdir_factory, store):
+    path = git_dir(tempdir_factory)
+    config = {
+        'repos': [
+            {
+                'repo': 'local',
+                'hooks': [{
+                    'id': 'pre-rebase',
+                    'name': 'Pre rebase',
+                    'entry': 'touch pre-rebase.tmp',
+                    'language': 'system',
+                    'always_run': True,
+                    'verbose': True,
+                    'stages': ['pre-rebase'],
+                }],
+            },
+        ],
+    }
+    write_config(path, config)
+    with cwd(path):
+        install(C.CONFIG_FILE, store, hook_types=['pre-rebase'])
+        open('foo', 'a').close()
+        cmd_output('git', 'add', '.')
+        git_commit()
+
+        cmd_output('git', 'checkout', '-b', 'branch')
+        open('bar', 'a').close()
+        cmd_output('git', 'add', '.')
+        git_commit()
+
+        cmd_output('git', 'checkout', 'master')
+        open('baz', 'a').close()
+        cmd_output('git', 'add', '.')
+        git_commit()
+
+        cmd_output('git', 'checkout', 'branch')
+        cmd_output('git', 'rebase', 'master', 'branch')
+        assert os.path.exists('pre-rebase.tmp')
+
+
 def test_post_rewrite_integration(tempdir_factory, store):
     path = git_dir(tempdir_factory)
     config = {
