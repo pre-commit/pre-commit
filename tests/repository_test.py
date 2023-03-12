@@ -82,35 +82,6 @@ def _test_hook_repo(
     assert out == expected
 
 
-def test_python_hook(tempdir_factory, store):
-    _test_hook_repo(
-        tempdir_factory, store, 'python_hooks_repo',
-        'foo', [os.devnull],
-        f'[{os.devnull!r}]\nHello World\n'.encode(),
-    )
-
-
-def test_python_hook_default_version(tempdir_factory, store):
-    # make sure that this continues to work for platforms where default
-    # language detection does not work
-    with mock.patch.object(
-            python,
-            'get_default_version',
-            return_value=C.DEFAULT,
-    ):
-        test_python_hook(tempdir_factory, store)
-
-
-def test_python_hook_weird_setup_cfg(in_git_dir, tempdir_factory, store):
-    in_git_dir.join('setup.cfg').write('[install]\ninstall_scripts=/usr/sbin')
-
-    _test_hook_repo(
-        tempdir_factory, store, 'python_hooks_repo',
-        'foo', [os.devnull],
-        f'[{os.devnull!r}]\nHello World\n'.encode(),
-    )
-
-
 def test_python_venv_deprecation(store, caplog):
     config = {
         'repo': 'local',

@@ -233,3 +233,54 @@ setup(
             return_value=False,
     ):
         assert run_language(tmp_path, python, 'myexe') == (0, b'ohai\n')
+
+
+def _make_hello_hello(tmp_path):
+    setup_py = '''\
+from setuptools import setup
+
+setup(
+    name='socks',
+    version='0.0.0',
+    py_modules=['socks'],
+    entry_points={'console_scripts': ['socks = socks:main']},
+)
+'''
+
+    main_py = '''\
+import sys
+
+def main():
+    print(repr(sys.argv[1:]))
+    print('hello hello')
+    return 0
+'''
+    tmp_path.joinpath('setup.py').write_text(setup_py)
+    tmp_path.joinpath('socks.py').write_text(main_py)
+
+
+def test_simple_python_hook(tmp_path):
+    _make_hello_hello(tmp_path)
+
+    ret = run_language(tmp_path, python, 'socks', [os.devnull])
+    assert ret == (0, f'[{os.devnull!r}]\nhello hello\n'.encode())
+
+
+def test_simple_python_hook_default_version(tmp_path):
+    # make sure that this continues to work for platforms where default
+    # language detection does not work
+    with mock.patch.object(
+            python,
+            'get_default_version',
+            return_value=C.DEFAULT,
+    ):
+        test_simple_python_hook(tmp_path)
+
+
+def test_python_hook_weird_setup_cfg(tmp_path):
+    _make_hello_hello(tmp_path)
+    setup_cfg = '[install]\ninstall_scripts=/usr/sbin'
+    tmp_path.joinpath('setup.cfg').write_text(setup_cfg)
+
+    ret = run_language(tmp_path, python, 'socks', [os.devnull])
+    assert ret == (0, f'[{os.devnull!r}]\nhello hello\n'.encode())
