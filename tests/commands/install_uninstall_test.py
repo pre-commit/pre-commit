@@ -291,7 +291,7 @@ def test_environment_not_sourced(tempdir_factory, store):
         ret, out = git_commit(env=env, check=False)
         assert ret == 1
         assert out == (
-            '`pre-commit` not found.  '
+            '`pre-commit` not found. '
             'Did you forget to activate your virtualenv?\n'
         )
 
