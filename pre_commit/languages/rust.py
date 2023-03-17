@@ -50,7 +50,6 @@ def _rust_toolchain(language_version: str) -> str:
 
 def get_env_patch(target_dir: str, version: str) -> PatchesT:
     return (
-        ('CARGO_HOME', target_dir),
         ('PATH', (os.path.join(target_dir, 'bin'), os.pathsep, Var('PATH'))),
         # Only set RUSTUP_TOOLCHAIN if we don't want use the system's default
         # toolchain
