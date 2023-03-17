@@ -1,3 +1,18 @@
+3.2.0 - 2023-03-17
+==================
+
+### Features
+- Allow `pre-commit`, `pre-push`, and `pre-merge-commit` as `stages`.
+    - #2732 issue by @asottile.
+    - #2808 PR by @asottile.
+- Add `pre-rebase` hook support.
+    - #2582 issue by @BrutalSimplicity.
+    - #2725 PR by @mgaligniana.
+
+### Fixes
+- Remove bulky cargo cache from `language: rust` installs.
+    - #2820 PR by @asottile.
+
 3.1.1 - 2023-02-27
 ==================
 
