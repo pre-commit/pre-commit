@@ -1,3 +1,11 @@
+3.2.1 - 2023-03-25
+==================
+
+### Fixes
+- Fix `language_version` for `language: rust` without global `rustup`.
+    - #2823 issue by @daschuer.
+    - #2827 PR by @asottile.
+
 3.2.0 - 2023-03-17
 ==================
 
