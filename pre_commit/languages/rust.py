@@ -80,9 +80,9 @@ def _add_dependencies(
     lang_base.setup_cmd(prefix, ('cargo', 'add', *crates))
 
 
-def install_rust_with_toolchain(toolchain: str) -> None:
+def install_rust_with_toolchain(toolchain: str, envdir: str) -> None:
     with tempfile.TemporaryDirectory() as rustup_dir:
-        with envcontext((('RUSTUP_HOME', rustup_dir),)):
+        with envcontext((('CARGO_HOME', envdir), ('RUSTUP_HOME', rustup_dir))):
             # acquire `rustup` if not present
             if parse_shebang.find_executable('rustup') is None:
                 # We did not detect rustup and need to download it first.
@@ -145,7 +145,7 @@ def install_environment(
         ctx.enter_context(in_env(prefix, version))
 
         if version != 'system':
-            install_rust_with_toolchain(_rust_toolchain(version))
+            install_rust_with_toolchain(_rust_toolchain(version), envdir)
 
             tmpdir = ctx.enter_context(tempfile.TemporaryDirectory())
             ctx.enter_context(envcontext((('RUSTUP_HOME', tmpdir),)))
