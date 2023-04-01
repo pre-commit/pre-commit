@@ -9,8 +9,9 @@ import re
 import subprocess
 import time
 import unicodedata
-from typing import Any, List
+from typing import Any
 from typing import Collection
+from typing import List
 from typing import MutableMapping
 from typing import Sequence
 
@@ -337,13 +338,14 @@ def _dive_into_file_hierarchy(dir_path: str):
     """ Iterator for crawling recursively a path.
     :note!: Not tested on windows (hardcoded '/' for path separator).
     """
-    accumulated = "" # start from empty string
+    accumulated = ''  # start from empty string
     _split = dir_path.split('/')
     while len(_split) > 0:
         accumulated = os.path.join(accumulated, _split.pop(0))
         yield accumulated
 
-def _find_all_config_files(modified_files: List[str], config_file_name: str) -> List[str]:
+
+def _find_all_config_files(modified_files: list[str], config_file_name: str) -> list[str]:
     """ Finds all the config files relative to modified files.
     Every modified file can have a :config_file_name: in its parent directory. If found, get it.
     """
@@ -362,6 +364,7 @@ def _find_all_config_files(modified_files: List[str], config_file_name: str) -> 
         ret_set.add(config_file_name)
     ret = sorted(list(ret_set))
     return ret
+
 
 def run(
         config_file: str,
@@ -452,8 +455,8 @@ def run(
         all_config_files = _find_all_config_files(_all_filenames(args), config_file)
         for _config_file in all_config_files:
             config = load_config(_config_file)
-            if len(all_config_files) > 0 :
-                print(f"Hooks from {_config_file}:")
+            if len(all_config_files) > 0:
+                print(f'Hooks from {_config_file}:')
             hooks = [
                 hook
                 for hook in all_hooks(config, store)
