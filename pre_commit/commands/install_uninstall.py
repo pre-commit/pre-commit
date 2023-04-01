@@ -99,7 +99,7 @@ def _install_hook_script(
         # bash in "POSIXLY_CORRECT" mode which still supports the features we
         # use: subshells / arrays
         if sys.platform == 'win32':  # pragma: win32 cover
-            before = before.replace("#!/usr/bin/env bash", "#!/bin/sh", 1)
+            before = before.replace('#!/usr/bin/env bash', '#!/bin/sh', 1)
 
         hook_file.write(before + TEMPLATE_START)
         hook_file.write(f'INSTALL_PYTHON={shlex.quote(sys.executable)}\n')
