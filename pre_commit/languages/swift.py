@@ -44,7 +44,7 @@ def install_environment(
     os.mkdir(envdir)
     cmd_output_b(
         'swift', 'build',
-        '-C', prefix.prefix_dir,
+        '--package-path', prefix.prefix_dir,
         '-c', BUILD_CONFIG,
         '--build-path', os.path.join(envdir, BUILD_DIR),
     )
