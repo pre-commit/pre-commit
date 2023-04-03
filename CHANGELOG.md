@@ -1,3 +1,11 @@
+3.2.2 - 2023-04-03
+==================
+
+### Fixes
+- Fix support for swift >= 5.8.
+    - #2836 PR by @edelabar.
+    - #2835 issue by @kgrobelny-intive.
+
 3.2.1 - 2023-03-25
 ==================
 
