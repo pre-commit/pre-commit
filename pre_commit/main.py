@@ -229,6 +229,10 @@ def main(argv: Sequence[str] | None = None) -> int:
         '--repo', dest='repos', action='append', metavar='REPO',
         help='Only update this repository -- may be specified multiple times.',
     )
+    autoupdate_parser.add_argument(
+        '-j', type=int, dest='jobs', default=1, metavar='COUNT',
+        help='Parallelization level to use.',
+    )
 
     _add_cmd('clean', help='Clean out pre-commit files.')
 
@@ -372,6 +376,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 tags_only=not args.bleeding_edge,
                 freeze=args.freeze,
                 repos=args.repos,
+                jobs=args.jobs,
             )
         elif args.command == 'clean':
             return clean(store)

@@ -3,9 +3,14 @@ from __future__ import annotations
 import os.path
 import re
 import tempfile
+from concurrent.futures import as_completed
+from concurrent.futures import ThreadPoolExecutor
 from typing import Any
+from typing import cast
+from typing import List
 from typing import NamedTuple
 from typing import Sequence
+from typing import Union
 
 import pre_commit.constants as C
 from pre_commit import git
@@ -149,47 +154,75 @@ def autoupdate(
         tags_only: bool,
         freeze: bool,
         repos: Sequence[str] = (),
+        jobs: int = 1,
 ) -> int:
     """Auto-update the pre-commit config to the latest versions of repos."""
     migrate_config(config_file, quiet=True)
     retv = 0
-    rev_infos: list[RevInfo | None] = []
     changed = False
 
     config = load_config(config_file)
-    for repo_config in config['repos']:
-        if repo_config['repo'] in {LOCAL, META}:
-            continue
-
-        info = RevInfo.from_config(repo_config)
-        if repos and info.repo not in repos:
-            rev_infos.append(None)
-            continue
-
-        output.write(f'Updating {info.repo} ... ')
-        new_info = info.update(tags_only=tags_only, freeze=freeze)
-        try:
-            _check_hooks_still_exist_at_rev(repo_config, new_info, store)
-        except RepositoryCannotBeUpdatedError as error:
-            output.write_line(error.args[0])
-            rev_infos.append(None)
-            retv = 1
-            continue
-
-        if new_info.rev != info.rev:
-            changed = True
-            if new_info.frozen:
-                updated_to = f'{new_info.frozen} (frozen)'
+    rev_infos: list[RevInfo | None | object] = [None] * len(config['repos'])
+    with ThreadPoolExecutor(max_workers=jobs) as pool:
+        futures = {}
+        for at, repo_config in enumerate(config['repos']):
+            future = pool.submit(
+                _run_one, repo_config, store, tags_only, freeze, repos,
+                jobs != 1,
+            )
+            futures[future] = at
+        for future in as_completed(futures):
+            try:
+                change, new_info = future.result()
+            except RepositoryCannotBeUpdatedError:
+                retv = 1
             else:
-                updated_to = new_info.rev
-            msg = f'updating {info.rev} -> {updated_to}.'
-            output.write_line(msg)
-            rev_infos.append(new_info)
-        else:
-            output.write_line('already up to date.')
-            rev_infos.append(None)
-
+                changed = changed or change
+                rev_infos[futures[future]] = new_info
     if changed:
-        _write_new_config(config_file, rev_infos)
+        info = cast(
+            List[Union[RevInfo, None]],
+            [i for i in rev_infos if i is not object],
+        )
+        _write_new_config(config_file, info)
 
     return retv
+
+
+def _run_one(
+        repo_config: dict[str, str],
+        store: Store,
+        tags_only: bool,
+        freeze: bool,
+        repos: Sequence[str] = (),
+        parallel: bool = False,
+) -> tuple[bool, RevInfo | None | object]:
+    if repo_config['repo'] in {LOCAL, META}:
+        return False, object
+
+    info = RevInfo.from_config(repo_config)
+    if repos and info.repo not in repos:
+        return False, None
+
+    pref = f'Updating {info.repo} ... '
+    if not parallel:
+        output.write(pref)
+    new_info = info.update(tags_only=tags_only, freeze=freeze)
+    try:
+        _check_hooks_still_exist_at_rev(repo_config, new_info, store)
+    except RepositoryCannotBeUpdatedError as error:
+        output.write_line(f'{pref if parallel else ""}{error.args[0]}')
+        raise
+
+    if new_info.rev != info.rev:
+        changed = True
+        if new_info.frozen:
+            updated_to = f'{new_info.frozen} (frozen)'
+        else:
+            updated_to = new_info.rev
+        msg = f'{pref if parallel else ""}updating {info.rev} -> {updated_to}.'
+        output.write_line(msg)
+    else:
+        changed = False
+        output.write_line(f'{pref if parallel else ""}already up to date.')
+    return changed, new_info
