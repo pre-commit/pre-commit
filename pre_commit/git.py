@@ -219,12 +219,12 @@ def check_for_cygwin_mismatch() -> None:
 
         if is_cygwin_python ^ is_cygwin_git:
             exe_type = {True: '(cygwin)', False: '(windows)'}
-            logger.warn(
-                f'pre-commit has detected a mix of cygwin python / git\n'
-                f'This combination is not supported, it is likely you will '
-                f'receive an error later in the program.\n'
-                f'Make sure to use cygwin git+python while using cygwin\n'
-                f'These can be installed through the cygwin installer.\n'
+            logger.warning(
+                'pre-commit has detected a mix of cygwin python / git\n'
+                'This combination is not supported, it is likely you will '
+                'receive an error later in the program.\n'
+                'Make sure to use cygwin git+python while using cygwin\n'
+                'These can be installed through the cygwin installer.\n'
                 f' - python {exe_type[is_cygwin_python]}\n'
                 f' - git {exe_type[is_cygwin_git]}\n',
             )

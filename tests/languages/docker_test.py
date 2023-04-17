@@ -59,7 +59,7 @@ def test_docker_fallback_user():
             getuid=invalid_attribute,
             getgid=invalid_attribute,
     ):
-        assert docker.get_docker_user() == ()
+        assert not docker.get_docker_user()
 
 
 def test_in_docker_no_file():

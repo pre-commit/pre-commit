@@ -201,7 +201,7 @@ def test_error_handler_read_only_filesystem(mock_store_dir, cap_out, capsys):
     # already been set up
     Store()
 
-    write = (stat.S_IWGRP | stat.S_IWOTH | stat.S_IWUSR)
+    write = stat.S_IWGRP | stat.S_IWOTH | stat.S_IWUSR
     os.chmod(mock_store_dir, os.stat(mock_store_dir).st_mode & ~write)
 
     with pytest.raises(SystemExit):

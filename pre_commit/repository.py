@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import sys
 import shlex
 from typing import Any
 from typing import Sequence
@@ -72,9 +73,9 @@ def _hook_install(hook: Hook) -> None:
     if hook.language == 'python_venv':
         logger.warning(
             f'`repo: {hook.src}` uses deprecated `language: python_venv`.  '
-            f'This is an alias for `language: python`.  '
+            'This is an alias for `language: python`.  '
             f'Often `pre-commit autoupdate --repo {shlex.quote(hook.src)}` '
-            f'will fix this.',
+            'will fix this.',
         )
 
     lang = languages[hook.language]
@@ -99,8 +100,8 @@ def _hook_install(hook: Hook) -> None:
         if health_error:
             raise AssertionError(
                 f'BUG: expected environment for {hook.language} to be healthy '
-                f'immediately after install, please open an issue describing '
-                f'your environment\n\n'
+                'immediately after install, please open an issue describing '
+                'your environment\n\n'
                 f'more info:\n\n{health_error}',
             )
 
@@ -129,9 +130,9 @@ def _hook(
         logger.error(
             f'The hook `{ret["id"]}` requires pre-commit version {version} '
             f'but version {C.VERSION} is installed.  '
-            f'Perhaps run `pip install --upgrade pre-commit`.',
+            'Perhaps run `pip install --upgrade pre-commit`.',
         )
-        exit(1)
+        sys.exit(1)
 
     lang = ret['language']
     if ret['language_version'] == C.DEFAULT:
@@ -147,18 +148,18 @@ def _hook(
             logger.error(
                 f'The hook `{ret["id"]}` specifies `language_version` but is '
                 f'using language `{lang}` which does not install an '
-                f'environment.  '
-                f'Perhaps you meant to use a specific language?',
+                'environment.  '
+                'Perhaps you meant to use a specific language?',
             )
-            exit(1)
+            sys.exit(1)
         if ret['additional_dependencies']:
             logger.error(
                 f'The hook `{ret["id"]}` specifies `additional_dependencies` '
                 f'but is using language `{lang}` which does not install an '
-                f'environment.  '
-                f'Perhaps you meant to use a specific language?',
+                'environment.  '
+                'Perhaps you meant to use a specific language?',
             )
-            exit(1)
+            sys.exit(1)
 
     return ret
 
@@ -200,10 +201,10 @@ def _cloned_repository_hooks(
         if hook['id'] not in by_id:
             logger.error(
                 f'`{hook["id"]}` is not present in repository {repo}.  '
-                f'Typo? Perhaps it is introduced in a newer version?  '
-                f'Often `pre-commit autoupdate` fixes this.',
+                'Typo? Perhaps it is introduced in a newer version?  '
+                'Often `pre-commit autoupdate` fixes this.',
             )
-            exit(1)
+            sys.exit(1)
 
     hook_dcts = [
         _hook(by_id[hook['id']], hook, root_config=root_config)

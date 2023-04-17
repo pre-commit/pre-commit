@@ -121,7 +121,7 @@ def read_config(directory, config_file=C.CONFIG_FILE):
 
 
 def write_config(directory, config, config_file=C.CONFIG_FILE):
-    if type(config) is not list and 'repos' not in config:
+    if not isinstance(config, list) and 'repos' not in config:
         assert isinstance(config, dict), config
         config = {'repos': [config]}
     with open(os.path.join(directory, config_file), 'w') as outfile:
