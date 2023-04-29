@@ -226,8 +226,12 @@ def main(argv: Sequence[str] | None = None) -> int:
         help='Store "frozen" hashes in `rev` instead of tag names',
     )
     autoupdate_parser.add_argument(
-        '--repo', dest='repos', action='append', metavar='REPO',
+        '--repo', dest='repos', action='append', metavar='REPO', default=[],
         help='Only update this repository -- may be specified multiple times.',
+    )
+    autoupdate_parser.add_argument(
+        '-j', '--jobs', type=int, default=1,
+        help='Number of threads to use.  (default %(default)s).',
     )
 
     _add_cmd('clean', help='Clean out pre-commit files.')
@@ -372,6 +376,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 tags_only=not args.bleeding_edge,
                 freeze=args.freeze,
                 repos=args.repos,
+                jobs=args.jobs,
             )
         elif args.command == 'clean':
             return clean(store)
