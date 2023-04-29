@@ -26,13 +26,40 @@ from testing.util import git_commit
 
 
 @pytest.fixture
-def up_to_date(tempdir_factory):
-    yield make_repo(tempdir_factory, 'python_hooks_repo')
+def up_to_date(tmp_path):
+    path = str(tmp_path)
+    cmd_output('git', 'init', path)
+    manifest = '''\
+-   id: foo
+    name: Foo
+    entry: foo.sh
+    language: script
+    files: ''
+'''
+    tmp_path.joinpath('foo.sh').write_text('#!/usr/bin/env bash\necho "Hi!"')
+    tmp_path.joinpath(C.MANIFEST_FILE).write_text(manifest)
+
+    cmd_output('git', 'add', '.', cwd=path)
+    git_commit(msg='make_repo', cwd=path)
+    yield path
 
 
 @pytest.fixture
-def out_of_date(tempdir_factory):
-    path = make_repo(tempdir_factory, 'python_hooks_repo')
+def out_of_date(tmp_path):
+    path = str(tmp_path)
+    cmd_output('git', 'init', path)
+    manifest = '''\
+-   id: foo
+    name: Foo
+    entry: foo.sh
+    language: script
+    files: ''
+'''
+    tmp_path.joinpath('foo.sh').write_text('#!/usr/bin/env bash\necho "Hi!"')
+    tmp_path.joinpath(C.MANIFEST_FILE).write_text(manifest)
+
+    cmd_output('git', 'add', '.', cwd=path)
+    git_commit(msg='make_repo', cwd=path)
     original_rev = git.head_rev(path)
 
     git_commit(cwd=path)
@@ -420,7 +447,7 @@ def test_autoupdate_latest_no_config(out_of_date, in_tmpdir, store):
         assert out_of_date.original_rev in f.read()
 
 
-def test_hook_disppearing_repo_raises(hook_disappearing, store):
+def test_hook_disappearing_repo_raises(hook_disappearing, store):
     config = make_config_from_repo(
         hook_disappearing.path,
         rev=hook_disappearing.original_rev,
