@@ -368,7 +368,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 
         if args.command == 'autoupdate':
             return autoupdate(
-                args.config, store,
+                args.config,
                 tags_only=not args.bleeding_edge,
                 freeze=args.freeze,
                 repos=args.repos,

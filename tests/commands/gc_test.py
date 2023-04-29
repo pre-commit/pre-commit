@@ -43,8 +43,9 @@ def test_gc(tempdir_factory, store, in_git_dir, cap_out):
     store.mark_config_used(C.CONFIG_FILE)
 
     # update will clone both the old and new repo, making the old one gc-able
-    install_hooks(C.CONFIG_FILE, store)
-    assert not autoupdate(C.CONFIG_FILE, store, freeze=False, tags_only=False)
+    assert not install_hooks(C.CONFIG_FILE, store)
+    assert not autoupdate(C.CONFIG_FILE, freeze=False, tags_only=False)
+    assert not install_hooks(C.CONFIG_FILE, store)
 
     assert _config_count(store) == 1
     assert _repo_count(store) == 2
