@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import contextlib
-import multiprocessing
 import os
 import random
 import re
@@ -15,9 +14,9 @@ from typing import Sequence
 
 import pre_commit.constants as C
 from pre_commit import parse_shebang
+from pre_commit import xargs
 from pre_commit.prefix import Prefix
 from pre_commit.util import cmd_output_b
-from pre_commit.xargs import xargs
 
 FIXED_RANDOM_SEED = 1542676187
 
@@ -140,10 +139,7 @@ def target_concurrency() -> int:
         if 'TRAVIS' in os.environ:
             return 2
         else:
-            try:
-                return multiprocessing.cpu_count()
-            except NotImplementedError:
-                return 1
+            return xargs.cpu_count()
 
 
 def _shuffled(seq: Sequence[str]) -> list[str]:
@@ -171,7 +167,7 @@ def run_xargs(
         # ordering.
         file_args = _shuffled(file_args)
         jobs = target_concurrency()
-    return xargs(cmd, file_args, target_concurrency=jobs, color=color)
+    return xargs.xargs(cmd, file_args, target_concurrency=jobs, color=color)
 
 
 def hook_cmd(entry: str, args: Sequence[str]) -> tuple[str, ...]:
