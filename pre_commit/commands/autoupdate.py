@@ -34,44 +34,33 @@ class RevInfo(NamedTuple):
         return cls(config['repo'], config['rev'], None)
 
     def update(self, tags_only: bool, freeze: bool) -> RevInfo:
-        git_cmd = ('git', *git.NO_FS_MONITOR)
-
-        if tags_only:
-            tag_cmd = (
-                *git_cmd, 'describe',
-                'FETCH_HEAD', '--tags', '--abbrev=0',
-            )
-        else:
-            tag_cmd = (
-                *git_cmd, 'describe',
-                'FETCH_HEAD', '--tags', '--exact',
-            )
-
         with tempfile.TemporaryDirectory() as tmp:
+            _git = ('git', *git.NO_FS_MONITOR, '-C', tmp)
+
+            if tags_only:
+                tag_opt = '--abbrev=0'
+            else:
+                tag_opt = '--exact'
+            tag_cmd = (*_git, 'describe', 'FETCH_HEAD', '--tags', tag_opt)
+
             git.init_repo(tmp, self.repo)
+            cmd_output_b(*_git, 'config', 'extensions.partialClone', 'true')
             cmd_output_b(
-                *git_cmd, 'config', 'extensions.partialClone', 'true',
-                cwd=tmp,
-            )
-            cmd_output_b(
-                *git_cmd, 'fetch', 'origin', 'HEAD',
+                *_git, 'fetch', 'origin', 'HEAD',
                 '--quiet', '--filter=blob:none', '--tags',
-                cwd=tmp,
             )
 
             try:
-                rev = cmd_output(*tag_cmd, cwd=tmp)[1].strip()
+                rev = cmd_output(*tag_cmd)[1].strip()
             except CalledProcessError:
-                cmd = (*git_cmd, 'rev-parse', 'FETCH_HEAD')
-                rev = cmd_output(*cmd, cwd=tmp)[1].strip()
+                rev = cmd_output(*_git, 'rev-parse', 'FETCH_HEAD')[1].strip()
             else:
                 if tags_only:
                     rev = git.get_best_candidate_tag(rev, tmp)
 
             frozen = None
             if freeze:
-                exact_rev_cmd = (*git_cmd, 'rev-parse', rev)
-                exact = cmd_output(*exact_rev_cmd, cwd=tmp)[1].strip()
+                exact = cmd_output(*_git, 'rev-parse', rev)[1].strip()
                 if exact != rev:
                     rev, frozen = exact, rev
         return self._replace(rev=rev, frozen=frozen)
