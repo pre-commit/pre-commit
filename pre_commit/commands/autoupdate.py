@@ -16,7 +16,6 @@ from pre_commit.clientlib import load_manifest
 from pre_commit.clientlib import LOCAL
 from pre_commit.clientlib import META
 from pre_commit.commands.migrate_config import migrate_config
-from pre_commit.store import Store
 from pre_commit.util import CalledProcessError
 from pre_commit.util import cmd_output
 from pre_commit.util import cmd_output_b
@@ -27,11 +26,12 @@ from pre_commit.yaml import yaml_load
 class RevInfo(NamedTuple):
     repo: str
     rev: str
-    frozen: str | None
+    frozen: str | None = None
+    hook_ids: frozenset[str] = frozenset()
 
     @classmethod
     def from_config(cls, config: dict[str, Any]) -> RevInfo:
-        return cls(config['repo'], config['rev'], None)
+        return cls(config['repo'], config['rev'])
 
     def update(self, tags_only: bool, freeze: bool) -> RevInfo:
         with tempfile.TemporaryDirectory() as tmp:
@@ -63,7 +63,19 @@ class RevInfo(NamedTuple):
                 exact = cmd_output(*_git, 'rev-parse', rev)[1].strip()
                 if exact != rev:
                     rev, frozen = exact, rev
-        return self._replace(rev=rev, frozen=frozen)
+
+            try:
+                cmd_output(*_git, 'checkout', rev, '--', C.MANIFEST_FILE)
+            except CalledProcessError:
+                pass  # this will be caught by manifest validating code
+            try:
+                manifest = load_manifest(os.path.join(tmp, C.MANIFEST_FILE))
+            except InvalidManifestError as e:
+                raise RepositoryCannotBeUpdatedError(str(e))
+            else:
+                hook_ids = frozenset(hook['id'] for hook in manifest)
+
+        return self._replace(rev=rev, frozen=frozen, hook_ids=hook_ids)
 
 
 class RepositoryCannotBeUpdatedError(RuntimeError):
@@ -73,17 +85,10 @@ class RepositoryCannotBeUpdatedError(RuntimeError):
 def _check_hooks_still_exist_at_rev(
         repo_config: dict[str, Any],
         info: RevInfo,
-        store: Store,
 ) -> None:
-    try:
-        path = store.clone(repo_config['repo'], info.rev)
-        manifest = load_manifest(os.path.join(path, C.MANIFEST_FILE))
-    except InvalidManifestError as e:
-        raise RepositoryCannotBeUpdatedError(str(e))
-
     # See if any of our hooks were deleted with the new commits
     hooks = {hook['id'] for hook in repo_config['hooks']}
-    hooks_missing = hooks - {hook['id'] for hook in manifest}
+    hooks_missing = hooks - info.hook_ids
     if hooks_missing:
         raise RepositoryCannotBeUpdatedError(
             f'Cannot update because the update target is missing these '
@@ -139,7 +144,6 @@ def _write_new_config(path: str, rev_infos: list[RevInfo | None]) -> None:
 
 def autoupdate(
         config_file: str,
-        store: Store,
         tags_only: bool,
         freeze: bool,
         repos: Sequence[str] = (),
@@ -161,9 +165,9 @@ def autoupdate(
             continue
 
         output.write(f'Updating {info.repo} ... ')
-        new_info = info.update(tags_only=tags_only, freeze=freeze)
         try:
-            _check_hooks_still_exist_at_rev(repo_config, new_info, store)
+            new_info = info.update(tags_only=tags_only, freeze=freeze)
+            _check_hooks_still_exist_at_rev(repo_config, new_info)
         except RepositoryCannotBeUpdatedError as error:
             output.write_line(error.args[0])
             rev_infos.append(None)
