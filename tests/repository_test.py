@@ -475,6 +475,8 @@ def test_manifest_hooks(tempdir_factory, store):
         entry='bin/hook.sh',
         exclude='^$',
         exclude_types=[],
+        branches='',
+        exclude_branches='^$',
         files='',
         id='bash_hook',
         language='script',

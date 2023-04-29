@@ -26,6 +26,7 @@ from pre_commit.repository import all_hooks
 from pre_commit.repository import install_hook_envs
 from pre_commit.staged_files_only import staged_files_only
 from pre_commit.store import Store
+from pre_commit.util import cmd_output
 from pre_commit.util import cmd_output_b
 
 
@@ -129,6 +130,28 @@ class Classifier:
 def _get_skips(environ: MutableMapping[str, str]) -> set[str]:
     skips = environ.get('SKIP', '')
     return {skip.strip() for skip in skips.split(',') if skip.strip()}
+
+
+def _get_branch_name() -> str:
+    _, name, _ = cmd_output('git', 'branch', '--show-current')
+    return name
+
+
+def _get_branch_skips(config: dict[str, Any], store: Store) -> set[str]:
+    current_branch = _get_branch_name()
+    to_skip = set()
+
+    for hook in all_hooks(config, store):
+        include_re = re.compile(hook.branches)
+        exclude_re = re.compile(hook.exclude_branches)
+
+        if (
+                not include_re.search(current_branch) or
+                exclude_re.search(current_branch)
+        ):
+            to_skip.add(hook.name)
+
+    return to_skip
 
 
 SKIPPED = 'Skipped'
@@ -433,7 +456,7 @@ def run(
             )
             return 1
 
-        skips = _get_skips(environ)
+        skips = _get_skips(environ) | _get_branch_skips(config, store)
         to_install = [
             hook
             for hook in hooks

@@ -110,6 +110,8 @@ MANIFEST_HOOK_DICT = cfgv.Map(
 
     cfgv.Optional('files', check_string_regex, ''),
     cfgv.Optional('exclude', check_string_regex, '^$'),
+    cfgv.Optional('branches', check_string_regex, ''),
+    cfgv.Optional('exclude_branches', check_string_regex, '^$'),
     cfgv.Optional('types', cfgv.check_array(check_type_tag), ['file']),
     cfgv.Optional('types_or', cfgv.check_array(check_type_tag), []),
     cfgv.Optional('exclude_types', cfgv.check_array(check_type_tag), []),
