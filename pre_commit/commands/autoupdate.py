@@ -50,7 +50,12 @@ class RevInfo(NamedTuple):
         with tempfile.TemporaryDirectory() as tmp:
             git.init_repo(tmp, self.repo)
             cmd_output_b(
-                *git_cmd, 'fetch', 'origin', 'HEAD', '--tags',
+                *git_cmd, 'config', 'extensions.partialClone', 'true',
+                cwd=tmp,
+            )
+            cmd_output_b(
+                *git_cmd, 'fetch', 'origin', 'HEAD',
+                '--quiet', '--filter=blob:none', '--tags',
                 cwd=tmp,
             )
 
