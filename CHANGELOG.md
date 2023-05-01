@@ -1,3 +1,15 @@
+3.3.0 - 2023-05-01
+==================
+
+### Features
+- Upgrade ruby-build.
+    - #2846 PR by @jalessio.
+- Use blobless clone for faster autoupdate.
+    - #2859 PR by @asottile.
+- Add `-j` / `--jobs` argument to `autoupdate` for parallel execution.
+    - #2863 PR by @asottile.
+    - issue by @gaborbernat.
+
 3.2.2 - 2023-04-03
 ==================
 
