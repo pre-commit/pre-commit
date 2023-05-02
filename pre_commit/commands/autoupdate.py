@@ -67,6 +67,8 @@ class RevInfo(NamedTuple):
                     rev, frozen = exact, rev
 
             try:
+                # workaround for windows -- see #2865
+                cmd_output_b(*_git, 'show', f'{rev}:{C.MANIFEST_FILE}')
                 cmd_output(*_git, 'checkout', rev, '--', C.MANIFEST_FILE)
             except CalledProcessError:
                 pass  # this will be caught by manifest validating code
