@@ -1,3 +1,11 @@
+3.3.1 - 2023-05-02
+==================
+
+### Fixes
+- Work around `git` partial clone bug for `autoupdate` on windows.
+    - #2866 PR by @asottile.
+    - #2865 issue by @adehad.
+
 3.3.0 - 2023-05-01
 ==================
 
