@@ -17,7 +17,7 @@ EXCLUDED = frozenset((
 
 
 def _always_run() -> frozenset[str]:
-    ret = ['.github/workflows/languages.yml', 'testing/languages']
+    ret = ['.github/workflows/languages.yaml', 'testing/languages']
     ret.extend(
         os.path.join('pre_commit/resources', fname)
         for fname in os.listdir('pre_commit/resources')
@@ -57,6 +57,8 @@ def main() -> int:
     ]
 
     triggers_all = _always_run()
+    for fname in triggers_all:
+        assert os.path.exists(fname), fname
 
     if not args.all:
         with concurrent.futures.ThreadPoolExecutor(os.cpu_count()) as exe:
