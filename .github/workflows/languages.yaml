@@ -63,8 +63,6 @@ jobs:
         echo 'C:\Strawberry\c\bin' >> "$GITHUB_PATH"
       shell: bash
       if: matrix.os == 'windows-latest' && matrix.language == 'perl'
-    - run: testing/get-swift.sh
-      if: matrix.os == 'ubuntu-latest' && matrix.language == 'swift'
 
     - name: install deps
       run: python -mpip install -e . -r requirements-dev.txt
