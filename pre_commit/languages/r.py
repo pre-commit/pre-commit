@@ -93,6 +93,8 @@ def install_environment(
         version: str,
         additional_dependencies: Sequence[str],
 ) -> None:
+    lang_base.assert_version_default('r', version)
+
     env_dir = lang_base.environment_dir(prefix, ENVIRONMENT_DIR, version)
     os.makedirs(env_dir, exist_ok=True)
     shutil.copy(prefix.path('renv.lock'), env_dir)
