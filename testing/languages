@@ -16,6 +16,15 @@ EXCLUDED = frozenset((
 ))
 
 
+def _always_run() -> frozenset[str]:
+    ret = ['.github/workflows/languages.yml', 'testing/languages']
+    ret.extend(
+        os.path.join('pre_commit/resources', fname)
+        for fname in os.listdir('pre_commit/resources')
+    )
+    return frozenset(ret)
+
+
 def _lang_files(lang: str) -> frozenset[str]:
     prog = f'''\
 import json
@@ -47,10 +56,12 @@ def main() -> int:
         if fname.endswith('.py') and fname != '__init__.py'
     ]
 
+    triggers_all = _always_run()
+
     if not args.all:
         with concurrent.futures.ThreadPoolExecutor(os.cpu_count()) as exe:
             by_lang = {
-                lang: files
+                lang: files | triggers_all
                 for lang, files in zip(langs, exe.map(_lang_files, langs))
             }
 
