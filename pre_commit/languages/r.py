@@ -4,6 +4,8 @@ import contextlib
 import os
 import shlex
 import shutil
+import tempfile
+import textwrap
 from typing import Generator
 from typing import Sequence
 
@@ -19,6 +21,19 @@ ENVIRONMENT_DIR = 'renv'
 RSCRIPT_OPTS = ('--no-save', '--no-restore', '--no-site-file', '--no-environ')
 get_default_version = lang_base.basic_get_default_version
 health_check = lang_base.basic_health_check
+
+
+@contextlib.contextmanager
+def _r_code_in_tempfile(code: str) -> Generator[str, None, None]:
+    """
+    To avoid quoting and escaping issues, avoid `Rscript [options] -e {expr}`
+    but use `Rscript [options] path/to/file_with_expr.R`
+    """
+    with tempfile.TemporaryDirectory() as tmpdir:
+        fname = os.path.join(tmpdir, 'script.R')
+        with open(fname, 'w') as f:
+            f.write(_inline_r_setup(textwrap.dedent(code)))
+        yield fname
 
 
 def get_env_patch(venv: str) -> PatchesT:
@@ -129,20 +144,19 @@ def install_environment(
         }}
         """
 
-    cmd_output_b(
-        _rscript_exec(), '--vanilla', '-e',
-        _inline_r_setup(r_code_inst_environment),
-        cwd=env_dir,
-    )
+    with _r_code_in_tempfile(r_code_inst_environment) as f:
+        cmd_output_b(_rscript_exec(), '--vanilla', f, cwd=env_dir)
+
     if additional_dependencies:
         r_code_inst_add = 'renv::install(commandArgs(trailingOnly = TRUE))'
         with in_env(prefix, version):
-            cmd_output_b(
-                _rscript_exec(), *RSCRIPT_OPTS, '-e',
-                _inline_r_setup(r_code_inst_add),
-                *additional_dependencies,
-                cwd=env_dir,
-            )
+            with _r_code_in_tempfile(r_code_inst_add) as f:
+                cmd_output_b(
+                    _rscript_exec(), *RSCRIPT_OPTS,
+                    f,
+                    *additional_dependencies,
+                    cwd=env_dir,
+                )
 
 
 def _inline_r_setup(code: str) -> str:
@@ -150,11 +164,16 @@ def _inline_r_setup(code: str) -> str:
     Some behaviour of R cannot be configured via env variables, but can
     only be configured via R options once R has started. These are set here.
     """
-    with_option = f"""\
-    options(install.packages.compile.from.source = "never", pkgType = "binary")
-    {code}
-    """
-    return with_option
+    with_option = [
+        textwrap.dedent("""\
+        options(
+            install.packages.compile.from.source = "never",
+            pkgType = "binary"
+        )
+        """),
+        code,
+    ]
+    return '\n'.join(with_option)
 
 
 def run_hook(
