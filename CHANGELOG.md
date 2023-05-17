@@ -1,3 +1,11 @@
+3.3.2 - 2023-05-17
+==================
+
+### Fixes
+- Work around `r` on windows sometimes double-un-quoting arguments.
+    - #2885 PR by @lorenzwalthert.
+    - #2870 issue by @lorenzwalthert.
+
 3.3.1 - 2023-05-02
 ==================
 
