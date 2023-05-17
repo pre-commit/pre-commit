@@ -4,7 +4,6 @@ from __future__ import annotations
 import argparse
 import base64
 import hashlib
-import importlib.resources
 import io
 import os.path
 import shutil
@@ -42,10 +41,17 @@ def _add_shim(dest: str) -> None:
     with zipfile.ZipFile(bio, 'w') as zipf:
         zipf.write(shim, arcname='__main__.py')
 
-    with open(os.path.join(dest, 'python.exe'), 'wb') as f:
-        f.write(importlib.resources.read_binary('distlib', 't32.exe'))
-        f.write(b'#!py.exe -3\n')
-        f.write(bio.getvalue())
+    with tempfile.TemporaryDirectory() as tmpdir:
+        _exit_if_retv(
+            'podman', 'run', '--rm', '--volume', f'{tmpdir}:/out:rw', IMG,
+            'cp', '/venv/lib/python3.10/site-packages/distlib/t32.exe', '/out',
+        )
+
+        with open(os.path.join(dest, 'python.exe'), 'wb') as f:
+            with open(os.path.join(tmpdir, 't32.exe'), 'rb') as t32:
+                f.write(t32.read())
+            f.write(b'#!py.exe -3\n')
+            f.write(bio.getvalue())
 
 
 def _write_cache_key(version: str, wheeldir: str, dest: str) -> None:
