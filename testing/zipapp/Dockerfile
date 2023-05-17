@@ -1,4 +1,4 @@
-FROM ubuntu:focal
+FROM ubuntu:jammy
 RUN : \
     && apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
@@ -11,4 +11,4 @@ RUN : \
 ENV LANG=C.UTF-8 PATH=/venv/bin:$PATH
 RUN : \
     && python3 -mvenv /venv \
-    && pip install --no-cache-dir pip setuptools wheel no-manylinux --upgrade
+    && pip install --no-cache-dir pip distlib no-manylinux --upgrade
