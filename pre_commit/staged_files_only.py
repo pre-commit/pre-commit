@@ -49,6 +49,8 @@ def _intent_to_add_cleared() -> Generator[None, None, None]:
 
 @contextlib.contextmanager
 def _unstaged_changes_cleared(patch_dir: str) -> Generator[None, None, None]:
+    # Work around a bug in fsmonitor daemon by stopping it.
+    cmd_output('git', 'fsmonitor--daemon', 'stop')
     tree = cmd_output('git', 'write-tree')[1].strip()
     diff_cmd = (
         'git', 'diff-index', '--ignore-submodules', '--binary',
