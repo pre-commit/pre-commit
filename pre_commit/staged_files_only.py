@@ -51,14 +51,15 @@ def _intent_to_add_cleared() -> Generator[None, None, None]:
 @contextlib.contextmanager
 def _unstaged_changes_cleared(patch_dir: str) -> Generator[None, None, None]:
     if (
-        (sys.platform == 'darwin' or sys.platform == 'win32')
-            and os.path.exists('./.git/fsmonitor--daemon.ipc')
-            and cmd_output('git', 'fsmonitor--daemon', 'status')[0] == 0
+        (sys.platform == 'darwin' or sys.platform == 'win32') and
+            os.path.exists('./.git/fsmonitor--daemon.ipc') and
+            cmd_output('git', 'fsmonitor--daemon', 'status')[0] == 0
     ):
         logger.warning(
             "The fsmonitor daemon is running; "
             "a bug in the fsmonitor daemon sometimes causes data loss "
-            "when running with pre-commit.")
+            "when running with pre-commit.",
+        )
 
     tree = cmd_output('git', 'write-tree')[1].strip()
     diff_cmd = (
