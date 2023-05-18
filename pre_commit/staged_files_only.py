@@ -56,9 +56,9 @@ def _unstaged_changes_cleared(patch_dir: str) -> Generator[None, None, None]:
             cmd_output('git', 'fsmonitor--daemon', 'status')[0] == 0
     ):
         logger.warning(
-            "The fsmonitor daemon is running; "
-            "a bug in the fsmonitor daemon sometimes causes data loss "
-            "when running with pre-commit.",
+            'The fsmonitor daemon is running; '
+            'a bug in the fsmonitor daemon sometimes causes data loss '
+            'when running with pre-commit.',
         )
 
     tree = cmd_output('git', 'write-tree')[1].strip()
