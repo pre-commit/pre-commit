@@ -3,7 +3,7 @@ name: main
 on:
   push:
     branches: [main, test-me-*]
-    tags:
+    tags: '*'
   pull_request:
 
 concurrency:
