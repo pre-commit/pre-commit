@@ -138,7 +138,7 @@ def install_environment(
                 '--no-document', '--no-format-executable',
                 '--no-user-install',
                 '--install-dir', os.path.join(envdir, 'gems'),
-                '--bindir',  os.path.join(envdir, 'gems', 'bin'),
+                '--bindir', os.path.join(envdir, 'gems', 'bin'),
                 *prefix.star('.gem'), *additional_dependencies,
             ),
         )
