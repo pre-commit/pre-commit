@@ -114,6 +114,8 @@ def _install_ruby(
 def install_environment(
         prefix: Prefix, version: str, additional_dependencies: Sequence[str],
 ) -> None:
+    envdir = lang_base.environment_dir(prefix, ENVIRONMENT_DIR, version)
+
     if version != 'system':  # pragma: win32 no cover
         _install_rbenv(prefix, version)
         with in_env(prefix, version):
@@ -135,6 +137,8 @@ def install_environment(
                 'gem', 'install',
                 '--no-document', '--no-format-executable',
                 '--no-user-install',
+                '--install-dir', os.path.join(envdir, 'gems'),
+                '--bindir',  os.path.join(envdir, 'gems', 'bin'),
                 *prefix.star('.gem'), *additional_dependencies,
             ),
         )
