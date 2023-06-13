@@ -1,3 +1,11 @@
+3.3.3 - 2023-06-13
+==================
+
+### Fixes
+- Work around OS packagers setting `--install-dir` / `--bin-dir` in gem settings.
+    - #2905 PR by @jaysoffian.
+    - #2799 issue by @lmilbaum.
+
 3.3.2 - 2023-05-17
 ==================
 
