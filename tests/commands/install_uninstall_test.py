@@ -143,7 +143,7 @@ FILES_CHANGED = (
 
 
 NORMAL_PRE_COMMIT_RUN = re_assert.Matches(
-    fr'^\[INFO\] Initializing environment for .+\.\n'
+    fr'^\[INFO\] Initializing environment for .+\n'
     fr'Bash hook\.+Passed\n'
     fr'\[master [a-f0-9]{{7}}\] commit!\n'
     fr'{FILES_CHANGED}'
@@ -297,7 +297,7 @@ def test_environment_not_sourced(tempdir_factory, store):
 
 
 FAILING_PRE_COMMIT_RUN = re_assert.Matches(
-    r'^\[INFO\] Initializing environment for .+\.\n'
+    r'^\[INFO\] Initializing environment for .+\n'
     r'Failing hook\.+Failed\n'
     r'- hook id: failing_hook\n'
     r'- exit code: 1\n'
@@ -394,7 +394,7 @@ def test_install_with_existing_non_utf8_script(tmpdir, store):
 
 FAIL_OLD_HOOK = re_assert.Matches(
     r'fail!\n'
-    r'\[INFO\] Initializing environment for .+\.\n'
+    r'\[INFO\] Initializing environment for .+\n'
     r'Bash hook\.+Passed\n',
 )
 
