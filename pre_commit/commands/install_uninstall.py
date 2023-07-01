@@ -103,8 +103,7 @@ def _install_hook_script(
 
         hook_file.write(before + TEMPLATE_START)
         hook_file.write(f'INSTALL_PYTHON={shlex.quote(sys.executable)}\n')
-        # TODO: python3.8+: shlex.join
-        args_s = ' '.join(shlex.quote(part) for part in args)
+        args_s = shlex.join(args)
         hook_file.write(f'ARGS=({args_s})\n')
         hook_file.write(TEMPLATE_END + after)
     make_executable(hook_path)
