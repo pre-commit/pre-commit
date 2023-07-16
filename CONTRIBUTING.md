@@ -92,7 +92,7 @@ language, for example:
 
 here are the apis that should be implemented for a language
 
-Note that these are also documented in [`pre_commit/languages/all.py`](https://github.com/pre-commit/pre-commit/blob/main/pre_commit/languages/all.py)
+Note that these are also documented in [`pre_commit/lang_base.py`](https://github.com/pre-commit/pre-commit/blob/main/pre_commit/lang_base.py)
 
 #### `ENVIRONMENT_DIR`
 
