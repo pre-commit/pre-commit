@@ -111,7 +111,7 @@ one cannot be determined, return `'default'`.
 You generally don't need to implement this on a first pass and can just use:
 
 ```python
-get_default_version = helpers.basic_default_version
+get_default_version = lang_base.basic_default_version
 ```
 
 `python` is currently the only language which implements this api
@@ -125,7 +125,7 @@ healthy.
 You generally don't need to implement this on a first pass and can just use:
 
 ```python
-health_check = helpers.basic_healthy_check
+health_check = lang_base.basic_healthy_check
 ```
 
 `python` is currently the only language which implements this api, for python
@@ -137,7 +137,7 @@ this is the trickiest one to implement and where all the smart parts happen.
 
 this api should do the following things
 
-- (0th / 3rd class): `install_environment = helpers.no_install`
+- (0th / 3rd class): `install_environment = lang_base.no_install`
 - (1st class): install a language runtime into the hook's directory
 - (2nd class): install the package at `.` into the `ENVIRONMENT_DIR`
 - (2nd class, optional): install packages listed in `additional_dependencies`
