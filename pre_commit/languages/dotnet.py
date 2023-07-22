@@ -69,7 +69,7 @@ def install_environment(
         (
             'dotnet', 'pack',
             '--configuration', 'Release',
-            '--property', f'PackageOutputPath={build_dir}',
+            f'-p:PackageOutputPath={build_dir}',
         ),
     )
 
