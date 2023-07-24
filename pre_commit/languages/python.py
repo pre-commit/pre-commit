@@ -203,7 +203,7 @@ def install_environment(
         additional_dependencies: Sequence[str],
 ) -> None:
     envdir = lang_base.environment_dir(prefix, ENVIRONMENT_DIR, version)
-    venv_cmd = [sys.executable, '-mvirtualenv', envdir]
+    venv_cmd = [sys.executable, '-mvirtualenv', envdir, '--system-site-packages']
     python = norm_version(version)
     if python is not None:
         venv_cmd.extend(('-p', python))
