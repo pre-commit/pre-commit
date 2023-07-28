@@ -3,6 +3,7 @@ from __future__ import annotations
 import os.path
 import stat
 import subprocess
+import sys
 
 import pytest
 
@@ -106,3 +107,12 @@ def test_rmtree_read_only_directories(tmpdir):
     tmpdir.join('x/y/z').chmod(mode_no_w)
     tmpdir.join('x/y/z').chmod(mode_no_w)
     rmtree(str(tmpdir.join('x')))
+
+
+@pytest.mark.parametrize('fn', (cmd_output_b, cmd_output_p))
+def test_cmd_output_utf8(fn):
+    """Makes sure `cmd_output_*` works if the command being
+    run outputs UTF8 characters."""
+    ret, out, _ = fn(f'{sys.executable}', '-c', 'print("❤")')
+    assert ret == 0
+    assert out.strip().decode() == '❤'

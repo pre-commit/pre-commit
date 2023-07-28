@@ -93,6 +93,15 @@ def cmd_output_b(
 ) -> tuple[int, bytes, bytes | None]:
     _setdefault_kwargs(kwargs)
 
+    if sys.platform == 'win32':
+        # In windows, pipes use CP1252 by default, and you'll get an
+        # exception if the command being run outputs unicode. So we
+        # set the pipe encoding to utf-8 instead.
+        #
+        # See https://stackoverflow.com/a/74607949/149506
+        import os
+        os.environ['PYTHONIOENCODING'] = 'utf-8'
+
     try:
         cmd = parse_shebang.normalize_cmd(cmd, env=kwargs.get('env'))
     except parse_shebang.ExecutableNotFoundError as e:
