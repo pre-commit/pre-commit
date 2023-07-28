@@ -113,6 +113,6 @@ def test_rmtree_read_only_directories(tmpdir):
 def test_cmd_output_utf8(fn):
     """Makes sure `cmd_output_*` works if the command being
     run outputs UTF8 characters."""
-    ret, out, _ = fn(f'{sys.executable}', '-c', 'print("❤")')
+    ret, out, _ = fn(f'{sys.executable}', '-c', 'print("❤")', check=False)
     assert ret == 0
     assert out.strip().decode() == '❤'
