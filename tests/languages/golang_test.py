@@ -128,7 +128,7 @@ def test_local_golang_additional_deps(tmp_path):
         deps=('golang.org/x/example/hello@latest',),
     )
 
-    assert ret == (0, b'Hello, Go examples!\n')
+    assert ret == (0, b'Hello, world!\n')
 
 
 def test_golang_hook_still_works_when_gobin_is_set(tmp_path):
