@@ -125,7 +125,7 @@ healthy.
 You generally don't need to implement this on a first pass and can just use:
 
 ```python
-health_check = lang_base.basic_healthy_check
+health_check = lang_base.basic_health_check
 ```
 
 `python` is currently the only language which implements this api, for python
