@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-import json
 import argparse
 import contextlib
 import functools
+import json
 import logging
 import os
 import re
@@ -148,7 +148,7 @@ def _run_single_hook(
         diff_before: bytes,
         verbose: bool,
         use_color: bool,
-        log_file_path: str | None
+        log_file_path: str | None,
 ) -> tuple[bool, bytes]:
     filenames = classifier.filenames_for_hook(hook)
     hook_logs = {}
@@ -317,7 +317,7 @@ def _run_hooks(
         current_retval, prior_diff = _run_single_hook(
             classifier, hook, skips, cols, prior_diff,
             verbose=args.verbose, use_color=args.color,
-            log_file_path=args.log_file
+            log_file_path=args.log_file,
         )
         retval |= current_retval
         if retval and (config['fail_fast'] or hook.fail_fast):
