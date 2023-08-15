@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import argparse
 import contextlib
 import functools
@@ -147,8 +148,12 @@ def _run_single_hook(
         diff_before: bytes,
         verbose: bool,
         use_color: bool,
+        log_file_path: str | None
 ) -> tuple[bool, bytes]:
     filenames = classifier.filenames_for_hook(hook)
+    hook_logs = {}
+    hook_logs['id'] = hook.id
+    hook_logs['status'] = None
 
     if hook.id in skips or hook.alias in skips:
         output.write(
@@ -212,6 +217,8 @@ def _run_single_hook(
             print_color = color.GREEN
             status = 'Passed'
 
+        hook_logs['status'] = status
+        hook_logs['print_color'] = print_color
         output.write_line(color.format_color(status, print_color, use_color))
 
     if verbose or hook.verbose or retcode or files_modified:
@@ -219,18 +226,28 @@ def _run_single_hook(
 
         if (verbose or hook.verbose) and duration is not None:
             _subtle_line(f'- duration: {duration}s', use_color)
+            hook_logs['duration'] = f'- duration: {duration}s'
 
         if retcode:
             _subtle_line(f'- exit code: {retcode}', use_color)
+            hook_logs['retcode'] = f'- exit code: {retcode}'
 
         # Print a message if failing due to file modifications
         if files_modified:
             _subtle_line('- files were modified by this hook', use_color)
+            hook_logs['files_modified'] = '- files were modified by this hook'
 
         if out.strip():
             output.write_line()
             output.write_line_b(out.strip(), logfile_name=hook.log_file)
             output.write_line()
+            hook_logs['out'] = out.strip().decode('utf-8').split('\n')
+            print(out.strip())
+
+    if hook_logs['status'] and log_file_path:
+        with open(log_file_path, 'a') as file:
+            json.dump(hook_logs, file)
+            file.write('\n')
 
     return files_modified or bool(retcode), diff_after
 
@@ -292,10 +309,15 @@ def _run_hooks(
     )
     retval = 0
     prior_diff = _get_diff()
+
+    if args.log_file:
+        open(args.log_file, 'w').close()
+
     for hook in hooks:
         current_retval, prior_diff = _run_single_hook(
             classifier, hook, skips, cols, prior_diff,
             verbose=args.verbose, use_color=args.color,
+            log_file_path=args.log_file
         )
         retval |= current_retval
         if retval and (config['fail_fast'] or hook.fail_fast):
