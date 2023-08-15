@@ -70,6 +70,10 @@ def _add_run_options(parser: argparse.ArgumentParser) -> None:
         help='Specific filenames to run hooks on.',
     )
     parser.add_argument(
+        '--log-file', type=str,
+        help='Save failed/passed logs to a log file.',
+    )
+    parser.add_argument(
         '--show-diff-on-failure', action='store_true',
         help='When hooks fail, run `git diff` directly afterward.',
     )
