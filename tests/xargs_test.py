@@ -147,6 +147,15 @@ def test_xargs_retcode_normal():
     assert ret == 5
 
 
+@pytest.mark.xfail(sys.platform == 'win32', reason='posix only')
+def test_xargs_retcode_killed_by_signal():
+    ret, _ = xargs.xargs(
+        parse_shebang.normalize_cmd(('bash', '-c', 'kill -9 $$', '--')),
+        ('foo', 'bar'),
+    )
+    assert ret == -9
+
+
 def test_xargs_concurrency():
     bash_cmd = parse_shebang.normalize_cmd(('bash', '-c'))
     print_pid = ('sleep 0.5 && echo $$',)

@@ -170,7 +170,8 @@ def xargs(
         results = thread_map(run_cmd_partition, partitions)
 
         for proc_retcode, proc_out, _ in results:
-            retcode = max(retcode, proc_retcode)
+            if abs(proc_retcode) > abs(retcode):
+                retcode = proc_retcode
             stdout += proc_out
 
     return retcode, stdout
