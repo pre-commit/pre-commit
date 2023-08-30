@@ -25,6 +25,14 @@ TRet = TypeVar('TRet')
 
 def cpu_count() -> int:
     try:
+        # On systems that support it, this will return a more accurate count of
+        # usable CPUs for the current process, which will take into account
+        # cgroup limits
+        return len(os.sched_getaffinity(0))
+    except AttributeError:
+        pass
+
+    try:
         return multiprocessing.cpu_count()
     except NotImplementedError:
         return 1
