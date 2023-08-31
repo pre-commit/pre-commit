@@ -66,7 +66,7 @@ def _add_run_options(parser: argparse.ArgumentParser) -> None:
         help='Run on all the files in the repo.',
     )
     mutex_group.add_argument(
-        '--files', nargs='*', default=[],
+        '--files', '-f', nargs='*', default=[],
         help='Specific filenames to run hooks on.',
     )
     parser.add_argument(
