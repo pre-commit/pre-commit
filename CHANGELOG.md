@@ -1,3 +1,18 @@
+3.4.0 - 2023-09-02
+==================
+
+### Features
+- Add `language: haskell`.
+    - #2932 by @alunduil.
+- Improve cpu count detection when run under cgroups.
+    - #2979 PR by @jdb8.
+    - #2978 issue by @jdb8.
+
+### Fixes
+- Handle negative exit codes from hooks receiving posix signals.
+    - #2971 PR by @chriskuehl.
+    - #2970 issue by @chriskuehl.
+
 3.3.3 - 2023-06-13
 ==================
 
