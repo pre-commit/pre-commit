@@ -278,6 +278,13 @@ def main(argv: Sequence[str] | None = None) -> int:
             'or exit with a failure code.'
         ),
     )
+    install_parser.add_argument(
+        '--allow-global-hooks', action='store_true',
+        help=(
+            'Whether to allow installation of hooks if core.hooksPath '
+            'is configured in the global git configuration.'
+        ),
+    )
 
     install_hooks_parser = _add_cmd(
         'install-hooks',
@@ -399,6 +406,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 overwrite=args.overwrite,
                 hooks=args.install_hooks,
                 skip_on_missing_config=args.allow_missing_config,
+                allow_global_hooks=args.allow_global_hooks,
             )
         elif args.command == 'init-templatedir':
             return init_templatedir(
