@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import concurrent.futures
+import contextlib
 import multiprocessing
 import os
 import sys
@@ -20,30 +21,30 @@ def test_cpu_count_sched_getaffinity_exists():
         assert xargs.cpu_count() == 345
 
 
-@pytest.fixture
+@contextlib.contextmanager
 def no_sched_getaffinity():
     # Simulates an OS without os.sched_getaffinity available (mac/windows)
     # https://docs.python.org/3/library/os.html#interface-to-the-scheduler
-    with mock.patch.object(
-            os,
-            'sched_getaffinity',
-            create=True,
-            side_effect=AttributeError,
-    ):
+    if hasattr(os, 'sched_getaffinity'):  # pragma: no cover (win32 py38)
+        func = os.sched_getaffinity
+        del os.sched_getaffinity
         yield
+        os.sched_getaffinity = func
+    else:
+        yield  # pragma: no cover (darwin)
 
 
-def test_cpu_count_multiprocessing_cpu_count_implemented(no_sched_getaffinity):
-    with mock.patch.object(multiprocessing, 'cpu_count', return_value=123):
+def test_cpu_count_multiprocessing_cpu_count_implemented():
+    with mock.patch.object(
+        multiprocessing, 'cpu_count', return_value=123,
+    ), no_sched_getaffinity():
         assert xargs.cpu_count() == 123
 
 
-def test_cpu_count_multiprocessing_cpu_count_not_implemented(
-        no_sched_getaffinity,
-):
+def test_cpu_count_multiprocessing_cpu_count_not_implemented():
     with mock.patch.object(
-            multiprocessing, 'cpu_count', side_effect=NotImplementedError,
-    ):
+        multiprocessing, 'cpu_count', side_effect=NotImplementedError,
+    ), no_sched_getaffinity():
         assert xargs.cpu_count() == 1
 
 
