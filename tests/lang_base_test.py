@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import multiprocessing
 import os.path
 import sys
 from unittest import mock
@@ -10,6 +9,7 @@ import pytest
 import pre_commit.constants as C
 from pre_commit import lang_base
 from pre_commit import parse_shebang
+from pre_commit import xargs
 from pre_commit.prefix import Prefix
 from pre_commit.util import CalledProcessError
 
@@ -27,19 +27,6 @@ def homedir_mck():
         return os.path.normpath('/home/me')
 
     with mock.patch.object(os.path, 'expanduser', fake_expanduser):
-        yield
-
-
-@pytest.fixture
-def no_sched_getaffinity():
-    # Simulates an OS without os.sched_getaffinity available (mac/windows)
-    # https://docs.python.org/3/library/os.html#interface-to-the-scheduler
-    with mock.patch.object(
-        os,
-        'sched_getaffinity',
-        create=True,
-        side_effect=AttributeError,
-    ):
         yield
 
 
@@ -129,40 +116,23 @@ def test_no_env_noop(tmp_path):
     assert before == inside == after
 
 
-def test_target_concurrency_sched_getaffinity(no_sched_getaffinity):
-    with mock.patch.object(
-        os,
-        'sched_getaffinity',
-        return_value=set(range(345)),
-    ):
-        with mock.patch.dict(os.environ, clear=True):
-            assert lang_base.target_concurrency() == 345
+@pytest.fixture
+def cpu_count_mck():
+    with mock.patch.object(xargs, 'cpu_count', return_value=4):
+        yield
 
 
-def test_target_concurrency_without_sched_getaffinity(no_sched_getaffinity):
-    with mock.patch.object(multiprocessing, 'cpu_count', return_value=123):
-        with mock.patch.dict(os.environ, {}, clear=True):
-            assert lang_base.target_concurrency() == 123
-
-
-def test_target_concurrency_testing_env_var():
-    with mock.patch.dict(
-            os.environ, {'PRE_COMMIT_NO_CONCURRENCY': '1'}, clear=True,
-    ):
-        assert lang_base.target_concurrency() == 1
-
-
-def test_target_concurrency_on_travis():
-    with mock.patch.dict(os.environ, {'TRAVIS': '1'}, clear=True):
-        assert lang_base.target_concurrency() == 2
-
-
-def test_target_concurrency_cpu_count_not_implemented(no_sched_getaffinity):
-    with mock.patch.object(
-            multiprocessing, 'cpu_count', side_effect=NotImplementedError,
-    ):
-        with mock.patch.dict(os.environ, {}, clear=True):
-            assert lang_base.target_concurrency() == 1
+@pytest.mark.parametrize(
+    ('var', 'expected'),
+    (
+        ('PRE_COMMIT_NO_CONCURRENCY', 1),
+        ('TRAVIS', 2),
+        (None, 4),
+    ),
+)
+def test_target_concurrency(cpu_count_mck, var, expected):
+    with mock.patch.dict(os.environ, {var: '1'} if var else {}, clear=True):
+        assert lang_base.target_concurrency() == expected
 
 
 def test_shuffled_is_deterministic():
