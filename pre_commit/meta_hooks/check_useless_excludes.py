@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import re
+from typing import Iterable
 from typing import Sequence
 
 from cfgv import apply_defaults
@@ -14,7 +15,7 @@ from pre_commit.commands.run import Classifier
 
 
 def exclude_matches_any(
-        filenames: Sequence[str],
+        filenames: Iterable[str],
         include: str,
         exclude: str,
 ) -> bool:
@@ -50,11 +51,12 @@ def check_useless_excludes(config_file: str) -> int:
             # Not actually a manifest dict, but this more accurately reflects
             # the defaults applied during runtime
             hook = apply_defaults(hook, MANIFEST_HOOK_DICT)
-            names = classifier.filenames
-            types = hook['types']
-            types_or = hook['types_or']
-            exclude_types = hook['exclude_types']
-            names = classifier.by_types(names, types, types_or, exclude_types)
+            names = classifier.by_types(
+                classifier.filenames,
+                hook['types'],
+                hook['types_or'],
+                hook['exclude_types'],
+            )
             include, exclude = hook['files'], hook['exclude']
             if not exclude_matches_any(names, include, exclude):
                 print(
