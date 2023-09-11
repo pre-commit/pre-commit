@@ -10,7 +10,8 @@ import subprocess
 import time
 import unicodedata
 from typing import Any
-from typing import Collection
+from typing import Generator
+from typing import Iterable
 from typing import MutableMapping
 from typing import Sequence
 
@@ -57,20 +58,20 @@ def _full_msg(
 
 
 def filter_by_include_exclude(
-        names: Collection[str],
+        names: Iterable[str],
         include: str,
         exclude: str,
-) -> list[str]:
+) -> Generator[str, None, None]:
     include_re, exclude_re = re.compile(include), re.compile(exclude)
-    return [
+    return (
         filename for filename in names
         if include_re.search(filename)
         if not exclude_re.search(filename)
-    ]
+    )
 
 
 class Classifier:
-    def __init__(self, filenames: Collection[str]) -> None:
+    def __init__(self, filenames: Iterable[str]) -> None:
         self.filenames = [f for f in filenames if os.path.lexists(f)]
 
     @functools.lru_cache(maxsize=None)
@@ -79,15 +80,14 @@ class Classifier:
 
     def by_types(
             self,
-            names: Sequence[str],
-            types: Collection[str],
-            types_or: Collection[str],
-            exclude_types: Collection[str],
-    ) -> list[str]:
+            names: Iterable[str],
+            types: Iterable[str],
+            types_or: Iterable[str],
+            exclude_types: Iterable[str],
+    ) -> Generator[str, None, None]:
         types = frozenset(types)
         types_or = frozenset(types_or)
         exclude_types = frozenset(exclude_types)
-        ret = []
         for filename in names:
             tags = self._types_for_file(filename)
             if (
@@ -95,24 +95,24 @@ class Classifier:
                     (not types_or or tags & types_or) and
                     not tags & exclude_types
             ):
-                ret.append(filename)
-        return ret
+                yield filename
 
-    def filenames_for_hook(self, hook: Hook) -> tuple[str, ...]:
-        names = self.filenames
-        names = filter_by_include_exclude(names, hook.files, hook.exclude)
-        names = self.by_types(
-            names,
+    def filenames_for_hook(self, hook: Hook) -> Generator[str, None, None]:
+        return self.by_types(
+            filter_by_include_exclude(
+                self.filenames,
+                hook.files,
+                hook.exclude,
+            ),
             hook.types,
             hook.types_or,
             hook.exclude_types,
         )
-        return tuple(names)
 
     @classmethod
     def from_config(
             cls,
-            filenames: Collection[str],
+            filenames: Iterable[str],
             include: str,
             exclude: str,
     ) -> Classifier:
@@ -121,7 +121,7 @@ class Classifier:
         # this also makes improperly quoted shell-based hooks work better
         # see #1173
         if os.altsep == '/' and os.sep == '\\':
-            filenames = [f.replace(os.sep, os.altsep) for f in filenames]
+            filenames = (f.replace(os.sep, os.altsep) for f in filenames)
         filenames = filter_by_include_exclude(filenames, include, exclude)
         return Classifier(filenames)
 
@@ -148,7 +148,7 @@ def _run_single_hook(
         verbose: bool,
         use_color: bool,
 ) -> tuple[bool, bytes]:
-    filenames = classifier.filenames_for_hook(hook)
+    filenames = tuple(classifier.filenames_for_hook(hook))
 
     if hook.id in skips or hook.alias in skips:
         output.write(
@@ -250,7 +250,7 @@ def _compute_cols(hooks: Sequence[Hook]) -> int:
     return max(cols, 80)
 
 
-def _all_filenames(args: argparse.Namespace) -> Collection[str]:
+def _all_filenames(args: argparse.Namespace) -> Iterable[str]:
     # these hooks do not operate on files
     if args.hook_stage in {
         'post-checkout', 'post-commit', 'post-merge', 'post-rewrite',

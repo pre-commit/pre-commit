@@ -1127,8 +1127,8 @@ def test_classifier_empty_types_or(tmpdir):
             types_or=[],
             exclude_types=[],
         )
-        assert for_symlink == ['foo']
-        assert for_file == ['bar']
+        assert tuple(for_symlink) == ('foo',)
+        assert tuple(for_file) == ('bar',)
 
 
 @pytest.fixture
@@ -1142,33 +1142,33 @@ def some_filenames():
 
 def test_include_exclude_base_case(some_filenames):
     ret = filter_by_include_exclude(some_filenames, '', '^$')
-    assert ret == [
+    assert tuple(ret) == (
         '.pre-commit-hooks.yaml',
         'pre_commit/git.py',
         'pre_commit/main.py',
-    ]
+    )
 
 
 def test_matches_broken_symlink(tmpdir):
     with tmpdir.as_cwd():
         os.symlink('does-not-exist', 'link')
         ret = filter_by_include_exclude({'link'}, '', '^$')
-        assert ret == ['link']
+        assert tuple(ret) == ('link',)
 
 
 def test_include_exclude_total_match(some_filenames):
     ret = filter_by_include_exclude(some_filenames, r'^.*\.py$', '^$')
-    assert ret == ['pre_commit/git.py', 'pre_commit/main.py']
+    assert tuple(ret) == ('pre_commit/git.py', 'pre_commit/main.py')
 
 
 def test_include_exclude_does_search_instead_of_match(some_filenames):
     ret = filter_by_include_exclude(some_filenames, r'\.yaml$', '^$')
-    assert ret == ['.pre-commit-hooks.yaml']
+    assert tuple(ret) == ('.pre-commit-hooks.yaml',)
 
 
 def test_include_exclude_exclude_removes_files(some_filenames):
     ret = filter_by_include_exclude(some_filenames, '', r'\.py$')
-    assert ret == ['.pre-commit-hooks.yaml']
+    assert tuple(ret) == ('.pre-commit-hooks.yaml',)
 
 
 def test_args_hook_only(cap_out, store, repo_with_passing_hook):
