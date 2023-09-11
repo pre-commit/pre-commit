@@ -93,7 +93,7 @@ def install_environment(
         # install as if we installed from git
 
         local_install_cmd = (
-            'npm', 'install', '--dev', '--prod',
+            'npm', 'install', '--include=dev', '--include=prod',
             '--ignore-prepublish', '--no-progress', '--no-save',
         )
         lang_base.setup_cmd(prefix, local_install_cmd)
