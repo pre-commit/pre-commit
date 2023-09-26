@@ -139,7 +139,7 @@ def test_node_with_user_config_set(tmp_path):
         test_node_hook_system(tmp_path)
 
 
-@pytest.mark.parametrize('version', (C.DEFAULT, '18.13.0'))
+@pytest.mark.parametrize('version', (C.DEFAULT, '18.14.0'))
 def test_node_hook_versions(tmp_path, version):
     _make_hello_world(tmp_path)
     ret = run_language(tmp_path, node, 'node-hello', version=version)

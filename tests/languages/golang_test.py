@@ -111,11 +111,11 @@ def test_golang_versioned(tmp_path):
         tmp_path,
         golang,
         'go version',
-        version='1.18.4',
+        version='1.21.1',
     )
 
     assert ret == 0
-    assert out.startswith(b'go version go1.18.4')
+    assert out.startswith(b'go version go1.21.1')
 
 
 def test_local_golang_additional_deps(tmp_path):
