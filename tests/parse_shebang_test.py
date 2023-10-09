@@ -133,17 +133,17 @@ def test_normalize_cmd_PATH():
 
 
 def test_normalize_cmd_shebang(in_tmpdir):
-    echo = _echo_exe().replace(os.sep, '/')
-    path = write_executable(echo)
-    assert parse_shebang.normalize_cmd((path,)) == (echo, path)
+    us = sys.executable.replace(os.sep, '/')
+    path = write_executable(us)
+    assert parse_shebang.normalize_cmd((path,)) == (us, path)
 
 
 def test_normalize_cmd_PATH_shebang_full_path(in_tmpdir):
-    echo = _echo_exe().replace(os.sep, '/')
-    path = write_executable(echo)
+    us = sys.executable.replace(os.sep, '/')
+    path = write_executable(us)
     with bin_on_path():
         ret = parse_shebang.normalize_cmd(('run',))
-        assert ret == (echo, os.path.abspath(path))
+        assert ret == (us, os.path.abspath(path))
 
 
 def test_normalize_cmd_PATH_shebang_PATH(in_tmpdir):
