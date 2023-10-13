@@ -43,7 +43,7 @@ def _run_try_repo(tempdir_factory, **kwargs):
 
 
 def test_try_repo_repo_only(cap_out, tempdir_factory):
-    with mock.patch.object(time, 'time', return_value=0.0):
+    with mock.patch.object(time, 'monotonic', return_value=0.0):
         _run_try_repo(tempdir_factory, verbose=True)
     start, config, rest = _get_out(cap_out)
     assert start == ''

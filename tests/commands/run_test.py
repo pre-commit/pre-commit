@@ -293,7 +293,7 @@ def test_verbose_duration(cap_out, store, in_git_dir, t1, t2, expected):
     write_config('.', {'repo': 'meta', 'hooks': [{'id': 'identity'}]})
     cmd_output('git', 'add', '.')
     opts = run_opts(verbose=True)
-    with mock.patch.object(time, 'time', side_effect=(t1, t2)):
+    with mock.patch.object(time, 'monotonic', side_effect=(t1, t2)):
         ret, printed = _do_run(cap_out, store, str(in_git_dir), opts)
     assert ret == 0
     assert expected in printed

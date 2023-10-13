@@ -187,7 +187,7 @@ def _run_single_hook(
 
         if not hook.pass_filenames:
             filenames = ()
-        time_before = time.time()
+        time_before = time.monotonic()
         language = languages[hook.language]
         with language.in_env(hook.prefix, hook.language_version):
             retcode, out = language.run_hook(
@@ -199,7 +199,7 @@ def _run_single_hook(
                 require_serial=hook.require_serial,
                 color=use_color,
             )
-        duration = round(time.time() - time_before, 2) or 0
+        duration = round(time.monotonic() - time_before, 2) or 0
         diff_after = _get_diff()
 
         # if the hook makes changes, fail the commit
