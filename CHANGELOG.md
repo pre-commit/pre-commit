@@ -1,3 +1,20 @@
+3.5.0 - 2023-10-13
+==================
+
+### Features
+- Improve performance of `check-hooks-apply` and `check-useless-excludes`.
+    - #2998 PR by @mxr.
+    - #2935 issue by @mxr.
+
+### Fixes
+- Use `time.monotonic()` for more accurate hook timing.
+    - #3024 PR by @adamchainz.
+
+### Migrating
+- Require npm 6.x+ for `language: node` hooks.
+    - #2996 PR by @RoelAdriaans.
+    - #1983 issue by @henryiii.
+
 3.4.0 - 2023-09-02
 ==================
 
