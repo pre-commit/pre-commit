@@ -3,6 +3,7 @@ from __future__ import annotations
 import os.path
 import shlex
 import sys
+import tempfile
 import time
 from typing import MutableMapping
 from unittest import mock
@@ -16,6 +17,7 @@ from pre_commit.commands.run import _compute_cols
 from pre_commit.commands.run import _full_msg
 from pre_commit.commands.run import _get_skips
 from pre_commit.commands.run import _has_unmerged_paths
+from pre_commit.commands.run import _has_unstaged_config
 from pre_commit.commands.run import _start_msg
 from pre_commit.commands.run import Classifier
 from pre_commit.commands.run import filter_by_include_exclude
@@ -1217,3 +1219,79 @@ def test_pre_commit_env_variable_set(cap_out, store, repo_with_passing_hook):
         cap_out, store, repo_with_passing_hook, args, environ,
     )
     assert environ['PRE_COMMIT'] == '1'
+
+
+@pytest.mark.parametrize(
+    ('config_before', 'config_after', 'retval'),
+    (
+        ({'config with change': 1}, {'config with change': 0}, True),
+        ({'config without change': 1}, {'config without change': 1}, False),
+    ),
+)
+def test_has_unstaged_config(
+        config_before,
+        config_after,
+        retval,
+        tempdir_factory,
+        monkeypatch,
+):
+    git_path = git_dir(tempdir_factory)
+    monkeypatch.chdir(git_path)
+    add_config_to_repo(git_path, config_before)
+    write_config(git_path, config_before, C.CONFIG_FILE)
+
+    if str(config_before) != str(config_after):
+        write_config(git_path, config_after, C.CONFIG_FILE)
+
+    full_config_path = os.path.join(git_path, C.CONFIG_FILE)
+    assert retval == _has_unstaged_config(full_config_path)
+
+
+@pytest.mark.parametrize(
+    ('config_before', 'config_after', 'retval'),
+    (
+        ({'config with change': 1}, {'config with change': 0}, True),
+        ({'config without change': 1}, {'config without change': 1}, False),
+    ),
+)
+def test_has_unstaged_config_symlink(
+        config_before,
+        config_after,
+        retval,
+        tempdir_factory,
+        monkeypatch,
+):
+    git_path = git_dir(tempdir_factory)
+    real_config_path = C.CONFIG_FILE.lstrip('.')
+    monkeypatch.chdir(git_path)
+    add_config_to_repo(git_path, config_before, real_config_path)
+    write_config(git_path, config_before, real_config_path)
+    os.symlink(real_config_path, C.CONFIG_FILE)
+    cmd_output('git', 'add', '-A')
+    git_commit()
+
+    if str(config_before) != str(config_after):
+        write_config(git_path, config_after, real_config_path)
+
+    full_config_path = os.path.join(git_path, C.CONFIG_FILE)
+    assert retval == _has_unstaged_config(full_config_path)
+
+
+def test_has_unstaged_config_symlink_outside(tempdir_factory, monkeypatch):
+    config_before = {'config with change': 1}
+    config_after = {'config with change': 0}
+    with tempfile.NamedTemporaryFile() as tf:
+        git_path = git_dir(tempdir_factory)
+        real_config_path = tf.name
+        monkeypatch.chdir(git_path)
+        with open(real_config_path, 'w') as f:
+            f.write(str(config_before))
+        os.symlink(real_config_path, C.CONFIG_FILE)
+        cmd_output('git', 'add', C.CONFIG_FILE)
+        git_commit()
+
+        with open(real_config_path, 'w') as f:
+            f.write(str(config_after))
+
+        full_config_path = os.path.join(git_path, C.CONFIG_FILE)
+        assert not _has_unstaged_config(full_config_path)
