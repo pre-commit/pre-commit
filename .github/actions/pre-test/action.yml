@@ -6,4 +6,4 @@ runs:
   using: composite
   steps:
   - uses: asottile/workflows/.github/actions/latest-git@v1.4.0
-    if: inputs.env == 'py38' && runner.os == 'Linux'
+    if: inputs.env == 'py39' && runner.os == 'Linux'

@@ -6,8 +6,8 @@ import re
 import tempfile
 import xml.etree.ElementTree
 import zipfile
-from typing import Generator
-from typing import Sequence
+from collections.abc import Generator
+from collections.abc import Sequence
 
 from pre_commit import lang_base
 from pre_commit.envcontext import envcontext

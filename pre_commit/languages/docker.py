@@ -3,7 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
-from typing import Sequence
+from collections.abc import Sequence
 
 from pre_commit import lang_base
 from pre_commit.prefix import Prefix

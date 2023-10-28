@@ -5,7 +5,7 @@ import shlex
 import sys
 import tempfile
 import time
-from typing import MutableMapping
+from collections.abc import MutableMapping
 from unittest import mock
 
 import pytest

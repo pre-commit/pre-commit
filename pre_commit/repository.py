@@ -4,8 +4,8 @@ import json
 import logging
 import os
 import shlex
+from collections.abc import Sequence
 from typing import Any
-from typing import Sequence
 
 import pre_commit.constants as C
 from pre_commit.all_languages import languages

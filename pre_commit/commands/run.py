@@ -9,11 +9,11 @@ import re
 import subprocess
 import time
 import unicodedata
+from collections.abc import Generator
+from collections.abc import Iterable
+from collections.abc import MutableMapping
+from collections.abc import Sequence
 from typing import Any
-from typing import Generator
-from typing import Iterable
-from typing import MutableMapping
-from typing import Sequence
 
 from identify.identify import tags_from_path
 
@@ -74,7 +74,7 @@ class Classifier:
     def __init__(self, filenames: Iterable[str]) -> None:
         self.filenames = [f for f in filenames if os.path.lexists(f)]
 
-    @functools.lru_cache(maxsize=None)
+    @functools.cache
     def _types_for_file(self, filename: str) -> set[str]:
         return tags_from_path(filename)
 
