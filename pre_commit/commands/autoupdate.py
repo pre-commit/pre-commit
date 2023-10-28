@@ -4,9 +4,9 @@ import concurrent.futures
 import os.path
 import re
 import tempfile
+from collections.abc import Sequence
 from typing import Any
 from typing import NamedTuple
-from typing import Sequence
 
 import pre_commit.constants as C
 from pre_commit import git

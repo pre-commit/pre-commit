@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import argparse
 import re
-from typing import Iterable
-from typing import Sequence
+from collections.abc import Iterable
+from collections.abc import Sequence
 
 from cfgv import apply_defaults
 

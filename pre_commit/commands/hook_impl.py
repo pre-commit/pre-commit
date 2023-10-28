@@ -4,7 +4,7 @@ import argparse
 import os.path
 import subprocess
 import sys
-from typing import Sequence
+from collections.abc import Sequence
 
 from pre_commit.commands.run import run
 from pre_commit.envcontext import envcontext

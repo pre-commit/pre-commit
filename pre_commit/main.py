@@ -4,7 +4,7 @@ import argparse
 import logging
 import os
 import sys
-from typing import Sequence
+from collections.abc import Sequence
 
 import pre_commit.constants as C
 from pre_commit import clientlib

@@ -6,9 +6,9 @@ import importlib.resources
 import os.path
 import shutil
 import tarfile
-from typing import Generator
+from collections.abc import Generator
+from collections.abc import Sequence
 from typing import IO
-from typing import Sequence
 
 import pre_commit.constants as C
 from pre_commit import lang_base

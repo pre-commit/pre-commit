@@ -12,11 +12,11 @@ import tempfile
 import urllib.error
 import urllib.request
 import zipfile
+from collections.abc import Generator
+from collections.abc import Sequence
 from typing import ContextManager
-from typing import Generator
 from typing import IO
 from typing import Protocol
-from typing import Sequence
 
 import pre_commit.constants as C
 from pre_commit import lang_base

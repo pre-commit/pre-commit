@@ -4,8 +4,8 @@ import contextlib
 import functools
 import os
 import sys
-from typing import Generator
-from typing import Sequence
+from collections.abc import Generator
+from collections.abc import Sequence
 
 import pre_commit.constants as C
 from pre_commit import lang_base
@@ -24,7 +24,7 @@ ENVIRONMENT_DIR = 'py_env'
 run_hook = lang_base.basic_run_hook
 
 
-@functools.lru_cache(maxsize=None)
+@functools.cache
 def _version_info(exe: str) -> str:
     prog = 'import sys;print(".".join(str(p) for p in sys.version_info))'
     try:
