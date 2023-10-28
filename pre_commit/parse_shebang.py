@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import os.path
-from typing import Mapping
+from collections.abc import Mapping
 from typing import NoReturn
 
 from identify.identify import parse_shebang_from_file

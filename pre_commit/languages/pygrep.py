@@ -3,9 +3,9 @@ from __future__ import annotations
 import argparse
 import re
 import sys
+from collections.abc import Sequence
+from re import Pattern
 from typing import NamedTuple
-from typing import Pattern
-from typing import Sequence
 
 from pre_commit import lang_base
 from pre_commit import output

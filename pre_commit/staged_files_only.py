@@ -4,7 +4,7 @@ import contextlib
 import logging
 import os.path
 import time
-from typing import Generator
+from collections.abc import Generator
 
 from pre_commit import git
 from pre_commit.errors import FatalError

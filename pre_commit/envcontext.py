@@ -3,10 +3,9 @@ from __future__ import annotations
 import contextlib
 import enum
 import os
-from typing import Generator
-from typing import MutableMapping
+from collections.abc import Generator
+from collections.abc import MutableMapping
 from typing import NamedTuple
-from typing import Tuple
 from typing import Union
 
 _Unset = enum.Enum('_Unset', 'UNSET')
@@ -18,9 +17,9 @@ class Var(NamedTuple):
     default: str = ''
 
 
-SubstitutionT = Tuple[Union[str, Var], ...]
+SubstitutionT = tuple[Union[str, Var], ...]
 ValueT = Union[str, _Unset, SubstitutionT]
-PatchesT = Tuple[Tuple[str, ValueT], ...]
+PatchesT = tuple[tuple[str, ValueT], ...]
 
 
 def format_env(parts: SubstitutionT, env: MutableMapping[str, str]) -> str:

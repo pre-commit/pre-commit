@@ -3,8 +3,8 @@ from __future__ import annotations
 import contextlib
 import errno
 import sys
+from collections.abc import Generator
 from typing import Callable
-from typing import Generator
 
 
 if sys.platform == 'win32':  # pragma: no cover (windows)

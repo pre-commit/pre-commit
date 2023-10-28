@@ -5,9 +5,9 @@ import logging
 import re
 import shlex
 import sys
+from collections.abc import Sequence
 from typing import Any
 from typing import NamedTuple
-from typing import Sequence
 
 import cfgv
 from identify.identify import ALL_TAGS

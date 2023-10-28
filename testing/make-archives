@@ -8,7 +8,7 @@ import shutil
 import subprocess
 import tarfile
 import tempfile
-from typing import Sequence
+from collections.abc import Sequence
 
 
 # This is a script for generating the tarred resources for git repo

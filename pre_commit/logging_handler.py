@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import contextlib
 import logging
-from typing import Generator
+from collections.abc import Generator
 
 from pre_commit import color
 from pre_commit import output

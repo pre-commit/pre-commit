@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import Sequence
 from typing import Any
 from typing import NamedTuple
-from typing import Sequence
 
 from pre_commit.prefix import Prefix
 
