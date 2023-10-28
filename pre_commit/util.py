@@ -36,7 +36,8 @@ def clean_path_on_failure(path: str) -> Generator[None, None, None]:
 
 
 def resource_text(filename: str) -> str:
-    return importlib.resources.read_text('pre_commit.resources', filename)
+    files = importlib.resources.files('pre_commit.resources')
+    return files.joinpath(filename).read_text()
 
 
 def make_executable(filename: str) -> None:
