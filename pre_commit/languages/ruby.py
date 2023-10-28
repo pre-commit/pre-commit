@@ -25,7 +25,8 @@ run_hook = lang_base.basic_run_hook
 
 
 def _resource_bytesio(filename: str) -> IO[bytes]:
-    return importlib.resources.open_binary('pre_commit.resources', filename)
+    files = importlib.resources.files('pre_commit.resources')
+    return files.joinpath(filename).open('rb')
 
 
 @functools.lru_cache(maxsize=1)
