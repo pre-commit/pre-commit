@@ -63,6 +63,7 @@ def filter_by_include_exclude(
         exclude: str,
 ) -> Generator[str, None, None]:
     include_re, exclude_re = re.compile(include), re.compile(exclude)
+
     return (
         filename for filename in names
         if include_re.search(filename)
@@ -98,11 +99,23 @@ class Classifier:
                 yield filename
 
     def filenames_for_hook(self, hook: Hook) -> Generator[str, None, None]:
+        exclude = hook.exclude or '$^'
+        file_exclude = ''
+        if hook.exclude_file_path is not None:
+            if os.path.isfile(hook.exclude_file_path):
+                with open(hook.exclude_file_path) as exclude_file:
+                    file_exclude = '|'.join(
+                        line.strip() for line in exclude_file.readlines()
+                    ) or '$^'
+
+        if file_exclude:
+            exclude = f'{exclude}|{file_exclude}'
+
         return self.by_types(
             filter_by_include_exclude(
                 self.filenames,
                 hook.files,
-                hook.exclude,
+                exclude,
             ),
             hook.types,
             hook.types_or,
@@ -115,6 +128,7 @@ class Classifier:
             filenames: Iterable[str],
             include: str,
             exclude: str,
+            exclude_file_path: str,
     ) -> Classifier:
         # on windows we normalize all filenames to use forward slashes
         # this makes it easier to filter using the `files:` regex
@@ -122,6 +136,15 @@ class Classifier:
         # see #1173
         if os.altsep == '/' and os.sep == '\\':
             filenames = (f.replace(os.sep, os.altsep) for f in filenames)
+        file_exclude = ''
+        if exclude_file_path is not None:
+            if os.path.isfile(exclude_file_path):
+                with open(exclude_file_path) as exclude_file:
+                    file_exclude = '|'.join(
+                        line.strip() for line in exclude_file.readlines()
+                    ) or '$^'
+        if file_exclude:
+            exclude = f'{exclude}|{file_exclude}'
         filenames = filter_by_include_exclude(filenames, include, exclude)
         return Classifier(filenames)
 
@@ -288,7 +311,7 @@ def _run_hooks(
     """Actually run the hooks."""
     cols = _compute_cols(hooks)
     classifier = Classifier.from_config(
-        _all_filenames(args), config['files'], config['exclude'],
+        _all_filenames(args), config['files'], config['exclude'], config['exclude_file_path'],
     )
     retval = 0
     prior_diff = _get_diff()

@@ -20,6 +20,7 @@ class Hook(NamedTuple):
     alias: str
     files: str
     exclude: str
+    exclude_file_path: str
     types: Sequence[str]
     types_or: Sequence[str]
     exclude_types: Sequence[str]

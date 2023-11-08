@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 from collections.abc import Sequence
 
 import pre_commit.constants as C
@@ -13,6 +14,12 @@ from pre_commit.store import Store
 
 def check_all_hooks_match_files(config_file: str) -> int:
     config = load_config(config_file)
+    exclude_file_path = config['exclude_file_path']
+    if exclude_file_path is not None:
+        if os.path.isfile(exclude_file_path):
+            with open(exclude_file_path, 'r') as f:
+                config['exclude'] = f.read().splitlines()
+
     classifier = Classifier.from_config(
         git.get_all_files(), config['files'], config['exclude'],
     )

@@ -110,6 +110,7 @@ MANIFEST_HOOK_DICT = cfgv.Map(
 
     cfgv.Optional('files', check_string_regex, ''),
     cfgv.Optional('exclude', check_string_regex, '^$'),
+    cfgv.Optional('exclude_file_path', check_string_regex, '^$'),
     cfgv.Optional('types', cfgv.check_array(check_type_tag), ['file']),
     cfgv.Optional('types_or', cfgv.check_array(check_type_tag), []),
     cfgv.Optional('exclude_types', cfgv.check_array(check_type_tag), []),
@@ -357,6 +358,7 @@ CONFIG_SCHEMA = cfgv.Map(
     StagesMigration('default_stages', STAGES),
     cfgv.Optional('files', check_string_regex, ''),
     cfgv.Optional('exclude', check_string_regex, '^$'),
+    cfgv.Optional('exclude_file_path', check_string_regex, '^$'),
     cfgv.Optional('fail_fast', cfgv.check_bool, False),
     cfgv.Optional(
         'minimum_pre_commit_version',
