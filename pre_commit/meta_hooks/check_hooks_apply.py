@@ -17,7 +17,7 @@ def check_all_hooks_match_files(config_file: str) -> int:
     exclude_file_path = config['exclude_file_path']
     if exclude_file_path is not None:
         if os.path.isfile(exclude_file_path):
-            with open(exclude_file_path, 'r') as f:
+            with open(exclude_file_path) as f:
                 config['exclude'] = f.read().splitlines()
 
     classifier = Classifier.from_config(
