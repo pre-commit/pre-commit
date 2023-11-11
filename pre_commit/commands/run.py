@@ -327,9 +327,18 @@ def _has_unmerged_paths() -> bool:
 
 
 def _has_unstaged_config(config_file: str) -> bool:
-    retcode, _, _ = cmd_output_b(
-        'git', 'diff', '--quiet', '--no-ext-diff', config_file, check=False,
-    )
+    retcode = 0
+    if os.path.islink(config_file):
+        real_config_file = os.path.realpath(config_file)
+        _, is_real_file_in_git_dir, _, = cmd_output_b(
+            'git', 'ls-files', config_file,
+        )
+        if is_real_file_in_git_dir:
+            cmd = ('git', 'diff', '--quiet', '--no-ext-diff', real_config_file)
+            retcode, _, _ = cmd_output_b(*cmd, check=False)
+    else:
+        cmd = ('git', 'diff', '--quiet', '--no-ext-diff', config_file)
+        retcode, _, _ = cmd_output_b(*cmd, check=False)
     # be explicit, other git errors don't mean it has an unstaged config.
     return retcode == 1
 
