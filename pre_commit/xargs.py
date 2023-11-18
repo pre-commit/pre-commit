@@ -134,6 +134,7 @@ def xargs(
         varargs: Sequence[str],
         *,
         color: bool = False,
+        dry_run: bool = False,
         target_concurrency: int = 1,
         _max_length: int = _get_platform_max_length(),
         **kwargs: Any,
@@ -172,14 +173,19 @@ def xargs(
         return cmd_fn(
             *run_cmd, check=False, stderr=subprocess.STDOUT, **kwargs,
         )
+    if dry_run:
+        for run_cmd in partitions:
+            print("DRY RUN EXEC: ", " ".join(run_cmd))
+        retcode = 0
+        stdout = b""
+    else:
+        threads = min(len(partitions), target_concurrency)
+        with _thread_mapper(threads) as thread_map:
+            results = thread_map(run_cmd_partition, partitions)
 
-    threads = min(len(partitions), target_concurrency)
-    with _thread_mapper(threads) as thread_map:
-        results = thread_map(run_cmd_partition, partitions)
-
-        for proc_retcode, proc_out, _ in results:
-            if abs(proc_retcode) > abs(retcode):
-                retcode = proc_retcode
-            stdout += proc_out
+            for proc_retcode, proc_out, _ in results:
+                if abs(proc_retcode) > abs(retcode):
+                    retcode = proc_retcode
+                stdout += proc_out
 
     return retcode, stdout

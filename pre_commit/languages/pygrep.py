@@ -96,9 +96,10 @@ def run_hook(
         is_local: bool,
         require_serial: bool,
         color: bool,
+        dry_run: bool,
 ) -> tuple[int, bytes]:
     cmd = (sys.executable, '-m', __name__, *args, entry)
-    return xargs(cmd, file_args, color=color)
+    return xargs(cmd, file_args, color=color, dry_run=dry_run)
 
 
 def main(argv: Sequence[str] | None = None) -> int:

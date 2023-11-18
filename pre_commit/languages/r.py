@@ -185,6 +185,7 @@ def run_hook(
         is_local: bool,
         require_serial: bool,
         color: bool,
+        dry_run: bool,
 ) -> tuple[int, bytes]:
     cmd = _cmd_from_hook(prefix, entry, args, is_local=is_local)
     return lang_base.run_xargs(
@@ -192,4 +193,5 @@ def run_hook(
         file_args,
         require_serial=require_serial,
         color=color,
+        dry_run=dry_run,
     )

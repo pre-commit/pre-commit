@@ -147,6 +147,7 @@ def _run_single_hook(
         diff_before: bytes,
         verbose: bool,
         use_color: bool,
+        dry_run: bool,
 ) -> tuple[bool, bytes]:
     filenames = tuple(classifier.filenames_for_hook(hook))
 
@@ -198,6 +199,7 @@ def _run_single_hook(
                 is_local=hook.src == 'local',
                 require_serial=hook.require_serial,
                 color=use_color,
+                dry_run=dry_run,
             )
         duration = round(time.monotonic() - time_before, 2) or 0
         diff_after = _get_diff()
@@ -296,6 +298,7 @@ def _run_hooks(
         current_retval, prior_diff = _run_single_hook(
             classifier, hook, skips, cols, prior_diff,
             verbose=args.verbose, use_color=args.color,
+            dry_run=args.dry_run,
         )
         retval |= current_retval
         if retval and (config['fail_fast'] or hook.fail_fast):
