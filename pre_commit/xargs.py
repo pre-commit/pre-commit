@@ -175,9 +175,9 @@ def xargs(
         )
     if dry_run:
         for run_cmd in partitions:
-            print("DRY RUN EXEC: ", " ".join(run_cmd))
+            print('DRY RUN EXEC: ', ' '.join(run_cmd))
         retcode = 0
-        stdout = b""
+        stdout = b''
     else:
         threads = min(len(partitions), target_concurrency)
         with _thread_mapper(threads) as thread_map:

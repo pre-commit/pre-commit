@@ -18,7 +18,7 @@ def run_language(
         is_local: bool = False,
         require_serial: bool = True,
         color: bool = False,
-        dry_run: bool = False
+        dry_run: bool = False,
 ) -> tuple[int, bytes]:
     prefix = Prefix(str(path))
     version = version or language.get_default_version()
