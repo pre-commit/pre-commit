@@ -9,6 +9,7 @@ from typing import Any
 
 import pre_commit.constants as C
 from pre_commit.all_languages import languages
+from pre_commit.clientlib import InvalidManifestError
 from pre_commit.clientlib import load_manifest
 from pre_commit.clientlib import LOCAL
 from pre_commit.clientlib import META
@@ -194,7 +195,15 @@ def _cloned_repository_hooks(
 ) -> tuple[Hook, ...]:
     repo, rev = repo_config['repo'], repo_config['rev']
     manifest_path = os.path.join(store.clone(repo, rev), C.MANIFEST_FILE)
-    by_id = {hook['id']: hook for hook in load_manifest(manifest_path)}
+    try:
+        by_id = {hook['id']: hook for hook in load_manifest(manifest_path)}
+    except InvalidManifestError as err:
+        if 'is not a file' in err.args[0].error_msg:
+            logger.error(
+                f'Could not find {C.MANIFEST_FILE} in {repo_config["repo"]} - '
+                f'Is {repo_config["repo"]} configured to use pre-config?',
+            )
+        raise err
 
     for hook in repo_config['hooks']:
         if hook['id'] not in by_id:
