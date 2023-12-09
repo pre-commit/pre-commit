@@ -102,6 +102,13 @@ class StagesMigration(StagesMigrationNoDefault):
 MANIFEST_HOOK_DICT = cfgv.Map(
     'Hook', 'id',
 
+    # check first in case it uses some newer, incompatible feature
+    cfgv.Optional(
+        'minimum_pre_commit_version',
+        cfgv.check_and(cfgv.check_string, check_min_version),
+        '0',
+    ),
+
     cfgv.Required('id', cfgv.check_string),
     cfgv.Required('name', cfgv.check_string),
     cfgv.Required('entry', cfgv.check_string),
@@ -124,7 +131,6 @@ MANIFEST_HOOK_DICT = cfgv.Map(
     cfgv.Optional('description', cfgv.check_string, ''),
     cfgv.Optional('language_version', cfgv.check_string, C.DEFAULT),
     cfgv.Optional('log_file', cfgv.check_string, ''),
-    cfgv.Optional('minimum_pre_commit_version', cfgv.check_string, '0'),
     cfgv.Optional('require_serial', cfgv.check_bool, False),
     StagesMigration('stages', []),
     cfgv.Optional('verbose', cfgv.check_bool, False),
@@ -345,6 +351,13 @@ DEFAULT_LANGUAGE_VERSION = cfgv.Map(
 CONFIG_SCHEMA = cfgv.Map(
     'Config', None,
 
+    # check first in case it uses some newer, incompatible feature
+    cfgv.Optional(
+        'minimum_pre_commit_version',
+        cfgv.check_and(cfgv.check_string, check_min_version),
+        '0',
+    ),
+
     cfgv.RequiredRecurse('repos', cfgv.Array(CONFIG_REPO_DICT)),
     cfgv.Optional(
         'default_install_hook_types',
@@ -358,11 +371,6 @@ CONFIG_SCHEMA = cfgv.Map(
     cfgv.Optional('files', check_string_regex, ''),
     cfgv.Optional('exclude', check_string_regex, '^$'),
     cfgv.Optional('fail_fast', cfgv.check_bool, False),
-    cfgv.Optional(
-        'minimum_pre_commit_version',
-        cfgv.check_and(cfgv.check_string, check_min_version),
-        '0',
-    ),
     cfgv.WarnAdditionalKeys(
         (
             'repos',
