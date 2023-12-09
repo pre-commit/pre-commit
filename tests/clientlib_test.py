@@ -40,56 +40,51 @@ def test_check_type_tag_success():
 
 
 @pytest.mark.parametrize(
-    ('config_obj', 'expected'), (
-        (
-            {
-                'repos': [{
-                    'repo': 'git@github.com:pre-commit/pre-commit-hooks',
-                    'rev': 'cd74dc150c142c3be70b24eaf0b02cae9d235f37',
-                    'hooks': [{'id': 'pyflakes', 'files': '\\.py$'}],
-                }],
-            },
-            True,
-        ),
-        (
-            {
-                'repos': [{
-                    'repo': 'git@github.com:pre-commit/pre-commit-hooks',
-                    'rev': 'cd74dc150c142c3be70b24eaf0b02cae9d235f37',
-                    'hooks': [
-                        {
-                            'id': 'pyflakes',
-                            'files': '\\.py$',
-                            'args': ['foo', 'bar', 'baz'],
-                        },
-                    ],
-                }],
-            },
-            True,
-        ),
-        (
-            {
-                'repos': [{
-                    'repo': 'git@github.com:pre-commit/pre-commit-hooks',
-                    'rev': 'cd74dc150c142c3be70b24eaf0b02cae9d235f37',
-                    'hooks': [
-                        {
-                            'id': 'pyflakes',
-                            'files': '\\.py$',
-                            # Exclude pattern must be a string
-                            'exclude': 0,
-                            'args': ['foo', 'bar', 'baz'],
-                        },
-                    ],
-                }],
-            },
-            False,
-        ),
+    'cfg',
+    (
+        {
+            'repos': [{
+                'repo': 'git@github.com:pre-commit/pre-commit-hooks',
+                'rev': 'cd74dc150c142c3be70b24eaf0b02cae9d235f37',
+                'hooks': [{'id': 'pyflakes', 'files': '\\.py$'}],
+            }],
+        },
+        {
+            'repos': [{
+                'repo': 'git@github.com:pre-commit/pre-commit-hooks',
+                'rev': 'cd74dc150c142c3be70b24eaf0b02cae9d235f37',
+                'hooks': [
+                    {
+                        'id': 'pyflakes',
+                        'files': '\\.py$',
+                        'args': ['foo', 'bar', 'baz'],
+                    },
+                ],
+            }],
+        },
     ),
 )
-def test_config_valid(config_obj, expected):
-    ret = is_valid_according_to_schema(config_obj, CONFIG_SCHEMA)
-    assert ret is expected
+def test_config_valid(cfg):
+    assert is_valid_according_to_schema(cfg, CONFIG_SCHEMA)
+
+
+def test_invalid_config_wrong_type():
+    cfg = {
+        'repos': [{
+            'repo': 'git@github.com:pre-commit/pre-commit-hooks',
+            'rev': 'cd74dc150c142c3be70b24eaf0b02cae9d235f37',
+            'hooks': [
+                {
+                    'id': 'pyflakes',
+                    'files': '\\.py$',
+                    # Exclude pattern must be a string
+                    'exclude': 0,
+                    'args': ['foo', 'bar', 'baz'],
+                },
+            ],
+        }],
+    }
+    assert not is_valid_according_to_schema(cfg, CONFIG_SCHEMA)
 
 
 def test_local_hooks_with_rev_fails():
@@ -198,14 +193,13 @@ def test_warn_mutable_rev_conditional():
     ),
 )
 def test_sensible_regex_validators_dont_pass_none(validator_cls):
-    key = 'files'
+    validator = validator_cls('files', cfgv.check_string)
     with pytest.raises(cfgv.ValidationError) as excinfo:
-        validator = validator_cls(key, cfgv.check_string)
-        validator.check({key: None})
+        validator.check({'files': None})
 
     assert str(excinfo.value) == (
         '\n'
-        f'==> At key: {key}'
+        '==> At key: files'
         '\n'
         '=====> Expected string got NoneType'
     )
@@ -298,46 +292,36 @@ def test_validate_optional_sensible_regex_at_top_level(caplog, regex, warning):
 
 
 @pytest.mark.parametrize(
-    ('manifest_obj', 'expected'),
+    'manifest_obj',
     (
-        (
-            [{
-                'id': 'a',
-                'name': 'b',
-                'entry': 'c',
-                'language': 'python',
-                'files': r'\.py$',
-            }],
-            True,
-        ),
-        (
-            [{
-                'id': 'a',
-                'name': 'b',
-                'entry': 'c',
-                'language': 'python',
-                'language_version': 'python3.4',
-                'files': r'\.py$',
-            }],
-            True,
-        ),
-        (
-            # A regression in 0.13.5: always_run and files are permissible
-            [{
-                'id': 'a',
-                'name': 'b',
-                'entry': 'c',
-                'language': 'python',
-                'files': '',
-                'always_run': True,
-            }],
-            True,
-        ),
+        [{
+            'id': 'a',
+            'name': 'b',
+            'entry': 'c',
+            'language': 'python',
+            'files': r'\.py$',
+        }],
+        [{
+            'id': 'a',
+            'name': 'b',
+            'entry': 'c',
+            'language': 'python',
+            'language_version': 'python3.4',
+            'files': r'\.py$',
+        }],
+        # A regression in 0.13.5: always_run and files are permissible
+        [{
+            'id': 'a',
+            'name': 'b',
+            'entry': 'c',
+            'language': 'python',
+            'files': '',
+            'always_run': True,
+        }],
     ),
 )
-def test_valid_manifests(manifest_obj, expected):
-    ret = is_valid_according_to_schema(manifest_obj, MANIFEST_SCHEMA)
-    assert ret is expected
+def test_valid_manifests(manifest_obj):
+    assert is_valid_according_to_schema(manifest_obj, MANIFEST_SCHEMA)
 
 
 @pytest.mark.parametrize(
@@ -393,8 +377,39 @@ def test_parse_version():
 
 
 def test_minimum_pre_commit_version_failing():
+    cfg = {'repos': [], 'minimum_pre_commit_version': '999'}
     with pytest.raises(cfgv.ValidationError) as excinfo:
-        cfg = {'repos': [], 'minimum_pre_commit_version': '999'}
+        cfgv.validate(cfg, CONFIG_SCHEMA)
+    assert str(excinfo.value) == (
+        f'\n'
+        f'==> At Config()\n'
+        f'==> At key: minimum_pre_commit_version\n'
+        f'=====> pre-commit version 999 is required but version {C.VERSION} '
+        f'is installed.  Perhaps run `pip install --upgrade pre-commit`.'
+    )
+
+
+def test_minimum_pre_commit_version_failing_in_config():
+    cfg = {'repos': [sample_local_config()]}
+    cfg['repos'][0]['hooks'][0]['minimum_pre_commit_version'] = '999'
+    with pytest.raises(cfgv.ValidationError) as excinfo:
+        cfgv.validate(cfg, CONFIG_SCHEMA)
+    assert str(excinfo.value) == (
+        f'\n'
+        f'==> At Config()\n'
+        f'==> At key: repos\n'
+        f"==> At Repository(repo='local')\n"
+        f'==> At key: hooks\n'
+        f"==> At Hook(id='do_not_commit')\n"
+        f'==> At key: minimum_pre_commit_version\n'
+        f'=====> pre-commit version 999 is required but version {C.VERSION} '
+        f'is installed.  Perhaps run `pip install --upgrade pre-commit`.'
+    )
+
+
+def test_minimum_pre_commit_version_failing_before_other_error():
+    cfg = {'repos': 5, 'minimum_pre_commit_version': '999'}
+    with pytest.raises(cfgv.ValidationError) as excinfo:
         cfgv.validate(cfg, CONFIG_SCHEMA)
     assert str(excinfo.value) == (
         f'\n'

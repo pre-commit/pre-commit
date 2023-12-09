@@ -9,7 +9,6 @@ from unittest import mock
 
 import cfgv
 import pytest
-import re_assert
 
 import pre_commit.constants as C
 from pre_commit import lang_base
@@ -27,7 +26,6 @@ from pre_commit.util import cmd_output
 from pre_commit.util import cmd_output_b
 from testing.fixtures import make_config_from_repo
 from testing.fixtures import make_repo
-from testing.fixtures import modify_manifest
 from testing.language_helpers import run_language
 from testing.util import cwd
 from testing.util import get_resource_path
@@ -431,32 +429,6 @@ def test_hook_id_not_present(tempdir_factory, store, caplog):
         f'Typo? Perhaps it is introduced in a newer version?  '
         f'Often `pre-commit autoupdate` fixes this.'
     )
-
-
-def test_too_new_version(tempdir_factory, store, caplog):
-    path = make_repo(tempdir_factory, 'script_hooks_repo')
-    with modify_manifest(path) as manifest:
-        manifest[0]['minimum_pre_commit_version'] = '999.0.0'
-    config = make_config_from_repo(path)
-    with pytest.raises(SystemExit):
-        _get_hook(config, store, 'bash_hook')
-    _, msg = caplog.messages
-    pattern = re_assert.Matches(
-        r'^The hook `bash_hook` requires pre-commit version 999\.0\.0 but '
-        r'version \d+\.\d+\.\d+ is installed.  '
-        r'Perhaps run `pip install --upgrade pre-commit`\.$',
-    )
-    pattern.assert_matches(msg)
-
-
-@pytest.mark.parametrize('version', ('0.1.0', C.VERSION))
-def test_versions_ok(tempdir_factory, store, version):
-    path = make_repo(tempdir_factory, 'script_hooks_repo')
-    with modify_manifest(path) as manifest:
-        manifest[0]['minimum_pre_commit_version'] = version
-    config = make_config_from_repo(path)
-    # Should succeed
-    _get_hook(config, store, 'bash_hook')
 
 
 def test_manifest_hooks(tempdir_factory, store):
