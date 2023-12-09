@@ -1,3 +1,21 @@
+3.6.0 - 2023-12-09
+==================
+
+### Features
+- Check `minimum_pre_commit_version` first when parsing configs.
+    - #3092 PR by @asottile.
+
+### Fixes
+- Fix deprecation warnings for `importlib.resources`.
+    - #3043 PR by @asottile.
+- Fix deprecation warnings for rmtree.
+    - #3079 PR by @edgarrmondragon.
+
+### Updating
+- Drop support for python<3.9.
+    - #3042 PR by @asottile.
+    - #3093 PR by @asottile.
+
 3.5.0 - 2023-10-13
 ==================
 
