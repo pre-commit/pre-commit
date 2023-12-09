@@ -349,8 +349,9 @@ def test_install_existing_hooks_no_overwrite(tempdir_factory, store):
         # We should run both the legacy and pre-commit hooks
         ret, output = _get_commit_output(tempdir_factory)
         assert ret == 0
-        assert output.startswith('legacy hook\n')
-        NORMAL_PRE_COMMIT_RUN.assert_matches(output[len('legacy hook\n'):])
+        legacy = 'legacy hook\n'
+        assert output.startswith(legacy)
+        NORMAL_PRE_COMMIT_RUN.assert_matches(output.removeprefix(legacy))
 
 
 def test_legacy_overwriting_legacy_hook(tempdir_factory, store):
@@ -375,8 +376,9 @@ def test_install_existing_hook_no_overwrite_idempotent(tempdir_factory, store):
         # We should run both the legacy and pre-commit hooks
         ret, output = _get_commit_output(tempdir_factory)
         assert ret == 0
-        assert output.startswith('legacy hook\n')
-        NORMAL_PRE_COMMIT_RUN.assert_matches(output[len('legacy hook\n'):])
+        legacy = 'legacy hook\n'
+        assert output.startswith(legacy)
+        NORMAL_PRE_COMMIT_RUN.assert_matches(output.removeprefix(legacy))
 
 
 def test_install_with_existing_non_utf8_script(tmpdir, store):

@@ -65,7 +65,7 @@ def _find_by_py_launcher(
         version: str,
 ) -> str | None:  # pragma: no cover (windows only)
     if version.startswith('python'):
-        num = version[len('python'):]
+        num = version.removeprefix('python')
         cmd = ('py', f'-{num}', '-c', 'import sys; print(sys.executable)')
         env = dict(os.environ, PYTHONIOENCODING='UTF-8')
         try:
@@ -124,7 +124,7 @@ def _sys_executable_matches(version: str) -> bool:
         return False
 
     try:
-        info = tuple(int(p) for p in version[len('python'):].split('.'))
+        info = tuple(int(p) for p in version.removeprefix('python').split('.'))
     except ValueError:
         return False
 

@@ -134,7 +134,7 @@ def install_environment(
 
     packages_to_install: set[tuple[str, ...]] = {('--path', '.')}
     for cli_dep in cli_deps:
-        cli_dep = cli_dep[len('cli:'):]
+        cli_dep = cli_dep.removeprefix('cli:')
         package, _, crate_version = cli_dep.partition(':')
         if crate_version != '':
             packages_to_install.add((package, '--version', crate_version))
