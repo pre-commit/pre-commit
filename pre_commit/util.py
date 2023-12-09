@@ -202,24 +202,36 @@ else:  # pragma: no cover
     cmd_output_p = cmd_output_b
 
 
-def rmtree(path: str) -> None:
-    """On windows, rmtree fails for readonly dirs."""
-    def handle_remove_readonly(
-            func: Callable[..., Any],
-            path: str,
-            exc: tuple[type[OSError], OSError, TracebackType],
+def _handle_readonly(
+        func: Callable[[str], object],
+        path: str,
+        exc: OSError,
+) -> None:
+    if (
+            func in (os.rmdir, os.remove, os.unlink) and
+            exc.errno in {errno.EACCES, errno.EPERM}
+    ):
+        for p in (path, os.path.dirname(path)):
+            os.chmod(p, os.stat(p).st_mode | stat.S_IWUSR)
+        func(path)
+    else:
+        raise
+
+
+if sys.version_info < (3, 12):  # pragma: <3.12 cover
+    def _handle_readonly_old(
+        func: Callable[[str], object],
+        path: str,
+        excinfo: tuple[type[OSError], OSError, TracebackType],
     ) -> None:
-        excvalue = exc[1]
-        if (
-                func in (os.rmdir, os.remove, os.unlink) and
-                excvalue.errno in {errno.EACCES, errno.EPERM}
-        ):
-            for p in (path, os.path.dirname(path)):
-                os.chmod(p, os.stat(p).st_mode | stat.S_IWUSR)
-            func(path)
-        else:
-            raise
-    shutil.rmtree(path, ignore_errors=False, onerror=handle_remove_readonly)
+        return _handle_readonly(func, path, excinfo[1])
+
+    def rmtree(path: str) -> None:
+        shutil.rmtree(path, ignore_errors=False, onerror=_handle_readonly_old)
+else:  # pragma: >=3.12 cover
+    def rmtree(path: str) -> None:
+        """On windows, rmtree fails for readonly dirs."""
+        shutil.rmtree(path, ignore_errors=False, onexc=_handle_readonly)
 
 
 def win_exe(s: str) -> str:
