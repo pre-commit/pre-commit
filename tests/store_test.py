@@ -185,7 +185,7 @@ def test_db_repo_name(store):
 
 def test_local_resources_reflects_reality():
     on_disk = {
-        res[len('empty_template_'):]
+        res.removeprefix('empty_template_')
         for res in os.listdir('pre_commit/resources')
         if res.startswith('empty_template_')
     }
