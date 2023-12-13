@@ -28,6 +28,8 @@ from pre_commit.error_handler import error_handler
 from pre_commit.logging_handler import logging_handler
 from pre_commit.store import Store
 
+from pre_commit.homli.install_uninstall import setup_homli
+from pre_commit.homli.install_uninstall import install_homli
 
 logger = logging.getLogger('pre_commit')
 
@@ -257,6 +259,34 @@ def main(argv: Sequence[str] | None = None) -> int:
     )
     _add_hook_type_option(init_templatedir_parser)
 
+    ######################################
+    # add custom setup command for homli #
+    ######################################
+    setup_homli_parser = subparsers.add_parser(
+        'homli-setup', help='Sets up HOMLI pre-commit configuration.',
+    )
+    add_color_option(setup_homli_parser)
+    _add_config_option(setup_homli_parser)
+
+    install_homli_parser = subparsers.add_parser(
+        'homli-install', help='Install HOMLI pre-commit configuration to git repository.',
+    )
+    add_color_option(install_homli_parser)
+    _add_config_option(install_homli_parser)
+    install_homli_parser.add_argument(
+        '-f', '--overwrite', action='store_true',
+        help='Overwrite existing hooks / remove migration mode.',
+    )
+    install_homli_parser.add_argument(
+        '--install-hooks', action='store_true',
+        help=(
+            'Whether to install hook environments for all environments '
+            'in the config file.'
+        ),
+    )
+    _add_hook_type_option(install_homli_parser)
+    ######################################
+    
     install_parser = _add_cmd('install', help='Install the pre-commit script.')
     _add_config_option(install_parser)
     install_parser.add_argument(
@@ -400,6 +430,15 @@ def main(argv: Sequence[str] | None = None) -> int:
                 hooks=args.install_hooks,
                 skip_on_missing_config=args.allow_missing_config,
             )
+        elif args.command == 'homli-install':
+            return install_homli(
+                store,
+                hook_types=args.hook_types,
+                overwrite=args.overwrite,
+                hooks=args.install_hooks
+            )
+        elif args.command == 'homli-setup':
+            return setup_homli()
         elif args.command == 'init-templatedir':
             return init_templatedir(
                 args.config, store, args.directory,
