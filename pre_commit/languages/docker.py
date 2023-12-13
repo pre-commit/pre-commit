@@ -10,6 +10,7 @@ from pre_commit.prefix import Prefix
 from pre_commit.util import CalledProcessError
 from pre_commit.util import cmd_output_b
 
+ENV_VAR_OVERRIDE_HOST_PATH = 'PRE_COMMIT_OVERRIDE_DOCKER_HOST_PATH'
 ENVIRONMENT_DIR = 'docker'
 PRE_COMMIT_LABEL = 'PRE_COMMIT'
 get_default_version = lang_base.basic_get_default_version
@@ -37,6 +38,8 @@ def _get_container_id() -> str:
 
 
 def _get_docker_path(path: str) -> str:
+    if ENV_VAR_OVERRIDE_HOST_PATH in os.environ:
+        return os.environ[ENV_VAR_OVERRIDE_HOST_PATH]
     if not _is_in_docker():
         return path
 

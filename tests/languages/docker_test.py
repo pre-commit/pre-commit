@@ -33,6 +33,8 @@ DOCKER_CGROUP_EXAMPLE = b'''\
 # The ID should match the above cgroup example.
 CONTAINER_ID = 'c33988ec7651ebc867cb24755eaf637a6734088bc7eef59d5799293a9e5450f7'  # noqa: E501
 
+HOST_PATH_ENV_VAR_OVERRIDE_EXAMPLE = '/host/path/override'
+
 NON_DOCKER_CGROUP_EXAMPLE = b'''\
 12:perf_event:/
 11:hugetlb:/
@@ -96,18 +98,52 @@ def test_get_container_id_failure():
         docker._get_container_id()
 
 
-def test_get_docker_path_not_in_docker_returns_same():
-    with mock.patch.object(docker, '_is_in_docker', return_value=False):
+def test_get_docker_path_not_in_docker_returns_same_no_env_var():
+    with mock.patch.object(
+            docker,
+            '_is_in_docker',
+            return_value=False,
+    ), mock.patch.dict(
+        docker.os.environ,
+        {},
+        clear=True,
+    ):
         assert docker._get_docker_path('abc') == 'abc'
+
+
+def test_get_docker_path_not_in_docker_returns_override_env_var():
+    with mock.patch.object(
+            docker,
+            '_is_in_docker',
+            return_value=False,
+    ), mock.patch.dict(
+        docker.os.environ,
+        {
+            docker.ENV_VAR_OVERRIDE_HOST_PATH:
+            HOST_PATH_ENV_VAR_OVERRIDE_EXAMPLE,
+        },
+        clear=True,
+    ):
+        assert docker._get_docker_path('abc') == \
+            HOST_PATH_ENV_VAR_OVERRIDE_EXAMPLE
 
 
 @pytest.fixture
 def in_docker():
-    with mock.patch.object(docker, '_is_in_docker', return_value=True):
-        with mock.patch.object(
-            docker, '_get_container_id', return_value=CONTAINER_ID,
-        ):
-            yield
+    with mock.patch.dict(
+        docker.os.environ,
+        {},
+        clear=True,
+    ), mock.patch.object(
+        docker,
+        '_is_in_docker',
+        return_value=True,
+    ), mock.patch.object(
+        docker,
+        '_get_container_id',
+        return_value=CONTAINER_ID,
+    ):
+        yield
 
 
 def _linux_commonpath():
@@ -128,6 +164,19 @@ def test_get_docker_path_in_docker_no_binds_same_path(in_docker):
 
     with _docker_output(docker_out):
         assert docker._get_docker_path('abc') == 'abc'
+
+
+def test_get_docker_path_in_docker_env_var_override():
+    with mock.patch.dict(
+        docker.os.environ,
+        {
+            docker.ENV_VAR_OVERRIDE_HOST_PATH:
+            HOST_PATH_ENV_VAR_OVERRIDE_EXAMPLE,
+        },
+        clear=True,
+    ):
+        assert docker._get_docker_path('/project') == \
+            HOST_PATH_ENV_VAR_OVERRIDE_EXAMPLE
 
 
 def test_get_docker_path_in_docker_binds_path_equal(in_docker):
