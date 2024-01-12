@@ -37,6 +37,9 @@ logger = logging.getLogger('pre_commit')
 # pyvenv
 os.environ.pop('__PYVENV_LAUNCHER__', None)
 
+# https://github.com/getsentry/snuba/pull/5388
+os.environ.pop('PYTHONEXECUTABLE', None)
+
 COMMANDS_NO_GIT = {
     'clean', 'gc', 'init-templatedir', 'sample-config',
     'validate-config', 'validate-manifest',
