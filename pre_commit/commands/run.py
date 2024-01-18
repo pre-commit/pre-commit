@@ -371,7 +371,14 @@ def run(
             environ.get('_PRE_COMMIT_SKIP_POST_CHECKOUT')
     ):
         return 0
-
+    # prevent pushing staged files not committed (#2486)
+    if (
+            args.hook_stage == 'pre-push' and git.get_staged_files()
+    ):
+        logger.error(
+            'Staged files found. Please commit before pushing',
+        )
+        return 1
     # Expose prepare_commit_message_source / commit_object_name
     # as environment variables for the hooks
     if args.prepare_commit_message_source:
