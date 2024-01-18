@@ -362,6 +362,12 @@ def test_show_diff_on_failure(
             {'hook': 'nope', 'hook_stage': 'pre-push'},
             (b'No hook with id `nope` in stage `pre-push`',),
             1,
+            False,
+        ),
+        (
+            {'hook': 'nope', 'hook_stage': 'pre-push'},
+            (b'[ERROR] Staged files found. Please commit before pushing\n',),
+            1,
             True,
         ),
         (
@@ -828,7 +834,7 @@ def test_stages(cap_out, store, repo_with_passing_hook):
                 'language': 'pygrep',
                 'stages': [stage],
             }
-            for i, stage in enumerate(('pre-commit', 'pre-push', 'manual'), 1)
+            for i, stage in enumerate(('pre-commit', 'manual'), 1)
         ],
     }
     add_config_to_repo(repo_with_passing_hook, config)
@@ -844,8 +850,7 @@ def test_stages(cap_out, store, repo_with_passing_hook):
         return printed
 
     assert _run_for_stage('pre-commit').startswith(b'hook 1...')
-    assert _run_for_stage('pre-push').startswith(b'hook 2...')
-    assert _run_for_stage('manual').startswith(b'hook 3...')
+    assert _run_for_stage('manual').startswith(b'hook 2...')
 
 
 def test_commit_msg_hook(cap_out, store, commit_msg_repo):
