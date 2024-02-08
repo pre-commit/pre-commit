@@ -243,7 +243,7 @@ def test_xargs_color_true_makes_tty():
 
 
 @pytest.mark.xfail(os.name == 'posix', reason='nt only')
-@pytest.mark.parametrize('filename', ('t.bat', 't.cmd', 'T.CMD'))
+@pytest.mark.parametrize('filename', ('t.bat', 't.cmd', 'T.CMD', 't.exe'))
 def test_xargs_with_batch_files(tmpdir, filename):
     f = tmpdir.join(filename)
     f.write('echo it works\n')

@@ -155,7 +155,7 @@ def xargs(
     # on windows, batch files have a separate length limit than windows itself
     if (
             sys.platform == 'win32' and
-            cmd[0].lower().endswith(('.bat', '.cmd'))
+            cmd[0].lower().endswith(('.bat', '.cmd', '.exe'))
     ):  # pragma: win32 cover
         # this is implementation details but the command gets translated into
         # full/path/to/cmd.exe /c *cmd
