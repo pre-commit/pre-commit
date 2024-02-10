@@ -1,3 +1,13 @@
+3.6.1 - 2024-02-10
+==================
+
+### Fixes
+- Remove `PYTHONEXECUTABLE` from environment when running.
+    - #3110 PR by @untitaker.
+- Handle staged-files-only with only a crlf diff.
+    - #3126 PR by @asottile.
+    - issue by @tyyrok.
+
 3.6.0 - 2023-12-09
 ==================
 
