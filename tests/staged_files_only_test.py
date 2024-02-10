@@ -358,6 +358,21 @@ def test_crlf(in_git_dir, patch_dir, crlf_before, crlf_after, autocrlf):
         assert_no_diff()
 
 
+@pytest.mark.parametrize('autocrlf', ('true', 'input'))
+def test_crlf_diff_only(in_git_dir, patch_dir, autocrlf):
+    # due to a quirk (?) in git -- a diff only in crlf does not show but
+    # still results in an exit code of `1`
+    # we treat this as "no diff" -- though ideally it would discard the diff
+    # while committing
+    cmd_output('git', 'config', '--local', 'core.autocrlf', autocrlf)
+
+    _write(b'1\r\n2\r\n3\r\n')
+    cmd_output('git', 'add', 'foo')
+    _write(b'1\n2\n3\n')
+    with staged_files_only(patch_dir):
+        pass
+
+
 def test_whitespace_errors(in_git_dir, patch_dir):
     cmd_output('git', 'config', '--local', 'apply.whitespace', 'error')
     test_crlf(in_git_dir, patch_dir, True, True, 'true')
