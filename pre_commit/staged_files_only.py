@@ -59,6 +59,11 @@ def _unstaged_changes_cleared(patch_dir: str) -> Generator[None, None, None]:
         # There weren't any staged files so we don't need to do anything
         # special
         yield
+    elif retcode == 1 and not diff_stdout.strip():
+        # due to behaviour (probably a bug?) in git with crlf endings and
+        # autocrlf set to either `true` or `input` sometimes git will refuse
+        # to show a crlf-only diff to us :(
+        yield
     elif retcode == 1 and diff_stdout.strip():
         patch_filename = f'patch{int(time.time())}-{os.getpid()}'
         patch_filename = os.path.join(patch_dir, patch_filename)
