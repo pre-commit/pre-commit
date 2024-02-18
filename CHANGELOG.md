@@ -1,3 +1,11 @@
+3.6.2 - 2024-02-18
+==================
+
+### Fixes
+- Fix building golang hooks during `git commit --all`.
+    - #3130 PR by @asottile.
+    - #2722 issue by @pestanko and @matthewhughes934.
+
 3.6.1 - 2024-02-10
 ==================
 
