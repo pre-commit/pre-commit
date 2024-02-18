@@ -23,6 +23,7 @@ from pre_commit import lang_base
 from pre_commit.envcontext import envcontext
 from pre_commit.envcontext import PatchesT
 from pre_commit.envcontext import Var
+from pre_commit.git import no_git_env
 from pre_commit.prefix import Prefix
 from pre_commit.util import cmd_output
 from pre_commit.util import rmtree
@@ -141,7 +142,7 @@ def install_environment(
     else:
         gopath = env_dir
 
-    env = dict(os.environ, GOPATH=gopath)
+    env = no_git_env(dict(os.environ, GOPATH=gopath))
     env.pop('GOBIN', None)
     if version != 'system':
         env['GOROOT'] = os.path.join(env_dir, '.go')

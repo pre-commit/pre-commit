@@ -7,10 +7,16 @@ import re_assert
 
 import pre_commit.constants as C
 from pre_commit import lang_base
+from pre_commit.commands.install_uninstall import install
 from pre_commit.envcontext import envcontext
 from pre_commit.languages import golang
 from pre_commit.store import _make_local_repo
+from pre_commit.util import cmd_output
+from testing.fixtures import add_config_to_repo
+from testing.fixtures import make_config_from_repo
 from testing.language_helpers import run_language
+from testing.util import cmd_output_mocked_pre_commit_home
+from testing.util import git_commit
 
 
 ACTUAL_GET_DEFAULT_VERSION = golang.get_default_version.__wrapped__
@@ -134,3 +140,28 @@ def test_local_golang_additional_deps(tmp_path):
 def test_golang_hook_still_works_when_gobin_is_set(tmp_path):
     with envcontext((('GOBIN', str(tmp_path.joinpath('gobin'))),)):
         test_golang_system(tmp_path)
+
+
+def test_during_commit_all(tmp_path, tempdir_factory, store, in_git_dir):
+    hook_dir = tmp_path.joinpath('hook')
+    hook_dir.mkdir()
+    _make_hello_world(hook_dir)
+    hook_dir.joinpath('.pre-commit-hooks.yaml').write_text(
+        '-   id: hello-world\n'
+        '    name: hello world\n'
+        '    entry: golang-hello-world\n'
+        '    language: golang\n'
+        '    always_run: true\n',
+    )
+    cmd_output('git', 'init', hook_dir)
+    cmd_output('git', 'add', '.', cwd=hook_dir)
+    git_commit(cwd=hook_dir)
+
+    add_config_to_repo(in_git_dir, make_config_from_repo(hook_dir))
+
+    assert not install(C.CONFIG_FILE, store, hook_types=['pre-commit'])
+
+    git_commit(
+        fn=cmd_output_mocked_pre_commit_home,
+        tempdir_factory=tempdir_factory,
+    )
