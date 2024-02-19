@@ -158,6 +158,17 @@ def in_env(prefix: Prefix, version: str) -> Generator[None, None, None]:
         yield
 
 
+def is_version_acceptable(version: str, expected: str) -> bool:
+    if version == expected:
+        return True
+
+    # See https://github.com/astral-sh/uv/issues/1689
+    if version.startswith(expected + "."):
+        return True
+
+    return False
+
+
 def health_check(prefix: Prefix, version: str) -> str | None:
     envdir = lang_base.environment_dir(prefix, ENVIRONMENT_DIR, version)
     pyvenv_cfg = os.path.join(envdir, 'pyvenv.cfg')
@@ -175,7 +186,7 @@ def health_check(prefix: Prefix, version: str) -> str | None:
 
     # always use uncached lookup here in case we replaced an unhealthy env
     virtualenv_version = _version_info.__wrapped__(py_exe)
-    if virtualenv_version != cfg['version_info']:
+    if not is_version_acceptable(virtualenv_version, cfg['version_info']):
         return (
             f'virtualenv python version did not match created version:\n'
             f'- actual version: {virtualenv_version}\n'
@@ -187,7 +198,7 @@ def health_check(prefix: Prefix, version: str) -> str | None:
         return None
 
     base_exe_version = _version_info(cfg['base-executable'])
-    if base_exe_version != cfg['version_info']:
+    if not is_version_acceptable(base_exe_version, cfg['version_info']):
         return (
             f'base executable python version does not match created version:\n'
             f'- base-executable version: {base_exe_version}\n'
@@ -203,11 +214,26 @@ def install_environment(
         additional_dependencies: Sequence[str],
 ) -> None:
     envdir = lang_base.environment_dir(prefix, ENVIRONMENT_DIR, version)
-    venv_cmd = [sys.executable, '-mvirtualenv', envdir]
     python = norm_version(version)
-    if python is not None:
-        venv_cmd.extend(('-p', python))
-    install_cmd = ('python', '-mpip', 'install', '.', *additional_dependencies)
+    if os.environ.get('PRE_COMMIT_USE_UV'):
+        venv_cmd = ['uv', 'venv', envdir]
+        if python is not None:
+            venv_cmd.extend(('-p', python))
+        install_cmd = (
+            'uv',
+            'pip',
+            'install',
+            # For the time being, we need to install as `-e`ditable with `uv`;
+            # see https://github.com/astral-sh/uv/issues/313 for more details.
+            # TODO: un-editable when astral-sh/uv#313 is fixed.
+            '-e', '.',
+            *additional_dependencies,
+        )
+    else:
+        venv_cmd = [sys.executable, '-mvirtualenv', envdir]
+        if python is not None:
+            venv_cmd.extend(('-p', python))
+        install_cmd = ('python', '-mpip', 'install', '.', *additional_dependencies)
 
     cmd_output_b(*venv_cmd, cwd='/')
     with in_env(prefix, version):
