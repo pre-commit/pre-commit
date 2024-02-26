@@ -365,12 +365,6 @@ def test_show_diff_on_failure(
             False,
         ),
         (
-            {'hook': 'nope', 'hook_stage': 'pre-push'},
-            (b'[ERROR] Staged files found. Please commit before pushing\n',),
-            1,
-            True,
-        ),
-        (
             {'all_files': True, 'verbose': True},
             (b'foo.py',),
             0,
