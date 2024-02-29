@@ -6,6 +6,10 @@ import os
 import sys
 from collections.abc import Generator
 from collections.abc import Sequence
+from pathlib import Path
+
+import tomlkit
+from tomlkit import TOMLDocument
 
 import pre_commit.constants as C
 from pre_commit import lang_base
@@ -207,8 +211,50 @@ def install_environment(
     python = norm_version(version)
     if python is not None:
         venv_cmd.extend(('-p', python))
-    install_cmd = ('python', '-mpip', 'install', '.', *additional_dependencies)
+    pip_cmd = None
+    if 'PRE_COMMIT_USE_UV' in os.environ:
+        proj_file = prefix.path() / Path('pyproject.toml')
+        if proj_file.exists():
+            with open(proj_file) as fd:
+                parsed = tomlkit.parse(fd.read())
+
+                def try_navigate(*coords: str) -> TOMLDocument | None:
+                    curr = parsed
+                    for coord in coords:
+                        if coord not in curr:
+                            return None
+                        curr = curr[coord]
+                    return curr
+
+                name = try_navigate('tool', 'poetry', 'name')
+
+                if name is None:
+                    name = try_navigate('project', 'name')
+
+                if name is not None:
+                    pip_cmd = (
+                        'uv',
+                        'pip',
+                        'install',
+                        f"{name} @ .",
+                        *additional_dependencies,
+                    )
 
     cmd_output_b(*venv_cmd, cwd='/')
     with in_env(prefix, version):
-        lang_base.setup_cmd(prefix, install_cmd)
+        if pip_cmd is not None:
+            try:
+                lang_base.setup_cmd(prefix, pip_cmd)
+                return
+            except CalledProcessError:
+                pass  # fallback
+        lang_base.setup_cmd(
+            prefix,
+            (
+                'python',
+                '-mpip',
+                'install',
+                '.',
+                *additional_dependencies,
+            ),
+        )
