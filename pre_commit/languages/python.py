@@ -4,6 +4,7 @@ import contextlib
 import functools
 import os
 import sys
+import tempfile
 from collections.abc import Generator
 from collections.abc import Sequence
 from pathlib import Path
@@ -211,37 +212,68 @@ def install_environment(
     python = norm_version(version)
     if python is not None:
         venv_cmd.extend(('-p', python))
-    pip_cmd = None
-    if 'PRE_COMMIT_USE_UV' in os.environ:
-        proj_file = prefix.path() / Path('pyproject.toml')
-        if proj_file.exists():
-            with open(proj_file) as fd:
-                parsed = tomlkit.parse(fd.read())
-
-                def try_navigate(*coords: str) -> TOMLDocument | None:
-                    curr = parsed
-                    for coord in coords:
-                        if coord not in curr:
-                            return None
-                        curr = curr[coord]
-                    return curr
-
-                name = try_navigate('tool', 'poetry', 'name')
-
-                if name is None:
-                    name = try_navigate('project', 'name')
-
-                if name is not None:
-                    pip_cmd = (
-                        'uv',
-                        'pip',
-                        'install',
-                        f"{name} @ .",
-                        *additional_dependencies,
-                    )
 
     cmd_output_b(*venv_cmd, cwd='/')
     with in_env(prefix, version):
+        pip_cmd = None
+        if 'PRE_COMMIT_USE_UV' in os.environ:
+            name = None
+            proj_file = prefix.path() / Path('pyproject.toml')
+            if proj_file.exists():
+                with open(proj_file) as fd:
+                    parsed = tomlkit.parse(fd.read())
+
+                    def try_navigate(*coords: str) -> TOMLDocument | None:
+                        curr = parsed
+                        for coord in coords:
+                            if coord not in curr:
+                                return None
+                            curr = curr[coord]
+                        return curr
+
+                    name = try_navigate('tool', 'poetry', 'name')
+
+                    if name is None:
+                        name = try_navigate('project', 'name')
+            print(name)
+            if name is None:
+                setup = prefix.prefix_dir / Path('setup.py')
+                print(setup)
+                if setup.exists():
+                    print('it exists')
+                    with tempfile.TemporaryDirectory() as td:
+                        try:
+                            lang_base.setup_cmd(
+                                prefix,
+                                ('uv', 'pip', 'install', 'setuptools'),
+                            )
+                            lang_base.setup_cmd(
+                                prefix,
+                                (
+                                    'python',
+                                    'setup.py',
+                                    'egg_info',
+                                    '-e',
+                                    f"{td}",
+                                ),
+                            )
+                            candidates = list(Path(td).glob('*.egg-info'))
+                            if len(candidates) == 1:
+                                name = candidates[0].name[
+                                    : (-len('.egg-info'))
+                                ]
+
+                        except CalledProcessError:
+                            pass  # fallback
+
+            if name is not None:
+                pip_cmd = (
+                    'uv',
+                    'pip',
+                    'install',
+                    f"{name} @ .",
+                    *additional_dependencies,
+                )
         if pip_cmd is not None:
             try:
                 lang_base.setup_cmd(prefix, pip_cmd)
