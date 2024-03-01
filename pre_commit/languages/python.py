@@ -235,12 +235,9 @@ def install_environment(
 
                     if name is None:
                         name = try_navigate('project', 'name')
-            print(name)
             if name is None:
                 setup = prefix.prefix_dir / Path('setup.py')
-                print(setup)
                 if setup.exists():
-                    print('it exists')
                     with tempfile.TemporaryDirectory() as td:
                         try:
                             lang_base.setup_cmd(
@@ -254,7 +251,7 @@ def install_environment(
                                     'setup.py',
                                     'egg_info',
                                     '-e',
-                                    f"{td}",
+                                    f'{td}',
                                 ),
                             )
                             candidates = list(Path(td).glob('*.egg-info'))
@@ -271,7 +268,7 @@ def install_environment(
                     'uv',
                     'pip',
                     'install',
-                    f"{name} @ .",
+                    f'{name} @ .',
                     *additional_dependencies,
                 )
         if pip_cmd is not None:
