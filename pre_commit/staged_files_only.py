@@ -109,5 +109,9 @@ def staged_files_only(patch_dir: str) -> Generator[None, None, None]:
     """Clear any unstaged changes from the git working directory inside this
     context.
     """
-    with _intent_to_add_cleared(), _unstaged_changes_cleared(patch_dir):
+    if git.is_sapling():
+        # FIXME: what is the intention here?
         yield
+    else:
+        with _intent_to_add_cleared(), _unstaged_changes_cleared(patch_dir):
+            yield

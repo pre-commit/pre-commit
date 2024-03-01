@@ -322,6 +322,10 @@ def _run_hooks(
 
 
 def _has_unmerged_paths() -> bool:
+    if git.is_sapling():
+        # FIXME: Implement this properly.
+        return False
+
     _, stdout, _ = cmd_output_b('git', 'ls-files', '--unmerged')
     return bool(stdout.strip())
 

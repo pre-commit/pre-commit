@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import logging
+import os
 import os.path
 import sys
 from collections.abc import Mapping
+from enum import Flag, auto
 
 from pre_commit.errors import FatalError
 from pre_commit.util import CalledProcessError
@@ -54,13 +56,15 @@ def get_root() -> str:
     # "rev-parse --show-cdup" to get the appropriate path, but must perform
     # an extra check to see if we are in the .git directory.
     try:
-        root = os.path.abspath(
-            cmd_output('git', 'rev-parse', '--show-cdup')[1].strip(),
-        )
         inside_git_dir = cmd_output(
             'git', 'rev-parse', '--is-inside-git-dir',
         )[1].strip()
     except CalledProcessError:
+        # Check if `git rev-parse` failed because we are in a Sapling repo.
+        sapling_root = get_sapling_root()
+        if sapling_root:
+            return sapling_root
+
         raise FatalError(
             'git failed. Is it installed, and are you in a Git repository '
             'directory?',
@@ -70,7 +74,66 @@ def get_root() -> str:
             'git toplevel unexpectedly empty! make sure you are not '
             'inside the `.git` directory of your repository.',
         )
+
+    try:
+        root = os.path.abspath(
+            cmd_output('git', 'rev-parse', '--show-cdup')[1].strip(),
+        )
+    except CalledProcessError:
+        raise FatalError(
+            'git failed. Is it installed, and are you in a Git repository '
+            'directory?',
+        )
+
     return root
+
+
+SAPLING_CLI = 'sl'
+
+def get_sapling_root() -> str | None:
+    try:
+        sapling_root = sapling_output('root')[1].strip()
+    except CalledProcessError:
+        return None
+    return sapling_root
+
+
+def is_sapling() -> bool:
+    return get_sapling_root() is not None
+
+
+class SaplingStatus(Flag):
+    MODIFIED = auto()
+    ADDED = auto()
+    REMOVED = auto()
+    DELETED = auto()
+    UNKNOWN = auto()
+
+
+def sapling_status(status_flags: SaplingStatus) -> list[str]:
+    args = ["status", "--print0", "--root-relative", "--no-status"]
+    for enum_value, flag in [
+        (SaplingStatus.MODIFIED, '--modified'),
+        (SaplingStatus.ADDED, '--added'),
+        (SaplingStatus.REMOVED, '--removed'),
+        (SaplingStatus.DELETED, '--deleted'),
+        (SaplingStatus.UNKNOWN, '--unknown'),
+    ]:
+        if enum_value & status_flags:
+            args.append(flag)
+
+    return zsplit(sapling_output(*args)[1])
+
+
+def sapling_output(*cmd: str, **kwargs) -> tuple[int, str, str | None]:
+    """cmd should NOT include the initial `sl` argument: that is implied"""
+    env = kwargs.get('env')
+    if env is None:
+        env = os.environ.copy()
+        kwargs['env'] = env
+    env['SL_AUTOMATION'] = '1'  # Ensure SL_AUTOMATION is set.
+    args = SAPLING_CLI, *cmd
+    return cmd_output(*args, **kwargs)
 
 
 def get_git_dir(git_root: str = '.') -> str:
@@ -94,6 +157,10 @@ def get_git_common_dir(git_root: str = '.') -> str:
 
 
 def is_in_merge_conflict() -> bool:
+    if is_sapling():
+        # FIXME
+        return False
+
     git_dir = get_git_dir('.')
     return (
         os.path.exists(os.path.join(git_dir, 'MERGE_MSG')) and
@@ -113,6 +180,10 @@ def parse_merge_msg_for_conflicts(merge_msg: bytes) -> list[str]:
 
 def get_conflicted_files() -> set[str]:
     logger.info('Checking merge-conflict files only.')
+    if is_sapling():
+        # FIXME
+        return set()
+
     # Need to get the conflicted files from the MERGE_MSG because they could
     # have resolved the conflict by choosing one side or the other
     with open(os.path.join(get_git_dir('.'), 'MERGE_MSG'), 'rb') as f:
@@ -133,6 +204,10 @@ def get_conflicted_files() -> set[str]:
 
 
 def get_staged_files(cwd: str | None = None) -> list[str]:
+    if is_sapling():
+        flags = SaplingStatus.MODIFIED | SaplingStatus.ADDED
+        return sapling_status(flags)
+
     return zsplit(
         cmd_output(
             'git', 'diff', '--staged', '--name-only', '--no-ext-diff', '-z',
