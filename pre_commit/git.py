@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 import logging
-import os
 import os.path
 import sys
 from collections.abc import Mapping
-from enum import Flag, auto
+from enum import auto
+from enum import Flag
 
 from pre_commit.errors import FatalError
 from pre_commit.util import CalledProcessError
@@ -90,6 +90,7 @@ def get_root() -> str:
 
 SAPLING_CLI = 'sl'
 
+
 def get_sapling_root() -> str | None:
     try:
         sapling_root = sapling_output('root')[1].strip()
@@ -111,7 +112,7 @@ class SaplingStatus(Flag):
 
 
 def sapling_status(status_flags: SaplingStatus) -> list[str]:
-    args = ["status", "--print0", "--root-relative", "--no-status"]
+    args = ['status', '--print0', '--root-relative', '--no-status']
     for enum_value, flag in [
         (SaplingStatus.MODIFIED, '--modified'),
         (SaplingStatus.ADDED, '--added'),
