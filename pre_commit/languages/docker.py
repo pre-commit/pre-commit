@@ -108,10 +108,15 @@ def get_docker_user() -> tuple[str, ...]:  # pragma: win32 no cover
         return ()
 
 
-def docker_cmd() -> tuple[str, ...]:  # pragma: win32 no cover
+def get_docker_tty(*, color: bool) -> tuple[str, ...]:  # pragma: win32 no cover  # noqa: E501
+    return (('--tty',) if color else ())
+
+
+def docker_cmd(*, color: bool) -> tuple[str, ...]:  # pragma: win32 no cover
     return (
         'docker', 'run',
         '--rm',
+        *get_docker_tty(color=color),
         *get_docker_user(),
         # https://docs.docker.com/engine/reference/commandline/run/#mount-volumes-from-container-volumes-from
         # The `Z` option tells Docker to label the content with a private
@@ -139,7 +144,7 @@ def run_hook(
 
     entry_tag = ('--entrypoint', entry_exe, docker_tag(prefix))
     return lang_base.run_xargs(
-        (*docker_cmd(), *entry_tag, *cmd_rest),
+        (*docker_cmd(color=color), *entry_tag, *cmd_rest),
         file_args,
         require_serial=require_serial,
         color=color,
