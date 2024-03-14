@@ -76,13 +76,13 @@ def _install_hook_script(
         # If the hooks directory links to a directory outside the
         # git repo we shouldn't try to mess with it
         if os.path.commonpath(
-            [os.path.realpath(git_dir), os.path.realpath(hook_path)]
-            ) != os.path.realpath(git_dir):
+            [os.path.realpath(git_dir), os.path.realpath(hook_path)],
+        ) != os.path.realpath(git_dir):
             logger.error(
                 'Cowardly refusing to install hook script to a directory '
                 'outside of the git repo.\n'
                 f'hint: {os.path.dirname(hook_path)} is a symbolic link '
-                f'to {os.path.realpath(os.path.dirname(hook_path))}.'
+                f'to {os.path.realpath(os.path.dirname(hook_path))}.',
             )
             return 1
 

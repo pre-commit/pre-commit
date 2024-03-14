@@ -111,7 +111,7 @@ def test_install_hooks_dead_symlink(in_git_dir, store):
 
 def test_install_hooks_symlink_outisde_git_repo(in_git_dir, store):
     hook_dir = in_git_dir.join('.git/hooks')
-    hook_dir.mksymlinkto(in_git_dir.join("../hooks"))
+    hook_dir.mksymlinkto(in_git_dir.join('../hooks'))
     hook = hook_dir.join('pre-commit')
     assert install(C.CONFIG_FILE, store, hook_types=['pre-commit']) != 0
     assert not hook.exists()
