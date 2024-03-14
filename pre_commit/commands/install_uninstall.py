@@ -77,7 +77,7 @@ def _install_hook_script(
         # git repo we shouldn't try to mess with it
         repo_dir = os.path.dirname(os.path.realpath(git_dir))
         if os.path.commonpath(
-            [repo_dir, os.path.realpath(hook_path)]
+            [repo_dir, os.path.realpath(hook_path)],
         ) != repo_dir:
             logger.error(
                 'Cowardly refusing to install hook script to a directory '
