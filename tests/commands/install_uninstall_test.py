@@ -112,7 +112,7 @@ def test_install_hooks_dead_symlink(in_git_dir, store):
 def test_install_hooks_symlink_inside_git_repo(in_git_dir, store):
     hooks_dir = in_git_dir.join('.git/hooks')
     os.symlink(
-        in_git_dir.join('hooks').ensure_dir().strpath, hooks_dir.strpath
+        in_git_dir.join('hooks').ensure_dir().strpath, hooks_dir.strpath,
     )
     hook = hooks_dir.join('pre-commit')
     assert install(C.CONFIG_FILE, store, hook_types=['pre-commit']) == 0
@@ -122,7 +122,7 @@ def test_install_hooks_symlink_inside_git_repo(in_git_dir, store):
 def test_install_hooks_symlink_outisde_git_repo(in_git_dir, store):
     hooks_dir = in_git_dir.join('.git/hooks')
     os.symlink(
-        in_git_dir.join('../hooks').ensure_dir().strpath, hooks_dir.strpath
+        in_git_dir.join('../hooks').ensure_dir().strpath, hooks_dir.strpath,
     )
     hook = hooks_dir.join('pre-commit')
     assert install(C.CONFIG_FILE, store, hook_types=['pre-commit']) != 0
