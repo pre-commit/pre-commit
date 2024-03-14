@@ -75,9 +75,10 @@ def _install_hook_script(
         git_dir = git_dir if git_dir is not None else git.get_git_common_dir()
         # If the hooks directory links to a directory outside the
         # git repo we shouldn't try to mess with it
+        repo_dir = os.path.dirname(os.path.realpath(git_dir))
         if os.path.commonpath(
-            [os.path.realpath(git_dir), os.path.realpath(hook_path)],
-        ) != os.path.realpath(git_dir):
+            [repo_dir, os.path.realpath(hook_path)]
+        ) != repo_dir:
             logger.error(
                 'Cowardly refusing to install hook script to a directory '
                 'outside of the git repo.\n'
