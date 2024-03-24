@@ -1088,6 +1088,22 @@ def test_fail_fast_per_hook(cap_out, store, repo_with_failing_hook):
     assert printed.count(b'Failing hook') == 1
 
 
+def test_fail_fast_not_prev_failures(cap_out, store, repo_with_failing_hook):
+    with modify_config() as config:
+        config['repos'].append({
+            'repo': 'meta',
+            'hooks': [
+                {'id': 'identity', 'fail_fast': True},
+                {'id': 'identity', 'name': 'run me!'},
+            ],
+        })
+    stage_a_file()
+
+    ret, printed = _do_run(cap_out, store, repo_with_failing_hook, run_opts())
+    # should still run the last hook since the `fail_fast` one didn't fail
+    assert printed.count(b'run me!') == 1
+
+
 def test_classifier_removes_dne():
     classifier = Classifier(('this_file_does_not_exist',))
     assert classifier.filenames == []
