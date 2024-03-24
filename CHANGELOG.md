@@ -1,3 +1,20 @@
+3.7.0 - 2024-03-24
+==================
+
+### Features
+- Use a tty for `docker` and `docker_image` hooks when `--color` is specified.
+    - #3122 PR by @glehmann.
+
+### Fixes
+- Fix `fail_fast` for individual hooks stopping when previous hooks had failed.
+    - #3167 issue by @tp832944.
+    - #3168 PR by @asottile.
+
+### Updating
+- The per-hook behaviour of `fail_fast` was fixed.  If you want the pre-3.7.0
+  behaviour, add `fail_fast: true` to all hooks before the last `fail_fast`
+  hook.
+
 3.6.2 - 2024-02-18
 ==================
 
