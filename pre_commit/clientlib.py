@@ -132,6 +132,7 @@ MANIFEST_HOOK_DICT = cfgv.Map(
     cfgv.Optional('language_version', cfgv.check_string, C.DEFAULT),
     cfgv.Optional('log_file', cfgv.check_string, ''),
     cfgv.Optional('require_serial', cfgv.check_bool, False),
+    cfgv.Optional('require_venv', cfgv.check_bool, True),
     StagesMigration('stages', []),
     cfgv.Optional('verbose', cfgv.check_bool, False),
 )

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import sys
 import json
 import logging
 import os
@@ -84,35 +85,52 @@ def _hook_install(hook: Hook) -> None:
         lang.ENVIRONMENT_DIR,
         hook.language_version,
     )
+    
+    if hook.language == 'python' and not hook.require_venv:
+        logger.info(f'Disabling creation of virtual environment for hook {hook.src}')
+        # Path to the Python executable inside the virtual environment
+        python_executable = sys.executable
 
-    # There's potentially incomplete cleanup from previous runs
-    # Clean it up!
-    if os.path.exists(venv):
-        rmtree(venv)
+        # Get the directory containing the Python executable
+        executable_dir = os.path.dirname(python_executable)
+        # Virtual environment's base directory is one level up from the executable directory
+        venv_dir = os.path.dirname(executable_dir)
+        # Remove existing directory or link if necessary
+        if os.path.islink(venv):
+            os.remove(venv)
+        if os.path.exists(venv):
+            rmtree(venv)
+        # Create a symbolic link pointing venv_dir to envdir
+        os.symlink(venv_dir, venv)
+    else:
+        # There's potentially incomplete cleanup from previous runs
+        # Clean it up!
+        if os.path.exists(venv):
+            rmtree(venv)
 
-    with clean_path_on_failure(venv):
-        lang.install_environment(
-            hook.prefix, hook.language_version, hook.additional_dependencies,
-        )
-        health_error = lang.health_check(hook.prefix, hook.language_version)
-        if health_error:
-            raise AssertionError(
-                f'BUG: expected environment for {hook.language} to be healthy '
-                f'immediately after install, please open an issue describing '
-                f'your environment\n\n'
-                f'more info:\n\n{health_error}',
+        with clean_path_on_failure(venv):
+            lang.install_environment(
+                hook.prefix, hook.language_version, hook.additional_dependencies,
             )
+            health_error = lang.health_check(hook.prefix, hook.language_version)
+            if health_error:
+                raise AssertionError(
+                    f'BUG: expected environment for {hook.language} to be healthy '
+                    f'immediately after install, please open an issue describing '
+                    f'your environment\n\n'
+                    f'more info:\n\n{health_error}',
+                )
 
-        # TODO: remove v1 state writing, no longer needed after pre-commit 3.0
-        # Write our state to indicate we're installed
-        state_filename = _state_filename_v1(venv)
-        staging = f'{state_filename}staging'
-        with open(staging, 'w') as state_file:
-            state_file.write(json.dumps(_state(hook.additional_dependencies)))
-        # Move the file into place atomically to indicate we've installed
-        os.replace(staging, state_filename)
+            # TODO: remove v1 state writing, no longer needed after pre-commit 3.0
+            # Write our state to indicate we're installed
+            state_filename = _state_filename_v1(venv)
+            staging = f'{state_filename}staging'
+            with open(staging, 'w') as state_file:
+                state_file.write(json.dumps(_state(hook.additional_dependencies)))
+            # Move the file into place atomically to indicate we've installed
+            os.replace(staging, state_filename)
 
-        open(_state_filename_v2(venv), 'a+').close()
+            open(_state_filename_v2(venv), 'a+').close()
 
 
 def _hook(
@@ -225,6 +243,7 @@ def install_hook_envs(hooks: Sequence[Hook], store: Store) -> None:
         seen: set[tuple[Prefix, str, str, tuple[str, ...]]] = set()
         ret = []
         for hook in hooks:
+            # print(f'hook={hook.src}, install_key={hook.install_key}')
             if hook.install_key not in seen and not _hook_installed(hook):
                 ret.append(hook)
             seen.add(hook.install_key)

@@ -33,6 +33,7 @@ class Hook(NamedTuple):
     log_file: str
     minimum_pre_commit_version: str
     require_serial: bool
+    require_venv: bool
     stages: Sequence[str]
     verbose: bool
 
