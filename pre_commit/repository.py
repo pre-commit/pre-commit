@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-import sys
 import json
 import logging
 import os
 import shlex
+import sys
 from collections.abc import Sequence
 from typing import Any
 
@@ -85,7 +85,7 @@ def _hook_install(hook: Hook) -> None:
         lang.ENVIRONMENT_DIR,
         hook.language_version,
     )
-    
+
     if hook.language == 'python' and not hook.require_venv:
         logger.info(f'Disabling creation of virtual environment for hook {hook.src}')
         # Path to the Python executable inside the virtual environment
