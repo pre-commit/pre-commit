@@ -156,7 +156,7 @@ class Store:
             if result:  # pragma: no cover (race)
                 return result
 
-            logger.info(f'Initializing environment for {repo}.')
+            logger.info(f'Initializing environment for {repo}')
 
             directory = tempfile.mkdtemp(prefix='repo', dir=self.directory)
             with clean_path_on_failure(directory):
