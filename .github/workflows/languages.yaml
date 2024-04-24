@@ -63,6 +63,11 @@ jobs:
         echo 'C:\Strawberry\c\bin' >> "$GITHUB_PATH"
       shell: bash
       if: matrix.os == 'windows-latest' && matrix.language == 'perl'
+    - run: |
+        sudo apt-get update
+        sudo apt-get install -y --no-install-recommends \
+          cpanminus
+      if: matrix.os == 'ubuntu-latest' && matrix.language == 'perl'
     - uses: haskell/actions/setup@v2
       if: matrix.language == 'haskell'
 
