@@ -1,5 +1,9 @@
 from __future__ import annotations
 
+from unittest.mock import patch
+
+import pytest
+
 from pre_commit.languages import perl
 from pre_commit.store import _make_local_repo
 from pre_commit.util import make_executable
@@ -56,7 +60,10 @@ sub hello {
     assert ret == (0, b'Hello from perl-commit Perl!\n')
 
 
-def test_perl_additional_dependencies(tmp_path):
+@pytest.mark.parametrize('cpanm', [True, False])
+@patch('pre_commit.lang_base.exe_exists')
+def test_perl_additional_dependencies(mock_exe_exists, cpanm, tmp_path):
+    mock_exe_exists.return_value = cpanm
     _make_local_repo(str(tmp_path))
 
     ret, out = run_language(
@@ -65,5 +72,6 @@ def test_perl_additional_dependencies(tmp_path):
         'perltidy --version',
         deps=('SHANCOCK/Perl-Tidy-20211029.tar.gz',),
     )
+    mock_exe_exists.assert_called_once_with('cpanm')
     assert ret == 0
     assert out.startswith(b'This is perltidy, v20211029')

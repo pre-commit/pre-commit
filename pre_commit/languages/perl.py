@@ -45,6 +45,13 @@ def install_environment(
     lang_base.assert_version_default('perl', version)
 
     with in_env(prefix, version):
-        lang_base.setup_cmd(
-            prefix, ('cpan', '-T', '.', *additional_dependencies),
-        )
+        if lang_base.exe_exists('cpanm'):
+            lang_base.setup_cmd(
+                prefix,
+                ('cpanm', '.', *additional_dependencies),
+            )
+        else:
+            lang_base.setup_cmd(
+                prefix,
+                ('cpan', '-T', '.', *additional_dependencies),
+            )
