@@ -75,3 +75,16 @@ def test_perl_additional_dependencies(mock_exe_exists, cpanm, tmp_path):
     mock_exe_exists.assert_called_once_with('cpanm')
     assert ret == 0
     assert out.startswith(b'This is perltidy, v20211029')
+
+
+def test_perl_additional_dependencies_at_syntax(tmp_path):
+    _make_local_repo(str(tmp_path))
+
+    ret, out = run_language(
+        tmp_path,
+        perl,
+        'perltidy --version',
+        deps=('Perl::Tidy@20211029',),
+    )
+    assert ret == 0
+    assert out.startswith(b'This is perltidy, v20211029')
