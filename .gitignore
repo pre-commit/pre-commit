@@ -1,6 +1,8 @@
 *.egg-info
 *.py[co]
+*.pytest_cache
 /.coverage
 /.tox
+/build
 /dist
 .vscode/

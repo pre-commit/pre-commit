@@ -173,6 +173,26 @@ def test_run_all_hooks_failing(cap_out, store, repo_with_failing_hook):
     )
 
 
+def test_run_all_hooks_failing_verbose(cap_out, store, repo_with_failing_hook):
+    _test_run(
+        cap_out,
+        store,
+        repo_with_failing_hook,
+        {'verbose': True},
+        (
+            b'Failing hook',
+            b'Failed',
+            b'hook id: failing_hook',
+            b'description: |',
+            b'  Failing Hook Description',
+            b'  Longer description.',
+            b'Fail\nfoo.py\n',
+        ),
+        expected_ret=1,
+        stage=True,
+    )
+
+
 def test_arbitrary_bytes_hook(cap_out, store, tempdir_factory):
     git_path = make_consuming_repo(tempdir_factory, 'arbitrary_bytes_repo')
     with cwd(git_path):

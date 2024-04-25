@@ -222,6 +222,13 @@ def _run_single_hook(
 
         if retcode:
             _subtle_line(f'- exit code: {retcode}', use_color)
+            if verbose and hook.description:
+                if '\n' in hook.description:
+                    _subtle_line('- description: |', use_color)
+                    for l in hook.description.splitlines():
+                        _subtle_line('  ' + l, use_color)
+                else:
+                    _subtle_line(f'- description: {hook.description}', use_color)
 
         # Print a message if failing due to file modifications
         if files_modified:
