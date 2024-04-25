@@ -206,8 +206,7 @@ def _handle_readonly(
         func: Callable[[str], object],
         path: str,
         exc: OSError,
-        object: object = None,  # Ignored.
-) -> None:
+):
     if (
             func in (os.rmdir, os.remove, os.unlink) and
             exc.errno in {errno.EACCES, errno.EPERM}
@@ -224,7 +223,7 @@ if sys.version_info < (3, 12):  # pragma: <3.12 cover
         func: Callable[[str], object],
         path: str,
         excinfo: tuple[type[OSError], OSError, TracebackType],
-    ) -> None:
+    ):
         return _handle_readonly(func, path, excinfo[1])
 
     def rmtree(path: str) -> None:
