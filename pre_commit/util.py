@@ -12,6 +12,7 @@ from collections.abc import Generator
 from types import TracebackType
 from typing import Any
 from typing import Callable
+from typing import cast
 
 from pre_commit import parse_shebang
 
@@ -205,11 +206,11 @@ else:  # pragma: no cover
 def _handle_readonly(
         func: Callable[[str], object],
         path: str,
-        exc: OSError,
+        exc: Exception,
 ) -> object:
     if (
-            func in (os.rmdir, os.remove, os.unlink) and
-            exc.errno in {errno.EACCES, errno.EPERM}
+        func in (os.rmdir, os.remove, os.unlink) and exc is OSError and
+        cast(OSError, exc).errno in {errno.EACCES, errno.EPERM}
     ):
         for p in (path, os.path.dirname(path)):
             os.chmod(p, os.stat(p).st_mode | stat.S_IWUSR)
