@@ -206,6 +206,7 @@ def _handle_readonly(
         func: Callable[[str], object],
         path: str,
         exc: OSError,
+        object: object = None,  # Ignored.
 ) -> None:
     if (
             func in (os.rmdir, os.remove, os.unlink) and
