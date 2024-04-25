@@ -209,7 +209,8 @@ def _handle_readonly(
         exc: Exception,
 ) -> object:
     if (
-        func in (os.rmdir, os.remove, os.unlink) and exc is OSError and
+        func in (os.rmdir, os.remove, os.unlink) and
+        issubclass(type(exc), OSError) and
         cast(OSError, exc).errno in {errno.EACCES, errno.EPERM}
     ):
         for p in (path, os.path.dirname(path)):
