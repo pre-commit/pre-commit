@@ -91,8 +91,8 @@ def test_ruby_additional_deps(tmp_path):
         tmp_path,
         ruby,
         'ruby -e',
-        args=('require "tins"',),
-        deps=('tins',),
+        args=('require "jmespath"',),
+        deps=('jmespath',),
     )
     assert ret == (0, b'')
 
