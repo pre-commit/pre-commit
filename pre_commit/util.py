@@ -205,10 +205,11 @@ else:  # pragma: no cover
 def _handle_readonly(
         func: Callable[[str], object],
         path: str,
-        exc: OSError,
+        exc: Exception,
 ) -> None:
     if (
             func in (os.rmdir, os.remove, os.unlink) and
+            isinstance(exc, OSError) and
             exc.errno in {errno.EACCES, errno.EPERM}
     ):
         for p in (path, os.path.dirname(path)):
@@ -222,7 +223,7 @@ if sys.version_info < (3, 12):  # pragma: <3.12 cover
     def _handle_readonly_old(
         func: Callable[[str], object],
         path: str,
-        excinfo: tuple[type[OSError], OSError, TracebackType],
+        excinfo: tuple[type[Exception], Exception, TracebackType],
     ) -> None:
         return _handle_readonly(func, path, excinfo[1])
 
