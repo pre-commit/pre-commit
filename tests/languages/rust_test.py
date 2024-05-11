@@ -9,6 +9,7 @@ from pre_commit import parse_shebang
 from pre_commit.languages import rust
 from pre_commit.store import _make_local_repo
 from testing.language_helpers import run_language
+from testing.util import cwd
 
 ACTUAL_GET_DEFAULT_VERSION = rust.get_default_version.__wrapped__
 
@@ -27,6 +28,14 @@ def test_sets_system_when_rust_is_available(cmd_output_b_mck):
 def test_uses_default_when_rust_is_not_available(cmd_output_b_mck):
     cmd_output_b_mck.return_value = (127, b'', b'error: not found')
     assert ACTUAL_GET_DEFAULT_VERSION() == C.DEFAULT
+
+
+def test_selects_system_even_if_rust_toolchain_toml(tmp_path):
+    toolchain_toml = '[toolchain]\nchannel = "wtf"\n'
+    tmp_path.joinpath('rust-toolchain.toml').write_text(toolchain_toml)
+
+    with cwd(tmp_path):
+        assert ACTUAL_GET_DEFAULT_VERSION() == 'system'
 
 
 def _make_hello_world(tmp_path):
