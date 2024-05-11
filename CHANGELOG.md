@@ -1,3 +1,12 @@
+3.7.1 - 2024-05-10
+==================
+
+### Fixes
+- Fix `language: rust` default language version check when `rust-toolchain.toml`
+  is present.
+    - issue by @gaborbernat.
+    - #3201 PR by @asottile.
+
 3.7.0 - 2024-03-24
 ==================
 
