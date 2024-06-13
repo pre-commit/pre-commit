@@ -3,7 +3,6 @@ from __future__ import annotations
 import contextlib
 import functools
 import importlib.resources
-import os
 import os.path
 import shutil
 import tarfile
@@ -46,7 +45,7 @@ def get_env_patch(
         ('GEM_HOME', os.path.join(venv, 'gems')),
         ('GEM_PATH', UNSET),
         ('BUNDLE_IGNORE_CONFIG', '1'),
-        ('BUNDLE_GEMFILE', os.path.join(venv, 'Gemfile'))
+        ('BUNDLE_GEMFILE', os.path.join(venv, 'Gemfile')),
     )
     if language_version == 'system':
         patches += (
