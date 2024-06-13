@@ -3,6 +3,7 @@ from __future__ import annotations
 import contextlib
 import functools
 import importlib.resources
+import os
 import os.path
 import shutil
 import tarfile
@@ -45,6 +46,7 @@ def get_env_patch(
         ('GEM_HOME', os.path.join(venv, 'gems')),
         ('GEM_PATH', UNSET),
         ('BUNDLE_IGNORE_CONFIG', '1'),
+        ('BUNDLE_GEMFILE', os.path.join(venv, 'Gemfile'))
     )
     if language_version == 'system':
         patches += (
@@ -129,6 +131,12 @@ def install_environment(
             lang_base.setup_cmd(prefix, ('rbenv', 'rehash'))
 
     with in_env(prefix, version):
+        if not os.path.exists(envdir):
+            os.makedirs(envdir)
+        with open(os.path.join(envdir, 'Gemfile'), 'w') as f:
+            # create an empty file here to avoid letting bundler load
+            # the calling application's gems
+            pass
         lang_base.setup_cmd(
             prefix, ('gem', 'build', *prefix.star('.gemspec')),
         )
