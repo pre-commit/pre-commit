@@ -22,6 +22,7 @@ from pre_commit.util import make_executable
 from pre_commit.util import win_exe
 
 ENVIRONMENT_DIR = 'rustenv'
+FEATURE_PREFIX = '--feature='
 health_check = lang_base.basic_health_check
 run_hook = lang_base.basic_run_hook
 
@@ -73,6 +74,8 @@ def _add_dependencies(
 ) -> None:
     crates = []
     for dep in additional_dependencies:
+        if dep.startswith(FEATURE_PREFIX):
+            continue
         name, _, spec = dep.partition(':')
         crate = f'{name}@{spec or "*"}'
         crates.append(crate)
@@ -130,6 +133,12 @@ def install_environment(
     cli_deps = {
         dep for dep in additional_dependencies if dep.startswith('cli:')
     }
+    # Features starts with "--feature="
+    features = {
+        dep.replace(FEATURE_PREFIX, '')
+        for dep in additional_dependencies
+        if dep.startswith('--')
+    }
     lib_deps = set(additional_dependencies) - cli_deps
 
     packages_to_install: set[tuple[str, ...]] = {('--path', '.')}
@@ -153,8 +162,13 @@ def install_environment(
         if len(lib_deps) > 0:
             _add_dependencies(prefix, lib_deps)
 
+        features_params = []
+        if features:
+            features_params = ['--features', *features]
+
         for args in packages_to_install:
             cmd_output_b(
                 'cargo', 'install', '--bins', '--root', envdir, *args,
+                *features_params,
                 cwd=prefix.prefix_dir,
             )
