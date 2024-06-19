@@ -29,11 +29,11 @@ repos:
     -   id: pyupgrade
         args: [--py39-plus]
 -   repo: https://github.com/hhatto/autopep8
-    rev: v2.2.0
+    rev: v2.3.0
     hooks:
     -   id: autopep8
 -   repo: https://github.com/PyCQA/flake8
-    rev: 7.0.0
+    rev: 7.1.0
     hooks:
     -   id: flake8
 -   repo: https://github.com/pre-commit/mirrors-mypy
