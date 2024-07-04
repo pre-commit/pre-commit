@@ -1085,8 +1085,8 @@ def test_use_filesnames_file(
         cap_out, store, repo_with_passing_hook, run_opts(verbose=True),
     )
     out_lines = printed.splitlines()
-    out_lines[-1] == b'Hello World'
-    assert out_lines[-2].startswith(b'@') == use_filesnames_file
+    assert out_lines[-2] == b'Hello World'
+    assert out_lines[-3].startswith(b'@') == use_filesnames_file
 
 
 def test_fail_fast(cap_out, store, repo_with_failing_hook):
