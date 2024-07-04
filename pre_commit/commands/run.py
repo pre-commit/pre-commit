@@ -189,8 +189,8 @@ def _run_single_hook(
         if not hook.pass_filenames:
             filenames = ()
         elif hook.use_filesnames_file:
-            filenames_file = tempfile.NamedTemporaryFile("w+")
-            filenames_file.write("\n".join(filenames))
+            filenames_file = tempfile.NamedTemporaryFile('w+')
+            filenames_file.write('\n'.join(filenames))
             filenames = (f"@{filenames_file}",)
 
         time_before = time.monotonic()
