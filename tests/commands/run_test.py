@@ -1064,6 +1064,31 @@ def test_pass_filenames(
     assert (b'foo.py' in printed) == pass_filenames
 
 
+@pytest.mark.parametrize(
+    ('use_filesnames_file', 'hook_args'),
+    (
+        (True, []),
+        (False, []),
+        (True, ['some', 'args']),
+        (False, ['some', 'args']),
+    ),
+)
+def test_use_filesnames_file(
+        cap_out, store, repo_with_passing_hook,
+        use_filesnames_file, hook_args,
+):
+    with modify_config() as config:
+        config['repos'][0]['hooks'][0]['use_filesnames_file'] = use_filesnames_file
+        config['repos'][0]['hooks'][0]['args'] = hook_args
+    stage_a_file()
+    ret, printed = _do_run(
+        cap_out, store, repo_with_passing_hook, run_opts(verbose=True),
+    )
+    out_lines = printed.splitlines()
+    out_lines[-1] == b"Hello World"
+    assert out_lines[-2].startswith(b"@") == use_filesnames_file
+
+
 def test_fail_fast(cap_out, store, repo_with_failing_hook):
     with modify_config() as config:
         # More than one hook

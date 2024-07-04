@@ -128,6 +128,7 @@ MANIFEST_HOOK_DICT = cfgv.Map(
     cfgv.Optional('always_run', cfgv.check_bool, False),
     cfgv.Optional('fail_fast', cfgv.check_bool, False),
     cfgv.Optional('pass_filenames', cfgv.check_bool, True),
+    cfgv.Optional('use_filesnames_file', cfgv.check_bool, False),
     cfgv.Optional('description', cfgv.check_string, ''),
     cfgv.Optional('language_version', cfgv.check_string, C.DEFAULT),
     cfgv.Optional('log_file', cfgv.check_string, ''),

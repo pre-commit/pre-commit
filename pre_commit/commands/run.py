@@ -7,6 +7,7 @@ import logging
 import os
 import re
 import subprocess
+import tempfile
 import time
 import unicodedata
 from collections.abc import Generator
@@ -187,6 +188,11 @@ def _run_single_hook(
 
         if not hook.pass_filenames:
             filenames = ()
+        elif hook.use_filesnames_file:
+            filenames_file = tempfile.NamedTemporaryFile("w+")
+            filenames_file.write("\n".join(filenames))
+            filenames = (f"@{filenames_file}",)
+
         time_before = time.monotonic()
         language = languages[hook.language]
         with language.in_env(hook.prefix, hook.language_version):
