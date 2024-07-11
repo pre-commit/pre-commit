@@ -125,6 +125,6 @@ def test_run_features_additional_dependencies(tmp_path):
     _make_hello_world(tmp_path)
 
     deps = ('shellharden:4.2.0', 'git-version')
-    features = ('--feature=foo',)
-    ret = run_language(tmp_path, rust, 'hello_world', deps=deps + features)
+    cargo_params = ('--', '--features', 'foo')
+    ret = run_language(tmp_path, rust, 'hello_world', deps=deps + cargo_params)
     assert ret == (0, b'Hello, world!\nWith feature foo\n')

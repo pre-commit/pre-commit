@@ -22,7 +22,6 @@ from pre_commit.util import make_executable
 from pre_commit.util import win_exe
 
 ENVIRONMENT_DIR = 'rustenv'
-FEATURE_PREFIX = '--feature='
 health_check = lang_base.basic_health_check
 run_hook = lang_base.basic_run_hook
 
@@ -74,8 +73,6 @@ def _add_dependencies(
 ) -> None:
     crates = []
     for dep in additional_dependencies:
-        if dep.startswith(FEATURE_PREFIX):
-            continue
         name, _, spec = dep.partition(':')
         crate = f'{name}@{spec or "*"}'
         crates.append(crate)
@@ -130,19 +127,25 @@ def install_environment(
     #
     # Because of this, we allow specifying "cli" dependencies by prefixing
     # with 'cli:'.
-    cli_deps = {
-        dep for dep in additional_dependencies if dep.startswith('cli:')
-    }
-    # Features starts with "--feature="
-    features = {
-        dep.replace(FEATURE_PREFIX, '')
-        for dep in additional_dependencies
-        if dep.startswith('--')
-    }
-    lib_deps = set(additional_dependencies) - cli_deps
+    #
+    # We can pass arbitrary arguments to the `cargo install` invocation by
+    # adding '--' before the arguments.
+    cli_deps = []
+    lib_deps = []
+    cargo_params = []
+    for index, dep in enumerate(additional_dependencies):
+        if dep == '--':
+            cargo_params = list(additional_dependencies[index + 1:])
+            break
+        if dep.startswith('cli:'):
+            cli_deps.append(dep)
+            continue
+        lib_deps.append(dep)
+    cli_deps_set = set(cli_deps)
+    lib_deps_set = set(lib_deps)
 
     packages_to_install: set[tuple[str, ...]] = {('--path', '.')}
-    for cli_dep in cli_deps:
+    for cli_dep in cli_deps_set:
         cli_dep = cli_dep.removeprefix('cli:')
         package, _, crate_version = cli_dep.partition(':')
         if crate_version != '':
@@ -159,16 +162,12 @@ def install_environment(
             tmpdir = ctx.enter_context(tempfile.TemporaryDirectory())
             ctx.enter_context(envcontext((('RUSTUP_HOME', tmpdir),)))
 
-        if len(lib_deps) > 0:
-            _add_dependencies(prefix, lib_deps)
-
-        features_params = []
-        if features:
-            features_params = ['--features', *features]
+        if len(lib_deps_set) > 0:
+            _add_dependencies(prefix, lib_deps_set)
 
         for args in packages_to_install:
             cmd_output_b(
                 'cargo', 'install', '--bins', '--root', envdir, *args,
-                *features_params,
+                *cargo_params,
                 cwd=prefix.prefix_dir,
             )
