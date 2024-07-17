@@ -75,46 +75,9 @@ def _find_by_py_launcher(
     return None
 
 
-def _find_by_sys_executable() -> str | None:
-    def _norm(path: str) -> str | None:
-        _, exe = os.path.split(path.lower())
-        exe, _, _ = exe.partition('.exe')
-        if exe not in {'python', 'pythonw'} and find_executable(exe):
-            return exe
-        return None
-
-    # On linux, I see these common sys.executables:
-    #
-    # system `python`: /usr/bin/python -> python2.7
-    # system `python2`: /usr/bin/python2 -> python2.7
-    # virtualenv v: v/bin/python (will not return from this loop)
-    # virtualenv v -ppython2: v/bin/python -> python2
-    # virtualenv v -ppython2.7: v/bin/python -> python2.7
-    # virtualenv v -ppypy: v/bin/python -> v/bin/pypy
-    for path in (sys.executable, os.path.realpath(sys.executable)):
-        exe = _norm(path)
-        if exe:
-            return exe
-    return None
-
-
 @functools.lru_cache(maxsize=1)
 def get_default_version() -> str:  # pragma: no cover (platform dependent)
-    # First attempt from `sys.executable` (or the realpath)
-    exe = _find_by_sys_executable()
-    if exe:
-        return exe
-
-    # Next try the `pythonX.X` executable
-    exe = f'python{sys.version_info[0]}.{sys.version_info[1]}'
-    if find_executable(exe):
-        return exe
-
-    if _find_by_py_launcher(exe):
-        return exe
-
-    # We tried!
-    return C.DEFAULT
+    return os.path.realpath(sys.executable)
 
 
 def _sys_executable_matches(version: str) -> bool:
