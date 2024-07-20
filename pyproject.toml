@@ -1,0 +1,62 @@
+[build-system]
+build-backend = 'setuptools.build_meta'
+requires = ['setuptools']
+
+[project]
+name = 'pre_commit'
+version = '3.7.1'
+description = 'A framework for managing and maintaining multi-language pre-commit hooks.'
+license = { text = 'MIT' }
+readme = { file = 'README.md', content-type = 'text/markdown' }
+authors = [{ name = 'Anthony Sottile', email = 'asottile@umich.edu' }]
+requires-python = '>=3.9'
+classifiers = [
+    'License :: OSI Approved :: MIT License',
+    'Programming Language :: Python :: 3',
+    'Programming Language :: Python :: 3 :: Only',
+    'Programming Language :: Python :: Implementation :: CPython',
+    'Programming Language :: Python :: Implementation :: PyPy',
+]
+dependencies = [
+    'cfgv>=2.0.0',
+    'identify>=1.0.0',
+    'nodeenv>=0.11.1',
+    'pyyaml>=5.1',
+    'virtualenv>=20.10.0',
+]
+
+[project.urls]
+Homepage = 'https://github.com/pre-commit/pre-commit'
+
+[project.scripts]
+pre-commit = 'pre_commit.main:main'
+
+[tool.setuptools]
+include-package-data = false
+license-files = ['LICENSE']
+
+[tool.setuptools.packages.find]
+exclude = ['tests*', 'testing*']
+namespaces = false
+
+[tool.setuptools.package-data]
+'pre_commit.resources' = ['*.tar.gz', 'empty_template_*', 'hook-tmpl']
+
+[tool.distutils.bdist_wheel]
+universal = true
+
+[tool.coverage.run]
+plugins = ['covdefaults']
+omit = ['pre_commit/resources/*']
+
+[tool.mypy]
+check_untyped_defs = true
+disallow_any_generics = true
+disallow_incomplete_defs = true
+disallow_untyped_defs = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+
+[[tool.mypy.overrides]]
+module = ['testing.*', 'tests.*']
+disallow_untyped_defs = false
