@@ -81,6 +81,8 @@ class CalledProcessError(RuntimeError):
 def _setdefault_kwargs(kwargs: dict[str, Any]) -> None:
     for arg in ('stdin', 'stdout', 'stderr'):
         kwargs.setdefault(arg, subprocess.PIPE)
+    if sys.platform == 'win32':
+        kwargs.setdefault('env', os.environ)
 
 
 def _oserror_to_output(e: OSError) -> tuple[int, bytes, None]:
