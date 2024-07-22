@@ -14,13 +14,74 @@ from pre_commit.envcontext import envcontext
 from pre_commit.envcontext import PatchesT
 from pre_commit.envcontext import UNSET
 from pre_commit.prefix import Prefix
+from pre_commit.util import cmd_output
 from pre_commit.util import cmd_output_b
 from pre_commit.util import win_exe
 
 ENVIRONMENT_DIR = 'renv'
 RSCRIPT_OPTS = ('--no-save', '--no-restore', '--no-site-file', '--no-environ')
 get_default_version = lang_base.basic_get_default_version
-health_check = lang_base.basic_health_check
+
+
+def _execute_vanilla_r_code_as_script(
+        code: str, *,
+        prefix: Prefix, version: str, args: Sequence[str] = (), cwd: str,
+) -> str:
+    with in_env(prefix, version), _r_code_in_tempfile(code) as f:
+        _, out, _ = cmd_output(
+            _rscript_exec(), *RSCRIPT_OPTS, f, *args, cwd=cwd,
+        )
+    return out.rstrip('\n')
+
+
+def _read_installed_version(envdir: str, prefix: Prefix, version: str) -> str:
+    return _execute_vanilla_r_code_as_script(
+        'cat(renv::settings$r.version())',
+        prefix=prefix, version=version,
+        cwd=envdir,
+    )
+
+
+def _read_executable_version(envdir: str, prefix: Prefix, version: str) -> str:
+    return _execute_vanilla_r_code_as_script(
+        'cat(as.character(getRversion()))',
+        prefix=prefix, version=version,
+        cwd=envdir,
+    )
+
+
+def _write_current_r_version(
+        envdir: str, prefix: Prefix, version: str,
+) -> None:
+    _execute_vanilla_r_code_as_script(
+        'renv::settings$r.version(as.character(getRversion()))',
+        prefix=prefix, version=version,
+        cwd=envdir,
+    )
+
+
+def health_check(prefix: Prefix, version: str) -> str | None:
+    envdir = lang_base.environment_dir(prefix, ENVIRONMENT_DIR, version)
+
+    r_version_installation = _read_installed_version(
+        envdir=envdir, prefix=prefix, version=version,
+    )
+    r_version_current_executable = _read_executable_version(
+        envdir=envdir, prefix=prefix, version=version,
+    )
+    if r_version_installation in {'NULL', ''}:
+        return (
+            f'Hooks were installed with an unknown R version. R version for '
+            f'hook repo now set to {r_version_current_executable}'
+        )
+    elif r_version_installation != r_version_current_executable:
+        return (
+            f'Hooks were installed for R version {r_version_installation}, '
+            f'but current R executable has version '
+            f'{r_version_current_executable}'
+        )
+
+    return None
 
 
 @contextlib.contextmanager
@@ -147,16 +208,14 @@ def install_environment(
     with _r_code_in_tempfile(r_code_inst_environment) as f:
         cmd_output_b(_rscript_exec(), '--vanilla', f, cwd=env_dir)
 
+    _write_current_r_version(envdir=env_dir, prefix=prefix, version=version)
     if additional_dependencies:
         r_code_inst_add = 'renv::install(commandArgs(trailingOnly = TRUE))'
-        with in_env(prefix, version):
-            with _r_code_in_tempfile(r_code_inst_add) as f:
-                cmd_output_b(
-                    _rscript_exec(), *RSCRIPT_OPTS,
-                    f,
-                    *additional_dependencies,
-                    cwd=env_dir,
-                )
+        _execute_vanilla_r_code_as_script(
+            code=r_code_inst_add, prefix=prefix, version=version,
+            args=additional_dependencies,
+            cwd=env_dir,
+        )
 
 
 def _inline_r_setup(code: str) -> str:
