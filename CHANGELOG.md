@@ -1,3 +1,12 @@
+3.8.0 - 2024-07-28
+==================
+
+### Features
+- Implement health checks for `language: r` so environments are recreated if
+  the system version of R changes.
+    - #3206 issue by @lorenzwalthert.
+    - #3265 PR by @lorenzwalthert.
+
 3.7.1 - 2024-05-10
 ==================
 
