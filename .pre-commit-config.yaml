@@ -40,5 +40,5 @@ repos:
     rev: v1.11.0
     hooks:
     -   id: mypy
-        additional_dependencies: [types-all]
+        additional_dependencies: [types-pyyaml]
         exclude: ^testing/resources/
