@@ -1,14 +1,17 @@
 from __future__ import annotations
 
 import os.path
-import shutil
+from unittest import mock
 
 import pytest
 
+import pre_commit.constants as C
 from pre_commit import envcontext
+from pre_commit import lang_base
 from pre_commit.languages import r
 from pre_commit.prefix import Prefix
 from pre_commit.store import _make_local_repo
+from pre_commit.util import resource_text
 from pre_commit.util import win_exe
 from testing.language_helpers import run_language
 
@@ -127,7 +130,8 @@ def test_path_rscript_exec_no_r_home_set():
         assert r._rscript_exec() == 'Rscript'
 
 
-def test_r_hook(tmp_path):
+@pytest.fixture
+def renv_lock_file(tmp_path):
     renv_lock = '''\
 {
   "R": {
@@ -157,6 +161,12 @@ def test_r_hook(tmp_path):
   }
 }
 '''
+    tmp_path.joinpath('renv.lock').write_text(renv_lock)
+    yield
+
+
+@pytest.fixture
+def description_file(tmp_path):
     description = '''\
 Package: gli.clu
 Title: What the Package Does (One Line, Title Case)
@@ -178,27 +188,39 @@ RoxygenNote: 7.1.1
 Imports:
     rprojroot
 '''
-    hello_world_r = '''\
+    tmp_path.joinpath('DESCRIPTION').write_text(description)
+    yield
+
+
+@pytest.fixture
+def hello_world_file(tmp_path):
+    hello_world = '''\
 stopifnot(
     packageVersion('rprojroot') == '1.0',
     packageVersion('gli.clu') == '0.0.0.9000'
 )
 cat("Hello, World, from R!\n")
 '''
+    tmp_path.joinpath('hello-world.R').write_text(hello_world)
+    yield
 
-    tmp_path.joinpath('renv.lock').write_text(renv_lock)
-    tmp_path.joinpath('DESCRIPTION').write_text(description)
-    tmp_path.joinpath('hello-world.R').write_text(hello_world_r)
+
+@pytest.fixture
+def renv_folder(tmp_path):
     renv_dir = tmp_path.joinpath('renv')
     renv_dir.mkdir()
-    shutil.copy(
-        os.path.join(
-            os.path.dirname(__file__),
-            '../../pre_commit/resources/empty_template_activate.R',
-        ),
-        renv_dir.joinpath('activate.R'),
-    )
+    activate_r = resource_text('empty_template_activate.R')
+    renv_dir.joinpath('activate.R').write_text(activate_r)
+    yield
 
+
+def test_r_hook(
+        tmp_path,
+        renv_lock_file,
+        description_file,
+        hello_world_file,
+        renv_folder,
+):
     expected = (0, b'Hello, World, from R!\n')
     assert run_language(tmp_path, r, 'Rscript hello-world.R') == expected
 
@@ -221,3 +243,55 @@ Rscript -e '
         args=('hi', 'hello'),
     )
     assert ret == (0, b'hi, hello, from R!\n')
+
+
+@pytest.fixture
+def prefix(tmpdir):
+    yield Prefix(str(tmpdir))
+
+
+@pytest.fixture
+def installed_environment(
+        renv_lock_file,
+        hello_world_file,
+        renv_folder,
+        prefix,
+):
+    env_dir = lang_base.environment_dir(
+        prefix, r.ENVIRONMENT_DIR, r.get_default_version(),
+    )
+    r.install_environment(prefix, C.DEFAULT, ())
+    yield prefix, env_dir
+
+
+def test_health_check_healthy(installed_environment):
+    # should be healthy right after creation
+    prefix, _ = installed_environment
+    assert r.health_check(prefix, C.DEFAULT) is None
+
+
+def test_health_check_after_downgrade(installed_environment):
+    prefix, _ = installed_environment
+
+    # pretend the saved installed version is old
+    with mock.patch.object(r, '_read_installed_version', return_value='1.0.0'):
+        output = r.health_check(prefix, C.DEFAULT)
+
+    assert output is not None
+    assert output.startswith('Hooks were installed for R version')
+
+
+@pytest.mark.parametrize('version', ('NULL', 'NA', "''"))
+def test_health_check_without_version(prefix, installed_environment, version):
+    prefix, env_dir = installed_environment
+
+    # simulate old pre-commit install by unsetting the installed version
+    r._execute_vanilla_r_code_as_script(
+        f'renv::settings$r.version({version})',
+        prefix=prefix, version=C.DEFAULT, cwd=env_dir,
+    )
+
+    # no R version specified fails as unhealty
+    msg = 'Hooks were installed with an unknown R version'
+    check_output = r.health_check(prefix, C.DEFAULT)
+    assert check_output is not None and check_output.startswith(msg)
