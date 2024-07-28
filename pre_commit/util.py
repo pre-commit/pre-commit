@@ -205,7 +205,7 @@ else:  # pragma: no cover
 def _handle_readonly(
         func: Callable[[str], object],
         path: str,
-        exc: Exception,
+        exc: BaseException,
 ) -> None:
     if (
             func in (os.rmdir, os.remove, os.unlink) and
@@ -223,7 +223,7 @@ if sys.version_info < (3, 12):  # pragma: <3.12 cover
     def _handle_readonly_old(
         func: Callable[[str], object],
         path: str,
-        excinfo: tuple[type[Exception], Exception, TracebackType],
+        excinfo: tuple[type[BaseException], BaseException, TracebackType],
     ) -> None:
         return _handle_readonly(func, path, excinfo[1])
 

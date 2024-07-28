@@ -209,36 +209,25 @@ def log_info_mock():
         yield mck
 
 
-class FakeStream:
-    def __init__(self):
-        self.data = io.BytesIO()
-
-    def write(self, s):
-        self.data.write(s)
-
-    def flush(self):
-        pass
-
-
 class Fixture:
-    def __init__(self, stream):
+    def __init__(self, stream: io.BytesIO) -> None:
         self._stream = stream
 
-    def get_bytes(self):
+    def get_bytes(self) -> bytes:
         """Get the output as-if no encoding occurred"""
-        data = self._stream.data.getvalue()
-        self._stream.data.seek(0)
-        self._stream.data.truncate()
+        data = self._stream.getvalue()
+        self._stream.seek(0)
+        self._stream.truncate()
         return data.replace(b'\r\n', b'\n')
 
-    def get(self):
+    def get(self) -> str:
         """Get the output assuming it was written as UTF-8 bytes"""
         return self.get_bytes().decode()
 
 
 @pytest.fixture
 def cap_out():
-    stream = FakeStream()
+    stream = io.BytesIO()
     write = functools.partial(output.write, stream=stream)
     write_line_b = functools.partial(output.write_line_b, stream=stream)
     with mock.patch.multiple(output, write=write, write_line_b=write_line_b):
