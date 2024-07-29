@@ -20,7 +20,7 @@ if sys.platform == 'win32':  # pragma: no cover (windows)
     def _locked(
             fileno: int,
             blocked_cb: Callable[[], None],
-    ) -> Generator[None, None, None]:
+    ) -> Generator[None]:
         try:
             msvcrt.locking(fileno, msvcrt.LK_NBLCK, _region)
         except OSError:
@@ -53,7 +53,7 @@ else:  # pragma: win32 no cover
     def _locked(
             fileno: int,
             blocked_cb: Callable[[], None],
-    ) -> Generator[None, None, None]:
+    ) -> Generator[None]:
         try:
             fcntl.flock(fileno, fcntl.LOCK_EX | fcntl.LOCK_NB)
         except OSError:  # pragma: no cover (tests are single-threaded)
@@ -69,7 +69,7 @@ else:  # pragma: win32 no cover
 def lock(
         path: str,
         blocked_cb: Callable[[], None],
-) -> Generator[None, None, None]:
+) -> Generator[None]:
     with open(path, 'a+') as f:
         with _locked(f.fileno(), blocked_cb):
             yield

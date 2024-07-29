@@ -61,7 +61,7 @@ def filter_by_include_exclude(
         names: Iterable[str],
         include: str,
         exclude: str,
-) -> Generator[str, None, None]:
+) -> Generator[str]:
     include_re, exclude_re = re.compile(include), re.compile(exclude)
     return (
         filename for filename in names
@@ -84,7 +84,7 @@ class Classifier:
             types: Iterable[str],
             types_or: Iterable[str],
             exclude_types: Iterable[str],
-    ) -> Generator[str, None, None]:
+    ) -> Generator[str]:
         types = frozenset(types)
         types_or = frozenset(types_or)
         exclude_types = frozenset(exclude_types)
@@ -97,7 +97,7 @@ class Classifier:
             ):
                 yield filename
 
-    def filenames_for_hook(self, hook: Hook) -> Generator[str, None, None]:
+    def filenames_for_hook(self, hook: Hook) -> Generator[str]:
         return self.by_types(
             filter_by_include_exclude(
                 self.filenames,

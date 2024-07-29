@@ -120,7 +120,6 @@ def partition(
 @contextlib.contextmanager
 def _thread_mapper(maxsize: int) -> Generator[
     Callable[[Callable[[TArg], TRet], Iterable[TArg]], Iterable[TRet]],
-    None, None,
 ]:
     if maxsize == 1:
         yield map

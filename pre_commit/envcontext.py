@@ -33,7 +33,7 @@ def format_env(parts: SubstitutionT, env: MutableMapping[str, str]) -> str:
 def envcontext(
         patch: PatchesT,
         _env: MutableMapping[str, str] | None = None,
-) -> Generator[None, None, None]:
+) -> Generator[None]:
     """In this context, `os.environ` is modified according to `patch`.
 
     `patch` is an iterable of 2-tuples (key, value):

@@ -24,7 +24,7 @@ def get_env_patch(target_dir: str) -> PatchesT:
 
 
 @contextlib.contextmanager
-def in_env(prefix: Prefix, version: str) -> Generator[None, None, None]:
+def in_env(prefix: Prefix, version: str) -> Generator[None]:
     envdir = lang_base.environment_dir(prefix, ENVIRONMENT_DIR, version)
     with envcontext(get_env_patch(envdir)):
         yield

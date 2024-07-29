@@ -30,14 +30,14 @@ def get_env_patch(venv: str) -> PatchesT:
 
 
 @contextlib.contextmanager
-def in_env(prefix: Prefix, version: str) -> Generator[None, None, None]:
+def in_env(prefix: Prefix, version: str) -> Generator[None]:
     envdir = lang_base.environment_dir(prefix, ENVIRONMENT_DIR, version)
     with envcontext(get_env_patch(envdir)):
         yield
 
 
 @contextlib.contextmanager
-def _nuget_config_no_sources() -> Generator[str, None, None]:
+def _nuget_config_no_sources() -> Generator[str]:
     with tempfile.TemporaryDirectory() as tmpdir:
         nuget_config = os.path.join(tmpdir, 'nuget.config')
         with open(nuget_config, 'w') as f:

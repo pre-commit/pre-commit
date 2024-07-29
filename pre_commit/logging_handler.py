@@ -32,7 +32,7 @@ class LoggingHandler(logging.Handler):
 
 
 @contextlib.contextmanager
-def logging_handler(use_color: bool) -> Generator[None, None, None]:
+def logging_handler(use_color: bool) -> Generator[None]:
     handler = LoggingHandler(use_color)
     logger.addHandler(handler)
     logger.setLevel(logging.INFO)

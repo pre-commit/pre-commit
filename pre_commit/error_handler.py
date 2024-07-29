@@ -68,7 +68,7 @@ def _log_and_exit(
 
 
 @contextlib.contextmanager
-def error_handler() -> Generator[None, None, None]:
+def error_handler() -> Generator[None]:
     try:
         yield
     except (Exception, KeyboardInterrupt) as e:
