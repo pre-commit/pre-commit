@@ -25,7 +25,7 @@ def force_bytes(exc: Any) -> bytes:
 
 
 @contextlib.contextmanager
-def clean_path_on_failure(path: str) -> Generator[None, None, None]:
+def clean_path_on_failure(path: str) -> Generator[None]:
     """Cleans up the directory on an exceptional failure."""
     try:
         yield

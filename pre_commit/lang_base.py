@@ -127,7 +127,7 @@ def no_install(
 
 
 @contextlib.contextmanager
-def no_env(prefix: Prefix, version: str) -> Generator[None, None, None]:
+def no_env(prefix: Prefix, version: str) -> Generator[None]:
     yield
 
 

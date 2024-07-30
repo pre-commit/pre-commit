@@ -85,7 +85,7 @@ def health_check(prefix: Prefix, version: str) -> str | None:
 
 
 @contextlib.contextmanager
-def _r_code_in_tempfile(code: str) -> Generator[str, None, None]:
+def _r_code_in_tempfile(code: str) -> Generator[str]:
     """
     To avoid quoting and escaping issues, avoid `Rscript [options] -e {expr}`
     but use `Rscript [options] path/to/file_with_expr.R`
@@ -105,7 +105,7 @@ def get_env_patch(venv: str) -> PatchesT:
 
 
 @contextlib.contextmanager
-def in_env(prefix: Prefix, version: str) -> Generator[None, None, None]:
+def in_env(prefix: Prefix, version: str) -> Generator[None]:
     envdir = lang_base.environment_dir(prefix, ENVIRONMENT_DIR, version)
     with envcontext(get_env_patch(envdir)):
         yield
