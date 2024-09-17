@@ -1,13 +1,20 @@
 from __future__ import annotations
 
-import re
+import functools
 import textwrap
+from typing import Callable
 
 import cfgv
 import yaml
+from yaml.nodes import ScalarNode
 
 from pre_commit.clientlib import InvalidConfigError
+from pre_commit.yaml import yaml_compose
 from pre_commit.yaml import yaml_load
+from pre_commit.yaml_rewrite import MappingKey
+from pre_commit.yaml_rewrite import MappingValue
+from pre_commit.yaml_rewrite import match
+from pre_commit.yaml_rewrite import SequenceItem
 
 
 def _is_header_line(line: str) -> bool:
@@ -38,16 +45,48 @@ def _migrate_map(contents: str) -> str:
     return contents
 
 
-def _migrate_sha_to_rev(contents: str) -> str:
-    return re.sub(r'(\n\s+)sha:', r'\1rev:', contents)
+def _preserve_style(n: ScalarNode, *, s: str) -> str:
+    return f'{n.style}{s}{n.style}'
 
 
-def _migrate_python_venv(contents: str) -> str:
-    return re.sub(
-        r'(\n\s+)language: python_venv\b',
-        r'\1language: python',
-        contents,
+def _migrate_composed(contents: str) -> str:
+    tree = yaml_compose(contents)
+    rewrites: list[tuple[ScalarNode, Callable[[ScalarNode], str]]] = []
+
+    # sha -> rev
+    sha_to_rev_replace = functools.partial(_preserve_style, s='rev')
+    sha_to_rev_matcher = (
+        MappingValue('repos'),
+        SequenceItem(),
+        MappingKey('sha'),
     )
+    for node in match(tree, sha_to_rev_matcher):
+        rewrites.append((node, sha_to_rev_replace))
+
+    # python_venv -> python
+    language_matcher = (
+        MappingValue('repos'),
+        SequenceItem(),
+        MappingValue('hooks'),
+        SequenceItem(),
+        MappingValue('language'),
+    )
+    python_venv_replace = functools.partial(_preserve_style, s='python')
+    for node in match(tree, language_matcher):
+        if node.value == 'python_venv':
+            rewrites.append((node, python_venv_replace))
+
+    rewrites.sort(reverse=True, key=lambda nf: nf[0].start_mark.index)
+
+    src_parts = []
+    end: int | None = None
+    for node, func in rewrites:
+        src_parts.append(contents[node.end_mark.index:end])
+        src_parts.append(func(node))
+        end = node.start_mark.index
+    src_parts.append(contents[:end])
+    src_parts.reverse()
+    return ''.join(src_parts)
 
 
 def migrate_config(config_file: str, quiet: bool = False) -> int:
@@ -62,8 +101,7 @@ def migrate_config(config_file: str, quiet: bool = False) -> int:
                 raise cfgv.ValidationError(str(e))
 
     contents = _migrate_map(contents)
-    contents = _migrate_sha_to_rev(contents)
-    contents = _migrate_python_venv(contents)
+    contents = _migrate_composed(contents)
 
     if contents != orig_contents:
         with open(config_file, 'w') as f:

@@ -6,6 +6,7 @@ from typing import Any
 import yaml
 
 Loader = getattr(yaml, 'CSafeLoader', yaml.SafeLoader)
+yaml_compose = functools.partial(yaml.compose, Loader=Loader)
 yaml_load = functools.partial(yaml.load, Loader=Loader)
 Dumper = getattr(yaml, 'CSafeDumper', yaml.SafeDumper)
 
