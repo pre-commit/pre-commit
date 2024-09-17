@@ -213,6 +213,48 @@ repos:
     assert cfg.read_text() == expected
 
 
+def test_migrate_config_default_stages(tmp_path):
+    src = '''\
+default_stages: [commit, push, merge-commit, commit-msg]
+repos: []
+'''
+    expected = '''\
+default_stages: [pre-commit, pre-push, pre-merge-commit, commit-msg]
+repos: []
+'''
+    cfg = tmp_path.joinpath('cfg.yaml')
+    cfg.write_text(src)
+    assert migrate_config(str(cfg)) == 0
+    assert cfg.read_text() == expected
+
+
+def test_migrate_config_hook_stages(tmp_path):
+    src = '''\
+repos:
+-   repo: local
+    hooks:
+    -   id: example
+        name: example
+        entry: example
+        language: system
+        stages: ["commit", "push", "merge-commit", "commit-msg"]
+'''
+    expected = '''\
+repos:
+-   repo: local
+    hooks:
+    -   id: example
+        name: example
+        entry: example
+        language: system
+        stages: ["pre-commit", "pre-push", "pre-merge-commit", "commit-msg"]
+'''
+    cfg = tmp_path.joinpath('cfg.yaml')
+    cfg.write_text(src)
+    assert migrate_config(str(cfg)) == 0
+    assert cfg.read_text() == expected
+
+
 def test_migrate_config_invalid_yaml(tmpdir):
     contents = '['
     cfg = tmpdir.join(C.CONFIG_FILE)
