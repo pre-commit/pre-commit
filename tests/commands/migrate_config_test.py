@@ -134,6 +134,27 @@ def test_migrate_config_sha_to_rev(tmpdir):
     )
 
 
+def test_migrate_config_sha_to_rev_json(tmp_path):
+    contents = """\
+{"repos": [{
+    "repo": "https://github.com/pre-commit/pre-commit-hooks",
+    "sha": "v1.2.0",
+    "hooks": []
+}]}
+"""
+    expected = """\
+{"repos": [{
+    "repo": "https://github.com/pre-commit/pre-commit-hooks",
+    "rev": "v1.2.0",
+    "hooks": []
+}]}
+"""
+    cfg = tmp_path.joinpath('cfg.yaml')
+    cfg.write_text(contents)
+    assert not migrate_config(str(cfg))
+    assert cfg.read_text() == expected
+
+
 def test_migrate_config_language_python_venv(tmp_path):
     src = '''\
 repos:
@@ -160,6 +181,31 @@ repos:
         name: example
         entry: example
         language: system
+'''
+    cfg = tmp_path.joinpath('cfg.yaml')
+    cfg.write_text(src)
+    assert migrate_config(str(cfg)) == 0
+    assert cfg.read_text() == expected
+
+
+def test_migrate_config_quoted_python_venv(tmp_path):
+    src = '''\
+repos:
+-   repo: local
+    hooks:
+    -   id: example
+        name: example
+        entry: example
+        language: "python_venv"
+'''
+    expected = '''\
+repos:
+-   repo: local
+    hooks:
+    -   id: example
+        name: example
+        entry: example
+        language: "python"
 '''
     cfg = tmp_path.joinpath('cfg.yaml')
     cfg.write_text(src)
