@@ -75,6 +75,7 @@ def get_env_patch(venv: str, version: str) -> PatchesT:
 
     return (
         ('GOROOT', os.path.join(venv, '.go')),
+        ('GOTOOLCHAIN', 'local'),
         (
             'PATH', (
                 os.path.join(venv, 'bin'), os.pathsep,
@@ -145,6 +146,7 @@ def install_environment(
     env = no_git_env(dict(os.environ, GOPATH=gopath))
     env.pop('GOBIN', None)
     if version != 'system':
+        env['GOTOOLCHAIN'] = 'local'
         env['GOROOT'] = os.path.join(env_dir, '.go')
         env['PATH'] = os.pathsep.join((
             os.path.join(env_dir, '.go', 'bin'), os.environ['PATH'],
