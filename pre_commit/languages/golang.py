@@ -145,6 +145,7 @@ def install_environment(
     env = no_git_env(dict(os.environ, GOPATH=gopath))
     env.pop('GOBIN', None)
     if version != 'system':
+        env['GOTOOLCHAIN'] = 'local'
         env['GOROOT'] = os.path.join(env_dir, '.go')
         env['PATH'] = os.pathsep.join((
             os.path.join(env_dir, '.go', 'bin'), os.environ['PATH'],
