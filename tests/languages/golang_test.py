@@ -169,16 +169,16 @@ def test_during_commit_all(tmp_path, tempdir_factory, store, in_git_dir):
 
 
 def test_automatic_toolchain_switching(tmp_path):
-    go_mod = """\
+    go_mod = '''\
 module toolchain-version-test
 
 go 1.23.1
-"""
-    main_go = """\
+'''
+    main_go = '''\
 package main
 
 func main() {}
-"""
+'''
     tmp_path.joinpath('go.mod').write_text(go_mod)
     mod_dir = tmp_path.joinpath('toolchain-version-test')
     mod_dir.mkdir()
