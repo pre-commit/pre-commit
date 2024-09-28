@@ -28,7 +28,7 @@ def cpu_count() -> int:
         # On systems that support it, this will return a more accurate count of
         # usable CPUs for the current process, which will take into account
         # cgroup limits
-        return len(os.sched_getaffinity(0))
+        return len(os.sched_getaffinity(0))  # type: ignore[attr-defined]
     except AttributeError:
         pass
 
