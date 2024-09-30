@@ -65,7 +65,7 @@ def test_store_init(store):
             assert text_line in readme_contents
 
 
-def test_clone(store, tempdir_factory, log_info_mock):
+def test_clone(store, tempdir_factory, caplog):
     path = git_dir(tempdir_factory)
     with cwd(path):
         git_commit()
@@ -74,7 +74,7 @@ def test_clone(store, tempdir_factory, log_info_mock):
 
     ret = store.clone(path, rev)
     # Should have printed some stuff
-    assert log_info_mock.call_args_list[0][0][0].startswith(
+    assert caplog.record_tuples[0][-1].startswith(
         'Initializing environment for ',
     )
 
@@ -118,7 +118,7 @@ def test_clone_when_repo_already_exists(store):
 
 def test_clone_shallow_failure_fallback_to_complete(
     store, tempdir_factory,
-    log_info_mock,
+    caplog,
 ):
     path = git_dir(tempdir_factory)
     with cwd(path):
@@ -134,7 +134,7 @@ def test_clone_shallow_failure_fallback_to_complete(
     ret = store.clone(path, rev)
 
     # Should have printed some stuff
-    assert log_info_mock.call_args_list[0][0][0].startswith(
+    assert caplog.record_tuples[0][-1].startswith(
         'Initializing environment for ',
     )
 
