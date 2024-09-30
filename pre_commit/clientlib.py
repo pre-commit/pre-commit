@@ -99,6 +99,32 @@ class StagesMigration(StagesMigrationNoDefault):
         super().apply_default(dct)
 
 
+class DeprecatedStagesWarning(NamedTuple):
+    key: str
+
+    def check(self, dct: dict[str, Any]) -> None:
+        if self.key not in dct:
+            return
+
+        val = dct[self.key]
+        cfgv.check_array(cfgv.check_any)(val)
+
+        legacy_stages = [stage for stage in val if stage in _STAGES]
+        if legacy_stages:
+            logger.warning(
+                f'hook id `{dct["id"]}` uses deprecated stage names '
+                f'({", ".join(legacy_stages)}) which will be removed in a '
+                f'future version.  '
+                f'run: `pre-commit migrate-config` to automatically fix this.',
+            )
+
+    def apply_default(self, dct: dict[str, Any]) -> None:
+        pass
+
+    def remove_default(self, dct: dict[str, Any]) -> None:
+        raise NotImplementedError
+
+
 MANIFEST_HOOK_DICT = cfgv.Map(
     'Hook', 'id',
 
@@ -267,6 +293,12 @@ class NotAllowed(cfgv.OptionalNoDefault):
             raise cfgv.ValidationError(f'{self.key!r} cannot be overridden')
 
 
+_COMMON_HOOK_WARNINGS = (
+    OptionalSensibleRegexAtHook('files', cfgv.check_string),
+    OptionalSensibleRegexAtHook('exclude', cfgv.check_string),
+    DeprecatedStagesWarning('stages'),
+)
+
 META_HOOK_DICT = cfgv.Map(
     'Hook', 'id',
     cfgv.Required('id', cfgv.check_string),
@@ -289,8 +321,7 @@ META_HOOK_DICT = cfgv.Map(
         item
         for item in MANIFEST_HOOK_DICT.items
     ),
-    OptionalSensibleRegexAtHook('files', cfgv.check_string),
-    OptionalSensibleRegexAtHook('exclude', cfgv.check_string),
+    *_COMMON_HOOK_WARNINGS,
 )
 CONFIG_HOOK_DICT = cfgv.Map(
     'Hook', 'id',
@@ -308,16 +339,13 @@ CONFIG_HOOK_DICT = cfgv.Map(
         if item.key != 'stages'
     ),
     StagesMigrationNoDefault('stages', []),
-    OptionalSensibleRegexAtHook('files', cfgv.check_string),
-    OptionalSensibleRegexAtHook('exclude', cfgv.check_string),
+    *_COMMON_HOOK_WARNINGS,
 )
 LOCAL_HOOK_DICT = cfgv.Map(
     'Hook', 'id',
 
     *MANIFEST_HOOK_DICT.items,
-
-    OptionalSensibleRegexAtHook('files', cfgv.check_string),
-    OptionalSensibleRegexAtHook('exclude', cfgv.check_string),
+    *_COMMON_HOOK_WARNINGS,
 )
 CONFIG_REPO_DICT = cfgv.Map(
     'Repository', 'repo',
