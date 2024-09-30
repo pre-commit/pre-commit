@@ -309,6 +309,32 @@ def test_validate_optional_sensible_regex_at_top_level(caplog, regex, warning):
     assert caplog.record_tuples == [('pre_commit', logging.WARNING, warning)]
 
 
+def test_warning_for_deprecated_stages(caplog):
+    config_obj = sample_local_config()
+    config_obj['hooks'][0]['stages'] = ['commit', 'push']
+
+    cfgv.validate(config_obj, CONFIG_REPO_DICT)
+
+    assert caplog.record_tuples == [
+        (
+            'pre_commit',
+            logging.WARNING,
+            'hook id `do_not_commit` uses deprecated stage names '
+            '(commit, push) which will be removed in a future version.  '
+            'run: `pre-commit migrate-config` to automatically fix this.',
+        ),
+    ]
+
+
+def test_no_warning_for_non_deprecated_stages(caplog):
+    config_obj = sample_local_config()
+    config_obj['hooks'][0]['stages'] = ['pre-commit', 'pre-push']
+
+    cfgv.validate(config_obj, CONFIG_REPO_DICT)
+
+    assert caplog.record_tuples == []
+
+
 @pytest.mark.parametrize(
     'manifest_obj',
     (
