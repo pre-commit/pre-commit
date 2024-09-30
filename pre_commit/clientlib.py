@@ -125,6 +125,32 @@ class DeprecatedStagesWarning(NamedTuple):
         raise NotImplementedError
 
 
+class DeprecatedDefaultStagesWarning(NamedTuple):
+    key: str
+
+    def check(self, dct: dict[str, Any]) -> None:
+        if self.key not in dct:
+            return
+
+        val = dct[self.key]
+        cfgv.check_array(cfgv.check_any)(val)
+
+        legacy_stages = [stage for stage in val if stage in _STAGES]
+        if legacy_stages:
+            logger.warning(
+                f'top-level `default_stages` uses deprecated stage names '
+                f'({", ".join(legacy_stages)}) which will be removed in a '
+                f'future version.  '
+                f'run: `pre-commit migrate-config` to automatically fix this.',
+            )
+
+    def apply_default(self, dct: dict[str, Any]) -> None:
+        pass
+
+    def remove_default(self, dct: dict[str, Any]) -> None:
+        raise NotImplementedError
+
+
 MANIFEST_HOOK_DICT = cfgv.Map(
     'Hook', 'id',
 
@@ -398,6 +424,7 @@ CONFIG_SCHEMA = cfgv.Map(
         'default_language_version', DEFAULT_LANGUAGE_VERSION, {},
     ),
     StagesMigration('default_stages', STAGES),
+    DeprecatedDefaultStagesWarning('default_stages'),
     cfgv.Optional('files', check_string_regex, ''),
     cfgv.Optional('exclude', check_string_regex, '^$'),
     cfgv.Optional('fail_fast', cfgv.check_bool, False),

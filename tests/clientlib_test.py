@@ -335,6 +335,30 @@ def test_no_warning_for_non_deprecated_stages(caplog):
     assert caplog.record_tuples == []
 
 
+def test_warning_for_deprecated_default_stages(caplog):
+    cfg = {'default_stages': ['commit', 'push'], 'repos': []}
+
+    cfgv.validate(cfg, CONFIG_SCHEMA)
+
+    assert caplog.record_tuples == [
+        (
+            'pre_commit',
+            logging.WARNING,
+            'top-level `default_stages` uses deprecated stage names '
+            '(commit, push) which will be removed in a future version.  '
+            'run: `pre-commit migrate-config` to automatically fix this.',
+        ),
+    ]
+
+
+def test_no_warning_for_non_deprecated_default_stages(caplog):
+    cfg = {'default_stages': ['pre-commit', 'pre-push'], 'repos': []}
+
+    cfgv.validate(cfg, CONFIG_SCHEMA)
+
+    assert caplog.record_tuples == []
+
+
 @pytest.mark.parametrize(
     'manifest_obj',
     (
