@@ -289,6 +289,8 @@ META_HOOK_DICT = cfgv.Map(
         item
         for item in MANIFEST_HOOK_DICT.items
     ),
+    OptionalSensibleRegexAtHook('files', cfgv.check_string),
+    OptionalSensibleRegexAtHook('exclude', cfgv.check_string),
 )
 CONFIG_HOOK_DICT = cfgv.Map(
     'Hook', 'id',

@@ -256,6 +256,24 @@ def test_validate_optional_sensible_regex_at_local_hook(caplog):
     ]
 
 
+def test_validate_optional_sensible_regex_at_meta_hook(caplog):
+    config_obj = {
+        'repo': 'meta',
+        'hooks': [{'id': 'identity', 'files': 'dir/*.py'}],
+    }
+
+    cfgv.validate(config_obj, CONFIG_REPO_DICT)
+
+    assert caplog.record_tuples == [
+        (
+            'pre_commit',
+            logging.WARNING,
+            "The 'files' field in hook 'identity' is a regex, not a glob "
+            "-- matching '/*' probably isn't what you want here",
+        ),
+    ]
+
+
 @pytest.mark.parametrize(
     ('regex', 'warning'),
     (
