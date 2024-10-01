@@ -1,12 +1,15 @@
 from __future__ import annotations
 
+import logging
 import os.path
+import shlex
 import sqlite3
 import stat
 from unittest import mock
 
 import pytest
 
+import pre_commit.constants as C
 from pre_commit import git
 from pre_commit.store import _get_default_directory
 from pre_commit.store import _LOCAL_RESOURCES
@@ -89,6 +92,72 @@ def test_clone(store, tempdir_factory, caplog):
 
     # Assert there's an entry in the sqlite db for this
     assert store.select_all_repos() == [(path, rev, ret)]
+
+
+def test_warning_for_deprecated_stages_on_init(store, tempdir_factory, caplog):
+    manifest = '''\
+-   id: hook1
+    name: hook1
+    language: system
+    entry: echo hook1
+    stages: [commit, push]
+-   id: hook2
+    name: hook2
+    language: system
+    entry: echo hook2
+    stages: [push, merge-commit]
+'''
+
+    path = git_dir(tempdir_factory)
+    with open(os.path.join(path, C.MANIFEST_FILE), 'w') as f:
+        f.write(manifest)
+    cmd_output('git', 'add', '.', cwd=path)
+    git_commit(cwd=path)
+    rev = git.head_rev(path)
+
+    store.clone(path, rev)
+    assert caplog.record_tuples[1] == (
+        'pre_commit',
+        logging.WARNING,
+        f'repo `{path}` uses deprecated stage names '
+        f'(commit, push, merge-commit) which will be removed in a future '
+        f'version.  '
+        f'Hint: often `pre-commit autoupdate --repo {shlex.quote(path)}` '
+        f'will fix this.  '
+        f'if it does not -- consider reporting an issue to that repo.',
+    )
+
+    # should not re-warn
+    caplog.clear()
+    store.clone(path, rev)
+    assert caplog.record_tuples == []
+
+
+def test_no_warning_for_non_deprecated_stages_on_init(
+        store, tempdir_factory, caplog,
+):
+    manifest = '''\
+-   id: hook1
+    name: hook1
+    language: system
+    entry: echo hook1
+    stages: [pre-commit, pre-push]
+-   id: hook2
+    name: hook2
+    language: system
+    entry: echo hook2
+    stages: [pre-push, pre-merge-commit]
+'''
+
+    path = git_dir(tempdir_factory)
+    with open(os.path.join(path, C.MANIFEST_FILE), 'w') as f:
+        f.write(manifest)
+    cmd_output('git', 'add', '.', cwd=path)
+    git_commit(cwd=path)
+    rev = git.head_rev(path)
+
+    store.clone(path, rev)
+    assert logging.WARNING not in {tup[1] for tup in caplog.record_tuples}
 
 
 def test_clone_cleans_up_on_checkout_failure(store):
