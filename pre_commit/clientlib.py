@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import functools
 import logging
+import os.path
 import re
 import shlex
 import sys
@@ -68,6 +69,43 @@ _STAGES = {
 
 def transform_stage(stage: str) -> str:
     return _STAGES.get(stage, stage)
+
+
+MINIMAL_MANIFEST_SCHEMA = cfgv.Array(
+    cfgv.Map(
+        'Hook', 'id',
+        cfgv.Required('id', cfgv.check_string),
+        cfgv.Optional('stages', cfgv.check_array(cfgv.check_string), []),
+    ),
+)
+
+
+def warn_for_stages_on_repo_init(repo: str, directory: str) -> None:
+    try:
+        manifest = cfgv.load_from_filename(
+            os.path.join(directory, C.MANIFEST_FILE),
+            schema=MINIMAL_MANIFEST_SCHEMA,
+            load_strategy=yaml_load,
+            exc_tp=InvalidManifestError,
+        )
+    except InvalidManifestError:
+        return  # they'll get a better error message when it actually loads!
+
+    legacy_stages = {}  # sorted set
+    for hook in manifest:
+        for stage in hook.get('stages', ()):
+            if stage in _STAGES:
+                legacy_stages[stage] = True
+
+    if legacy_stages:
+        logger.warning(
+            f'repo `{repo}` uses deprecated stage names '
+            f'({", ".join(legacy_stages)}) which will be removed in a '
+            f'future version.  '
+            f'Hint: often `pre-commit autoupdate --repo {shlex.quote(repo)}` '
+            f'will fix this.  '
+            f'if it does not -- consider reporting an issue to that repo.',
+        )
 
 
 class StagesMigrationNoDefault(NamedTuple):
