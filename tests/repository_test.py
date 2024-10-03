@@ -240,16 +240,16 @@ def test_unknown_keys(store, caplog):
     assert msg == 'Unexpected key(s) present on local => too-much: foo, hello'
 
 
-def test_reinstall(tempdir_factory, store, log_info_mock):
+def test_reinstall(tempdir_factory, store, caplog):
     path = make_repo(tempdir_factory, 'python_hooks_repo')
     config = make_config_from_repo(path)
     _get_hook(config, store, 'foo')
     # We print some logging during clone (1) + install (3)
-    assert log_info_mock.call_count == 4
-    log_info_mock.reset_mock()
+    assert len(caplog.record_tuples) == 4
+    caplog.clear()
     # Reinstall on another run should not trigger another install
     _get_hook(config, store, 'foo')
-    assert log_info_mock.call_count == 0
+    assert len(caplog.record_tuples) == 0
 
 
 def test_control_c_control_c_on_install(tempdir_factory, store):

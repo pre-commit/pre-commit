@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import functools
 import io
-import logging
 import os.path
 from unittest import mock
 
@@ -201,12 +200,6 @@ def mock_store_dir(tempdir_factory):
 @pytest.fixture
 def store(tempdir_factory):
     yield Store(os.path.join(tempdir_factory.get(), '.pre-commit'))
-
-
-@pytest.fixture
-def log_info_mock():
-    with mock.patch.object(logging.getLogger('pre_commit'), 'info') as mck:
-        yield mck
 
 
 class Fixture:

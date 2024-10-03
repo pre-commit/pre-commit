@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import functools
 import logging
+import os.path
 import re
 import shlex
 import sys
@@ -70,6 +71,43 @@ def transform_stage(stage: str) -> str:
     return _STAGES.get(stage, stage)
 
 
+MINIMAL_MANIFEST_SCHEMA = cfgv.Array(
+    cfgv.Map(
+        'Hook', 'id',
+        cfgv.Required('id', cfgv.check_string),
+        cfgv.Optional('stages', cfgv.check_array(cfgv.check_string), []),
+    ),
+)
+
+
+def warn_for_stages_on_repo_init(repo: str, directory: str) -> None:
+    try:
+        manifest = cfgv.load_from_filename(
+            os.path.join(directory, C.MANIFEST_FILE),
+            schema=MINIMAL_MANIFEST_SCHEMA,
+            load_strategy=yaml_load,
+            exc_tp=InvalidManifestError,
+        )
+    except InvalidManifestError:
+        return  # they'll get a better error message when it actually loads!
+
+    legacy_stages = {}  # sorted set
+    for hook in manifest:
+        for stage in hook.get('stages', ()):
+            if stage in _STAGES:
+                legacy_stages[stage] = True
+
+    if legacy_stages:
+        logger.warning(
+            f'repo `{repo}` uses deprecated stage names '
+            f'({", ".join(legacy_stages)}) which will be removed in a '
+            f'future version.  '
+            f'Hint: often `pre-commit autoupdate --repo {shlex.quote(repo)}` '
+            f'will fix this.  '
+            f'if it does not -- consider reporting an issue to that repo.',
+        )
+
+
 class StagesMigrationNoDefault(NamedTuple):
     key: str
     default: Sequence[str]
@@ -97,6 +135,58 @@ class StagesMigration(StagesMigrationNoDefault):
     def apply_default(self, dct: dict[str, Any]) -> None:
         dct.setdefault(self.key, self.default)
         super().apply_default(dct)
+
+
+class DeprecatedStagesWarning(NamedTuple):
+    key: str
+
+    def check(self, dct: dict[str, Any]) -> None:
+        if self.key not in dct:
+            return
+
+        val = dct[self.key]
+        cfgv.check_array(cfgv.check_any)(val)
+
+        legacy_stages = [stage for stage in val if stage in _STAGES]
+        if legacy_stages:
+            logger.warning(
+                f'hook id `{dct["id"]}` uses deprecated stage names '
+                f'({", ".join(legacy_stages)}) which will be removed in a '
+                f'future version.  '
+                f'run: `pre-commit migrate-config` to automatically fix this.',
+            )
+
+    def apply_default(self, dct: dict[str, Any]) -> None:
+        pass
+
+    def remove_default(self, dct: dict[str, Any]) -> None:
+        raise NotImplementedError
+
+
+class DeprecatedDefaultStagesWarning(NamedTuple):
+    key: str
+
+    def check(self, dct: dict[str, Any]) -> None:
+        if self.key not in dct:
+            return
+
+        val = dct[self.key]
+        cfgv.check_array(cfgv.check_any)(val)
+
+        legacy_stages = [stage for stage in val if stage in _STAGES]
+        if legacy_stages:
+            logger.warning(
+                f'top-level `default_stages` uses deprecated stage names '
+                f'({", ".join(legacy_stages)}) which will be removed in a '
+                f'future version.  '
+                f'run: `pre-commit migrate-config` to automatically fix this.',
+            )
+
+    def apply_default(self, dct: dict[str, Any]) -> None:
+        pass
+
+    def remove_default(self, dct: dict[str, Any]) -> None:
+        raise NotImplementedError
 
 
 MANIFEST_HOOK_DICT = cfgv.Map(
@@ -267,6 +357,12 @@ class NotAllowed(cfgv.OptionalNoDefault):
             raise cfgv.ValidationError(f'{self.key!r} cannot be overridden')
 
 
+_COMMON_HOOK_WARNINGS = (
+    OptionalSensibleRegexAtHook('files', cfgv.check_string),
+    OptionalSensibleRegexAtHook('exclude', cfgv.check_string),
+    DeprecatedStagesWarning('stages'),
+)
+
 META_HOOK_DICT = cfgv.Map(
     'Hook', 'id',
     cfgv.Required('id', cfgv.check_string),
@@ -289,6 +385,7 @@ META_HOOK_DICT = cfgv.Map(
         item
         for item in MANIFEST_HOOK_DICT.items
     ),
+    *_COMMON_HOOK_WARNINGS,
 )
 CONFIG_HOOK_DICT = cfgv.Map(
     'Hook', 'id',
@@ -306,16 +403,13 @@ CONFIG_HOOK_DICT = cfgv.Map(
         if item.key != 'stages'
     ),
     StagesMigrationNoDefault('stages', []),
-    OptionalSensibleRegexAtHook('files', cfgv.check_string),
-    OptionalSensibleRegexAtHook('exclude', cfgv.check_string),
+    *_COMMON_HOOK_WARNINGS,
 )
 LOCAL_HOOK_DICT = cfgv.Map(
     'Hook', 'id',
 
     *MANIFEST_HOOK_DICT.items,
-
-    OptionalSensibleRegexAtHook('files', cfgv.check_string),
-    OptionalSensibleRegexAtHook('exclude', cfgv.check_string),
+    *_COMMON_HOOK_WARNINGS,
 )
 CONFIG_REPO_DICT = cfgv.Map(
     'Repository', 'repo',
@@ -368,6 +462,7 @@ CONFIG_SCHEMA = cfgv.Map(
         'default_language_version', DEFAULT_LANGUAGE_VERSION, {},
     ),
     StagesMigration('default_stages', STAGES),
+    DeprecatedDefaultStagesWarning('default_stages'),
     cfgv.Optional('files', check_string_regex, ''),
     cfgv.Optional('exclude', check_string_regex, '^$'),
     cfgv.Optional('fail_fast', cfgv.check_bool, False),

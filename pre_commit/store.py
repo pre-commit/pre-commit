@@ -10,6 +10,7 @@ from collections.abc import Sequence
 from typing import Callable
 
 import pre_commit.constants as C
+from pre_commit import clientlib
 from pre_commit import file_lock
 from pre_commit import git
 from pre_commit.util import CalledProcessError
@@ -136,6 +137,7 @@ class Store:
             deps: Sequence[str],
             make_strategy: Callable[[str], None],
     ) -> str:
+        original_repo = repo
         repo = self.db_repo_name(repo, deps)
 
         def _get_result() -> str | None:
@@ -168,6 +170,9 @@ class Store:
                     'INSERT INTO repos (repo, ref, path) VALUES (?, ?, ?)',
                     [repo, ref, directory],
                 )
+
+            clientlib.warn_for_stages_on_repo_init(original_repo, directory)
+
         return directory
 
     def _complete_clone(self, ref: str, git_cmd: Callable[..., None]) -> None:

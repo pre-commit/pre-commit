@@ -256,6 +256,24 @@ def test_validate_optional_sensible_regex_at_local_hook(caplog):
     ]
 
 
+def test_validate_optional_sensible_regex_at_meta_hook(caplog):
+    config_obj = {
+        'repo': 'meta',
+        'hooks': [{'id': 'identity', 'files': 'dir/*.py'}],
+    }
+
+    cfgv.validate(config_obj, CONFIG_REPO_DICT)
+
+    assert caplog.record_tuples == [
+        (
+            'pre_commit',
+            logging.WARNING,
+            "The 'files' field in hook 'identity' is a regex, not a glob "
+            "-- matching '/*' probably isn't what you want here",
+        ),
+    ]
+
+
 @pytest.mark.parametrize(
     ('regex', 'warning'),
     (
@@ -289,6 +307,56 @@ def test_validate_optional_sensible_regex_at_top_level(caplog, regex, warning):
     cfgv.validate(config_obj, CONFIG_SCHEMA)
 
     assert caplog.record_tuples == [('pre_commit', logging.WARNING, warning)]
+
+
+def test_warning_for_deprecated_stages(caplog):
+    config_obj = sample_local_config()
+    config_obj['hooks'][0]['stages'] = ['commit', 'push']
+
+    cfgv.validate(config_obj, CONFIG_REPO_DICT)
+
+    assert caplog.record_tuples == [
+        (
+            'pre_commit',
+            logging.WARNING,
+            'hook id `do_not_commit` uses deprecated stage names '
+            '(commit, push) which will be removed in a future version.  '
+            'run: `pre-commit migrate-config` to automatically fix this.',
+        ),
+    ]
+
+
+def test_no_warning_for_non_deprecated_stages(caplog):
+    config_obj = sample_local_config()
+    config_obj['hooks'][0]['stages'] = ['pre-commit', 'pre-push']
+
+    cfgv.validate(config_obj, CONFIG_REPO_DICT)
+
+    assert caplog.record_tuples == []
+
+
+def test_warning_for_deprecated_default_stages(caplog):
+    cfg = {'default_stages': ['commit', 'push'], 'repos': []}
+
+    cfgv.validate(cfg, CONFIG_SCHEMA)
+
+    assert caplog.record_tuples == [
+        (
+            'pre_commit',
+            logging.WARNING,
+            'top-level `default_stages` uses deprecated stage names '
+            '(commit, push) which will be removed in a future version.  '
+            'run: `pre-commit migrate-config` to automatically fix this.',
+        ),
+    ]
+
+
+def test_no_warning_for_non_deprecated_default_stages(caplog):
+    cfg = {'default_stages': ['pre-commit', 'pre-push'], 'repos': []}
+
+    cfgv.validate(cfg, CONFIG_SCHEMA)
+
+    assert caplog.record_tuples == []
 
 
 @pytest.mark.parametrize(
