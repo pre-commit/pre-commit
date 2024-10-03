@@ -75,6 +75,7 @@ def get_env_patch(venv: str, version: str) -> PatchesT:
 
     return (
         ('GOROOT', os.path.join(venv, '.go')),
+        ('GOTOOLCHAIN', 'local'),
         (
             'PATH', (
                 os.path.join(venv, 'bin'), os.pathsep,

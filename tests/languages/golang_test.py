@@ -194,3 +194,44 @@ func main() {}
         )
 
         assert 'go.mod requires go >= 1.23.1' in excinfo.value
+
+
+def test_automatic_toolchain_switching_go_fmt(tmp_path, monkeypatch):
+    go_mod_hook = '''\
+module toolchain-version-test
+
+go 1.22.0
+'''
+    go_mod = '''\
+module toolchain-version-test
+
+go 1.23.1
+'''
+    main_go = '''\
+package main
+
+func main() {}
+'''
+    hook_dir = tmp_path.joinpath('hook')
+    hook_dir.mkdir()
+    hook_dir.joinpath('go.mod').write_text(go_mod_hook)
+
+    test_dir = tmp_path.joinpath('test')
+    test_dir.mkdir()
+    test_dir.joinpath('go.mod').write_text(go_mod)
+    main_file = test_dir.joinpath('main.go')
+    main_file.write_text(main_go)
+
+    with monkeypatch.context() as m:
+        m.chdir(str(test_dir))
+
+        ret, out = run_language(
+            path=hook_dir,
+            language=golang,
+            version='1.22.0',
+            exe='go fmt',
+            file_args=(str(main_file)),
+        )
+
+        assert ret == 1
+        assert 'go.mod requires go >= 1.23.1' in out.decode()
