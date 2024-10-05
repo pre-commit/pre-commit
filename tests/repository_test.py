@@ -80,24 +80,6 @@ def _test_hook_repo(
     assert out == expected
 
 
-def test_python_venv_deprecation(store, caplog):
-    config = {
-        'repo': 'local',
-        'hooks': [{
-            'id': 'example',
-            'name': 'example',
-            'language': 'python_venv',
-            'entry': 'echo hi',
-        }],
-    }
-    _get_hook(config, store, 'example')
-    assert caplog.messages[-1] == (
-        '`repo: local` uses deprecated `language: python_venv`.  '
-        'This is an alias for `language: python`.  '
-        'Often `pre-commit autoupdate --repo local` will fix this.'
-    )
-
-
 def test_system_hook_with_spaces(tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'system_hook_with_spaces_repo',

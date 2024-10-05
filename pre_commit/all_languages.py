@@ -44,7 +44,5 @@ languages: dict[str, Language] = {
     'script': script,
     'swift': swift,
     'system': system,
-    # TODO: fully deprecate `python_venv`
-    'python_venv': python,
 }
 language_names = sorted(languages)
