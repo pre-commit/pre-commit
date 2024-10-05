@@ -1,3 +1,28 @@
+4.0.0 - 2024-10-05
+==================
+
+### Features
+- Improve `pre-commit migrate-config` to handle more yaml formats.
+    - #3301 PR by @asottile.
+- Handle `stages` deprecation in `pre-commit migrate-config`.
+    - #3302 PR by @asottile.
+    - #2732 issue by @asottile.
+- Upgrade `ruby-build`.
+    - #3199 PR by @ThisGuyCodes.
+- Add "sensible regex" warnings to `repo: meta`.
+    - #3311 PR by @asottile.
+- Add warnings for deprecated `stages` (`commit` -> `pre-commit`, `push` ->
+  `pre-push`, `merge-commit` -> `pre-merge-commit`).
+    - #3312 PR by @asottile.
+    - #3313 PR by @asottile.
+    - #3315 PR by @asottile.
+    - #2732 issue by @asottile.
+
+### Migrating
+- `language: python_venv` has been removed -- use `language: python` instead.
+    - #3320 PR by @asottile.
+    - #2734 issue by @asottile.
+
 3.8.0 - 2024-07-28
 ==================
 
