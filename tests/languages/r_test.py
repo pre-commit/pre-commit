@@ -291,7 +291,7 @@ def test_health_check_without_version(prefix, installed_environment, version):
         prefix=prefix, version=C.DEFAULT, cwd=env_dir,
     )
 
-    # no R version specified fails as unhealty
+    # no R version specified fails as unhealthy
     msg = 'Hooks were installed with an unknown R version'
     check_output = r.health_check(prefix, C.DEFAULT)
     assert check_output is not None and check_output.startswith(msg)

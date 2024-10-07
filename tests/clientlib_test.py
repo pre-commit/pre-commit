@@ -29,7 +29,7 @@ def is_valid_according_to_schema(obj, obj_schema):
         return False
 
 
-@pytest.mark.parametrize('value', ('definitely-not-a-tag', 'fiel'))
+@pytest.mark.parametrize('value', ('definitely-not-a-tag', 'file'))
 def test_check_type_tag_failures(value):
     with pytest.raises(cfgv.ValidationError):
         check_type_tag(value)

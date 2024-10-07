@@ -879,7 +879,7 @@ def test_post_rewrite_integration(tempdir_factory, store):
 
         assert not os.path.exists('post-rewrite.tmp')
 
-        git_commit('--amend', '-m', 'ammended message')
+        git_commit('--amend', '-m', 'amended message')
         assert os.path.exists('post-rewrite.tmp')
 
 
@@ -1071,7 +1071,7 @@ def test_install_allow_missing_config(tempdir_factory, store):
         assert expected in output
 
 
-def test_install_temporarily_allow_mising_config(tempdir_factory, store):
+def test_install_temporarily_allow_missing_config(tempdir_factory, store):
     path = make_consuming_repo(tempdir_factory, 'script_hooks_repo')
     with cwd(path):
         remove_config_from_repo(path)

@@ -331,7 +331,7 @@
 
 ### Features
 - Expose `source` and `object-name` (positional args) of `prepare-commit-msg`
-  hook as `PRE_COMMIT_COMIT_MSG_SOURCE` and `PRE_COMMIT_COMMIT_OBJECT_NAME`.
+  hook as `PRE_COMMIT_COMMIT_MSG_SOURCE` and `PRE_COMMIT_COMMIT_OBJECT_NAME`.
     - #2407 PR by @M-Whitaker.
     - #2406 issue by @M-Whitaker.
 
@@ -681,7 +681,7 @@
 - Add `types_or` which allows matching multiple disparate `types` in a hook
     - #1677 by @MarcoGorelli.
     - #607 by @asottile.
-- Add Github Sponsors / Open Collective links
+- Add GitHub Sponsors / Open Collective links
     - https://github.com/sponsors/asottile
     - https://opencollective.com/pre-commit
 
