@@ -1,10 +1,26 @@
 from __future__ import annotations
 
+from unittest import mock
+
 import pytest
+import yaml
 
 import pre_commit.constants as C
 from pre_commit.clientlib import InvalidConfigError
 from pre_commit.commands.migrate_config import migrate_config
+from pre_commit.yaml import yaml_compose
+
+
+@pytest.fixture(autouse=True, params=['c', 'pure'])
+def switch_pyyaml_impl(request):
+    if request.param == 'c':
+        yield
+    else:
+        with mock.patch.dict(
+                yaml_compose.keywords,
+                {'Loader': yaml.SafeLoader},
+        ):
+            yield
 
 
 def test_migrate_config_normal_format(tmpdir, capsys):
