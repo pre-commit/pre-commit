@@ -7,6 +7,7 @@ from pre_commit.languages import dart
 from pre_commit.languages import docker
 from pre_commit.languages import docker_image
 from pre_commit.languages import dotnet
+from pre_commit.languages import download
 from pre_commit.languages import fail
 from pre_commit.languages import golang
 from pre_commit.languages import haskell
@@ -30,6 +31,7 @@ languages: dict[str, Language] = {
     'docker': docker,
     'docker_image': docker_image,
     'dotnet': dotnet,
+    'download': download,
     'fail': fail,
     'golang': golang,
     'haskell': haskell,
