@@ -1,3 +1,12 @@
+4.0.1 - 2024-10-08
+==================
+
+### Fixes
+- Fix `pre-commit migrate-config` for unquoted deprecated stages names with
+  purelib `pyyaml`.
+    - #3324 PR by @asottile.
+    - pre-commit-ci/issues#234 issue by @lorenzwalthert.
+
 4.0.0 - 2024-10-05
 ==================
 
