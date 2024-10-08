@@ -47,7 +47,8 @@ def _migrate_map(contents: str) -> str:
 
 
 def _preserve_style(n: ScalarNode, *, s: str) -> str:
-    return f'{n.style}{s}{n.style}'
+    style = n.style or ''
+    return f'{style}{s}{style}'
 
 
 def _fix_stage(n: ScalarNode) -> str:
