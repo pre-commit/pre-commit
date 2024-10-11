@@ -406,6 +406,71 @@ def test_autoupdate_tags_only(tagged, in_tmpdir):
         assert 'v1.2.3' in f.read()
 
 
+def test_autoupdate_tags_only_with_v_tag_prefix(tagged, in_tmpdir):
+    # add some commits after the tag
+    git_commit(cwd=tagged.path)
+
+    config = make_config_from_repo(tagged.path, rev=tagged.original_rev)
+    write_config('.', config)
+
+    assert autoupdate(
+        C.CONFIG_FILE,
+        freeze=False,
+        tags_only=True,
+        tags_prefix='v',
+    ) == 0
+    with open(C.CONFIG_FILE) as f:
+        assert 'v1.2.3' in f.read()
+
+
+def test_autoupdate_tags_only_with_empty_tag_prefix(tagged, in_tmpdir):
+    # add some commits after the tag
+    git_commit(cwd=tagged.path)
+
+    config = make_config_from_repo(tagged.path, rev=tagged.original_rev)
+    write_config('.', config)
+
+    assert autoupdate(
+        C.CONFIG_FILE,
+        freeze=False,
+        tags_only=True,
+        tags_prefix='',
+    ) == 0
+    with open(C.CONFIG_FILE) as f:
+        assert 'v1.2.3' in f.read()
+
+
+def test_autoupdate_tags_only_and_freeze_with_v_tag_prefix(tagged, in_tmpdir):
+    # add some commits after the tag
+    git_commit(cwd=tagged.path)
+
+    config = make_config_from_repo(tagged.path, rev=tagged.original_rev)
+    write_config('.', config)
+
+    info = RevInfo.from_config(config)
+    new_info = info.update(tags_only=True, freeze=True, tags_prefix='v')
+    assert new_info.rev == tagged.head_rev
+    assert new_info.frozen == 'v1.2.3'
+
+
+def test_autoupdate_tags_only_with_invalid_tag_prefix(tagged, in_tmpdir):
+    # add some commits after the tag
+    git_commit(cwd=tagged.path)
+
+    config = make_config_from_repo(tagged.path, rev=tagged.original_rev)
+    write_config('.', config)
+
+    assert autoupdate(
+        C.CONFIG_FILE,
+        freeze=False,
+        tags_only=True,
+        tags_prefix='thisisinvalid',
+    ) == 0
+    with open(C.CONFIG_FILE) as f:
+        # This will be the same as tags_only=False
+        assert 'v1.2.3' not in f.read()
+
+
 def test_autoupdate_latest_no_config(out_of_date, in_tmpdir):
     config = make_config_from_repo(
         out_of_date.path, rev=out_of_date.original_rev,

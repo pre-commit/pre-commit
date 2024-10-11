@@ -35,15 +35,19 @@ class RevInfo(NamedTuple):
     def from_config(cls, config: dict[str, Any]) -> RevInfo:
         return cls(config['repo'], config['rev'])
 
-    def update(self, tags_only: bool, freeze: bool) -> RevInfo:
+    def update(
+        self, tags_only: bool, freeze: bool, tags_prefix: str = '*',
+    ) -> RevInfo:
         with tempfile.TemporaryDirectory() as tmp:
             _git = ('git', *git.NO_FS_MONITOR, '-C', tmp)
 
             if tags_only:
-                tag_opt = '--abbrev=0'
+                tag_opts = ['--abbrev=0']
+                if tags_prefix:
+                    tag_opts.append(f'--match={tags_prefix}*')
             else:
-                tag_opt = '--exact'
-            tag_cmd = (*_git, 'describe', 'FETCH_HEAD', '--tags', tag_opt)
+                tag_opts = ['--exact']
+            tag_cmd = (*_git, 'describe', 'FETCH_HEAD', '--tags', *tag_opts)
 
             git.init_repo(tmp, self.repo)
             cmd_output_b(*_git, 'config', 'extensions.partialClone', 'true')
@@ -106,9 +110,14 @@ def _update_one(
         *,
         tags_only: bool,
         freeze: bool,
+        tags_prefix: str,
 ) -> tuple[int, RevInfo, RevInfo]:
     old = RevInfo.from_config(repo)
-    new = old.update(tags_only=tags_only, freeze=freeze)
+    new = old.update(
+        tags_only=tags_only,
+        freeze=freeze,
+        tags_prefix=tags_prefix,
+    )
     _check_hooks_still_exist_at_rev(repo, new)
     return i, old, new
 
@@ -163,6 +172,7 @@ def autoupdate(
         config_file: str,
         tags_only: bool,
         freeze: bool,
+        tags_prefix: str = '*',
         repos: Sequence[str] = (),
         jobs: int = 1,
 ) -> int:
@@ -184,7 +194,11 @@ def autoupdate(
         futures = [
             exe.submit(
                 _update_one,
-                i, repo, tags_only=tags_only, freeze=freeze,
+                i,
+                repo,
+                tags_only=tags_only,
+                freeze=freeze,
+                tags_prefix=tags_prefix,
             )
             for i, repo in enumerate(config_repos)
             if not repos or repo['repo'] in repos

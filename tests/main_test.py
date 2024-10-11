@@ -222,3 +222,25 @@ def test_hook_stage_migration(mock_store_dir):
     with mock.patch.object(main, 'run') as mck:
         main.main(('run', '--hook-stage', 'commit'))
     assert mck.call_args[0][2].hook_stage == 'pre-commit'
+
+
+def test_expected_mutually_exclusive(capsys, mock_store_dir):
+    args = (
+        'autoupdate',
+        '--tags-prefix',
+        'abc123',
+        '--bleeding-edge',
+    )
+    with pytest.raises(SystemExit) as excinfo:
+        main.main(args)
+
+    captured = capsys.readouterr()
+    cap_out_lines = captured.err.splitlines()  # Get the error output in lines
+    # cap_out_lines = cap_out.get().splitlines()
+
+    assert (
+        cap_out_lines[-1] ==
+        'pre-commit autoupdate: error: argument --bleeding-edge: '
+        'not allowed with argument --tags-prefix'
+    )
+    assert excinfo.value.code == 2

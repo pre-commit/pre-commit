@@ -217,13 +217,20 @@ def main(argv: Sequence[str] | None = None) -> int:
         help="Auto-update pre-commit config to the latest repos' versions.",
     )
     _add_config_option(autoupdate_parser)
-    autoupdate_parser.add_argument(
+
+    autoupdate_group = autoupdate_parser.add_mutually_exclusive_group()
+    autoupdate_group.add_argument(
         '--bleeding-edge', action='store_true',
         help=(
             'Update to the bleeding edge of `HEAD` instead of the latest '
             'tagged version (the default behavior).'
         ),
     )
+    autoupdate_group.add_argument(
+        '--tags-prefix',
+        help='Filter tags based on the provided prefix.',
+    )
+
     autoupdate_parser.add_argument(
         '--freeze', action='store_true',
         help='Store "frozen" hashes in `rev` instead of tag names',
@@ -380,6 +387,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 freeze=args.freeze,
                 repos=args.repos,
                 jobs=args.jobs,
+                tags_prefix=args.tags_prefix,
             )
         elif args.command == 'clean':
             return clean(store)
