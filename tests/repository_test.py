@@ -351,7 +351,8 @@ def local_python_config():
     repo_path = get_resource_path('python_hooks_repo')
     manifest = load_manifest(os.path.join(repo_path, C.MANIFEST_FILE))
     hooks = [
-        dict(hook, additional_dependencies=[repo_path]) for hook in manifest
+        dict(hook, additional_dependencies=[os.path.relpath(repo_path)])
+        for hook in manifest
     ]
     return {'repo': 'local', 'hooks': hooks}
 
