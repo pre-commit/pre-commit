@@ -207,8 +207,11 @@ def install_environment(
     python = norm_version(version)
     if python is not None:
         venv_cmd.extend(('-p', python))
-    install_cmd = ('python', '-mpip', 'install', '.', *additional_dependencies)
+    install_cmd = ('python', '-mpip', 'install', '.')
 
     cmd_output_b(*venv_cmd, cwd='/')
     with in_env(prefix, version):
         lang_base.setup_cmd(prefix, install_cmd)
+
+        if additional_dependencies:
+            cmd_output_b(*install_cmd[:-1], *additional_dependencies)
