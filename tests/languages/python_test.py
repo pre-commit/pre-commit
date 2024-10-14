@@ -284,3 +284,14 @@ def test_python_hook_weird_setup_cfg(tmp_path):
 
     ret = run_language(tmp_path, python, 'socks', [os.devnull])
     assert ret == (0, f'[{os.devnull!r}]\nhello hello\n'.encode())
+
+
+def test_simple_python_hook_additional_dependencies(tmp_path):
+    _make_hello_hello(tmp_path)
+
+    requirements_txt = tmp_path.joinpath('requirements.txt')
+    requirements_txt.write_text('')
+    deps = ['-r', requirements_txt]
+
+    ret = run_language(tmp_path, python, 'socks', [os.devnull], deps=deps)
+    assert ret == (0, f'[{os.devnull!r}]\nhello hello\n'.encode())
