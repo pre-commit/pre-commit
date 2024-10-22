@@ -57,8 +57,7 @@ def make_archive(name: str, repo: str, ref: str, destdir: str) -> str:
         arcs.sort()
 
         with gzip.GzipFile(output_path, 'wb', mtime=0) as gzipf:
-            # https://github.com/python/typeshed/issues/5491
-            with tarfile.open(fileobj=gzipf, mode='w') as tf:  # type: ignore
+            with tarfile.open(fileobj=gzipf, mode='w') as tf:
                 for arcname, abspath in arcs:
                     tf.add(
                         abspath,
