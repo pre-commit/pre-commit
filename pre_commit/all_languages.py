@@ -10,6 +10,7 @@ from pre_commit.languages import dotnet
 from pre_commit.languages import fail
 from pre_commit.languages import golang
 from pre_commit.languages import haskell
+from pre_commit.languages import julia
 from pre_commit.languages import lua
 from pre_commit.languages import node
 from pre_commit.languages import perl
@@ -33,6 +34,7 @@ languages: dict[str, Language] = {
     'fail': fail,
     'golang': golang,
     'haskell': haskell,
+    'julia': julia,
     'lua': lua,
     'node': node,
     'perl': perl,
