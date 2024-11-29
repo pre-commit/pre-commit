@@ -62,3 +62,16 @@ def test_mains_not_ok(tmpdir):
     assert validate_config(('does-not-exist',))
     assert validate_config((not_yaml.strpath,))
     assert validate_config((not_schema.strpath,))
+
+
+def test_validate_config_with_env_ok(tmpdir, caplog):
+    f = tmpdir.join('cfg.yaml')
+    f.write(
+        'repos:\n'
+        '-   repo: https://gitlab.com/pycqa/flake8\n'
+        '    rev: 3.7.7\n'
+        '    hooks:\n'
+        '    -   id: flake8\n'
+        '    args: [--config, !Env "${HOME}/flake8.cfg"]\n',
+    )
+    assert not validate_config((f.strpath,))
