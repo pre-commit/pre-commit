@@ -1233,3 +1233,14 @@ def test_pre_commit_env_variable_set(cap_out, store, repo_with_passing_hook):
         cap_out, store, repo_with_passing_hook, args, environ,
     )
     assert environ['PRE_COMMIT'] == '1'
+
+
+def test_pre_commit_config_path_env_variable_set(
+        cap_out, store, repo_with_passing_hook,
+):
+    args = run_opts()
+    environ: MutableMapping[str, str] = {}
+    ret, printed = _do_run(
+        cap_out, store, repo_with_passing_hook, args, environ,
+    )
+    assert environ['PRE_COMMIT_CONFIG_PATH'] == repo_with_passing_hook
