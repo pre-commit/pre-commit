@@ -412,6 +412,10 @@ def run(
     if args.rewrite_command:
         environ['PRE_COMMIT_REWRITE_COMMAND'] = args.rewrite_command
 
+    environ['PRE_COMMIT_CONFIG_PATH'] = (
+        os.path.dirname(os.path.abspath(config_file))
+    )
+
     # Set pre_commit flag
     environ['PRE_COMMIT'] = '1'
 
