@@ -1,9 +1,10 @@
 from __future__ import annotations
+import os
 
 import importlib.metadata
 
-CONFIG_FILE = '.pre-commit-config.yaml'
-MANIFEST_FILE = '.pre-commit-hooks.yaml'
+CONFIG_FILE = os.getenv('PRE_COMMIT_CONFIG_FILE', '.pre-commit-config.yaml')
+MANIFEST_FILE = os.getenv('PRE_COMMIT_MANIFEST_FILE', '.pre-commit-hooks.yaml')
 
 # Bump when modifying `empty_template`
 LOCAL_REPO_VERSION = '1'
