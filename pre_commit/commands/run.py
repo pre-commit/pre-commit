@@ -344,8 +344,20 @@ def run(
 
     # Check if we have unresolved merge conflict files and fail fast.
     if stash and _has_unmerged_paths():
-        logger.error('Unmerged files.  Resolve before committing.')
-        return 1
+        # Do not fail on unmerged files if this is a post-checkout hooks.
+        # This handles cases when there are unmerged paths and:
+        #   * resolving conflict with `git checkout --ours/--theirs -- <paths>`
+        #   * or checking out single files with `git checkout <b> -- <paths>`.
+        if args.hook_stage == 'post-checkout':
+            output.write_line(
+                f'Skipping `{args.hook_stage}` hooks since '
+                f'it\'s a file checkout or same head ref',
+            )
+            return 0
+        else:
+            logger.error('Unmerged files.  Resolve before committing.')
+            return 1
+
     if bool(args.from_ref) != bool(args.to_ref):
         logger.error('Specify both --from-ref and --to-ref.')
         return 1

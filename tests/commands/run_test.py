@@ -536,6 +536,22 @@ def test_merge_conflict(cap_out, store, in_merge_conflict):
     assert b'Unmerged files.  Resolve before committing.' in printed
 
 
+def test_merge_conflict_post_checkout(cap_out, store, in_merge_conflict):
+    ret, printed = _do_run(
+        cap_out,
+        store,
+        in_merge_conflict,
+        run_opts(hook_stage='post-checkout'),
+    )
+    assert ret == 0
+    assert b'Unmerged files.  Resolve before committing.' not in printed
+    msg = (
+        b'Skipping `post-checkout` hooks since '
+        b'it\'s a file checkout or same head ref'
+    )
+    assert msg in printed
+
+
 def test_files_during_merge_conflict(cap_out, store, in_merge_conflict):
     opts = run_opts(files=['placeholder'])
     ret, printed = _do_run(cap_out, store, in_merge_conflict, opts)
@@ -552,6 +568,29 @@ def test_merge_conflict_modified(cap_out, store, in_merge_conflict):
     ret, printed = _do_run(cap_out, store, in_merge_conflict, run_opts())
     assert ret == 1
     assert b'Unmerged files.  Resolve before committing.' in printed
+
+
+def test_merge_conflict_modified_post_checkout(
+    cap_out, store, in_merge_conflict
+):
+    # Touch another file so we have unstaged non-conflicting things
+    assert os.path.exists('placeholder')
+    with open('placeholder', 'w') as placeholder_file:
+        placeholder_file.write('bar\nbaz\n')
+
+    ret, printed = _do_run(
+        cap_out,
+        store,
+        in_merge_conflict,
+        run_opts(hook_stage='post-checkout'),
+    )
+    assert ret == 0
+    assert b'Unmerged files.  Resolve before committing.' not in printed
+    msg = (
+        b'Skipping `post-checkout` hooks since '
+        b'it\'s a file checkout or same head ref'
+    )
+    assert msg in printed
 
 
 def test_merge_conflict_resolved(cap_out, store, in_merge_conflict):
