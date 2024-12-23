@@ -571,7 +571,7 @@ def test_merge_conflict_modified(cap_out, store, in_merge_conflict):
 
 
 def test_merge_conflict_modified_post_checkout(
-    cap_out, store, in_merge_conflict
+    cap_out, store, in_merge_conflict,
 ):
     # Touch another file so we have unstaged non-conflicting things
     assert os.path.exists('placeholder')
