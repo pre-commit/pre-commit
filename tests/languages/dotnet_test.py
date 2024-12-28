@@ -27,7 +27,7 @@ def _csproj(tool_name):
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net6</TargetFramework>
+    <TargetFramework>net8</TargetFramework>
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>{tool_name}</ToolCommandName>
     <PackageOutputPath>./nupkg</PackageOutputPath>
