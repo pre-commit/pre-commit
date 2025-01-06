@@ -56,10 +56,10 @@ if sys.platform == 'win32':  # pragma: no cover (windows)
 else:  # pragma: win32 no cover
     terminal_supports_color = True
 
-RED = '\033[41m'
-GREEN = '\033[42m'
-YELLOW = '\033[43;30m'
-TURQUOISE = '\033[46;30m'
+RED = '\033[31;7m'
+GREEN = '\033[32;7m'
+YELLOW = '\033[33;7m'
+TURQUOISE = '\033[36;7m'
 SUBTLE = '\033[2m'
 NORMAL = '\033[m'
 
