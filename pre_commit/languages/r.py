@@ -15,27 +15,50 @@ from pre_commit.envcontext import PatchesT
 from pre_commit.envcontext import UNSET
 from pre_commit.prefix import Prefix
 from pre_commit.util import cmd_output
-from pre_commit.util import cmd_output_b
 from pre_commit.util import win_exe
 
 ENVIRONMENT_DIR = 'renv'
-RSCRIPT_OPTS = ('--no-save', '--no-restore', '--no-site-file', '--no-environ')
 get_default_version = lang_base.basic_get_default_version
 
+_RENV_ACTIVATED_OPTS = (
+    '--no-save', '--no-restore', '--no-site-file', '--no-environ',
+)
 
-def _execute_vanilla_r_code_as_script(
+
+def _execute_r(
         code: str, *,
         prefix: Prefix, version: str, args: Sequence[str] = (), cwd: str,
+        cli_opts: Sequence[str],
 ) -> str:
     with in_env(prefix, version), _r_code_in_tempfile(code) as f:
         _, out, _ = cmd_output(
-            _rscript_exec(), *RSCRIPT_OPTS, f, *args, cwd=cwd,
+            _rscript_exec(), *cli_opts, f, *args, cwd=cwd,
         )
     return out.rstrip('\n')
 
 
+def _execute_r_in_renv(
+        code: str, *,
+        prefix: Prefix, version: str, args: Sequence[str] = (), cwd: str,
+) -> str:
+    return _execute_r(
+        code=code, prefix=prefix, version=version, args=args, cwd=cwd,
+        cli_opts=_RENV_ACTIVATED_OPTS,
+    )
+
+
+def _execute_vanilla_r(
+        code: str, *,
+        prefix: Prefix, version: str, args: Sequence[str] = (), cwd: str,
+) -> str:
+    return _execute_r(
+        code=code, prefix=prefix, version=version, args=args, cwd=cwd,
+        cli_opts=('--vanilla',),
+    )
+
+
 def _read_installed_version(envdir: str, prefix: Prefix, version: str) -> str:
-    return _execute_vanilla_r_code_as_script(
+    return _execute_r_in_renv(
         'cat(renv::settings$r.version())',
         prefix=prefix, version=version,
         cwd=envdir,
@@ -43,7 +66,7 @@ def _read_installed_version(envdir: str, prefix: Prefix, version: str) -> str:
 
 
 def _read_executable_version(envdir: str, prefix: Prefix, version: str) -> str:
-    return _execute_vanilla_r_code_as_script(
+    return _execute_r_in_renv(
         'cat(as.character(getRversion()))',
         prefix=prefix, version=version,
         cwd=envdir,
@@ -53,7 +76,7 @@ def _read_executable_version(envdir: str, prefix: Prefix, version: str) -> str:
 def _write_current_r_version(
         envdir: str, prefix: Prefix, version: str,
 ) -> None:
-    _execute_vanilla_r_code_as_script(
+    _execute_r_in_renv(
         'renv::settings$r.version(as.character(getRversion()))',
         prefix=prefix, version=version,
         cwd=envdir,
@@ -161,7 +184,7 @@ def _cmd_from_hook(
     _entry_validate(cmd)
 
     cmd_part = _prefix_if_file_entry(cmd, prefix, is_local=is_local)
-    return (cmd[0], *RSCRIPT_OPTS, *cmd_part, *args)
+    return (cmd[0], *_RENV_ACTIVATED_OPTS, *cmd_part, *args)
 
 
 def install_environment(
@@ -204,14 +227,15 @@ def install_environment(
             renv::install(prefix_dir)
         }}
         """
-
-    with _r_code_in_tempfile(r_code_inst_environment) as f:
-        cmd_output_b(_rscript_exec(), '--vanilla', f, cwd=env_dir)
+    _execute_vanilla_r(
+        r_code_inst_environment,
+        prefix=prefix, version=version, cwd=env_dir,
+    )
 
     _write_current_r_version(envdir=env_dir, prefix=prefix, version=version)
     if additional_dependencies:
         r_code_inst_add = 'renv::install(commandArgs(trailingOnly = TRUE))'
-        _execute_vanilla_r_code_as_script(
+        _execute_r_in_renv(
             code=r_code_inst_add, prefix=prefix, version=version,
             args=additional_dependencies,
             cwd=env_dir,

@@ -286,7 +286,7 @@ def test_health_check_without_version(prefix, installed_environment, version):
     prefix, env_dir = installed_environment
 
     # simulate old pre-commit install by unsetting the installed version
-    r._execute_vanilla_r_code_as_script(
+    r._execute_r_in_renv(
         f'renv::settings$r.version({version})',
         prefix=prefix, version=C.DEFAULT, cwd=env_dir,
     )
