@@ -29,7 +29,7 @@ repos:
     -   id: pyupgrade
         args: [--py39-plus]
 -   repo: https://github.com/hhatto/autopep8
-    rev: v2.3.1
+    rev: v2.3.2
     hooks:
     -   id: autopep8
 -   repo: https://github.com/PyCQA/flake8
