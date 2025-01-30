@@ -36,7 +36,7 @@ jobs:
       matrix:
         include: ${{ fromJSON(needs.vars.outputs.languages) }}
     steps:
-    - uses: asottile/workflows/.github/actions/fast-checkout@v1.4.0
+    - uses: asottile/workflows/.github/actions/fast-checkout@v1.8.1
     - uses: actions/setup-python@v4
       with:
         python-version: 3.9
