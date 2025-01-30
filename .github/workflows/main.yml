@@ -12,12 +12,12 @@ concurrency:
 
 jobs:
   main-windows:
-    uses: asottile/workflows/.github/workflows/tox.yml@v1.6.0
+    uses: asottile/workflows/.github/workflows/tox.yml@v1.8.1
     with:
       env: '["py39"]'
       os: windows-latest
   main-linux:
-    uses: asottile/workflows/.github/workflows/tox.yml@v1.6.0
+    uses: asottile/workflows/.github/workflows/tox.yml@v1.8.1
     with:
       env: '["py39", "py310", "py311", "py312"]'
       os: ubuntu-latest
