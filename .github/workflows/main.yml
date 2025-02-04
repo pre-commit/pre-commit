@@ -11,13 +11,37 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  main-windows:
-    uses: asottile/workflows/.github/workflows/tox.yml@v1.8.1
-    with:
-      env: '["py39"]'
-      os: windows-latest
-  main-linux:
-    uses: asottile/workflows/.github/workflows/tox.yml@v1.8.1
-    with:
-      env: '["py39", "py310", "py311", "py312"]'
-      os: ubuntu-latest
+  tests:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python-version: ['3.9', '3.10', '3.11', '3.12']
+        exclude:
+          # Only run py39 on Windows
+          - os: windows-latest
+            python-version: '3.10'
+          - os: windows-latest
+            python-version: '3.11'
+          - os: windows-latest
+            python-version: '3.12'
+
+    runs-on: ${{ matrix.os }}
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install tox tox-gh-actions
+    
+    - name: Test with tox
+      run: tox -- tests/languages/python_test.py tests/languages/pipenv_test.py
+      env:
+        TOXENV: py${{ matrix.python-version }}

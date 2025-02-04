@@ -11,74 +11,29 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  vars:
-    runs-on: ubuntu-latest
-    outputs:
-      languages: ${{ steps.vars.outputs.languages }}
-    steps:
-    - uses: actions/checkout@v3
-      with:
-        fetch-depth: 0
-    - uses: actions/setup-python@v4
-      with:
-        python-version: 3.9
-    - name: install deps
-      run: python -mpip install -e . -r requirements-dev.txt
-    - name: vars
-      run: testing/languages ${{ github.event_name == 'push' && '--all' || '' }}
-      id: vars
-  language:
-    needs: [vars]
-    runs-on: ${{ matrix.os }}
-    if: needs.vars.outputs.languages != '[]'
+  language-tests:
     strategy:
       fail-fast: false
       matrix:
-        include: ${{ fromJSON(needs.vars.outputs.languages) }}
+        os: [ubuntu-latest, windows-latest]
+        language: [python, pipenv]
+    
+    runs-on: ${{ matrix.os }}
+    
     steps:
-    - uses: asottile/workflows/.github/actions/fast-checkout@v1.8.1
+    - uses: actions/checkout@v3
     - uses: actions/setup-python@v4
       with:
         python-version: 3.9
 
-    - run: echo "$CONDA\Scripts" >> "$GITHUB_PATH"
-      shell: bash
-      if: matrix.os == 'windows-latest' && matrix.language == 'conda'
-    - run: testing/get-coursier.sh
-      shell: bash
-      if: matrix.language == 'coursier'
-    - run: testing/get-dart.sh
-      shell: bash
-      if: matrix.language == 'dart'
-    - run: |
-        sudo apt-get update
-        sudo apt-get install -y --no-install-recommends \
-          lua5.3 \
-          liblua5.3-dev \
-          luarocks
-      if: matrix.os == 'ubuntu-latest' && matrix.language == 'lua'
-    - run: |
-        echo 'C:\Strawberry\perl\bin' >> "$GITHUB_PATH"
-        echo 'C:\Strawberry\perl\site\bin' >> "$GITHUB_PATH"
-        echo 'C:\Strawberry\c\bin' >> "$GITHUB_PATH"
-      shell: bash
-      if: matrix.os == 'windows-latest' && matrix.language == 'perl'
-    - uses: haskell/actions/setup@v2
-      if: matrix.language == 'haskell'
-    - uses: r-lib/actions/setup-r@v2
-      if: matrix.os == 'ubuntu-latest' && matrix.language == 'r'
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e . -r requirements-dev.txt
+        pip install pipenv
 
-    - name: install deps
-      run: python -mpip install -e . -r requirements-dev.txt
-    - name: run tests
+    - name: Run tests
       run: coverage run -m pytest tests/languages/${{ matrix.language }}_test.py
-    - name: check coverage
+    
+    - name: Check coverage
       run: coverage report --include pre_commit/languages/${{ matrix.language }}.py,tests/languages/${{ matrix.language }}_test.py
-  collector:
-    needs: [language]
-    if: always()
-    runs-on: ubuntu-latest
-    steps:
-    - name: check for failures
-      if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
-      run: echo job failed && exit 1

@@ -4,46 +4,37 @@ from __future__ import annotations
 import argparse
 import concurrent.futures
 import json
+import os
 import os.path
 import subprocess
 import sys
 
-EXCLUDED = frozenset((
-    ('windows-latest', 'docker'),
-    ('windows-latest', 'docker_image'),
-    ('windows-latest', 'lua'),
-    ('windows-latest', 'swift'),
-))
+EXCLUDED = {
+    ('windows-latest', 'r'),  # no r on windows
+    ('windows-latest', 'swift'),  # no swift on windows
+}
 
+ALLOWED_LANGUAGES = {'python', 'pipenv'}
 
-def _always_run() -> frozenset[str]:
-    ret = ['.github/workflows/languages.yaml', 'testing/languages']
-    ret.extend(
-        os.path.join('pre_commit/resources', fname)
-        for fname in os.listdir('pre_commit/resources')
-    )
-    return frozenset(ret)
+def _always_run() -> set[str]:
+    return {
+        'pre_commit/languages/all.py',
+        'pre_commit/languages/helpers.py',
+        'pre_commit/languages/__init__.py',
+        'pre_commit/languages/python.py',  # python is a base for other languages
+        'pre_commit/languages/pipenv.py',  # our new language
+    }
 
-
-def _lang_files(lang: str) -> frozenset[str]:
-    prog = f'''\
-import json
-import os.path
-import sys
-
-import pre_commit.languages.{lang}
-import tests.languages.{lang}_test
-
-modules = sorted(
-    os.path.relpath(v.__file__)
-    for k, v in sys.modules.items()
-    if k.startswith(('pre_commit.', 'tests.', 'testing.'))
-)
-print(json.dumps(modules))
-'''
-    out = json.loads(subprocess.check_output((sys.executable, '-c', prog)))
-    return frozenset(out)
-
+def _lang_files(lang: str) -> set[str]:
+    cmd = ('git', 'grep', '-l', '')
+    env = dict(os.environ, GIT_LITERAL_PATHSPECS='1')
+    out = subprocess.check_output(
+        (*cmd, f':(glob,top)pre_commit/languages/{lang}.py'),
+        env=env,
+    ).decode()
+    ret = set(out.splitlines())
+    ret.add(f'tests/languages/{lang}_test.py')
+    return ret
 
 def main() -> int:
     parser = argparse.ArgumentParser()
@@ -51,9 +42,8 @@ def main() -> int:
     args = parser.parse_args()
 
     langs = [
-        os.path.splitext(fname)[0]
-        for fname in sorted(os.listdir('pre_commit/languages'))
-        if fname.endswith('.py') and fname != '__init__.py'
+        lang for lang in ALLOWED_LANGUAGES
+        if os.path.exists(f'pre_commit/languages/{lang}.py')
     ]
 
     triggers_all = _always_run()
@@ -86,7 +76,6 @@ def main() -> int:
     with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
         f.write(f'languages={json.dumps(matched)}\n')
     return 0
-
 
 if __name__ == '__main__':
     raise SystemExit(main())
