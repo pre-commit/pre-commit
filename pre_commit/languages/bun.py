@@ -88,9 +88,12 @@ def install_environment(
     cmd_output_b(*cmd)
 
     with in_env(prefix, version):
-        breakpoint()
         install = (
-            'bun', 'install', '--no-progress', '--silent', *additional_dependencies
+            'bun',
+            'install',
+            '--no-progress',
+            '--silent',
+            *additional_dependencies,
         )
         lang_base.setup_cmd(prefix, install)
 
