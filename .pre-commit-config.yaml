@@ -33,7 +33,7 @@ repos:
     hooks:
     -   id: autopep8
 -   repo: https://github.com/PyCQA/flake8
-    rev: 7.1.1
+    rev: 7.1.2
     hooks:
     -   id: flake8
 -   repo: https://github.com/pre-commit/mirrors-mypy
