@@ -12,7 +12,7 @@ def test_sample_config(capsys):
 # See https://pre-commit.com/hooks.html for more hooks
 repos:
 -   repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v3.2.0
+    rev: v3.2.0 # do not make PR to pre-commit/pre-commit to update this
     hooks:
     -   id: trailing-whitespace
     -   id: end-of-file-fixer
