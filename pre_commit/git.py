@@ -126,7 +126,7 @@ def get_conflicted_files() -> set[str]:
     merge_diff_filenames = zsplit(
         cmd_output(
             'git', 'diff', '--name-only', '--no-ext-diff', '-z',
-            '-m', tree_hash, 'HEAD', 'MERGE_HEAD',
+            '-m', tree_hash, 'HEAD', 'MERGE_HEAD', '--',
         )[1],
     )
     return set(merge_conflict_filenames) | set(merge_diff_filenames)
