@@ -113,7 +113,7 @@ def _rev_exists(rev: str) -> bool:
     return not subprocess.call(('git', 'rev-list', '--quiet', rev))
 
 
-def _is_ancestor(ancestor: str, rev: str):
+def _is_ancestor(ancestor: str, rev: str) -> bool:
     return not subprocess.call(
         ('git', 'merge-base', '--is-ancestor', ancestor, rev),
     )
