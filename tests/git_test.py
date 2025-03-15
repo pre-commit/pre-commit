@@ -141,6 +141,15 @@ def test_get_conflicted_files_unstaged_files(in_merge_conflict):
     assert ret == {'conflict_file'}
 
 
+def test_get_conflicted_files_with_file_named_head(in_merge_conflict):
+    resolve_conflict()
+    open('HEAD', 'w').close()
+    cmd_output('git', 'add', 'HEAD')
+
+    ret = set(git.get_conflicted_files())
+    assert ret == {'conflict_file', 'HEAD'}
+
+
 MERGE_MSG = b"Merge branch 'foo' into bar\n\nConflicts:\n\tconflict_file\n"
 OTHER_MERGE_MSG = MERGE_MSG + b'\tother_conflict_file\n'
 
