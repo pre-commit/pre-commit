@@ -176,6 +176,8 @@ def autoupdate(
         if repo['repo'] not in {LOCAL, META}
     ]
 
+    freeze = freeze or load_config(config_file)['freeze']
+
     rev_infos: list[RevInfo | None] = [None] * len(config_repos)
     jobs = jobs or xargs.cpu_count()  # 0 => number of cpus
     jobs = min(jobs, len(repos) or len(config_repos))  # max 1-per-thread

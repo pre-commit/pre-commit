@@ -139,6 +139,17 @@ def test_rev_info_update_does_not_freeze_if_already_sha(out_of_date):
     assert new_info.frozen is None
 
 
+def test_autoupdate_freeze_from_config(tagged, tmpdir):
+    git_commit(cwd=tagged.path)
+    repo = make_config_from_repo(tagged.path, rev=tagged.original_rev)
+    contents = {'repos': [repo], 'freeze': True}
+    cfg = tmpdir.join(C.CONFIG_FILE)
+    write_config(str(tmpdir), contents)
+
+    assert autoupdate(str(cfg), freeze=False, tags_only=True) == 0
+    assert f'rev: {tagged.head_rev}  # frozen: v1.2.3' in cfg.read()
+
+
 def test_autoupdate_up_to_date_repo(up_to_date, tmpdir):
     contents = (
         f'repos:\n'
