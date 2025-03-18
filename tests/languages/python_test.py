@@ -12,6 +12,7 @@ from pre_commit.languages import python
 from pre_commit.prefix import Prefix
 from pre_commit.util import make_executable
 from pre_commit.util import win_exe
+from testing.auto_namedtuple import auto_namedtuple
 from testing.language_helpers import run_language
 
 
@@ -32,6 +33,72 @@ def test_read_pyvenv_cfg_non_utf8(tmpdir):
     pyvenv_cfg.write_binary('hello = hello john.š\n'.encode())
     expected = {'hello': 'hello john.š'}
     assert python._read_pyvenv_cfg(pyvenv_cfg) == expected
+
+
+def _get_default_version(
+        *,
+        impl: str,
+        exe: str,
+        found: set[str],
+        version: tuple[int, int],
+) -> str:
+    sys_exe = f'/fake/path/{exe}'
+    sys_impl = auto_namedtuple(name=impl)
+    sys_ver = auto_namedtuple(major=version[0], minor=version[1])
+
+    def find_exe(s):
+        if s in found:
+            return f'/fake/path/found/{exe}'
+        else:
+            return None
+
+    with (
+            mock.patch.object(sys, 'implementation', sys_impl),
+            mock.patch.object(sys, 'executable', sys_exe),
+            mock.patch.object(sys, 'version_info', sys_ver),
+            mock.patch.object(python, 'find_executable', find_exe),
+    ):
+        return python.get_default_version.__wrapped__()
+
+
+def test_default_version_sys_executable_found():
+    ret = _get_default_version(
+        impl='cpython',
+        exe='python3.12',
+        found={'python3.12'},
+        version=(3, 12),
+    )
+    assert ret == 'python3.12'
+
+
+def test_default_version_picks_specific_when_found():
+    ret = _get_default_version(
+        impl='cpython',
+        exe='python3',
+        found={'python3', 'python3.12'},
+        version=(3, 12),
+    )
+    assert ret == 'python3.12'
+
+
+def test_default_version_picks_pypy_versioned_exe():
+    ret = _get_default_version(
+        impl='pypy',
+        exe='python',
+        found={'pypy3.12', 'python3'},
+        version=(3, 12),
+    )
+    assert ret == 'pypy3.12'
+
+
+def test_default_version_picks_pypy_unversioned_exe():
+    ret = _get_default_version(
+        impl='pypy',
+        exe='python',
+        found={'pypy3', 'python3'},
+        version=(3, 12),
+    )
+    assert ret == 'pypy3'
 
 
 def test_norm_version_expanduser():

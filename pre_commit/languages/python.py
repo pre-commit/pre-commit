@@ -75,6 +75,13 @@ def _find_by_py_launcher(
     return None
 
 
+def _impl_exe_name() -> str:
+    if sys.implementation.name == 'cpython':  # pragma: cpython cover
+        return 'python'
+    else:  # pragma: cpython no cover
+        return sys.implementation.name  # pypy mostly
+
+
 def _find_by_sys_executable() -> str | None:
     def _norm(path: str) -> str | None:
         _, exe = os.path.split(path.lower())
@@ -100,18 +107,25 @@ def _find_by_sys_executable() -> str | None:
 
 @functools.lru_cache(maxsize=1)
 def get_default_version() -> str:  # pragma: no cover (platform dependent)
-    # First attempt from `sys.executable` (or the realpath)
-    exe = _find_by_sys_executable()
-    if exe:
-        return exe
+    v_major = f'{sys.version_info[0]}'
+    v_minor = f'{sys.version_info[0]}.{sys.version_info[1]}'
 
-    # Next try the `pythonX.X` executable
-    exe = f'python{sys.version_info[0]}.{sys.version_info[1]}'
-    if find_executable(exe):
-        return exe
+    # attempt the likely implementation exe
+    for potential in (v_minor, v_major):
+        exe = f'{_impl_exe_name()}{potential}'
+        if find_executable(exe):
+            return exe
 
-    if _find_by_py_launcher(exe):
-        return exe
+    # next try `sys.executable` (or the realpath)
+    maybe_exe = _find_by_sys_executable()
+    if maybe_exe:
+        return maybe_exe
+
+    # maybe on windows we can find it via py launcher?
+    if sys.platform == 'win32':  # pragma: win32 cover
+        exe = f'python{v_minor}'
+        if _find_by_py_launcher(exe):
+            return exe
 
     # We tried!
     return C.DEFAULT
