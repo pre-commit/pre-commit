@@ -1,3 +1,16 @@
+4.2.0 - 2025-03-18
+==================
+
+### Features
+- For `language: python` first attempt a versioned python executable for
+  the default language version before consulting a potentially unversioned
+  `sys.executable`.
+    - #3430 PR by @asottile.
+
+### Fixes
+- Handle error during conflict detection when a file is named "HEAD"
+    - #3425 PR by @tusharsadhwani.
+
 4.1.0 - 2025-01-20
 ==================
 
