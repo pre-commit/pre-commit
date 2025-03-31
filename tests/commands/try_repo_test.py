@@ -5,10 +5,12 @@ import re
 import time
 from unittest import mock
 
+import pytest
 import re_assert
 
 from pre_commit import git
 from pre_commit.commands.try_repo import try_repo
+from pre_commit.errors import FatalError
 from pre_commit.util import cmd_output
 from testing.auto_namedtuple import auto_namedtuple
 from testing.fixtures import git_dir
@@ -96,6 +98,21 @@ def test_try_repo_relative_path(cap_out, tempdir_factory):
         relative_repo = os.path.relpath(repo, '.')
         # previously crashed on cloning a relative path
         assert not try_repo(try_repo_opts(relative_repo, hook='bash_hook'))
+
+
+def test_try_repo_no_commits(cap_out, tempdir_factory):
+    repo = make_repo(
+        tempdir_factory,
+        'modified_file_returns_zero_repo',
+        commits=False,
+    )
+
+    with cwd(git_dir(tempdir_factory)):
+        bare_repo = os.path.join(repo, '.git')
+        # previously crashed attempting modification changes
+        with pytest.raises(FatalError) as e:
+            try_repo(try_repo_opts(bare_repo, hook='bash_hook'))
+            assert 'appears to have no commits' in e.value
 
 
 def test_try_repo_bare_repo(cap_out, tempdir_factory):

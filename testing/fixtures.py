@@ -42,11 +42,12 @@ def git_dir(tempdir_factory):
     return path
 
 
-def make_repo(tempdir_factory, repo_source):
+def make_repo(tempdir_factory, repo_source, commits=True):
     path = git_dir(tempdir_factory)
     copy_tree_to_path(get_resource_path(repo_source), path)
-    cmd_output('git', 'add', '.', cwd=path)
-    git_commit(msg=make_repo.__name__, cwd=path)
+    if commits:
+        cmd_output('git', 'add', '.', cwd=path)
+        git_commit(msg=make_repo.__name__, cwd=path)
     return path
 
 

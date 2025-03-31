@@ -168,7 +168,19 @@ def get_changed_files(old: str, new: str) -> list[str]:
 
 
 def head_rev(remote: str) -> str:
-    _, out, _ = cmd_output('git', 'ls-remote', '--exit-code', remote, 'HEAD')
+    try:
+        _, out, _ = cmd_output(
+            'git', 'ls-remote', '--exit-code',
+            remote, 'HEAD',
+        )
+    except CalledProcessError as e:
+        if e.returncode == 2:
+            raise FatalError(
+                f'repo {remote} found but appears to have no commits. '
+                f'Make a commit in {remote} to use it',
+            )
+        raise e
+
     return out.split()[0]
 
 
