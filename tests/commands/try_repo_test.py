@@ -100,19 +100,28 @@ def test_try_repo_relative_path(cap_out, tempdir_factory):
         assert not try_repo(try_repo_opts(relative_repo, hook='bash_hook'))
 
 
-def test_try_repo_no_commits(cap_out, tempdir_factory):
+@pytest.mark.parametrize(
+    'has_commits', [
+        False,
+        True,
+    ],
+)
+def test_try_repo_no_commits(cap_out, tempdir_factory, has_commits):
     repo = make_repo(
         tempdir_factory,
         'modified_file_returns_zero_repo',
-        commits=False,
+        commits=has_commits,
     )
 
     with cwd(git_dir(tempdir_factory)):
         bare_repo = os.path.join(repo, '.git')
         # previously crashed attempting modification changes
-        with pytest.raises(FatalError) as e:
-            try_repo(try_repo_opts(bare_repo, hook='bash_hook'))
-            assert 'appears to have no commits' in e.value
+        if not has_commits:
+            with pytest.raises(FatalError) as e:
+                try_repo(try_repo_opts(bare_repo, hook='bash_hook'))
+                assert 'appears to have no commits' in e.value
+        else:
+            assert not try_repo(try_repo_opts(bare_repo, hook='bash_hook'))
 
 
 def test_try_repo_bare_repo(cap_out, tempdir_factory):
