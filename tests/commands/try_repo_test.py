@@ -11,6 +11,7 @@ import re_assert
 from pre_commit import git
 from pre_commit.commands.try_repo import try_repo
 from pre_commit.errors import FatalError
+from pre_commit.util import CalledProcessError
 from pre_commit.util import cmd_output
 from testing.auto_namedtuple import auto_namedtuple
 from testing.fixtures import git_dir
@@ -100,6 +101,13 @@ def test_try_repo_relative_path(cap_out, tempdir_factory):
         assert not try_repo(try_repo_opts(relative_repo, hook='bash_hook'))
 
 
+def test_try_repo_no_commits_no_git(cap_out, tempdir_factory):
+    repo = tempdir_factory.get()
+    with pytest.raises(CalledProcessError) as e:
+        try_repo(try_repo_opts(repo, hook='bash_hook'))
+    assert 'appears to have no commits' not in str(e.value)
+
+
 @pytest.mark.parametrize(
     'has_commits', [
         False,
@@ -119,7 +127,7 @@ def test_try_repo_no_commits(cap_out, tempdir_factory, has_commits):
         if not has_commits:
             with pytest.raises(FatalError) as e:
                 try_repo(try_repo_opts(bare_repo, hook='bash_hook'))
-                assert 'appears to have no commits' in e.value
+            assert 'appears to have no commits' in str(e.value)
         else:
             assert not try_repo(try_repo_opts(bare_repo, hook='bash_hook'))
 
