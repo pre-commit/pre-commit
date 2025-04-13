@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import functools
 import hashlib
 import json
 import os
@@ -101,7 +102,32 @@ def install_environment(
     os.mkdir(directory)
 
 
+@functools.lru_cache(maxsize=1)
+def _is_rootless() -> bool:  # pragma: win32 no cover
+    retcode, out, _ = cmd_output_b(
+        'docker', 'system', 'info', '--format', '{{ json . }}',
+    )
+    if retcode != 0:
+        return False
+
+    info = json.loads(out)
+    try:
+        return (
+            # docker:
+            # https://docs.docker.com/reference/api/engine/version/v1.48/#tag/System/operation/SystemInfo
+            'name=rootless' in info.get('SecurityOptions', ()) or
+            # podman:
+            # https://docs.podman.io/en/latest/_static/api.html?version=v5.4#tag/system/operation/SystemInfoLibpod
+            info['host']['security']['rootless']
+        )
+    except KeyError:
+        return False
+
+
 def get_docker_user() -> tuple[str, ...]:  # pragma: win32 no cover
+    if _is_rootless():
+        return ()
+
     try:
         return ('-u', f'{os.getuid()}:{os.getgid()}')
     except AttributeError:
