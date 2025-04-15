@@ -12,6 +12,7 @@ from pre_commit.envcontext import PatchesT
 from pre_commit.envcontext import SubstitutionT
 from pre_commit.envcontext import UNSET
 from pre_commit.envcontext import Var
+from pre_commit.languages.python import bin_dir
 from pre_commit.prefix import Prefix
 from pre_commit.util import cmd_output_b
 
@@ -26,10 +27,9 @@ def get_env_patch(env: str) -> PatchesT:
     # they can be in $CONDA_PREFIX/bin, $CONDA_PREFIX/Library/bin,
     # $CONDA_PREFIX/Scripts and $CONDA_PREFIX. Whereas the latter only
     # seems to be used for python.exe.
-    path: SubstitutionT = (os.path.join(env, 'bin'), os.pathsep, Var('PATH'))
+    path: SubstitutionT = (str(bin_dir(env)), os.pathsep, Var('PATH'))
     if sys.platform == 'win32':  # pragma: win32 cover
         path = (env, os.pathsep, *path)
-        path = (os.path.join(env, 'Scripts'), os.pathsep, *path)
         path = (os.path.join(env, 'Library', 'bin'), os.pathsep, *path)
 
     return (
