@@ -4,6 +4,7 @@ import contextlib
 import functools
 import os
 import sys
+import sysconfig
 from collections.abc import Generator
 from collections.abc import Sequence
 
@@ -37,16 +38,18 @@ def get_default_version() -> str:
 
 
 def get_env_patch(venv: str) -> PatchesT:
-    if sys.platform == 'cygwin':  # pragma: no cover
-        _, win_venv, _ = cmd_output('cygpath', '-w', venv)
-        install_prefix = fr'{win_venv.strip()}\bin'
-        lib_dir = 'lib'
-    elif sys.platform == 'win32':  # pragma: no cover
-        install_prefix = bin_dir(venv)
-        lib_dir = 'Scripts'
-    else:  # pragma: win32 no cover
+
+    install_prefix = bin_dir(venv)
+    lib_dir = 'lib'
+
+    # if not a Cygwin platform and not a win32 platform with a Windows path scheme
+    # catering to the previously defined edge-cases.
+    if sys.platform != 'cygwin' and (sys.platform == 'win32' and install_prefix.name != 'Scripts'):
         install_prefix = venv
-        lib_dir = 'lib'
+
+    if install_prefix.name != 'bin':
+        lib_dir = install_prefix.name
+
     return (
         ('NODE_VIRTUAL_ENV', venv),
         ('NPM_CONFIG_PREFIX', install_prefix),
@@ -54,7 +57,7 @@ def get_env_patch(venv: str) -> PatchesT:
         ('NPM_CONFIG_USERCONFIG', UNSET),
         ('npm_config_userconfig', UNSET),
         ('NODE_PATH', os.path.join(venv, lib_dir, 'node_modules')),
-        ('PATH', (bin_dir(venv), os.pathsep, Var('PATH'))),
+        ('PATH', (install_prefix, os.pathsep, Var('PATH'))),
     )
 
 
