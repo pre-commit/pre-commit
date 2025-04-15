@@ -4,8 +4,10 @@ import contextlib
 import functools
 import os
 import sys
+import sysconfig
 from collections.abc import Generator
 from collections.abc import Sequence
+from pathlib import Path
 
 import pre_commit.constants as C
 from pre_commit import lang_base
@@ -46,10 +48,9 @@ def _read_pyvenv_cfg(filename: str) -> dict[str, str]:
     return ret
 
 
-def bin_dir(venv: str) -> str:
+def bin_dir(venv: str) -> Path:
     """On windows there's a different directory for the virtualenv"""
-    bin_part = 'Scripts' if sys.platform == 'win32' else 'bin'
-    return os.path.join(venv, bin_part)
+    return Path(venv) / Path(sysconfig.get_path('scripts')).name
 
 
 def get_env_patch(venv: str) -> PatchesT:
