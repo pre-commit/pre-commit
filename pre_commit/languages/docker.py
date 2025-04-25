@@ -28,28 +28,28 @@ def _is_in_docker() -> bool:
     """
     # Method 1 (cgroups v1): Check /proc/1/cgroup
     try:
-        with open("/proc/1/cgroup", "rb") as f:
+        with open('/proc/1/cgroup', 'rb') as f:
             cgroup_content = f.read()
-            if b"docker" in cgroup_content or b"containerd" in cgroup_content:
+            if b'docker' in cgroup_content or b'containerd' in cgroup_content:
                 return True
     except FileNotFoundError:
         pass
 
     # Method 2 (cgroups v2): Check /proc/self/mountinfo for container indicators
     try:
-        with open("/proc/self/mountinfo", "rb") as f:
+        with open('/proc/self/mountinfo', 'rb') as f:
             mountinfo = f.read()
-            if b"overlay" in mountinfo and (b"docker" in mountinfo or b"containerd" in mountinfo):
+            if b'overlay' in mountinfo and (b'docker' in mountinfo or b'containerd' in mountinfo):
                 return True
     except FileNotFoundError:
         pass
 
     # Method 3: Check for /.dockerenv file
-    if os.path.exists("/.dockerenv"):
+    if os.path.exists('/.dockerenv'):
         return True
 
     # Method 4: Check for IS_CONTAINER environment variable
-    if os.environ.get("IS_CONTAINER"):
+    if os.environ.get('IS_CONTAINER'):
         return True
 
     return False
