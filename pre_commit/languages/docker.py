@@ -18,22 +18,67 @@ in_env = lang_base.no_env  # no special environment for docker
 
 
 def _is_in_docker() -> bool:
+    """Determine if we're running inside a docker container.
+
+    Uses multiple detection methods:
+    1. Check for "docker" in /proc/1/cgroup (cgroups v1)
+    2. Check /proc/self/mountinfo for container indicators
+    3. Check for /.dockerenv file existence
+    4. Check for IS_CONTAINER environment variable
+    """
+    # Method 1 (cgroups v1): Check /proc/1/cgroup
     try:
-        with open('/proc/1/cgroup', 'rb') as f:
-            return b'docker' in f.read()
+        with open("/proc/1/cgroup", "rb") as f:
+            cgroup_content = f.read()
+            if b"docker" in cgroup_content or b"containerd" in cgroup_content:
+                return True
     except FileNotFoundError:
-        return False
+        pass
+
+    # Method 2 (cgroups v2): Check /proc/self/mountinfo for container indicators
+    try:
+        with open("/proc/self/mountinfo", "rb") as f:
+            mountinfo = f.read()
+            if b"overlay" in mountinfo and (b"docker" in mountinfo or b"containerd" in mountinfo):
+                return True
+    except FileNotFoundError:
+        pass
+
+    # Method 3: Check for /.dockerenv file
+    if os.path.exists("/.dockerenv"):
+        return True
+
+    # Method 4: Check for IS_CONTAINER environment variable
+    if os.environ.get("IS_CONTAINER"):
+        return True
+
+    return False
 
 
 def _get_container_id() -> str:
-    # It's assumed that we already check /proc/1/cgroup in _is_in_docker. The
-    # cpuset cgroup controller existed since cgroups were introduced so this
-    # way of getting the container ID is pretty reliable.
-    with open('/proc/1/cgroup', 'rb') as f:
-        for line in f.readlines():
-            if line.split(b':')[1] == b'cpuset':
-                return os.path.basename(line.split(b':')[2]).strip().decode()
-    raise RuntimeError('Failed to find the container ID in /proc/1/cgroup.')
+    # Method 1 (cgroups v1): Parse /proc/1/cgroup
+    try:
+        with open('/proc/1/cgroup', 'rb') as f:
+            for line in f.readlines():
+                if line.split(b':')[1] == b'cpuset':
+                    return os.path.basename(line.split(b':')[2]).strip().decode()
+    except (FileNotFoundError, IndexError, ValueError):
+        pass
+
+    # Method 2 (cgroups v2): Parse /proc/self/mountinfo
+    try:
+        with open('/proc/self/mountinfo', 'rb') as f:
+            for line in f.readlines():
+                if b'/docker/containers/' in line:
+                    parts = line.split(b'/docker/containers/')
+                    if len(parts) >= 2:
+                        container_id = parts[1].split(b'/')[0].decode()
+                        if container_id:
+                            return container_id
+    except (FileNotFoundError, IndexError):
+        pass
+
+    raise RuntimeError('Failed to find the container ID in either /proc/1/cgroup or /proc/self/mountinfo.')
 
 
 def _get_docker_path(path: str) -> str:
