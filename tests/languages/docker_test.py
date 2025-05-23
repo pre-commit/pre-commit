@@ -62,6 +62,42 @@ def test_docker_fallback_user():
         assert docker.get_docker_user() == ()
 
 
+@pytest.fixture(autouse=True)
+def _avoid_cache():
+    with mock.patch.object(
+            docker,
+            '_is_rootless',
+            docker._is_rootless.__wrapped__,
+    ):
+        yield
+
+
+@pytest.mark.parametrize(
+    'info_ret',
+    (
+        (0, b'{"SecurityOptions": ["name=rootless","name=cgroupns"]}', b''),
+        (0, b'{"host": {"security": {"rootless": true}}}', b''),
+    ),
+)
+def test_docker_user_rootless(info_ret):
+    with mock.patch.object(docker, 'cmd_output_b', return_value=info_ret):
+        assert docker.get_docker_user() == ()
+
+
+@pytest.mark.parametrize(
+    'info_ret',
+    (
+        (0, b'{"SecurityOptions": ["name=cgroupns"]}', b''),
+        (0, b'{"host": {"security": {"rootless": false}}}', b''),
+        (0, b'{"respone_from_some_other_container_engine": true}', b''),
+        (1, b'', b''),
+    ),
+)
+def test_docker_user_non_rootless(info_ret):
+    with mock.patch.object(docker, 'cmd_output_b', return_value=info_ret):
+        assert docker.get_docker_user() != ()
+
+
 def test_in_docker_no_file():
     with mock.patch.object(builtins, 'open', side_effect=FileNotFoundError):
         assert docker._is_in_docker() is False
@@ -195,3 +231,14 @@ CMD ["echo", "This is overwritten by the entry"']
 
     ret = run_language(tmp_path, docker, 'echo hello hello world')
     assert ret == (0, b'hello hello world\n')
+
+
+@xfailif_windows  # pragma: win32 no cover
+def test_docker_hook_mount_permissions(tmp_path):
+    dockerfile = '''\
+FROM ubuntu:22.04
+'''
+    tmp_path.joinpath('Dockerfile').write_text(dockerfile)
+
+    retcode, _ = run_language(tmp_path, docker, 'touch', ('README.md',))
+    assert retcode == 0
