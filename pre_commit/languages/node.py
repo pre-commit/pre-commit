@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import contextlib
 import functools
+import json
 import os
 import sys
 from collections.abc import Generator
@@ -98,8 +99,9 @@ def install_environment(
         )
         lang_base.setup_cmd(prefix, local_install_cmd)
 
-        _, pkg, _ = cmd_output('npm', 'pack', cwd=prefix.prefix_dir)
-        pkg = prefix.path(pkg.strip())
+        _, pkg, _ = cmd_output('npm', 'pack', '--json', cwd=prefix.prefix_dir)
+        pkg_json = json.loads(pkg)
+        pkg = prefix.path(pkg_json[0].get('filename'))
 
         install = ('npm', 'install', '-g', pkg, *additional_dependencies)
         lang_base.setup_cmd(prefix, install)
