@@ -4,6 +4,8 @@ import functools
 import hashlib
 import json
 import os
+import re
+import socket
 from collections.abc import Sequence
 
 from pre_commit import lang_base
@@ -21,9 +23,11 @@ in_env = lang_base.no_env  # no special environment for docker
 def _is_in_docker() -> bool:
     try:
         with open('/proc/1/cgroup', 'rb') as f:
-            return b'docker' in f.read()
+            if b'docker' in f.read():
+                return True
     except FileNotFoundError:
-        return False
+        pass
+    return os.path.exists('/.dockerenv')
 
 
 def _get_container_id() -> str:
@@ -34,6 +38,9 @@ def _get_container_id() -> str:
         for line in f.readlines():
             if line.split(b':')[1] == b'cpuset':
                 return os.path.basename(line.split(b':')[2]).strip().decode()
+    hostname = socket.gethostname()
+    if re.match(r'^[0-9a-f]{12}$', hostname):
+        return hostname
     raise RuntimeError('Failed to find the container ID in /proc/1/cgroup.')
 
 

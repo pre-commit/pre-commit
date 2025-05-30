@@ -30,8 +30,13 @@ DOCKER_CGROUP_EXAMPLE = b'''\
 0::/system.slice/containerd.service
 '''  # noqa: E501
 
+DOCKER_CGROUPV2_EXAMPLE = b"""\
+0::/
+"""
+
 # The ID should match the above cgroup example.
 CONTAINER_ID = 'c33988ec7651ebc867cb24755eaf637a6734088bc7eef59d5799293a9e5450f7'  # noqa: E501
+SHORT_CONTAINER_ID = CONTAINER_ID[:12]
 
 NON_DOCKER_CGROUP_EXAMPLE = b'''\
 12:perf_event:/
@@ -117,8 +122,17 @@ def test_in_docker_docker_in_file():
         assert docker._is_in_docker() is True
 
 
+def _mock_dockerenv(exists):
+    return mock.patch('os.path.exists', return_value=exists)
+
+
+def test_in_docker_cgroupv2():
+    with _mock_open(DOCKER_CGROUPV2_EXAMPLE), _mock_dockerenv(True):
+        assert docker._is_in_docker() is True
+
+
 def test_in_docker_docker_not_in_file():
-    with _mock_open(NON_DOCKER_CGROUP_EXAMPLE):
+    with _mock_open(NON_DOCKER_CGROUP_EXAMPLE), _mock_dockerenv(False):
         assert docker._is_in_docker() is False
 
 
@@ -127,8 +141,16 @@ def test_get_container_id():
         assert docker._get_container_id() == CONTAINER_ID
 
 
+def test_get_container_id_cgroupv2():
+    with _mock_open(DOCKER_CGROUPV2_EXAMPLE), \
+            mock.patch('socket.gethostname', return_value=SHORT_CONTAINER_ID):
+        assert docker._get_container_id() == SHORT_CONTAINER_ID
+
+
 def test_get_container_id_failure():
-    with _mock_open(b''), pytest.raises(RuntimeError):
+    with _mock_open(b''), \
+            mock.patch('socket.gethostname', return_value='foo'), \
+            pytest.raises(RuntimeError):
         docker._get_container_id()
 
 
