@@ -155,6 +155,6 @@ def install_environment(
 
         for args in packages_to_install:
             cmd_output_b(
-                'cargo', 'install', '--bins', '--root', envdir, *args,
+                'cargo', 'install', '--locked', '--bins', '--root', envdir, *args,
                 cwd=prefix.prefix_dir,
             )
