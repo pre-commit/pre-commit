@@ -37,7 +37,7 @@ def run_hook(
 
     cmd = lang_base.hook_cmd(entry, args)
     script = cmd[0] if is_local else prefix.path(cmd[0])
-    cmd = ('julia', script, *cmd[1:])
+    cmd = ('julia', '--startup-file=no', script, *cmd[1:])
     return lang_base.run_xargs(
         cmd,
         file_args,
@@ -127,6 +127,7 @@ def install_environment(
         end
         """
         cmd_output_b(
-            'julia', '-e', julia_code, '--', envdir, *additional_dependencies,
+            'julia', '--startup-file=no', '-e', julia_code, '--', envdir,
+            *additional_dependencies,
             cwd=prefix.prefix_dir,
         )
