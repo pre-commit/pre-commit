@@ -33,14 +33,13 @@ def test_julia_hook(tmp_path):
 
 
 def test_julia_hook_with_startup(tmp_path):
-    # We will temporarily use a new Julia depot so we can freely write a
-    # startup.jl file
-    existing_depot = os.getenv('JULIA_DEPOT_PATH')
     # Set a new environment dir so we can test the install process
     existing_environment_dir = julia.ENVIRONMENT_DIR
     julia.ENVIRONMENT_DIR = 'juliaenv-test-startup'
     try:
         with tempfile.TemporaryDirectory() as depot_tempdir:
+            # We will temporarily use a new Julia depot so we can
+            # freely write a startup.jl file
             os.environ['JULIA_DEPOT_PATH'] = depot_tempdir
             depot_path = Path(depot_tempdir)
             depot_path.joinpath('config').mkdir(exist_ok=True)
@@ -53,11 +52,7 @@ def test_julia_hook_with_startup(tmp_path):
     finally:
         # restore environment dir
         julia.ENVIRONMENT_DIR = existing_environment_dir
-        # restore old depot
-        if existing_depot is None:
-            del os.environ['JULIA_DEPOT_PATH']
-        else:
-            os.environ['JULIA_DEPOT_PATH'] = existing_depot
+        del os.environ['JULIA_DEPOT_PATH']
 
 
 def test_julia_hook_manifest(tmp_path):
