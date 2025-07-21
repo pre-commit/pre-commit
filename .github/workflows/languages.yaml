@@ -67,7 +67,10 @@ jobs:
       if: matrix.language == 'haskell'
     - uses: r-lib/actions/setup-r@v2
       if: matrix.os == 'ubuntu-latest' && matrix.language == 'r'
-
+    - uses: julia-actions/install-juliaup@v2
+      if: matrix.language == 'julia'
+    - run: juliaup add 1.10.10
+      if: matrix.language == 'julia'
     - name: install deps
       run: python -mpip install -e . -r requirements-dev.txt
     - name: run tests
