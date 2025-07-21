@@ -45,20 +45,23 @@ def run_hook(
         color=color,
     )
 
+
 def get_env_patch(target_dir: str, version: str) -> PatchesT:
     patches = [
         ('JULIA_LOAD_PATH', target_dir),
         ('JULIA_PROJECT', UNSET),
     ]
-    if version not in ("system", "default"):
+    if version not in ('system', 'default'):
         patches.append(('JULIAUP_CHANNEL', version))
     return tuple(patches)
+
 
 @contextlib.contextmanager
 def in_env(prefix: Prefix, version: str) -> Generator[None]:
     envdir = lang_base.environment_dir(prefix, ENVIRONMENT_DIR, version)
     with envcontext(get_env_patch(envdir, version)):
         yield
+
 
 def install_environment(
         prefix: Prefix,
@@ -95,7 +98,7 @@ def install_environment(
             break
 
         # copy `src` files if they exist
-        src_dir = prefix.path("src")
+        src_dir = prefix.path('src')
         if os.path.isdir(src_dir):
             shutil.copytree(src_dir, os.path.join(envdir, 'src'))
 
