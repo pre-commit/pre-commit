@@ -69,6 +69,8 @@ jobs:
       if: matrix.os == 'ubuntu-latest' && matrix.language == 'r'
     - uses: julia-actions/install-juliaup@v2
       if: matrix.language == 'julia'
+      with:
+        channel: 'release'
     - run: juliaup add 1.10.10
       if: matrix.language == 'julia'
     - name: install deps
