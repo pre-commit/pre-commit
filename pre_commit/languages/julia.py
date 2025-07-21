@@ -5,14 +5,11 @@ import os
 import shutil
 from collections.abc import Generator
 from collections.abc import Sequence
-from typing import Union
 
 from pre_commit import lang_base
-from pre_commit.envcontext import _Unset
 from pre_commit.envcontext import envcontext
 from pre_commit.envcontext import PatchesT
 from pre_commit.envcontext import UNSET
-from pre_commit.envcontext import Var
 from pre_commit.prefix import Prefix
 from pre_commit.util import cmd_output_b
 
@@ -49,17 +46,17 @@ def run_hook(
     )
 
 
-PatchEntry = tuple[str, Union[str, _Unset, tuple[Union[str, Var], ...]]]
-
-
 def get_env_patch(target_dir: str, version: str) -> PatchesT:
-    patches: list[PatchEntry] = [
+    patches = (
         ('JULIA_LOAD_PATH', target_dir),
         ('JULIA_PROJECT', UNSET),
-    ]
-    if version not in ('system', 'default'):
-        patches.append(('JULIAUP_CHANNEL', version))
-    return tuple(patches)
+        # Only set JULIAUP_CHANNEL if we don't want use the system's default
+        *(
+            (('JULIAUP_CHANNEL', version),)
+            if version not in ('system', 'default') else ()
+        ),
+    )
+    return patches
 
 
 @contextlib.contextmanager
