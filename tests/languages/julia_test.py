@@ -1,5 +1,9 @@
 from __future__ import annotations
 
+import os
+import tempfile
+from pathlib import Path
+
 from pre_commit.languages import julia
 from testing.language_helpers import run_language
 from testing.util import cwd
@@ -26,6 +30,29 @@ def test_julia_hook(tmp_path):
     _make_hook(tmp_path, code)
     expected = (0, b'Hello, world!\n')
     assert run_language(tmp_path, julia, 'src/main.jl') == expected
+
+
+def test_julia_hook_with_startup(tmp_path):
+    # We will temporarily use a new Julia depot so we can freely write a
+    # startup.jl file
+    existing_depot = os.getenv('JULIA_DEPOT_PATH')
+    try:
+        with tempfile.TemporaryDirectory() as depot_tempdir:
+            os.environ['JULIA_DEPOT_PATH'] = depot_tempdir
+            depot_path = Path(depot_tempdir)
+            depot_path.joinpath('config').mkdir(exist_ok=True)
+            startup = depot_path.joinpath('config', 'startup.jl')
+            # write a startup.jl file that throws an error so
+            # we know it's not used
+            startup.write_text('error("Startup file used!")\n')
+            # check that the test still succeeds even with a bad startup file
+            test_julia_hook(tmp_path)
+    finally:
+        # restore old depot
+        if existing_depot is None:
+            del os.environ['JULIA_DEPOT_PATH']
+        else:
+            os.environ['JULIA_DEPOT_PATH'] = existing_depot
 
 
 def test_julia_hook_manifest(tmp_path):
