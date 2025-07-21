@@ -37,7 +37,7 @@ def run_hook(
 
     cmd = lang_base.hook_cmd(entry, args)
     script = cmd[0] if is_local else prefix.path(cmd[0])
-    cmd = ('julia', script, *cmd[1:])
+    cmd = ('julia', '--startup-file=no', script, *cmd[1:])
     return lang_base.run_xargs(
         cmd,
         file_args,
@@ -45,21 +45,20 @@ def run_hook(
         color=color,
     )
 
-
 def get_env_patch(target_dir: str, version: str) -> PatchesT:
-    return (
+    patches = [
         ('JULIA_LOAD_PATH', target_dir),
-        # May be set, remove it to not interfer with LOAD_PATH
         ('JULIA_PROJECT', UNSET),
-    )
-
+    ]
+    if version not in ("system", "default"):
+        patches.append(('JULIAUP_CHANNEL', version))
+    return tuple(patches)
 
 @contextlib.contextmanager
 def in_env(prefix: Prefix, version: str) -> Generator[None]:
     envdir = lang_base.environment_dir(prefix, ENVIRONMENT_DIR, version)
     with envcontext(get_env_patch(envdir, version)):
         yield
-
 
 def install_environment(
         prefix: Prefix,
@@ -68,10 +67,6 @@ def install_environment(
 ) -> None:
     envdir = lang_base.environment_dir(prefix, ENVIRONMENT_DIR, version)
     with in_env(prefix, version):
-        # TODO: Support language_version with juliaup similar to rust via
-        # rustup
-        # if version != 'system':
-        #     ...
 
         # Copy Project.toml to hook env if it exist
         os.makedirs(envdir, exist_ok=True)
@@ -98,6 +93,11 @@ def install_environment(
                 continue
             shutil.copy(manifest_file, envdir)
             break
+
+        # copy `src` files if they exist
+        src_dir = prefix.path("src")
+        if os.path.isdir(src_dir):
+            shutil.copytree(src_dir, os.path.join(envdir, 'src'))
 
         # Julia code to instantiate the hook environment
         julia_code = """
@@ -127,6 +127,6 @@ def install_environment(
         end
         """
         cmd_output_b(
-            'julia', '-e', julia_code, '--', envdir, *additional_dependencies,
+            'julia', '--startup-file=no', '-e', julia_code, '--', envdir, *additional_dependencies,
             cwd=prefix.prefix_dir,
         )
