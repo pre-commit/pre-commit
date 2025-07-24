@@ -95,3 +95,41 @@ def test_julia_repo_local(tmp_path):
             env_dir, julia, 'local.jl --local-arg1 --local-arg2',
             deps=deps, is_local=True,
         ) == expected
+
+
+def _make_src_hook(tmp_path, pkg_code, script_code):
+    # here we setup a hook with a src dir and a script dir
+    src_dir = tmp_path.joinpath('src')
+    src_dir.mkdir()
+    src_dir.joinpath('ExamplePkg.jl').write_text(pkg_code)
+
+    script_dir = tmp_path.joinpath('scripts')
+    script_dir.mkdir()
+    script_dir.joinpath('main.jl').write_text(script_code)
+
+    tmp_path.joinpath('Project.toml').write_text(
+        'name = "ExamplePkg"\n'
+        'uuid = "df230c44-b485-4b6a-bafb-763c50abe554"\n'
+        '[deps]\n'
+        'Example = "7876af07-990d-54b4-ab0e-23690620f79a"\n',
+    )
+
+
+def test_julia_hook_src(tmp_path):
+    pkg_code = """
+    module ExamplePkg
+    using Example
+    export main
+    function main()
+        println("Hello, world!")
+    end
+    end
+    """
+
+    script_code = """
+    using ExamplePkg
+    main()
+    """
+    _make_src_hook(tmp_path, pkg_code, script_code)
+    expected = (0, b'Hello, world!\n')
+    assert run_language(tmp_path, julia, 'scripts/main.jl') == expected

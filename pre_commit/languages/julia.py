@@ -99,6 +99,14 @@ def install_environment(
             shutil.copy(manifest_file, envdir)
             break
 
+        # copy `src` files if they exist
+        src_dir = prefix.path('src')
+        if os.path.isdir(src_dir):
+            shutil.copytree(
+                src_dir, os.path.join(envdir, 'src'),
+                dirs_exist_ok=True,
+            )
+
         # Julia code to instantiate the hook environment
         julia_code = """
         @assert length(ARGS) > 0
