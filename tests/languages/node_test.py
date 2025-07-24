@@ -126,8 +126,52 @@ def _make_hello_world(tmp_path):
     )
 
 
+def _make_typescript_hello_world(tmp_path):
+    package_json = """
+{
+  "name": "t",
+  "version": "0.0.1",
+  "bin": {
+    "node-hello": "./bin/main.js"
+  },
+  "scripts": {
+    "prepare": "tsc",
+    "build": "tsc"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.0"
+  }
+}
+    """
+    tmp_path.joinpath('package.json').write_text(package_json)
+    bin_dir = tmp_path.joinpath('src')
+    bin_dir.mkdir()
+    bin_dir.joinpath('main.ts').write_text(
+        '#!/usr/bin/env node\n'
+        'console.log("Hello World");\n',
+    )
+    tsconfig_json = """
+{
+  "compilerOptions": {
+    "target": "es5",
+    "module": "commonjs",
+    "strict": true,
+    "rootDir": "./src",
+    "outDir": "./bin"
+  }
+}
+    """
+    tmp_path.joinpath('tsconfig.json').write_text(tsconfig_json)
+
+
 def test_node_hook_system(tmp_path):
     _make_hello_world(tmp_path)
+    ret = run_language(tmp_path, node, 'node-hello')
+    assert ret == (0, b'Hello World\n')
+
+
+def test_node_typescript_hook_system(tmp_path):
+    _make_typescript_hello_world(tmp_path)
     ret = run_language(tmp_path, node, 'node-hello')
     assert ret == (0, b'Hello World\n')
 
