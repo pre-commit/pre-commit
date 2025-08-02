@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import os
+from unittest import mock
+
 from pre_commit.languages import julia
 from testing.language_helpers import run_language
 from testing.util import cwd
@@ -26,6 +29,17 @@ def test_julia_hook(tmp_path):
     _make_hook(tmp_path, code)
     expected = (0, b'Hello, world!\n')
     assert run_language(tmp_path, julia, 'src/main.jl') == expected
+
+
+def test_julia_hook_with_startup(tmp_path):
+    depot_path = tmp_path.joinpath('depot')
+    depot_path.joinpath('config').mkdir(parents=True)
+    startup = depot_path.joinpath('config', 'startup.jl')
+    startup.write_text('error("Startup file used!")\n')
+
+    depo_path_var = f'{depot_path}{os.pathsep}'
+    with mock.patch.dict(os.environ, {'JULIA_DEPOT_PATH': depo_path_var}):
+        test_julia_hook(tmp_path)
 
 
 def test_julia_hook_manifest(tmp_path):
