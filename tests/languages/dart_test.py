@@ -10,7 +10,7 @@ from testing.language_helpers import run_language
 def test_dart(tmp_path):
     pubspec_yaml = '''\
 environment:
-  sdk: '>=2.10.0 <3.0.0'
+  sdk: '>=2.12.0 <4.0.0'
 
 name: hello_world_dart
 
