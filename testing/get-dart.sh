@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-VERSION=3.8.3
+VERSION=2.19.6
 
 if [ "$OSTYPE" = msys ]; then
     URL="https://storage.googleapis.com/dart-archive/channels/stable/release/${VERSION}/sdk/dartsdk-windows-x64-release.zip"
