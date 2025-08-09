@@ -1,3 +1,16 @@
+4.3.0 - 2025-08-09
+==================
+
+### Features
+- `language: docker` / `language: docker_image`: detect rootless docker.
+    - #3446 PR by @matthewhughes934.
+    - #1243 issue by @dkolepp.
+- `language: julia`: avoid `startup.jl` when executing hooks.
+    - #3496 PR by @ericphanson.
+- `language: dart`: support latest dart versions which require a higher sdk
+  lower bound.
+    - #3507 PR by @bc-lee.
+
 4.2.0 - 2025-03-18
 ==================
 
