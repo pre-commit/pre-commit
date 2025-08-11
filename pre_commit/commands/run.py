@@ -292,15 +292,19 @@ def _run_hooks(
     )
     retval = 0
     prior_diff = _get_diff()
+    just_warn = False
     for hook in hooks:
         current_retval, prior_diff = _run_single_hook(
             classifier, hook, skips, cols, prior_diff,
             verbose=args.verbose, use_color=args.color,
         )
-        retval |= current_retval
-        if current_retval and (config['fail_fast'] or hook.fail_fast):
+        if not hook.just_warn:
+            retval |= current_retval
+        else:
+            just_warn |= current_retval
+        if (current_retval or just_warn) and (config['fail_fast'] or hook.fail_fast):
             break
-    if retval and args.show_diff_on_failure and prior_diff:
+    if (retval or just_warn) and args.show_diff_on_failure and prior_diff:
         if args.all_files:
             output.write_line(
                 'pre-commit hook(s) made changes.\n'

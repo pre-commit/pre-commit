@@ -4,3 +4,5 @@
 /.tox
 /dist
 .vscode/
+.venv
+build
