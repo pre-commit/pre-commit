@@ -113,8 +113,8 @@ def test_installs_without_links_outside_env(tmpdir):
         assert cmd_output('foo')[1] == 'success!\n'
 
 
-def _make_hello_world(tmp_path):
-    package_json = '''\
+def _make_hello_world(tmp_path, package_json=None):
+    package_json = package_json or '''\
 {"name": "t", "version": "0.0.1", "bin": {"node-hello": "./bin/main.js"}}
 '''
     tmp_path.joinpath('package.json').write_text(package_json)
@@ -128,6 +128,20 @@ def _make_hello_world(tmp_path):
 
 def test_node_hook_system(tmp_path):
     _make_hello_world(tmp_path)
+    ret = run_language(tmp_path, node, 'node-hello')
+    assert ret == (0, b'Hello World\n')
+
+
+def test_node_with_prepare_script(tmp_path):
+    package_json = '''
+{
+  "name": "t",
+  "version": "0.0.1",
+  "bin": {"node-hello": "./bin/main.js"},
+  "scripts": {"prepare": "echo prepare"}
+}
+'''
+    _make_hello_world(tmp_path, package_json)
     ret = run_language(tmp_path, node, 'node-hello')
     assert ret == (0, b'Hello World\n')
 
