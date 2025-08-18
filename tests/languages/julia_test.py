@@ -30,6 +30,7 @@ def test_julia_hook(tmp_path):
     expected = (0, b'Hello, world!\n')
     assert run_language(tmp_path, julia, 'src/main.jl') == expected
 
+
 def test_julia_hook_version(tmp_path):
     code = """
     using Example
@@ -45,6 +46,7 @@ def test_julia_hook_version(tmp_path):
         version='1.10.10',
     ) == expected
 
+
 def test_julia_hook_with_startup(tmp_path):
     depot_path = tmp_path.joinpath('depot')
     depot_path.joinpath('config').mkdir(parents=True)
@@ -54,6 +56,7 @@ def test_julia_hook_with_startup(tmp_path):
     depo_path_var = f'{depot_path}{os.pathsep}'
     with mock.patch.dict(os.environ, {'JULIA_DEPOT_PATH': depo_path_var}):
         test_julia_hook(tmp_path)
+
 
 def test_julia_hook_manifest(tmp_path):
     code = """
