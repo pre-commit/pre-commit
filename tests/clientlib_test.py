@@ -240,63 +240,62 @@ def test_validate_optional_sensible_regex_at_hook(caplog, regex, warning):
     assert caplog.record_tuples == [('pre_commit', logging.WARNING, warning)]
 
 
-
 @pytest.mark.parametrize(
     ('regex', 'warning'),
     (
         (
-            "(?x)^(\n^some-dir/some-sub-dir|\n)/",
+            '(?x)^(\n^some-dir/some-sub-dir|\n)/',
             "Potentially dangerous trailing pipe pattern detected in 'files' field of the hook: 'flake8'"
-            "This can uninteded behaviour such as the files option being rendered empty"
-            "It is recommended to remove the trailing character prompted"
+            'This can uninteded behaviour such as the files option being rendered empty'
+            'It is recommended to remove the trailing character prompted',
         ),
         (
-            "^some/path1|",
+            '^some/path1|',
             "Potentially dangerous trailing pipe pattern detected in 'files' field of the hook: 'flake8'"
-            "This can uninteded behaviour such as the files option being rendered empty"
-            "It is recommended to remove the trailing character prompted"
+            'This can uninteded behaviour such as the files option being rendered empty'
+            'It is recommended to remove the trailing character prompted',
         ),
         (
-            "(?x)^(\n" "^some/path1|\n" "^some/path2|\n" ")",
+            '(?x)^(\n' '^some/path1|\n' '^some/path2|\n' ')',
             "Potentially dangerous trailing pipe pattern detected in 'files' field of the hook: 'flake8'"
-            "This can uninteded behaviour such as the files option being rendered empty"
-            "It is recommended to remove the trailing character prompted"
+            'This can uninteded behaviour such as the files option being rendered empty'
+            'It is recommended to remove the trailing character prompted',
         ),
         (
-            "^some/path2/",
+            '^some/path2/',
             "Potentially dangerous trailing slash pattern detected in 'files' field of the hook: 'flake8'"
-            "This can uninteded behaviour such as the files option being rendered empty"
-            "It is recommended to remove the trailing character prompted"
+            'This can uninteded behaviour such as the files option being rendered empty'
+            'It is recommended to remove the trailing character prompted',
         ),
         (
-            "(?x)^(^some-dir/)/",
+            '(?x)^(^some-dir/)/',
             "Potentially dangerous trailing slash pattern detected in 'files' field of the hook: 'flake8'"
-            "This can uninteded behaviour such as the files option being rendered empty"
-            "It is recommended to remove the trailing character prompted"
+            'This can uninteded behaviour such as the files option being rendered empty'
+            'It is recommended to remove the trailing character prompted',
         ),
         (
-            "(?x)^(\n^some-dir|)/",
+            '(?x)^(\n^some-dir|)/',
             "Potentially dangerous trailing pipe pattern detected in 'files' field of the hook: 'flake8'"
-            "This can uninteded behaviour such as the files option being rendered empty"
-            "It is recommended to remove the trailing character prompted"
+            'This can uninteded behaviour such as the files option being rendered empty'
+            'It is recommended to remove the trailing character prompted',
         ),
         (
-            "(?x)^(\n^some-dir/\n)/",
+            '(?x)^(\n^some-dir/\n)/',
             "Potentially dangerous trailing slash pattern detected in 'files' field of the hook: 'flake8'"
-            "This can uninteded behaviour such as the files option being rendered empty"
-            "It is recommended to remove the trailing character prompted"
+            'This can uninteded behaviour such as the files option being rendered empty'
+            'It is recommended to remove the trailing character prompted',
         ),
         (
-            "(?x)^(\n^some-dir/\n\t\t\t\t)/",
+            '(?x)^(\n^some-dir/\n\t\t\t\t)/',
             "Potentially dangerous trailing slash pattern detected in 'files' field of the hook: 'flake8'"
-            "This can uninteded behaviour such as the files option being rendered empty"
-            "It is recommended to remove the trailing character prompted"
+            'This can uninteded behaviour such as the files option being rendered empty'
+            'It is recommended to remove the trailing character prompted',
         ),
         (
-            "(?x)^(\n^some-dir/\n           )/",
+            '(?x)^(\n^some-dir/\n           )/',
             "Potentially dangerous trailing slash pattern detected in 'files' field of the hook: 'flake8'"
-            "This can uninteded behaviour such as the files option being rendered empty"
-            "It is recommended to remove the trailing character prompted"
+            'This can uninteded behaviour such as the files option being rendered empty'
+            'It is recommended to remove the trailing character prompted',
         ),
     ),
 )

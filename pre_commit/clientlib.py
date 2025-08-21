@@ -282,35 +282,35 @@ class OptionalSensibleRegexAtHook(cfgv.OptionalNoDefault):
                 )
 
 
-
 class PotentiallyDangerousTrailingCharactersAtHook(cfgv.OptionalNoDefault):
     def _pre_process(self, value: str) -> str:
         """Normalize the field value by removing tabs, newlines, spaces, and trailing )/."""
-        spaces_regex_pattern = r"\s+"
-        trailing_bracket_and_slash_pattern = r"\)/$"
+        spaces_regex_pattern = r'\s+'
+        trailing_bracket_and_slash_pattern = r'\)/$'
         combined_pattern = f"{spaces_regex_pattern}|{trailing_bracket_and_slash_pattern}"
-        return re.sub(combined_pattern, "", value.replace("\t", "").replace("\n", "").strip())
+        return re.sub(combined_pattern, '', value.replace('\t', '').replace('\n', '').strip())
 
     def check(self, dct: dict[str, Any]) -> None:
         super().check(dct)
-        pipe_trailing_pattern = r"\|(\)|\/)?$"
-        slash_trailing_pattern = r"\/(\)|\/)?$"
+        pipe_trailing_pattern = r'\|(\)|\/)?$'
+        slash_trailing_pattern = r'\/(\)|\/)?$'
 
-        pre_processed_field = self._pre_process(dct.get(self.key, ""))
+        pre_processed_field = self._pre_process(dct.get(self.key, ''))
 
         if re.search(pipe_trailing_pattern, pre_processed_field):
             logger.error(
                 f"Potentially dangerous trailing pipe pattern detected in {self.key!r} field of the hook: {dct.get('id')!r}"
-                "This can uninteded behaviour such as the files option being rendered empty"
-                "It is recommended to remove the trailing character prompted"
+                'This can uninteded behaviour such as the files option being rendered empty'
+                'It is recommended to remove the trailing character prompted',
             )
 
         if re.search(slash_trailing_pattern, pre_processed_field):
             logger.error(
                 f"Potentially dangerous trailing slash pattern detected in {self.key!r} field of the hook: {dct.get('id')!r}"
                 f"This can uninteded behaviour such as the files option being rendered empty"
-                f"It is recommended to remove the trailing character prompted"
+                f"It is recommended to remove the trailing character prompted",
             )
+
 
 class OptionalSensibleRegexAtTop(cfgv.OptionalNoDefault):
     def check(self, dct: dict[str, Any]) -> None:
