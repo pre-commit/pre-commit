@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import contextlib
 import logging
+import os
 from collections.abc import Generator
 
 from pre_commit import color
@@ -30,12 +31,25 @@ class LoggingHandler(logging.Handler):
         )
         output.write_line(f'{level_msg} {record.getMessage()}')
 
+def _set_log_level(logger: logging.Logger) -> None:
+    """Set the logger level via PRECOMMIT_LOGLEVEL env var. Default is INFO."""
+    raw_level: str = os.environ.get("PRECOMMIT_LOGLEVEL", "INFO")
+    try:
+        logger.setLevel(int(raw_level))  # user can provide an integer
+    except ValueError:
+        level = logging.getLevelName(raw_level)  # user can provide a name
+        if isinstance(level, str) and level.startswith("Level "):
+            logger.setLevel(logging.INFO)
+            msg = f"Unknown PRECOMMIT_LOGLEVEL: {raw_level!r}"
+            logger.warning(msg)
+        else:
+            logger.setLevel(level)
 
 @contextlib.contextmanager
 def logging_handler(use_color: bool) -> Generator[None]:
     handler = LoggingHandler(use_color)
     logger.addHandler(handler)
-    logger.setLevel(logging.INFO)
+    _set_log_level(logger)
     try:
         yield
     finally:
