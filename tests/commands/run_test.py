@@ -1104,6 +1104,19 @@ def test_fail_fast_not_prev_failures(cap_out, store, repo_with_failing_hook):
     assert printed.count(b'run me!') == 1
 
 
+def test_fail_fast_run_arg(cap_out, store, repo_with_failing_hook):
+    with modify_config() as config:
+        # More than one hook to demonstrate early exit
+        config['repos'][0]['hooks'] *= 2
+    stage_a_file()
+
+    ret, printed = _do_run(
+        cap_out, store, repo_with_failing_hook, run_opts(fail_fast=True),
+    )
+    # it should have only run one hook due to the CLI flag
+    assert printed.count(b'Failing hook') == 1
+
+
 def test_classifier_removes_dne():
     classifier = Classifier(('this_file_does_not_exist',))
     assert classifier.filenames == []

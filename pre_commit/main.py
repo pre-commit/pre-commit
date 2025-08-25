@@ -77,6 +77,10 @@ def _add_run_options(parser: argparse.ArgumentParser) -> None:
         help='When hooks fail, run `git diff` directly afterward.',
     )
     parser.add_argument(
+        '--fail-fast', action='store_true',
+        help='Stop after the first failing hook.',
+    )
+    parser.add_argument(
         '--hook-stage',
         choices=clientlib.STAGES,
         type=clientlib.transform_stage,
