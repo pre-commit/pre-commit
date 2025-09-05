@@ -22,7 +22,7 @@ in_env = lang_base.no_env  # no special environment for docker
 def _is_in_docker() -> bool:
     try:
         with open('/proc/1/mountinfo', 'rb') as f:
-            return b'/var/lib/docker/containers/' in f.read()
+            return b'/containers/' in f.read()
     except FileNotFoundError:
         return False
 
@@ -30,11 +30,11 @@ def _is_in_docker() -> bool:
 def _get_container_id() -> str:
     # It's assumed that we already check /proc/1/mountinfo in _is_in_docker.
     with open('/proc/1/mountinfo', 'rb') as f:
-        hostname_mount = re.compile(r'/var/lib/docker/containers/([a-z0-9]{64})/hostname')
+        hostname_mount = re.compile(r'/containers/([a-z0-9]{64})/hostname')
         for line in f.readlines():
-            m = hostname_mount.search(line)
+            m = hostname_mount.search(line.decode())
             if m:
-                return os.path.basename(m.group(1)).strip().decode()
+                return m.group(1)
     raise RuntimeError('Failed to find the container ID in /proc/1/mountinfo.')
 
 
