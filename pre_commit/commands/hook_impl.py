@@ -106,6 +106,7 @@ def _ns(
         hook=None,
         verbose=False,
         show_diff_on_failure=False,
+        fail_fast=False,
     )
 
 
