@@ -89,7 +89,8 @@ def test_docker_user_rootless(info_ret):
     (
         (0, b'{"SecurityOptions": ["name=cgroupns"]}', b''),
         (0, b'{"host": {"security": {"rootless": false}}}', b''),
-        (0, b'{"respone_from_some_other_container_engine": true}', b''),
+        (0, b'{"response_from_some_other_container_engine": true}', b''),
+        (0, b'{"SecurityOptions": null}', b''),
         (1, b'', b''),
     ),
 )
