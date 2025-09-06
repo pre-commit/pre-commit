@@ -115,7 +115,7 @@ def _is_rootless() -> bool:  # pragma: win32 no cover
         return (
             # docker:
             # https://docs.docker.com/reference/api/engine/version/v1.48/#tag/System/operation/SystemInfo
-            'name=rootless' in info.get('SecurityOptions', ()) or
+            'name=rootless' in (info.get('SecurityOptions') or ()) or
             # podman:
             # https://docs.podman.io/en/latest/_static/api.html?version=v5.4#tag/system/operation/SystemInfoLibpod
             info['host']['security']['rootless']
