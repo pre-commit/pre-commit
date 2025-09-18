@@ -30,11 +30,11 @@ def _is_in_docker() -> bool:
 def _get_container_id() -> str:
     # It's assumed that we already check /proc/1/mountinfo in _is_in_docker.
     with open('/proc/1/mountinfo', 'rb') as f:
-        hostname_mount = re.compile(r'/containers/([a-z0-9]{64})/hostname')
+        hostname_mount = re.compile(r'/containers/(overlay-containers/)?([a-z0-9]{64})(userdata/)?/hostname')
         for line in f.readlines():
             m = hostname_mount.search(line.decode())
             if m:
-                return m.group(1)
+                return m.group(2)
     raise RuntimeError('Failed to find the container ID in /proc/1/mountinfo.')
 
 
