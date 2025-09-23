@@ -180,7 +180,7 @@ NON_DOCKER_MOUNTINFO_EXAMPLE = b'''\
 28 21 0:6 / /sys/kernel/security rw,nosuid,nodev,noexec,relatime shared:8 - securityfs securityfs rw
 29 23 0:24 / /dev/shm rw,nosuid,nodev shared:4 - tmpfs tmpfs rw,inode64
 30 25 0:25 / /run/lock rw,nosuid,nodev,noexec,relatime shared:6 - tmpfs tmpfs rw,size=5120k,inode64
-'''
+'''  # noqa: E501
 
 
 def test_docker_fallback_user():
