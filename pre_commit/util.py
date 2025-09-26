@@ -4,6 +4,7 @@ import contextlib
 import errno
 import importlib.resources
 import os.path
+import re
 import shutil
 import stat
 import subprocess
@@ -237,3 +238,13 @@ else:  # pragma: >=3.12 cover
 
 def win_exe(s: str) -> str:
     return s if sys.platform != 'win32' else f'{s}.exe'
+
+
+def get_npm_version() -> tuple[int, ...]:
+    _, out, _ = cmd_output('npm', '--version')
+    version_match = re.match(r'^(\d+)\.(\d+)\.(\d+)', out)
+
+    if version_match is None:
+        return 0, 0, 0
+    else:
+        return tuple(map(int, version_match.groups()))
