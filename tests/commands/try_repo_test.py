@@ -19,8 +19,13 @@ from testing.util import git_commit
 from testing.util import run_opts
 
 
-def try_repo_opts(repo, ref=None, **kwargs):
-    return auto_namedtuple(repo=repo, ref=ref, **run_opts(**kwargs)._asdict())
+def try_repo_opts(repo, ref=None, hook_args=None, **kwargs):
+    return auto_namedtuple(
+        repo=repo,
+        ref=ref,
+        hook_args=hook_args,
+        **run_opts(**kwargs)._asdict(),
+    )
 
 
 def _get_out(cap_out):
@@ -81,6 +86,33 @@ def test_try_repo_with_specific_hook(cap_out, tempdir_factory):
         '    rev: .+\n'
         '    hooks:\n'
         '    -   id: bash_hook\n$',
+    )
+    config_pattern.assert_matches(config)
+    assert rest == '''\
+Bash hook............................................(no files to check)Skipped
+- hook id: bash_hook
+'''
+
+
+def test_try_repo_with_specific_hook_and_args(cap_out, tempdir_factory):
+    _run_try_repo(
+        tempdir_factory,
+        hook='bash_hook',
+        hook_args=['pwd', '&&', 'ls'],
+        verbose=True,
+    )
+    start, config, rest = _get_out(cap_out)
+    assert start == ''
+    config_pattern = re_assert.Matches(
+        '^repos:\n'
+        '-   repo: .+\n'
+        '    rev: .+\n'
+        '    hooks:\n'
+        '    -   id: bash_hook\n'
+        '        args:\n'
+        '        - pwd\n'
+        '        - \'&&\'\n'
+        '        - ls\n$',
     )
     config_pattern.assert_matches(config)
     assert rest == '''\

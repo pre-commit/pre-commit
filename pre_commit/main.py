@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import logging
 import os
+import shlex
 import sys
 from collections.abc import Sequence
 
@@ -171,6 +172,14 @@ def _add_run_options(parser: argparse.ArgumentParser) -> None:
     )
 
 
+def _add_hook_flags_option(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument(
+        '--hook-args',
+        type=shlex.split,
+        help='Raw string with flags to pass into the hook (if specified).',
+    )
+
+
 def _adjust_args_and_chdir(args: argparse.Namespace) -> None:
     # `--config` was specified relative to the non-root working directory
     if os.path.exists(args.config):
@@ -324,6 +333,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         ),
     )
     _add_run_options(try_repo_parser)
+    _add_hook_flags_option(try_repo_parser)
 
     uninstall_parser = _add_cmd(
         'uninstall', help='Uninstall the pre-commit script.',

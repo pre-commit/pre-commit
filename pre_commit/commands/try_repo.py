@@ -4,6 +4,7 @@ import argparse
 import logging
 import os.path
 import tempfile
+import warnings
 
 import pre_commit.constants as C
 from pre_commit import git
@@ -54,8 +55,15 @@ def try_repo(args: argparse.Namespace) -> int:
 
         store = Store(tempdir)
         if args.hook:
-            hooks = [{'id': args.hook}]
+            hook = {'id': args.hook}
+            if args.hook_args is not None:
+                hook['args'] = args.hook_args
+            hooks = [hook]
         else:
+            if args.hook_args is not None:
+                warnings.warn(
+                    "Unused flag '--hook-args' as 'hook' is not specified.",
+                )
             repo_path = store.clone(repo, ref)
             manifest = load_manifest(os.path.join(repo_path, C.MANIFEST_FILE))
             manifest = sorted(manifest, key=lambda hook: hook['id'])
