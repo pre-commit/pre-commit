@@ -90,8 +90,7 @@ def _infer_go_version(version: str) -> str:
     if version != C.DEFAULT:
         return version
     resp = urllib.request.urlopen('https://go.dev/dl/?mode=json')
-    # TODO: 3.9+ .removeprefix('go')
-    return json.load(resp)[0]['version'][2:]
+    return json.load(resp)[0]['version'].removeprefix('go')
 
 
 def _get_url(version: str) -> str:

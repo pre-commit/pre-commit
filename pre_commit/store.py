@@ -5,9 +5,9 @@ import logging
 import os.path
 import sqlite3
 import tempfile
+from collections.abc import Callable
 from collections.abc import Generator
 from collections.abc import Sequence
-from typing import Callable
 
 import pre_commit.constants as C
 from pre_commit import clientlib

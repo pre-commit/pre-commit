@@ -14,10 +14,10 @@ jobs:
   main-windows:
     uses: asottile/workflows/.github/workflows/tox.yml@v1.8.1
     with:
-      env: '["py39"]'
+      env: '["py310"]'
       os: windows-latest
   main-linux:
     uses: asottile/workflows/.github/workflows/tox.yml@v1.8.1
     with:
-      env: '["py39", "py310", "py311", "py312"]'
+      env: '["py310", "py311", "py312", "py313"]'
       os: ubuntu-latest
