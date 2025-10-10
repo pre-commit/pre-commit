@@ -8,10 +8,10 @@ import shutil
 import stat
 import subprocess
 import sys
+from collections.abc import Callable
 from collections.abc import Generator
 from types import TracebackType
 from typing import Any
-from typing import Callable
 
 from pre_commit import parse_shebang
 

@@ -3,7 +3,7 @@ from __future__ import annotations
 import functools
 import itertools
 import textwrap
-from typing import Callable
+from collections.abc import Callable
 
 import cfgv
 import yaml

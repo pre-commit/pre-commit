@@ -21,7 +21,7 @@ jobs:
         fetch-depth: 0
     - uses: actions/setup-python@v4
       with:
-        python-version: 3.9
+        python-version: '3.10'
     - name: install deps
       run: python -mpip install -e . -r requirements-dev.txt
     - name: vars
@@ -39,7 +39,7 @@ jobs:
     - uses: asottile/workflows/.github/actions/fast-checkout@v1.8.1
     - uses: actions/setup-python@v4
       with:
-        python-version: 3.9
+        python-version: '3.10'
 
     - run: echo "$CONDA\Scripts" >> "$GITHUB_PATH"
       shell: bash

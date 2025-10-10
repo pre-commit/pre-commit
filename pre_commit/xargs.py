@@ -7,12 +7,12 @@ import multiprocessing
 import os
 import subprocess
 import sys
+from collections.abc import Callable
 from collections.abc import Generator
 from collections.abc import Iterable
 from collections.abc import MutableMapping
 from collections.abc import Sequence
 from typing import Any
-from typing import Callable
 from typing import TypeVar
 
 from pre_commit import parse_shebang
