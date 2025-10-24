@@ -16,8 +16,8 @@ from collections.abc import Sequence
 
 
 REPOS = (
-    ('rbenv', 'https://github.com/rbenv/rbenv', '38e1fbb'),
-    ('ruby-build', 'https://github.com/rbenv/ruby-build', 'ed384c8'),
+    ('rbenv', 'https://github.com/rbenv/rbenv', '10e96bfc'),
+    ('ruby-build', 'https://github.com/rbenv/ruby-build', '447468b1'),
     (
         'ruby-download',
         'https://github.com/garnieretienne/rvm-download',
