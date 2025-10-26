@@ -31,6 +31,22 @@ def test_julia_hook(tmp_path):
     assert run_language(tmp_path, julia, 'src/main.jl') == expected
 
 
+def test_julia_hook_version(tmp_path):
+    code = """
+    using Example
+    function main()
+        println("Hello, Julia $(VERSION)!")
+    end
+    main()
+    """
+    _make_hook(tmp_path, code)
+    expected = (0, b'Hello, Julia 1.10.10!\n')
+    assert run_language(
+        tmp_path, julia, 'src/main.jl',
+        version='1.10.10',
+    ) == expected
+
+
 def test_julia_hook_with_startup(tmp_path):
     depot_path = tmp_path.joinpath('depot')
     depot_path.joinpath('config').mkdir(parents=True)
