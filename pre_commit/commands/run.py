@@ -6,6 +6,7 @@ import functools
 import logging
 import os
 import re
+import shutil
 import subprocess
 import time
 import unicodedata
@@ -247,7 +248,15 @@ def _compute_cols(hooks: Sequence[Hook]) -> int:
         name_len = 0
 
     cols = name_len + 3 + len(NO_FILES) + 1 + len(SKIPPED)
-    return max(cols, 80)
+    cols = max(cols, 80)
+
+    # Cap at terminal width to prevent wrapping
+    try:
+        term_width = shutil.get_terminal_size().columns
+    except OSError:
+        term_width = 80
+
+    return min(cols, term_width)
 
 
 def _all_filenames(args: argparse.Namespace) -> Iterable[str]:

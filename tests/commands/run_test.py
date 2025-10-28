@@ -574,21 +574,45 @@ def test_rebase(cap_out, store, repo_with_passing_hook):
 
 
 @pytest.mark.parametrize(
-    ('hooks', 'expected'),
+    ('term_width', 'hooks', 'expected'),
     (
-        ([], 80),
-        ([auto_namedtuple(id='a', name='a' * 51)], 81),
+        # Default 80-column terminal
+        (80, [], 80),
+        (80, [auto_namedtuple(id='a', name='a' * 51)], 80),
         (
+            80,
+            [
+                auto_namedtuple(id='a', name='a' * 51),
+                auto_namedtuple(id='b', name='b' * 52),
+            ],
+            80,
+        ),
+        # Wide terminal - ideal width is used
+        (120, [], 80),
+        (120, [auto_namedtuple(id='a', name='a' * 51)], 81),
+        (
+            120,
             [
                 auto_namedtuple(id='a', name='a' * 51),
                 auto_namedtuple(id='b', name='b' * 52),
             ],
             82,
         ),
+        # Narrow terminal - capped at terminal width
+        (70, [], 70),
+        (70, [auto_namedtuple(id='a', name='a' * 10)], 70),
     ),
 )
-def test_compute_cols(hooks, expected):
-    assert _compute_cols(hooks) == expected
+def test_compute_cols(term_width, hooks, expected):
+    class FakeTerminalSize:
+        def __init__(self):
+            self.columns = term_width
+
+    with mock.patch(
+        'shutil.get_terminal_size',
+        return_value=FakeTerminalSize(),
+    ):
+        assert _compute_cols(hooks) == expected
 
 
 @pytest.mark.parametrize(
