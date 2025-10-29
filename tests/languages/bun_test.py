@@ -61,10 +61,6 @@ def test_bun_default_version():
     assert version in {'system', 'default'}
 
 
-@pytest.mark.skipif(
-    not lang_base.exe_exists('bun'),
-    reason='bun not installed on system',
-)
 def test_bun_hook_system(tmp_path):
     """Test running a hook with system Bun."""
     _make_hello_world(tmp_path)
@@ -72,10 +68,6 @@ def test_bun_hook_system(tmp_path):
     assert ret == (0, b'Hello World\n')
 
 
-@pytest.mark.skipif(
-    sys.platform == 'win32',
-    reason='Test may be slow on Windows',
-)
 def test_bun_hook_default_version(tmp_path):
     """Test running a hook with downloaded Bun (default/latest)."""
     _make_hello_world(tmp_path)
@@ -83,10 +75,6 @@ def test_bun_hook_default_version(tmp_path):
     assert ret == (0, b'Hello World\n')
 
 
-@pytest.mark.skipif(
-    sys.platform == 'win32',
-    reason='Test may be slow on Windows',
-)
 def test_bun_hook_specific_version(tmp_path):
     """Test running a hook with specific Bun version."""
     _make_hello_world(tmp_path)
@@ -126,10 +114,6 @@ def test_run_hook_uses_basic():
     assert bun.run_hook is lang_base.basic_run_hook
 
 
-@pytest.mark.skipif(
-    not lang_base.exe_exists('bun'),
-    reason='bun not installed on system',
-)
 def test_bun_health_check_success(tmp_path):
     """Test health check with valid environment."""
     _make_hello_world(tmp_path)
@@ -308,10 +292,6 @@ def test_install_bun_missing_executable_in_directory(tmp_path):
         assert not bun_dir.exists()
 
 
-@pytest.mark.skipif(
-    not lang_base.exe_exists('bun'),
-    reason='bun not installed on system',
-)
 def test_install_environment_system_version_skips_download(tmp_path):
     """Test that system version doesn't download Bun binary."""
     _make_hello_world(tmp_path)
