@@ -116,11 +116,12 @@ class StagesMigrationNoDefault(NamedTuple):
         if self.key not in dct:
             return
 
-        val = dct[self.key]
-        cfgv.check_array(cfgv.check_any)(val)
+        with cfgv.validate_context(f'At key: {self.key}'):
+            val = dct[self.key]
+            cfgv.check_array(cfgv.check_any)(val)
 
-        val = [transform_stage(v) for v in val]
-        cfgv.check_array(cfgv.check_one_of(STAGES))(val)
+            val = [transform_stage(v) for v in val]
+            cfgv.check_array(cfgv.check_one_of(STAGES))(val)
 
     def apply_default(self, dct: dict[str, Any]) -> None:
         if self.key not in dct:
