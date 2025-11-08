@@ -309,6 +309,27 @@ def test_validate_optional_sensible_regex_at_top_level(caplog, regex, warning):
     assert caplog.record_tuples == [('pre_commit', logging.WARNING, warning)]
 
 
+def test_invalid_stages_error():
+    cfg = {'repos': [sample_local_config()]}
+    cfg['repos'][0]['hooks'][0]['stages'] = ['invalid']
+
+    with pytest.raises(cfgv.ValidationError) as excinfo:
+        cfgv.validate(cfg, CONFIG_SCHEMA)
+
+    assert str(excinfo.value) == (
+        '\n'
+        '==> At Config()\n'
+        '==> At key: repos\n'
+        "==> At Repository(repo='local')\n"
+        '==> At key: hooks\n'
+        "==> At Hook(id='do_not_commit')\n"
+        # this line was missing due to the custom validator
+        '==> At key: stages\n'
+        '==> At index 0\n'
+        "=====> Expected one of commit-msg, manual, post-checkout, post-commit, post-merge, post-rewrite, pre-commit, pre-merge-commit, pre-push, pre-rebase, prepare-commit-msg but got: 'invalid'"  # noqa: E501
+    )
+
+
 def test_warning_for_deprecated_stages(caplog):
     config_obj = sample_local_config()
     config_obj['hooks'][0]['stages'] = ['commit', 'push']
