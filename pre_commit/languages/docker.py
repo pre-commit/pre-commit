@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import contextlib
 import functools
 import hashlib
 import json
 import os
+import re
 from collections.abc import Sequence
 
 from pre_commit import lang_base
@@ -17,31 +19,33 @@ get_default_version = lang_base.basic_get_default_version
 health_check = lang_base.basic_health_check
 in_env = lang_base.no_env  # no special environment for docker
 
+_HOSTNAME_MOUNT_RE = re.compile(
+    rb"""
+    /containers
+    (?:/overlay-containers)?
+    /([a-z0-9]{64})
+    (?:/userdata)?
+    /hostname
+    """,
+    re.VERBOSE,
+)
 
-def _is_in_docker() -> bool:
-    try:
-        with open('/proc/1/cgroup', 'rb') as f:
-            return b'docker' in f.read()
-    except FileNotFoundError:
-        return False
 
+def _get_container_id() -> str | None:
+    with contextlib.suppress(FileNotFoundError):
+        with open('/proc/1/mountinfo', 'rb') as f:
+            for line in f:
+                m = _HOSTNAME_MOUNT_RE.search(line)
+                if m:
+                    return m[1].decode()
 
-def _get_container_id() -> str:
-    # It's assumed that we already check /proc/1/cgroup in _is_in_docker. The
-    # cpuset cgroup controller existed since cgroups were introduced so this
-    # way of getting the container ID is pretty reliable.
-    with open('/proc/1/cgroup', 'rb') as f:
-        for line in f.readlines():
-            if line.split(b':')[1] == b'cpuset':
-                return os.path.basename(line.split(b':')[2]).strip().decode()
-    raise RuntimeError('Failed to find the container ID in /proc/1/cgroup.')
+    return None
 
 
 def _get_docker_path(path: str) -> str:
-    if not _is_in_docker():
-        return path
-
     container_id = _get_container_id()
+    if container_id is None:
+        return path
 
     try:
         _, out, _ = cmd_output_b('docker', 'inspect', container_id)
