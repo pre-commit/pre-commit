@@ -17,7 +17,7 @@ from pre_commit.clientlib import CONFIG_SCHEMA
 from pre_commit.clientlib import load_manifest
 from pre_commit.hook import Hook
 from pre_commit.languages import python
-from pre_commit.languages import system
+from pre_commit.languages import unsupported
 from pre_commit.prefix import Prefix
 from pre_commit.repository import _hook_installed
 from pre_commit.repository import all_hooks
@@ -424,7 +424,7 @@ def test_manifest_hooks(tempdir_factory, store):
         exclude_types=[],
         files='',
         id='bash_hook',
-        language='script',
+        language='unsupported_script',
         language_version='default',
         log_file='',
         minimum_pre_commit_version='0',
@@ -457,7 +457,7 @@ def test_non_installable_hook_error_for_language_version(store, caplog):
         'hooks': [{
             'id': 'system-hook',
             'name': 'system-hook',
-            'language': 'system',
+            'language': 'unsupported',
             'entry': 'python3 -c "import sys; print(sys.version)"',
             'language_version': 'python3.10',
         }],
@@ -469,7 +469,7 @@ def test_non_installable_hook_error_for_language_version(store, caplog):
     msg, = caplog.messages
     assert msg == (
         'The hook `system-hook` specifies `language_version` but is using '
-        'language `system` which does not install an environment.  '
+        'language `unsupported` which does not install an environment.  '
         'Perhaps you meant to use a specific language?'
     )
 
@@ -480,7 +480,7 @@ def test_non_installable_hook_error_for_additional_dependencies(store, caplog):
         'hooks': [{
             'id': 'system-hook',
             'name': 'system-hook',
-            'language': 'system',
+            'language': 'unsupported',
             'entry': 'python3 -c "import sys; print(sys.version)"',
             'additional_dependencies': ['astpretty'],
         }],
@@ -492,14 +492,14 @@ def test_non_installable_hook_error_for_additional_dependencies(store, caplog):
     msg, = caplog.messages
     assert msg == (
         'The hook `system-hook` specifies `additional_dependencies` but is '
-        'using language `system` which does not install an environment.  '
+        'using language `unsupported` which does not install an environment.  '
         'Perhaps you meant to use a specific language?'
     )
 
 
 def test_args_with_spaces_and_quotes(tmp_path):
     ret = run_language(
-        tmp_path, system,
+        tmp_path, unsupported,
         f"{shlex.quote(sys.executable)} -c 'import sys; print(sys.argv[1:])'",
         ('i have spaces', 'and"\'quotes', '$and !this'),
     )

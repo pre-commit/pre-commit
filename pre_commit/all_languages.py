@@ -19,9 +19,9 @@ from pre_commit.languages import python
 from pre_commit.languages import r
 from pre_commit.languages import ruby
 from pre_commit.languages import rust
-from pre_commit.languages import script
 from pre_commit.languages import swift
-from pre_commit.languages import system
+from pre_commit.languages import unsupported
+from pre_commit.languages import unsupported_script
 
 
 languages: dict[str, Language] = {
@@ -43,8 +43,8 @@ languages: dict[str, Language] = {
     'r': r,
     'ruby': ruby,
     'rust': rust,
-    'script': script,
     'swift': swift,
-    'system': system,
+    'unsupported': unsupported,
+    'unsupported_script': unsupported_script,
 }
 language_names = sorted(languages)
