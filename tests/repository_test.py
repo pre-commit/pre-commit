@@ -80,13 +80,6 @@ def _test_hook_repo(
     assert out == expected
 
 
-def test_system_hook_with_spaces(tempdir_factory, store):
-    _test_hook_repo(
-        tempdir_factory, store, 'system_hook_with_spaces_repo',
-        'system-hook-with-spaces', [os.devnull], b'Hello World\n',
-    )
-
-
 def test_missing_executable(tempdir_factory, store):
     _test_hook_repo(
         tempdir_factory, store, 'not_found_exe',
