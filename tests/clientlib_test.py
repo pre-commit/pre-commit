@@ -380,6 +380,26 @@ def test_no_warning_for_non_deprecated_default_stages(caplog):
     assert caplog.record_tuples == []
 
 
+def test_unsupported_language_migration():
+    cfg = {'repos': [sample_local_config(), sample_local_config()]}
+    cfg['repos'][0]['hooks'][0]['language'] = 'system'
+    cfg['repos'][1]['hooks'][0]['language'] = 'script'
+
+    cfgv.validate(cfg, CONFIG_SCHEMA)
+    ret = cfgv.apply_defaults(cfg, CONFIG_SCHEMA)
+
+    assert ret['repos'][0]['hooks'][0]['language'] == 'unsupported'
+    assert ret['repos'][1]['hooks'][0]['language'] == 'unsupported_script'
+
+
+def test_unsupported_language_migration_language_required():
+    cfg = {'repos': [sample_local_config()]}
+    del cfg['repos'][0]['hooks'][0]['language']
+
+    with pytest.raises(cfgv.ValidationError):
+        cfgv.validate(cfg, CONFIG_SCHEMA)
+
+
 @pytest.mark.parametrize(
     'manifest_obj',
     (

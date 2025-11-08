@@ -6,6 +6,7 @@ import os.path
 import re
 import shlex
 import sys
+from collections.abc import Callable
 from collections.abc import Sequence
 from typing import Any
 from typing import NamedTuple
@@ -190,6 +191,42 @@ class DeprecatedDefaultStagesWarning(NamedTuple):
         raise NotImplementedError
 
 
+def _translate_language(name: str) -> str:
+    return {
+        'system': 'unsupported',
+        'script': 'unsupported_script',
+    }.get(name, name)
+
+
+class LanguageMigration(NamedTuple):  # remove
+    key: str
+    check_fn: Callable[[object], None]
+
+    def check(self, dct: dict[str, Any]) -> None:
+        if self.key not in dct:
+            return
+
+        with cfgv.validate_context(f'At key: {self.key}'):
+            self.check_fn(_translate_language(dct[self.key]))
+
+    def apply_default(self, dct: dict[str, Any]) -> None:
+        if self.key not in dct:
+            return
+
+        dct[self.key] = _translate_language(dct[self.key])
+
+    def remove_default(self, dct: dict[str, Any]) -> None:
+        raise NotImplementedError
+
+
+class LanguageMigrationRequired(LanguageMigration):  # replace with Required
+    def check(self, dct: dict[str, Any]) -> None:
+        if self.key not in dct:
+            raise cfgv.ValidationError(f'Missing required key: {self.key}')
+
+        super().check(dct)
+
+
 MANIFEST_HOOK_DICT = cfgv.Map(
     'Hook', 'id',
 
@@ -203,7 +240,7 @@ MANIFEST_HOOK_DICT = cfgv.Map(
     cfgv.Required('id', cfgv.check_string),
     cfgv.Required('name', cfgv.check_string),
     cfgv.Required('entry', cfgv.check_string),
-    cfgv.Required('language', cfgv.check_one_of(language_names)),
+    LanguageMigrationRequired('language', cfgv.check_one_of(language_names)),
     cfgv.Optional('alias', cfgv.check_string, ''),
 
     cfgv.Optional('files', check_string_regex, ''),
@@ -368,8 +405,10 @@ META_HOOK_DICT = cfgv.Map(
     'Hook', 'id',
     cfgv.Required('id', cfgv.check_string),
     cfgv.Required('id', cfgv.check_one_of(tuple(k for k, _ in _meta))),
-    # language must be system
-    cfgv.Optional('language', cfgv.check_one_of({'system'}), 'system'),
+    # language must be `unsupported`
+    cfgv.Optional(
+        'language', cfgv.check_one_of({'unsupported'}), 'unsupported',
+    ),
     # entry cannot be overridden
     NotAllowed('entry', cfgv.check_any),
     *(
@@ -402,8 +441,10 @@ CONFIG_HOOK_DICT = cfgv.Map(
         for item in MANIFEST_HOOK_DICT.items
         if item.key != 'id'
         if item.key != 'stages'
+        if item.key != 'language'  # remove
     ),
     StagesMigrationNoDefault('stages', []),
+    LanguageMigration('language', cfgv.check_one_of(language_names)),  # remove
     *_COMMON_HOOK_WARNINGS,
 )
 LOCAL_HOOK_DICT = cfgv.Map(
