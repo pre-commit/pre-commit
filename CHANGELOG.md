@@ -1,3 +1,27 @@
+4.4.0 - 2025-11-08
+==================
+
+### Features
+- Add `--fail-fast` option to `pre-commit run`.
+    - #3528 PR by @JulianMaurin.
+- Upgrade `ruby-build` / `rbenv`.
+    - #3566 PR by @asottile.
+    - #3565 issue by @MRigal.
+- Add `language: unsupported` / `language: unsupported_script` as aliases
+  for `language: system` / `language: script` (which will eventually be
+  deprecated).
+    - #3577 PR by @asottile.
+- Add support docker-in-docker detection for cgroups v2.
+    - #3535 PR by @br-rhrbacek.
+    - #3360 issue by @JasonAlt.
+
+### Fixes
+- Handle when docker gives `SecurityOptions: null`.
+    - #3537 PR by @asottile.
+    - #3514 issue by @jenstroeger.
+- Fix error context for invalid `stages` in `.pre-commit-config.yaml`.
+    - #3576 PR by @asottile.
+
 4.3.0 - 2025-08-09
 ==================
 
@@ -71,7 +95,7 @@
     - #3315 PR by @asottile.
     - #2732 issue by @asottile.
 
-### Migrating
+### Updating
 - `language: python_venv` has been removed -- use `language: python` instead.
     - #3320 PR by @asottile.
     - #2734 issue by @asottile.
@@ -159,7 +183,7 @@
 - Use `time.monotonic()` for more accurate hook timing.
     - #3024 PR by @adamchainz.
 
-### Migrating
+### Updating
 - Require npm 6.x+ for `language: node` hooks.
     - #2996 PR by @RoelAdriaans.
     - #1983 issue by @henryiii.
