@@ -23,9 +23,18 @@ def run_hook(
         require_serial: bool,
         color: bool,
 ) -> tuple[int, bytes]:  # pragma: win32 no cover
-    cmd = docker_cmd(color=color) + lang_base.hook_cmd(entry, args)
+    cmd = lang_base.hook_cmd(entry, args)
+
+    # To prevent duplicate simultaneous image pull attempts in `run_xargs`, we
+    # try to precache the Docker image by pulling it here first
+    try:
+        image_name = cmd[2 if cmd[0] == '--entrypoint' else 0]
+        lang_base.setup_cmd(prefix, ('docker', 'pull', image_name))
+    except Exception:
+        pass
+
     return lang_base.run_xargs(
-        cmd,
+        docker_cmd(color=color) + cmd,
         file_args,
         require_serial=require_serial,
         color=color,

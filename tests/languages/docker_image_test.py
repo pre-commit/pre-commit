@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from unittest.mock import patch
+
 import pytest
 
 from pre_commit.languages import docker_image
@@ -57,3 +59,35 @@ def test_docker_image_no_color_no_tty(tmp_path):
         color=False,
     )
     assert ret == (0, b'root:x:0:\n')
+
+
+@xfailif_windows  # pragma: win32 no cover
+@patch('pre_commit.lang_base.setup_cmd')
+def test_docker_image_pre_pull_regular_entry(mock_setup, tmp_path):
+    ret = run_language(
+        tmp_path,
+        docker_image,
+        'ubuntu:22.04 echo',
+        args=('hello hello world',),
+    )
+    mock_setup.assert_called_once_with(
+        mock_setup.call_args[0][0],
+        ('docker', 'pull', 'ubuntu:22.04'),
+    )
+    assert ret == (0, b'hello hello world\n')
+
+
+@xfailif_windows  # pragma: win32 no cover
+@patch('pre_commit.lang_base.setup_cmd')
+def test_docker_image_pre_pull_entrypoint_entry(mock_setup, tmp_path):
+    ret = run_language(
+        tmp_path,
+        docker_image,
+        '--entrypoint echo ubuntu:22.04',
+        args=('hello hello world',),
+    )
+    mock_setup.assert_called_once_with(
+        mock_setup.call_args[0][0],
+        ('docker', 'pull', 'ubuntu:22.04'),
+    )
+    assert ret == (0, b'hello hello world\n')
