@@ -19,11 +19,13 @@ from testing.util import git_commit
 
 
 def _repo_count(store):
-    return len(store.select_all_repos())
+    with store.connect() as db:
+        return db.execute('SELECT COUNT(1) FROM repos').fetchone()[0]
 
 
 def _config_count(store):
-    return len(store.select_all_configs())
+    with store.connect() as db:
+        return db.execute('SELECT COUNT(1) FROM configs').fetchone()[0]
 
 
 def _remove_config_assert_cleared(store, cap_out):
@@ -153,7 +155,8 @@ def test_invalid_manifest_gcd(tempdir_factory, store, in_git_dir, cap_out):
     install_hooks(C.CONFIG_FILE, store)
 
     # we'll "break" the manifest to simulate an old version clone
-    (_, _, path), = store.select_all_repos()
+    with store.connect() as db:
+        path, = db.execute('SELECT path FROM repos').fetchone()
     os.remove(os.path.join(path, C.MANIFEST_FILE))
 
     assert _config_count(store) == 1

@@ -22,6 +22,17 @@ from testing.util import git_commit
 from testing.util import xfailif_windows
 
 
+def _select_all_configs(store: Store) -> list[str]:
+    with store.connect() as db:
+        rows = db.execute('SELECT * FROM configs').fetchall()
+        return [path for path, in rows]
+
+
+def _select_all_repos(store: Store) -> list[tuple[str, str, str]]:
+    with store.connect() as db:
+        return db.execute('SELECT repo, ref, path FROM repos').fetchall()
+
+
 def test_our_session_fixture_works():
     """There's a session fixture which makes `Store` invariantly raise to
     prevent writing to the home directory.
@@ -91,7 +102,7 @@ def test_clone(store, tempdir_factory, caplog):
     assert git.head_rev(ret) == rev
 
     # Assert there's an entry in the sqlite db for this
-    assert store.select_all_repos() == [(path, rev, ret)]
+    assert _select_all_repos(store) == [(path, rev, ret)]
 
 
 def test_warning_for_deprecated_stages_on_init(store, tempdir_factory, caplog):
@@ -217,7 +228,7 @@ def test_clone_shallow_failure_fallback_to_complete(
     assert git.head_rev(ret) == rev
 
     # Assert there's an entry in the sqlite db for this
-    assert store.select_all_repos() == [(path, rev, ret)]
+    assert _select_all_repos(store) == [(path, rev, ret)]
 
 
 def test_clone_tag_not_on_mainline(store, tempdir_factory):
@@ -265,7 +276,7 @@ def test_mark_config_as_used(store, tmpdir):
     with tmpdir.as_cwd():
         f = tmpdir.join('f').ensure()
         store.mark_config_used('f')
-        assert store.select_all_configs() == [f.strpath]
+        assert _select_all_configs(store) == [f.strpath]
 
 
 def test_mark_config_as_used_idempotent(store, tmpdir):
@@ -275,7 +286,7 @@ def test_mark_config_as_used_idempotent(store, tmpdir):
 
 def test_mark_config_as_used_does_not_exist(store):
     store.mark_config_used('f')
-    assert store.select_all_configs() == []
+    assert _select_all_configs(store) == []
 
 
 def _simulate_pre_1_14_0(store):
@@ -283,9 +294,9 @@ def _simulate_pre_1_14_0(store):
         db.executescript('DROP TABLE configs')
 
 
-def test_select_all_configs_roll_forward(store):
+def test_gc_roll_forward(store):
     _simulate_pre_1_14_0(store)
-    assert store.select_all_configs() == []
+    assert store.gc() == 0
 
 
 def test_mark_config_as_used_roll_forward(store, tmpdir):
@@ -314,7 +325,7 @@ def test_mark_config_as_used_readonly(tmpdir):
     assert store.readonly
     # should be skipped due to readonly
     store.mark_config_used(str(cfg))
-    assert store.select_all_configs() == []
+    assert _select_all_configs(store) == []
 
 
 def test_clone_with_recursive_submodules(store, tmp_path):
