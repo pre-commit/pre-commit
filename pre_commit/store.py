@@ -8,6 +8,7 @@ import tempfile
 from collections.abc import Callable
 from collections.abc import Generator
 from collections.abc import Sequence
+from typing import Any
 
 import pre_commit.constants as C
 from pre_commit import clientlib
@@ -96,7 +97,7 @@ class Store:
                     '    PRIMARY KEY (repo, ref)'
                     ');',
                 )
-                self._create_config_table(db)
+                self._create_configs_table(db)
 
             # Atomic file move
             os.replace(tmpfile, self.db_path)
@@ -215,7 +216,7 @@ class Store:
             'local', C.LOCAL_REPO_VERSION, deps, _make_local_repo,
         )
 
-    def _create_config_table(self, db: sqlite3.Connection) -> None:
+    def _create_configs_table(self, db: sqlite3.Connection) -> None:
         db.executescript(
             'CREATE TABLE IF NOT EXISTS configs ('
             '   path TEXT NOT NULL,'
@@ -232,28 +233,83 @@ class Store:
             return
         with self.connect() as db:
             # TODO: eventually remove this and only create in _create
-            self._create_config_table(db)
+            self._create_configs_table(db)
             db.execute('INSERT OR IGNORE INTO configs VALUES (?)', (path,))
 
-    def select_all_configs(self) -> list[str]:
-        with self.connect() as db:
-            self._create_config_table(db)
-            rows = db.execute('SELECT path FROM configs').fetchall()
-            return [path for path, in rows]
+    def _mark_used_repos(
+            self,
+            all_repos: dict[tuple[str, str], str],
+            unused_repos: set[tuple[str, str]],
+            repo: dict[str, Any],
+    ) -> None:
+        if repo['repo'] == clientlib.META:
+            return
+        elif repo['repo'] == clientlib.LOCAL:
+            for hook in repo['hooks']:
+                deps = hook.get('additional_dependencies')
+                unused_repos.discard((
+                    self.db_repo_name(repo['repo'], deps),
+                    C.LOCAL_REPO_VERSION,
+                ))
+        else:
+            key = (repo['repo'], repo['rev'])
+            path = all_repos.get(key)
+            # can't inspect manifest if it isn't cloned
+            if path is None:
+                return
 
-    def delete_configs(self, configs: list[str]) -> None:
-        with self.connect() as db:
-            rows = [(path,) for path in configs]
-            db.executemany('DELETE FROM configs WHERE path = ?', rows)
+            try:
+                manifest = clientlib.load_manifest(
+                    os.path.join(path, C.MANIFEST_FILE),
+                )
+            except clientlib.InvalidManifestError:
+                return
+            else:
+                unused_repos.discard(key)
+                by_id = {hook['id']: hook for hook in manifest}
 
-    def select_all_repos(self) -> list[tuple[str, str, str]]:
-        with self.connect() as db:
-            return db.execute('SELECT repo, ref, path from repos').fetchall()
+            for hook in repo['hooks']:
+                if hook['id'] not in by_id:
+                    continue
 
-    def delete_repo(self, db_repo_name: str, ref: str, path: str) -> None:
-        with self.connect() as db:
-            db.execute(
+                deps = hook.get(
+                    'additional_dependencies',
+                    by_id[hook['id']]['additional_dependencies'],
+                )
+                unused_repos.discard((
+                    self.db_repo_name(repo['repo'], deps), repo['rev'],
+                ))
+
+    def gc(self) -> int:
+        with self.exclusive_lock(), self.connect() as db:
+            self._create_configs_table(db)
+
+            repos = db.execute('SELECT repo, ref, path FROM repos').fetchall()
+            all_repos = {(repo, ref): path for repo, ref, path in repos}
+            unused_repos = set(all_repos)
+
+            configs_rows = db.execute('SELECT path FROM configs').fetchall()
+            configs = [path for path, in configs_rows]
+
+            dead_configs = []
+            for config_path in configs:
+                try:
+                    config = clientlib.load_config(config_path)
+                except clientlib.InvalidConfigError:
+                    dead_configs.append(config_path)
+                    continue
+                else:
+                    for repo in config['repos']:
+                        self._mark_used_repos(all_repos, unused_repos, repo)
+
+            paths = [(path,) for path in dead_configs]
+            db.executemany('DELETE FROM configs WHERE path = ?', paths)
+
+            db.executemany(
                 'DELETE FROM repos WHERE repo = ? and ref = ?',
-                (db_repo_name, ref),
+                sorted(unused_repos),
             )
-        rmtree(path)
+            for k in unused_repos:
+                rmtree(all_repos[k])
+
+            return len(unused_repos)
