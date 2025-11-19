@@ -43,7 +43,7 @@ def _mark_used_repos(
             return
         else:
             unused_repos.discard(key)
-            by_id = {hook['id']: hook for hook in manifest}
+            by_id = manifest['hooks']
 
         for hook in repo['hooks']:
             if hook['id'] not in by_id:

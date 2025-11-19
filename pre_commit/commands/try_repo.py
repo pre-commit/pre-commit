@@ -58,8 +58,8 @@ def try_repo(args: argparse.Namespace) -> int:
         else:
             repo_path = store.clone(repo, ref)
             manifest = load_manifest(os.path.join(repo_path, C.MANIFEST_FILE))
-            manifest = sorted(manifest, key=lambda hook: hook['id'])
-            hooks = [{'id': hook['id']} for hook in manifest]
+            hook_ids = sorted(hook['id'] for hook in manifest['hooks'])
+            hooks = [{'id': hook_id} for hook_id in hook_ids]
 
         config = {'repos': [{'repo': repo, 'rev': ref, 'hooks': hooks}]}
         config_s = yaml_dump(config)

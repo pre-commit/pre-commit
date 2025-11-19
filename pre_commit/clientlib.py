@@ -72,11 +72,20 @@ def transform_stage(stage: str) -> str:
     return _STAGES.get(stage, stage)
 
 
-MINIMAL_MANIFEST_SCHEMA = cfgv.Array(
-    cfgv.Map(
-        'Hook', 'id',
-        cfgv.Required('id', cfgv.check_string),
-        cfgv.Optional('stages', cfgv.check_array(cfgv.check_string), []),
+_MINIMAL_MANIFEST_SCHEMA = cfgv.Map(
+    'Manifest', None,
+    cfgv.RequiredRecurse(
+        'hooks',
+        cfgv.KeyValueMap(
+            'Hooks',
+            cfgv.check_string,
+            cfgv.Map(
+                'Hook', None,
+                cfgv.Optional(
+                    'stages', cfgv.check_array(cfgv.check_string), [],
+                ),
+            ),
+        ),
     ),
 )
 
@@ -85,16 +94,16 @@ def warn_for_stages_on_repo_init(repo: str, directory: str) -> None:
     try:
         manifest = cfgv.load_from_filename(
             os.path.join(directory, C.MANIFEST_FILE),
-            schema=MINIMAL_MANIFEST_SCHEMA,
-            load_strategy=yaml_load,
+            schema=_MINIMAL_MANIFEST_SCHEMA,
+            load_strategy=_load_manifest_backward_compat,
             exc_tp=InvalidManifestError,
         )
     except InvalidManifestError:
         return  # they'll get a better error message when it actually loads!
 
     legacy_stages = {}  # sorted set
-    for hook in manifest:
-        for stage in hook.get('stages', ()):
+    for hook in manifest['hooks'].values():
+        for stage in hook['stages']:
             if stage in _STAGES:
                 legacy_stages[stage] = True
 
@@ -228,7 +237,7 @@ class LanguageMigrationRequired(LanguageMigration):  # replace with Required
 
 
 MANIFEST_HOOK_DICT = cfgv.Map(
-    'Hook', 'id',
+    'Hook', None,
 
     # check first in case it uses some newer, incompatible feature
     cfgv.Optional(
@@ -237,7 +246,6 @@ MANIFEST_HOOK_DICT = cfgv.Map(
         '0',
     ),
 
-    cfgv.Required('id', cfgv.check_string),
     cfgv.Required('name', cfgv.check_string),
     cfgv.Required('entry', cfgv.check_string),
     LanguageMigrationRequired('language', cfgv.check_one_of(language_names)),
@@ -263,18 +271,38 @@ MANIFEST_HOOK_DICT = cfgv.Map(
     StagesMigration('stages', []),
     cfgv.Optional('verbose', cfgv.check_bool, False),
 )
-MANIFEST_SCHEMA = cfgv.Array(MANIFEST_HOOK_DICT)
+
+
+MANIFEST_SCHEMA = cfgv.Map(
+    'Manifest', None,
+
+    # check first in case it uses some newer, incompatible feature
+    cfgv.Optional(
+        'minimum_pre_commit_version',
+        cfgv.check_and(cfgv.check_string, check_min_version),
+        '0',
+    ),
+    cfgv.RequiredRecurse(
+        'hooks',
+        cfgv.KeyValueMap('Hooks', cfgv.check_string, MANIFEST_HOOK_DICT),
+    ),
+)
 
 
 class InvalidManifestError(FatalError):
     pass
 
 
-def _load_manifest_forward_compat(contents: str) -> object:
+_MINIMAL_LEGACY_MANIFEST_SCHEMA = cfgv.Array(
+    cfgv.Map('Hook', 'id', cfgv.Required('id', cfgv.check_string)),
+)
+
+
+def _load_manifest_backward_compat(contents: str) -> object:
     obj = yaml_load(contents)
-    if isinstance(obj, dict):
-        check_min_version('5')
-        raise AssertionError('unreachable')
+    if isinstance(obj, list):
+        cfgv.validate(obj, _MINIMAL_LEGACY_MANIFEST_SCHEMA)
+        return {'hooks': {hook.pop('id'): hook for hook in obj}}
     else:
         return obj
 
@@ -282,7 +310,7 @@ def _load_manifest_forward_compat(contents: str) -> object:
 load_manifest = functools.partial(
     cfgv.load_from_filename,
     schema=MANIFEST_SCHEMA,
-    load_strategy=_load_manifest_forward_compat,
+    load_strategy=_load_manifest_backward_compat,
     exc_tp=InvalidManifestError,
 )
 
@@ -448,7 +476,6 @@ CONFIG_HOOK_DICT = cfgv.Map(
     *(
         cfgv.OptionalNoDefault(item.key, item.check_fn)
         for item in MANIFEST_HOOK_DICT.items
-        if item.key != 'id'
         if item.key != 'stages'
         if item.key != 'language'  # remove
     ),
@@ -459,6 +486,7 @@ CONFIG_HOOK_DICT = cfgv.Map(
 LOCAL_HOOK_DICT = cfgv.Map(
     'Hook', 'id',
 
+    cfgv.Required('id', cfgv.check_string),
     *MANIFEST_HOOK_DICT.items,
     *_COMMON_HOOK_WARNINGS,
 )
