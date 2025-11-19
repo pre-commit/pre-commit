@@ -165,3 +165,11 @@ def test_invalid_manifest_gcd(tempdir_factory, store, in_git_dir, cap_out):
     assert _config_count(store) == 1
     assert _repo_count(store) == 0
     assert cap_out.get().splitlines()[-1] == '1 repo(s) removed.'
+
+
+def test_gc_pre_1_14_roll_forward(store, cap_out):
+    with store.connect() as db:  # simulate pre-1.14.0
+        db.executescript('DROP TABLE configs')
+
+    assert not gc(store)
+    assert cap_out.get() == '0 repo(s) removed.\n'

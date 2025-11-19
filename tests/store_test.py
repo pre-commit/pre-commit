@@ -289,18 +289,9 @@ def test_mark_config_as_used_does_not_exist(store):
     assert _select_all_configs(store) == []
 
 
-def _simulate_pre_1_14_0(store):
-    with store.connect() as db:
-        db.executescript('DROP TABLE configs')
-
-
-def test_gc_roll_forward(store):
-    _simulate_pre_1_14_0(store)
-    assert store.gc() == 0
-
-
 def test_mark_config_as_used_roll_forward(store, tmpdir):
-    _simulate_pre_1_14_0(store)
+    with store.connect() as db:  # simulate pre-1.14.0
+        db.executescript('DROP TABLE configs')
     test_mark_config_as_used(store, tmpdir)
 
 
