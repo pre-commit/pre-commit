@@ -101,7 +101,7 @@ def make_config_from_repo(repo_path, rev=None, hooks=None, check=True):
     config = {
         'repo': f'file://{repo_path}',
         'rev': rev or git.head_rev(repo_path),
-        'hooks': hooks or [{'id': hook['id']} for hook in manifest],
+        'hooks': hooks or [{'id': hook_id} for hook_id in manifest['hooks']],
     }
 
     if check:

@@ -77,7 +77,7 @@ class RevInfo(NamedTuple):
             except InvalidManifestError as e:
                 raise RepositoryCannotBeUpdatedError(f'[{self.repo}] {e}')
             else:
-                hook_ids = frozenset(hook['id'] for hook in manifest)
+                hook_ids = frozenset(hook['id'] for hook in manifest['hooks'])
 
         return self._replace(rev=rev, frozen=frozen, hook_ids=hook_ids)
 

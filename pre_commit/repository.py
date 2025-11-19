@@ -175,7 +175,7 @@ def _cloned_repository_hooks(
 ) -> tuple[Hook, ...]:
     repo, rev = repo_config['repo'], repo_config['rev']
     manifest_path = os.path.join(store.clone(repo, rev), C.MANIFEST_FILE)
-    by_id = {hook['id']: hook for hook in load_manifest(manifest_path)}
+    by_id = load_manifest(manifest_path)['hooks']
 
     for hook in repo_config['hooks']:
         if hook['id'] not in by_id:

@@ -144,6 +144,48 @@ def test_warning_for_deprecated_stages_on_init(store, tempdir_factory, caplog):
     assert caplog.record_tuples == []
 
 
+def test_warning_for_deprecated_stages_v5_manifest(
+        store, tempdir_factory, caplog,
+):
+    manifest = '''\
+hooks:
+    hook1:
+        name: hook1
+        language: system
+        entry: echo hook1
+        stages: [commit, push]
+    hook2:
+        name: hook2
+        language: system
+        entry: echo hook2
+        stages: [push, merge-commit]
+'''
+
+    path = git_dir(tempdir_factory)
+    with open(os.path.join(path, C.MANIFEST_FILE), 'w') as f:
+        f.write(manifest)
+    cmd_output('git', 'add', '.', cwd=path)
+    git_commit(cwd=path)
+    rev = git.head_rev(path)
+
+    store.clone(path, rev)
+    assert caplog.record_tuples[1] == (
+        'pre_commit',
+        logging.WARNING,
+        f'repo `{path}` uses deprecated stage names '
+        f'(commit, push, merge-commit) which will be removed in a future '
+        f'version.  '
+        f'Hint: often `pre-commit autoupdate --repo {shlex.quote(path)}` '
+        f'will fix this.  '
+        f'if it does not -- consider reporting an issue to that repo.',
+    )
+
+    # should not re-warn
+    caplog.clear()
+    store.clone(path, rev)
+    assert caplog.record_tuples == []
+
+
 def test_no_warning_for_non_deprecated_stages_on_init(
         store, tempdir_factory, caplog,
 ):

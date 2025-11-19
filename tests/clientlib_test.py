@@ -12,7 +12,6 @@ from pre_commit.clientlib import CONFIG_HOOK_DICT
 from pre_commit.clientlib import CONFIG_REPO_DICT
 from pre_commit.clientlib import CONFIG_SCHEMA
 from pre_commit.clientlib import DEFAULT_LANGUAGE_VERSION
-from pre_commit.clientlib import InvalidManifestError
 from pre_commit.clientlib import load_manifest
 from pre_commit.clientlib import MANIFEST_HOOK_DICT
 from pre_commit.clientlib import MANIFEST_SCHEMA
@@ -405,30 +404,40 @@ def test_unsupported_language_migration_language_required():
 @pytest.mark.parametrize(
     'manifest_obj',
     (
-        [{
-            'id': 'a',
-            'name': 'b',
-            'entry': 'c',
-            'language': 'python',
-            'files': r'\.py$',
-        }],
-        [{
-            'id': 'a',
-            'name': 'b',
-            'entry': 'c',
-            'language': 'python',
-            'language_version': 'python3.4',
-            'files': r'\.py$',
-        }],
+        {
+            'hooks': {
+                'a': {
+                    'name': 'b',
+                    'entry': 'c',
+                    'language': 'python',
+                    'files': r'\.py$',
+                },
+            },
+        },
+        {
+            'hooks': {
+                'a': {
+                    'name': 'b',
+                    'entry': 'c',
+                    'language': 'python',
+                    'language_version': 'python3.4',
+                    'files': r'\.py$',
+                },
+            },
+        },
         # A regression in 0.13.5: always_run and files are permissible
-        [{
-            'id': 'a',
-            'name': 'b',
-            'entry': 'c',
-            'language': 'python',
-            'files': '',
-            'always_run': True,
-        }],
+        {
+            'hooks': {
+                'a': {
+                    'id': 'a',
+                    'name': 'b',
+                    'entry': 'c',
+                    'language': 'python',
+                    'files': '',
+                    'always_run': True,
+                },
+            },
+        },
     ),
 )
 def test_valid_manifests(manifest_obj):
@@ -592,16 +601,31 @@ def test_config_hook_stages_defaulting():
     }
 
 
-def test_manifest_v5_forward_compat(tmp_path):
+def test_manifest_backward_compat(tmp_path):
+    src = '''\
+-   id: example
+    name: example
+    language: unsupported
+    entry: echo
+'''
     manifest = tmp_path.joinpath('.pre-commit-hooks.yaml')
-    manifest.write_text('hooks: {}')
+    manifest.write_text(src)
 
-    with pytest.raises(InvalidManifestError) as excinfo:
-        load_manifest(manifest)
-    assert str(excinfo.value) == (
-        f'\n'
-        f'==> File {manifest}\n'
-        f'=====> \n'
-        f'=====> pre-commit version 5 is required but version {C.VERSION} '
-        f'is installed.  Perhaps run `pip install --upgrade pre-commit`.'
-    )
+    ret = load_manifest(manifest)
+
+    # just to make the assertion easier
+    assert 'id' not in ret['hooks']['example']
+    for k in tuple(ret['hooks']['example']):
+        if k not in {'name', 'language', 'entry'}:
+            ret['hooks']['example'].pop(k)
+
+    assert ret == {
+        'minimum_pre_commit_version': '0',
+        'hooks': {
+            'example': {
+                'name': 'example',
+                'language': 'unsupported',
+                'entry': 'echo',
+            },
+        },
+    }
