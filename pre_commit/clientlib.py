@@ -270,10 +270,19 @@ class InvalidManifestError(FatalError):
     pass
 
 
+def _load_manifest_forward_compat(contents: str) -> object:
+    obj = yaml_load(contents)
+    if isinstance(obj, dict):
+        check_min_version('5')
+        raise AssertionError('unreachable')
+    else:
+        return obj
+
+
 load_manifest = functools.partial(
     cfgv.load_from_filename,
     schema=MANIFEST_SCHEMA,
-    load_strategy=yaml_load,
+    load_strategy=_load_manifest_forward_compat,
     exc_tp=InvalidManifestError,
 )
 

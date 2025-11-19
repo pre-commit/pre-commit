@@ -12,6 +12,8 @@ from pre_commit.clientlib import CONFIG_HOOK_DICT
 from pre_commit.clientlib import CONFIG_REPO_DICT
 from pre_commit.clientlib import CONFIG_SCHEMA
 from pre_commit.clientlib import DEFAULT_LANGUAGE_VERSION
+from pre_commit.clientlib import InvalidManifestError
+from pre_commit.clientlib import load_manifest
 from pre_commit.clientlib import MANIFEST_HOOK_DICT
 from pre_commit.clientlib import MANIFEST_SCHEMA
 from pre_commit.clientlib import META_HOOK_DICT
@@ -588,3 +590,18 @@ def test_config_hook_stages_defaulting():
         'id': 'fake-hook',
         'stages': ['commit-msg', 'pre-push', 'pre-commit', 'pre-merge-commit'],
     }
+
+
+def test_manifest_v5_forward_compat(tmp_path):
+    manifest = tmp_path.joinpath('.pre-commit-hooks.yaml')
+    manifest.write_text('hooks: {}')
+
+    with pytest.raises(InvalidManifestError) as excinfo:
+        load_manifest(manifest)
+    assert str(excinfo.value) == (
+        f'\n'
+        f'==> File {manifest}\n'
+        f'=====> \n'
+        f'=====> pre-commit version 5 is required but version {C.VERSION} '
+        f'is installed.  Perhaps run `pip install --upgrade pre-commit`.'
+    )
