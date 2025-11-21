@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import contextlib
 import os.path
 from unittest import mock
 
@@ -97,11 +98,9 @@ CMDS = tuple(fn.replace('_', '-') for fn in FNS)
 
 @pytest.fixture
 def mock_commands():
-    mcks = {fn: mock.patch.object(main, fn).start() for fn in FNS}
-    ret = auto_namedtuple(**mcks)
-    yield ret
-    for mck in ret:
-        mck.stop()
+    with contextlib.ExitStack() as ctx:
+        mcks = {f: ctx.enter_context(mock.patch.object(main, f)) for f in FNS}
+        yield auto_namedtuple(**mcks)
 
 
 @pytest.fixture
