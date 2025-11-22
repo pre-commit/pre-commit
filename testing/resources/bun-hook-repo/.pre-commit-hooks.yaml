@@ -1,0 +1,5 @@
+-   id: test-bun-hook
+    name: Test Bun Hook
+    entry: test-bun-hook
+    language: bun
+    files: \.txt$

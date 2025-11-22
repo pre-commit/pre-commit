@@ -41,6 +41,9 @@ jobs:
       with:
         python-version: '3.10'
 
+    - uses: oven-sh/setup-bun@v2
+      if: matrix.language == 'bun'
+
     - run: echo "$CONDA\Scripts" >> "$GITHUB_PATH"
       shell: bash
       if: matrix.os == 'windows-latest' && matrix.language == 'conda'
