@@ -9,6 +9,7 @@ import pytest
 
 import pre_commit.constants as C
 from pre_commit import main
+from pre_commit.commands import hazmat
 from pre_commit.errors import FatalError
 from pre_commit.util import cmd_output
 from testing.auto_namedtuple import auto_namedtuple
@@ -155,6 +156,17 @@ def test_all_cmds(command, mock_commands, mock_store_dir):
     main.main((command,))
     assert getattr(mock_commands, command.replace('-', '_')).call_count == 1
     assert_only_one_mock_called(mock_commands)
+
+
+def test_hazmat(mock_store_dir):
+    with mock.patch.object(hazmat, 'impl') as mck:
+        main.main(('hazmat', 'cd', 'subdir', '--', 'cmd', '--', 'f1', 'f2'))
+    assert mck.call_count == 1
+    (arg,), dct = mck.call_args
+    assert dct == {}
+    assert arg.tool == 'cd'
+    assert arg.subdir == 'subdir'
+    assert arg.cmd == ['cmd', '--', 'f1', 'f2']
 
 
 def test_try_repo(mock_store_dir):

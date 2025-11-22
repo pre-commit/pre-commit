@@ -164,3 +164,15 @@ def test_basic_run_hook(tmp_path):
     assert ret == 0
     out = out.replace(b'\r\n', b'\n')
     assert out == b'hi hello file file file\n'
+
+
+def test_hook_cmd():
+    assert lang_base.hook_cmd('echo hi', ()) == ('echo', 'hi')
+
+
+def test_hook_cmd_hazmat():
+    ret = lang_base.hook_cmd('pre-commit hazmat cd a echo -- b', ())
+    assert ret == (
+        sys.executable, '-m', 'pre_commit.commands.hazmat',
+        'cd', 'a', 'echo', '--', 'b',
+    )

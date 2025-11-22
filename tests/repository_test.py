@@ -506,3 +506,14 @@ def test_args_with_spaces_and_quotes(tmp_path):
 
     expected = b"['i have spaces', 'and\"\\'quotes', '$and !this']\n"
     assert ret == (0, expected)
+
+
+def test_hazmat(tmp_path):
+    ret = run_language(
+        tmp_path, unsupported,
+        f'pre-commit hazmat ignore-exit-code {shlex.quote(sys.executable)} '
+        f"-c 'import sys; raise SystemExit(sys.argv[1:])'",
+        ('f1', 'f2'),
+    )
+    expected = b"['f1', 'f2']\n"
+    assert ret == (0, expected)

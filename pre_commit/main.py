@@ -10,6 +10,7 @@ import pre_commit.constants as C
 from pre_commit import clientlib
 from pre_commit import git
 from pre_commit.color import add_color_option
+from pre_commit.commands import hazmat
 from pre_commit.commands.autoupdate import autoupdate
 from pre_commit.commands.clean import clean
 from pre_commit.commands.gc import gc
@@ -41,7 +42,7 @@ os.environ.pop('__PYVENV_LAUNCHER__', None)
 os.environ.pop('PYTHONEXECUTABLE', None)
 
 COMMANDS_NO_GIT = {
-    'clean', 'gc', 'init-templatedir', 'sample-config',
+    'clean', 'gc', 'hazmat', 'init-templatedir', 'sample-config',
     'validate-config', 'validate-manifest',
 }
 
@@ -245,6 +246,11 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     _add_cmd('gc', help='Clean unused cached repos.')
 
+    hazmat_parser = _add_cmd(
+        'hazmat', help='Composable tools for rare use in hook `entry`.',
+    )
+    hazmat.add_parsers(hazmat_parser)
+
     init_templatedir_parser = _add_cmd(
         'init-templatedir',
         help=(
@@ -389,6 +395,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             return clean(store)
         elif args.command == 'gc':
             return gc(store)
+        elif args.command == 'hazmat':
+            return hazmat.impl(args)
         elif args.command == 'hook-impl':
             return hook_impl(
                 store,

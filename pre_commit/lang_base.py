@@ -5,6 +5,7 @@ import os
 import random
 import re
 import shlex
+import sys
 from collections.abc import Generator
 from collections.abc import Sequence
 from typing import Any
@@ -171,7 +172,10 @@ def run_xargs(
 
 
 def hook_cmd(entry: str, args: Sequence[str]) -> tuple[str, ...]:
-    return (*shlex.split(entry), *args)
+    cmd = shlex.split(entry)
+    if cmd[:2] == ['pre-commit', 'hazmat']:
+        cmd = [sys.executable, '-m', 'pre_commit.commands.hazmat', *cmd[2:]]
+    return (*cmd, *args)
 
 
 def basic_run_hook(
