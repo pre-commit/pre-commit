@@ -1,0 +1,7 @@
+{
+  "name": "test-bun-hook",
+  "version": "1.0.0",
+  "bin": {
+    "test-bun-hook": "./bin/test-hook.js"
+  }
+}
