@@ -26,6 +26,11 @@ TRet = TypeVar('TRet')
 # _POSIX_ARG_MAX, so we define it here once and reuse it.
 _POSIX_ARG_MAX = 4096
 
+# Practical upper bound for command-line argument length (128 KB).
+# Even though SC_ARG_MAX can be much larger on modern systems, this provides
+# a conservative limit that works reliably across different shells and tools.
+_PRACTICAL_ARG_MAX = 2 ** 17
+
 
 def cpu_count() -> int:
     try:
@@ -52,15 +57,22 @@ def _environ_size(_env: MutableMapping[str, str] | None = None) -> int:
 
 def _get_platform_max_length() -> int:  # pragma: no cover (platform specific)
     if os.name == 'posix':
+        # Get the base ARG_MAX value from sysconf, or fall back to POSIX minimum
         try:
-            maximum = os.sysconf('SC_ARG_MAX') - 2048 - _environ_size()
+            arg_max_base = os.sysconf('SC_ARG_MAX')
         except OSError:
             # Fall back to the POSIX minimum when sysconf is unavailable or
             # blocked by a sandbox (for example, Cursor's restricted
             # environment where SC_ARG_MAX raises PermissionError).
-            maximum = _POSIX_ARG_MAX - 2048 - _environ_size()
-        maximum = max(min(maximum, 2 ** 17), _POSIX_ARG_MAX)
-        return maximum
+            arg_max_base = _POSIX_ARG_MAX
+
+        # Subtract headroom and environment size (shared sub-expression)
+        headroom_and_environ = 2048 + _environ_size()
+        calculated_length = arg_max_base - headroom_and_environ
+
+        # Clamp to reasonable bounds: minimum _POSIX_ARG_MAX, maximum _PRACTICAL_ARG_MAX
+        clamped_length = max(min(calculated_length, _PRACTICAL_ARG_MAX), _POSIX_ARG_MAX)
+        return clamped_length
     elif os.name == 'nt':
         return 2 ** 15 - 2048  # UNICODE_STRING max - headroom
     else:
