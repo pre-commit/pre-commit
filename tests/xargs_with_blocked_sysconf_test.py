@@ -171,4 +171,3 @@ def test_xargs_with_explicit_max_length_when_sysconf_blocked_as_subprocess() -> 
         f'os.sysconf is blocked. This should always work since _get_platform_max_length() '
         f'is never called. stderr: {proc.stderr!r}'
     )
-
