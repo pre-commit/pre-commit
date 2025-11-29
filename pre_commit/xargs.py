@@ -22,6 +22,10 @@ from pre_commit.util import cmd_output_p
 TArg = TypeVar('TArg')
 TRet = TypeVar('TRet')
 
+# POSIX minimum for ARG_MAX in bytes (see POSIX.1-2008); Python does not expose
+# _POSIX_ARG_MAX, so we define it here once and reuse it.
+_POSIX_ARG_MAX = 4096
+
 
 def cpu_count() -> int:
     try:
@@ -48,14 +52,20 @@ def _environ_size(_env: MutableMapping[str, str] | None = None) -> int:
 
 def _get_platform_max_length() -> int:  # pragma: no cover (platform specific)
     if os.name == 'posix':
-        maximum = os.sysconf('SC_ARG_MAX') - 2048 - _environ_size()
-        maximum = max(min(maximum, 2 ** 17), 2 ** 12)
+        try:
+            maximum = os.sysconf('SC_ARG_MAX') - 2048 - _environ_size()
+        except OSError:
+            # Fall back to the POSIX minimum when sysconf is unavailable or
+            # blocked by a sandbox (for example, Cursor's restricted
+            # environment where SC_ARG_MAX raises PermissionError).
+            maximum = _POSIX_ARG_MAX - 2048 - _environ_size()
+        maximum = max(min(maximum, 2 ** 17), _POSIX_ARG_MAX)
         return maximum
     elif os.name == 'nt':
         return 2 ** 15 - 2048  # UNICODE_STRING max - headroom
     else:
         # posix minimum
-        return 2 ** 12
+        return _POSIX_ARG_MAX
 
 
 def _command_length(*cmd: str) -> int:
@@ -134,7 +144,7 @@ def xargs(
         *,
         color: bool = False,
         target_concurrency: int = 1,
-        _max_length: int = _get_platform_max_length(),
+        _max_length: int | None = None,
         **kwargs: Any,
 ) -> tuple[int, bytes]:
     """A simplified implementation of xargs.
@@ -142,6 +152,9 @@ def xargs(
     color: Make a pty if on a platform that supports it
     target_concurrency: Target number of partitions to run concurrently
     """
+    if _max_length is None:
+        _max_length = _get_platform_max_length()
+
     cmd_fn = cmd_output_p if color else cmd_output_b
     retcode = 0
     stdout = b''
