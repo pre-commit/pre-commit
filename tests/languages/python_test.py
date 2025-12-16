@@ -10,6 +10,8 @@ import pre_commit.constants as C
 from pre_commit.envcontext import envcontext
 from pre_commit.languages import python
 from pre_commit.prefix import Prefix
+from pre_commit.store import _make_local_repo
+from pre_commit.util import cmd_output_b
 from pre_commit.util import make_executable
 from pre_commit.util import win_exe
 from testing.auto_namedtuple import auto_namedtuple
@@ -351,3 +353,15 @@ def test_python_hook_weird_setup_cfg(tmp_path):
 
     ret = run_language(tmp_path, python, 'socks', [os.devnull])
     assert ret == (0, f'[{os.devnull!r}]\nhello hello\n'.encode())
+
+
+def test_local_repo_with_other_artifacts(tmp_path):
+    cmd_output_b('git', 'init', tmp_path)
+    _make_local_repo(str(tmp_path))
+    # pretend a rust install also ran here
+    tmp_path.joinpath('target').mkdir()
+
+    ret, out = run_language(tmp_path, python, 'python --version')
+
+    assert ret == 0
+    assert out.startswith(b'Python ')
