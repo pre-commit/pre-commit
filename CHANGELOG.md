@@ -1,3 +1,10 @@
+4.5.1 - 2025-12-16
+==================
+
+### Fixes
+- Fix `language: python` with `repo: local` without `additional_dependencies`.
+    - #3597 PR by @asottile.
+
 4.5.0 - 2025-11-22
 ==================
 
