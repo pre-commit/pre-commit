@@ -91,6 +91,22 @@ def test_run_legacy_recursive(tmpdir):
             call()
 
 
+def test_rev_exists_with_existing_rev(tempdir_factory):
+    src = git_dir(tempdir_factory)
+    git_commit(cwd=src)
+    head = git.head_rev(src)
+    with cwd(src):
+        assert hook_impl._rev_exists(head) is True
+
+
+def test_rev_exists_with_nonexistent_rev(tempdir_factory):
+    src = git_dir(tempdir_factory)
+    git_commit(cwd=src)
+    with cwd(src):
+        fake_sha = 'deadbeefdeadbeefdeadbeefdeadbeefdeadbeef'
+        assert hook_impl._rev_exists(fake_sha) is False
+
+
 @pytest.mark.parametrize(
     ('hook_type', 'args'),
     (
