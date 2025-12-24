@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pre_commit.lang_base import Language
+from pre_commit.languages import bun
 from pre_commit.languages import conda
 from pre_commit.languages import coursier
 from pre_commit.languages import dart
@@ -25,6 +26,7 @@ from pre_commit.languages import unsupported_script
 
 
 languages: dict[str, Language] = {
+    'bun': bun,
     'conda': conda,
     'coursier': coursier,
     'dart': dart,
