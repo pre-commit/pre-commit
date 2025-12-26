@@ -111,10 +111,10 @@ def _ns(
 
 
 def _rev_exists(rev: str) -> bool:
-    return not not subprocess.call(
+    return not (not subprocess.call(
         ('git', 'cat-file', '-e', rev),
         stderr=subprocess.DEVNULL,
-    )
+    ))
 
 
 def _pre_push_ns(
