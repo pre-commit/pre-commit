@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import contextlib
 import functools
+import json
 import os
 import sys
 from collections.abc import Generator
@@ -17,6 +18,7 @@ from pre_commit.languages.python import bin_dir
 from pre_commit.prefix import Prefix
 from pre_commit.util import cmd_output
 from pre_commit.util import cmd_output_b
+from pre_commit.util import get_npm_version
 from pre_commit.util import rmtree
 
 ENVIRONMENT_DIR = 'node_env'
@@ -98,8 +100,33 @@ def install_environment(
         )
         lang_base.setup_cmd(prefix, local_install_cmd)
 
-        _, pkg, _ = cmd_output('npm', 'pack', cwd=prefix.prefix_dir)
-        pkg = prefix.path(pkg.strip())
+        npm_version = get_npm_version()
+
+        args = ['npm', 'pack', '--json']
+        # https://docs.npmjs.com/cli/v11/using-npm/changelog#1100-pre0-2024-11-26
+        if npm_version >= (11, 0, 0):
+            args.append('--ignore-scripts')
+
+        _, pkg, _ = cmd_output(*args, cwd=prefix.prefix_dir)
+        try:
+            pkg_json = json.loads(pkg)
+        except json.JSONDecodeError as e:
+            raise ValueError('Failed to parse npm pack output as JSON.') from e
+
+        if not pkg_json:
+            raise ValueError('JSON array from npm pack is empty.')
+
+        if not isinstance(pkg_json, list):
+            raise ValueError('Expected npm pack output to be a JSON array.')
+
+        filename = pkg_json[0].get('filename')
+        if filename is None:
+            raise KeyError(
+                "Key 'filename' not found in the first element "
+                'of the JSON array.',
+            )
+
+        pkg = prefix.path(filename)
 
         install = ('npm', 'install', '-g', pkg, *additional_dependencies)
         lang_base.setup_cmd(prefix, install)
