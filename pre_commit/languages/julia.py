@@ -49,8 +49,13 @@ def run_hook(
 def get_env_patch(target_dir: str, version: str) -> PatchesT:
     return (
         ('JULIA_LOAD_PATH', target_dir),
-        # May be set, remove it to not interfer with LOAD_PATH
+        # May be set, remove it to not interfere with LOAD_PATH
         ('JULIA_PROJECT', UNSET),
+        # Only set JULIAUP_CHANNEL if we don't want use the system's default
+        *(
+            (('JULIAUP_CHANNEL', version),)
+            if version not in ('system', 'default') else ()
+        ),
     )
 
 
