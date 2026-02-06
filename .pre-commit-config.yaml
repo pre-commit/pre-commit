@@ -1,44 +1,5 @@
-repos:
--   repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v6.0.0
+-   repo: https://github.com/DavidAnson/markdownlint
+    rev: v0.43.0
     hooks:
-    -   id: trailing-whitespace
-    -   id: end-of-file-fixer
-    -   id: check-yaml
-    -   id: debug-statements
-    -   id: double-quote-string-fixer
-    -   id: name-tests-test
-    -   id: requirements-txt-fixer
--   repo: https://github.com/asottile/setup-cfg-fmt
-    rev: v3.2.0
-    hooks:
-    -   id: setup-cfg-fmt
--   repo: https://github.com/asottile/reorder-python-imports
-    rev: v3.16.0
-    hooks:
-    -   id: reorder-python-imports
-        exclude: ^pre_commit/resources/
-        args: [--py310-plus, --add-import, 'from __future__ import annotations']
--   repo: https://github.com/asottile/add-trailing-comma
-    rev: v4.0.0
-    hooks:
-    -   id: add-trailing-comma
--   repo: https://github.com/asottile/pyupgrade
-    rev: v3.21.2
-    hooks:
-    -   id: pyupgrade
-        args: [--py310-plus]
--   repo: https://github.com/hhatto/autopep8
-    rev: v2.3.2
-    hooks:
-    -   id: autopep8
--   repo: https://github.com/PyCQA/flake8
-    rev: 7.3.0
-    hooks:
-    -   id: flake8
--   repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.19.1
-    hooks:
-    -   id: mypy
-        additional_dependencies: [types-pyyaml]
-        exclude: ^testing/resources/
+    -   id: markdownlint
+        args: ["--config", ".markdownlintrc.json"]
