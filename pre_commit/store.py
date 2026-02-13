@@ -15,7 +15,7 @@ from pre_commit import file_lock
 from pre_commit import git
 from pre_commit.util import CalledProcessError
 from pre_commit.util import clean_path_on_failure
-from pre_commit.util import cmd_output
+from pre_commit.util import cmd_output_b
 from pre_commit.util import resource_text
 
 
@@ -174,32 +174,19 @@ class Store:
 
         return directory
 
-    def _complete_clone(
-        self, ref: str,
-        git_cmd: Callable[..., tuple[int, str, str | None]],
-    ) -> None:
+    def _complete_clone(self, ref: str, git_cmd: Callable[..., None]) -> None:
         """Perform a complete clone of a repository and its submodules """
 
         git_cmd('fetch', 'origin', '--tags')
         git_cmd('checkout', ref)
         git_cmd('submodule', 'update', '--init', '--recursive')
 
-    def _shallow_clone(
-        self, ref: str,
-        git_cmd: Callable[..., tuple[int, str, str | None]],
-    ) -> None:
+    def _shallow_clone(self, ref: str, git_cmd: Callable[..., None]) -> None:
         """Perform a shallow clone of a repository and its submodules """
 
         git_config = 'protocol.version=2'
         git_cmd('-c', git_config, 'fetch', 'origin', ref, '--depth=1')
         git_cmd('checkout', 'FETCH_HEAD')
-        rev = git_cmd('rev-parse', 'FETCH_HEAD')[1].strip()
-        lines = git_cmd('ls-remote', '--heads', 'origin')[1].splitlines()
-        for line in lines:
-            if line.startswith(rev):
-                tag_name = line.rsplit('/', 1)[-1]
-                git_cmd('fetch', 'origin', 'tag', tag_name, '--no-tags')
-                break
         git_cmd(
             '-c', git_config, 'submodule', 'update', '--init', '--recursive',
             '--depth=1',
@@ -212,8 +199,8 @@ class Store:
             git.init_repo(directory, repo)
             env = git.no_git_env()
 
-            def _git_cmd(*args: str) -> tuple[int, str, str | None]:
-                return cmd_output('git', *args, cwd=directory, env=env)
+            def _git_cmd(*args: str) -> None:
+                cmd_output_b('git', *args, cwd=directory, env=env)
 
             try:
                 self._shallow_clone(ref, _git_cmd)
