@@ -186,6 +186,7 @@ class Store:
 
         git_config = 'protocol.version=2'
         git_cmd('-c', git_config, 'fetch', 'origin', ref, '--depth=1')
+        git_cmd('-c', git_config, 'fetch', 'origin', f'refs/tags/{ref}:refs/tags/{ref}', '--depth=1', check=False)
         git_cmd('checkout', 'FETCH_HEAD')
         git_cmd(
             '-c', git_config, 'submodule', 'update', '--init', '--recursive',
@@ -199,8 +200,8 @@ class Store:
             git.init_repo(directory, repo)
             env = git.no_git_env()
 
-            def _git_cmd(*args: str) -> None:
-                cmd_output_b('git', *args, cwd=directory, env=env)
+            def _git_cmd(*args: str, check=True) -> None:
+                cmd_output_b('git', *args, cwd=directory, env=env, check=check)
 
             try:
                 self._shallow_clone(ref, _git_cmd)
