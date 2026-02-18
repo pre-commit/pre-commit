@@ -186,7 +186,10 @@ class Store:
 
         git_config = 'protocol.version=2'
         git_cmd('-c', git_config, 'fetch', 'origin', ref, '--depth=1')
-        git_cmd('-c', git_config, 'fetch', 'origin', f'refs/tags/{ref}:refs/tags/{ref}', '--depth=1', check=False)
+        git_cmd(
+            '-c', git_config, 'fetch', 'origin',
+            f'refs/tags/{ref}:refs/tags/{ref}', '--depth=1', check=False,
+        )
         git_cmd('checkout', 'FETCH_HEAD')
         git_cmd(
             '-c', git_config, 'submodule', 'update', '--init', '--recursive',
