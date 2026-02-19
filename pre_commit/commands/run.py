@@ -185,8 +185,10 @@ def _run_single_hook(
         # print hook and dots first in case the hook takes a while to run
         output.write(_start_msg(start=hook.name, end_len=6, cols=cols))
 
+        pass_filenames_via_stdin = hook.pass_filenames_via_stdin
         if not hook.pass_filenames:
             filenames = ()
+            pass_filenames_via_stdin = False
         time_before = time.monotonic()
         language = languages[hook.language]
         with language.in_env(hook.prefix, hook.language_version):
@@ -198,6 +200,7 @@ def _run_single_hook(
                 is_local=hook.src == 'local',
                 require_serial=hook.require_serial,
                 color=use_color,
+                pass_filenames_via_stdin=pass_filenames_via_stdin,
             )
         duration = round(time.monotonic() - time_before, 2) or 0
         diff_after = _get_diff()

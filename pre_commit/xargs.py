@@ -142,7 +142,8 @@ def xargs(
     color: Make a pty if on a platform that supports it
     target_concurrency: Target number of partitions to run concurrently
     """
-    cmd_fn = cmd_output_p if color else cmd_output_b
+    use_pty = color and kwargs.get('input') is None
+    cmd_fn = cmd_output_p if use_pty else cmd_output_b
     retcode = 0
     stdout = b''
 
@@ -164,6 +165,8 @@ def xargs(
         _max_length = 8192 - len(cmd_exe) - len(' /c ') - 1024
 
     partitions = partition(cmd, varargs, target_concurrency, _max_length)
+    if kwargs.get('input') is not None and len(partitions) != 1:
+        raise AssertionError('`input` is only supported with one partition')
 
     def run_cmd_partition(
             run_cmd: tuple[str, ...],

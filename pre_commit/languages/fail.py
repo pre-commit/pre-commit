@@ -21,6 +21,7 @@ def run_hook(
         is_local: bool,
         require_serial: bool,
         color: bool,
+        pass_filenames_via_stdin: bool = False,
 ) -> tuple[int, bytes]:
     out = f'{entry}\n\n'.encode()
     out += b'\n'.join(f.encode() for f in file_args) + b'\n'

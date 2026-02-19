@@ -22,6 +22,7 @@ from pre_commit.util import cmd_output_b
 FIXED_RANDOM_SEED = 1542676187
 
 SHIMS_RE = re.compile(r'[/\\]shims[/\\]')
+NUL = b'\0'
 
 
 class Language(Protocol):
@@ -56,6 +57,7 @@ class Language(Protocol):
             is_local: bool,
             require_serial: bool,
             color: bool,
+            pass_filenames_via_stdin: bool = False,
     ) -> tuple[int, bytes]:
         ...
 
@@ -153,13 +155,33 @@ def _shuffled(seq: Sequence[str]) -> list[str]:
     return seq
 
 
+def to_nul_delimited_filenames(file_args: Sequence[str]) -> bytes:
+    ret = NUL.join(os.fsencode(filename) for filename in file_args)
+    return ret + NUL if ret else ret
+
+
+def from_nul_delimited_filenames(filenames: bytes) -> list[str]:
+    return [os.fsdecode(part) for part in filenames.split(NUL) if part]
+
+
 def run_xargs(
         cmd: tuple[str, ...],
         file_args: Sequence[str],
         *,
         require_serial: bool,
         color: bool,
+        pass_filenames_via_stdin: bool = False,
 ) -> tuple[int, bytes]:
+    if pass_filenames_via_stdin:
+        stdin = to_nul_delimited_filenames(file_args)
+        return xargs.xargs(
+            cmd,
+            (),
+            target_concurrency=1,
+            color=color,
+            input=stdin,
+        )
+
     if require_serial:
         jobs = 1
     else:
@@ -187,10 +209,12 @@ def basic_run_hook(
         is_local: bool,
         require_serial: bool,
         color: bool,
+        pass_filenames_via_stdin: bool = False,
 ) -> tuple[int, bytes]:
     return run_xargs(
         hook_cmd(entry, args),
         file_args,
         require_serial=require_serial,
         color=color,
+        pass_filenames_via_stdin=pass_filenames_via_stdin,
     )

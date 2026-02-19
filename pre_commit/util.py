@@ -92,6 +92,7 @@ def cmd_output_b(
         check: bool = True,
         **kwargs: Any,
 ) -> tuple[int, bytes, bytes | None]:
+    input_data = kwargs.pop('input', None)
     _setdefault_kwargs(kwargs)
 
     try:
@@ -104,7 +105,7 @@ def cmd_output_b(
         except OSError as e:
             returncode, stdout_b, stderr_b = _oserror_to_output(e)
         else:
-            stdout_b, stderr_b = proc.communicate()
+            stdout_b, stderr_b = proc.communicate(input_data)
             returncode = proc.returncode
 
     if check and returncode:

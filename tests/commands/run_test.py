@@ -1064,6 +1064,35 @@ def test_pass_filenames(
     assert (b'foo.py' in printed) == pass_filenames
 
 
+def test_pass_filenames_via_stdin(cap_out, store, repo_with_passing_hook):
+    config = {
+        'repo': 'local',
+        'hooks': [{
+            'id': 'filenames-via-stdin',
+            'name': 'filenames-via-stdin',
+            'entry': (
+                f'{shlex.quote(sys.executable)} -c '
+                '\'import sys; '
+                'print(repr(sys.argv[1:])); '
+                'print(repr(sys.stdin.buffer.read()))\''
+            ),
+            'language': 'system',
+            'pass_filenames_via_stdin': True,
+        }],
+    }
+    add_config_to_repo(repo_with_passing_hook, config)
+    stage_a_file()
+
+    ret, printed = _do_run(
+        cap_out, store, repo_with_passing_hook,
+        run_opts(hook='filenames-via-stdin', verbose=True),
+    )
+
+    assert ret == 0
+    assert b'[]' in printed
+    assert b"b'foo.py\\x00'" in printed
+
+
 def test_fail_fast(cap_out, store, repo_with_failing_hook):
     with modify_config() as config:
         # More than one hook

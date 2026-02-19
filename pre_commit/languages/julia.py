@@ -27,6 +27,7 @@ def run_hook(
         is_local: bool,
         require_serial: bool,
         color: bool,
+        pass_filenames_via_stdin: bool = False,
 ) -> tuple[int, bytes]:
     # `entry` is a (hook-repo relative) file followed by (optional) args, e.g.
     # `bin/id.jl` or `bin/hook.jl --arg1 --arg2` so we
@@ -43,6 +44,7 @@ def run_hook(
         file_args,
         require_serial=require_serial,
         color=color,
+        pass_filenames_via_stdin=pass_filenames_via_stdin,
     )
 
 

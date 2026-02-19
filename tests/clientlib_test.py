@@ -572,6 +572,18 @@ def test_manifest_stages_defaulting():
     ]
 
 
+def test_manifest_pass_filenames_via_stdin_defaulting():
+    dct = {
+        'id': 'fake-hook',
+        'name': 'fake-hook',
+        'entry': 'fake-hook',
+        'language': 'system',
+    }
+    cfgv.validate(dct, MANIFEST_HOOK_DICT)
+    dct = cfgv.apply_defaults(dct, MANIFEST_HOOK_DICT)
+    assert dct['pass_filenames_via_stdin'] is False
+
+
 def test_config_hook_stages_defaulting_missing():
     dct = {'id': 'fake-hook'}
     cfgv.validate(dct, CONFIG_HOOK_DICT)

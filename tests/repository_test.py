@@ -430,6 +430,7 @@ def test_manifest_hooks(tempdir_factory, store):
         minimum_pre_commit_version='0',
         name='Bash hook',
         pass_filenames=True,
+        pass_filenames_via_stdin=False,
         require_serial=False,
         stages=[
             'commit-msg',

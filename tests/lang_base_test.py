@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os.path
+import shlex
 import sys
 from unittest import mock
 
@@ -164,6 +165,42 @@ def test_basic_run_hook(tmp_path):
     assert ret == 0
     out = out.replace(b'\r\n', b'\n')
     assert out == b'hi hello file file file\n'
+
+
+def test_basic_run_hook_passes_filenames_via_stdin(tmp_path):
+    ret, out = lang_base.basic_run_hook(
+        Prefix(tmp_path),
+        (
+            f'{shlex.quote(sys.executable)} -c '
+            '\'import sys; '
+            'print(repr(sys.argv[1:])); '
+            'print(repr(sys.stdin.buffer.read()))\''
+        ),
+        (),
+        ['file1', 'file2'],
+        is_local=False,
+        require_serial=False,
+        color=False,
+        pass_filenames_via_stdin=True,
+    )
+    assert ret == 0
+    out = out.replace(b'\r\n', b'\n')
+    assert out == b"[]\nb'file1\\x00file2\\x00'\n"
+
+
+def test_to_nul_delimited_filenames():
+    ret = lang_base.to_nul_delimited_filenames(('file1', 'file2'))
+    assert ret == b'file1\x00file2\x00'
+
+
+def test_to_nul_delimited_filenames_empty():
+    ret = lang_base.to_nul_delimited_filenames(())
+    assert ret == b''
+
+
+def test_from_nul_delimited_filenames():
+    ret = lang_base.from_nul_delimited_filenames(b'file1\x00file2\x00')
+    assert ret == ['file1', 'file2']
 
 
 def test_hook_cmd():

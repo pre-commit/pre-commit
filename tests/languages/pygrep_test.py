@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import sys
+from unittest import mock
+
 import pytest
 
 from pre_commit.languages import pygrep
@@ -136,6 +139,16 @@ def test_grep_hook_matching(some_files, tmp_path):
         tmp_path, pygrep, 'ello', file_args=('f7', 'f8', 'f9'),
     )
     assert ret == (1, b"f7:1:hello'hi\n")
+
+
+@pytest.mark.usefixtures('some_files')
+def test_main_reads_nul_delimited_filenames_from_stdin(cap_out):
+    with mock.patch.object(sys.stdin.buffer, 'read', return_value=b'f1\x00f2\x00'):
+        ret = pygrep.main(('foo',))
+
+    out = cap_out.get()
+    assert ret == 1
+    assert out == 'f1:1:foo\n'
 
 
 @pytest.mark.parametrize('regex', ('nope', "foo'bar", r'^\[INFO\]'))

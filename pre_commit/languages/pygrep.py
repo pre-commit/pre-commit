@@ -96,8 +96,12 @@ def run_hook(
         is_local: bool,
         require_serial: bool,
         color: bool,
+        pass_filenames_via_stdin: bool = False,
 ) -> tuple[int, bytes]:
     cmd = (sys.executable, '-m', __name__, *args, entry)
+    if pass_filenames_via_stdin:
+        stdin = lang_base.to_nul_delimited_filenames(file_args)
+        return xargs(cmd, (), color=color, input=stdin)
     return xargs(cmd, file_args, color=color)
 
 
@@ -115,6 +119,11 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument('pattern', help='python regex pattern.')
     parser.add_argument('filenames', nargs='*')
     args = parser.parse_args(argv)
+
+    if not args.filenames:
+        stdin = sys.stdin.buffer.read()
+        if stdin:
+            args.filenames = lang_base.from_nul_delimited_filenames(stdin)
 
     flags = re.IGNORECASE if args.ignore_case else 0
     if args.multiline:
