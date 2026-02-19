@@ -143,7 +143,9 @@ def test_grep_hook_matching(some_files, tmp_path):
 
 @pytest.mark.usefixtures('some_files')
 def test_main_reads_nul_delimited_filenames_from_stdin(cap_out):
-    with mock.patch.object(sys.stdin.buffer, 'read', return_value=b'f1\x00f2\x00'):
+    with mock.patch.object(
+        sys.stdin.buffer, 'read', return_value=b'f1\x00f2\x00',
+    ):
         ret = pygrep.main(('foo',))
 
     out = cap_out.get()
