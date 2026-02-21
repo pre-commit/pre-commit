@@ -203,7 +203,7 @@ class Store:
             git.init_repo(directory, repo)
             env = git.no_git_env()
 
-            def _git_cmd(*args: str, check=True) -> None:
+            def _git_cmd(*args: str, check: bool = True) -> None:
                 cmd_output_b('git', *args, cwd=directory, env=env, check=check)
 
             try:
