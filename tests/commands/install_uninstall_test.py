@@ -1102,3 +1102,26 @@ def test_install_uninstall_default_hook_types(in_git_dir, store):
     assert not uninstall(C.CONFIG_FILE, hook_types=None)
     assert not in_git_dir.join('.git/hooks/pre-commit').exists()
     assert not in_git_dir.join('.git/hooks/pre-push').exists()
+
+
+def test_uninstall_without_t_removes_all_hooks(in_git_dir, store):
+    install(C.CONFIG_FILE, store, hook_types=['pre-commit'])
+    install(C.CONFIG_FILE, store, hook_types=['pre-push'])
+    assert in_git_dir.join('.git/hooks/pre-commit').exists()
+    assert in_git_dir.join('.git/hooks/pre-push').exists()
+
+    assert not uninstall(C.CONFIG_FILE, hook_types=None)
+    assert not in_git_dir.join('.git/hooks/pre-commit').exists()
+    assert not in_git_dir.join('.git/hooks/pre-push').exists()
+
+
+def test_uninstall_without_t_ignores_non_precommit_hooks(in_git_dir, store):
+    install(C.CONFIG_FILE, store, hook_types=['pre-commit'])
+    # write a non-pre-commit hook
+    in_git_dir.join('.git/hooks/pre-push').write('#!/bin/sh\necho custom\n')
+    assert in_git_dir.join('.git/hooks/pre-push').exists()
+
+    assert not uninstall(C.CONFIG_FILE, hook_types=None)
+    assert not in_git_dir.join('.git/hooks/pre-commit').exists()
+    # non-pre-commit hook should be preserved
+    assert in_git_dir.join('.git/hooks/pre-push').exists()

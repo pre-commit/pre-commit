@@ -8,6 +8,7 @@ import sys
 
 from pre_commit import git
 from pre_commit import output
+from pre_commit.clientlib import HOOK_TYPES
 from pre_commit.clientlib import InvalidConfigError
 from pre_commit.clientlib import load_config
 from pre_commit.repository import all_hooks
@@ -162,6 +163,10 @@ def _uninstall_hook_script(hook_type: str) -> None:
 
 
 def uninstall(config_file: str, hook_types: list[str] | None) -> int:
-    for hook_type in _hook_types(config_file, hook_types):
+    if hook_types is not None:
+        actual_hook_types = hook_types
+    else:
+        actual_hook_types = list(HOOK_TYPES)
+    for hook_type in actual_hook_types:
         _uninstall_hook_script(hook_type)
     return 0
