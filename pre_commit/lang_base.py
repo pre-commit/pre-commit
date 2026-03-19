@@ -25,9 +25,6 @@ SHIMS_RE = re.compile(r'[/\\]shims[/\\]')
 
 
 class Language(Protocol):
-    # Use `None` for no installation / environment
-    @property
-    def ENVIRONMENT_DIR(self) -> str | None: ...
     # return a value to replace `'default` for `language_version`
     def get_default_version(self) -> str: ...
     # return whether the environment is healthy (or should be rebuilt)
@@ -36,7 +33,8 @@ class Language(Protocol):
     # install a repository for the given language and language_version
     def install_environment(
             self,
-            prefix: Prefix,
+            clone: Prefix,
+            dest: Prefix,
             version: str,
             additional_dependencies: Sequence[str],
     ) -> None:
@@ -85,10 +83,6 @@ def exe_exists(exe: str) -> bool:
 
 def setup_cmd(prefix: Prefix, cmd: tuple[str, ...], **kwargs: Any) -> None:
     cmd_output_b(*cmd, cwd=prefix.prefix_dir, **kwargs)
-
-
-def environment_dir(prefix: Prefix, d: str, language_version: str) -> str:
-    return prefix.path(f'{d}-{language_version}')
 
 
 def assert_version_default(binary: str, version: str) -> None:

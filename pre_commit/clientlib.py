@@ -315,6 +315,16 @@ load_manifest = functools.partial(
 )
 
 
+def load_manifest_contents(repo: str, contents: str) -> dict[str, Any]:
+    with (
+            cfgv.reraise_as(InvalidManifestError),
+            cfgv.validate_context(f'File ({repo})/{C.MANIFEST_FILE}'),
+    ):
+        obj = _load_manifest_backward_compat(contents)
+        cfgv.validate(obj, MANIFEST_SCHEMA)
+        return cfgv.apply_defaults(obj, MANIFEST_SCHEMA)
+
+
 LOCAL = 'local'
 META = 'meta'
 
@@ -576,4 +586,19 @@ load_config = functools.partial(
     schema=CONFIG_SCHEMA,
     load_strategy=yaml_load,
     exc_tp=InvalidConfigError,
+)
+
+
+class _AnySchema:
+    def check(self, v: object) -> None:
+        pass
+
+    def apply_defaults(self, v: object) -> object:
+        return v
+
+
+load_raw = functools.partial(
+    cfgv.load_from_filename,
+    schema=_AnySchema(),
+    load_strategy=yaml_load,
 )

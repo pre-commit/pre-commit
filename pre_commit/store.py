@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 import contextlib
+import json
 import logging
 import os.path
 import sqlite3
 import tempfile
 from collections.abc import Callable
 from collections.abc import Generator
-from collections.abc import Sequence
+from typing import Any
 
 import pre_commit.constants as C
 from pre_commit import clientlib
@@ -61,7 +62,7 @@ class Store:
 
     def __init__(self, directory: str | None = None) -> None:
         self.directory = directory or Store.get_default_directory()
-        self.db_path = os.path.join(self.directory, 'db.db')
+        self.db_path = os.path.join(self.directory, 'db5.db')
         self.readonly = (
             os.path.exists(self.directory) and
             not os.access(self.directory, os.W_OK)
@@ -82,20 +83,40 @@ class Store:
             if os.path.exists(self.db_path):  # pragma: no cover (race)
                 return
             # To avoid a race where someone ^Cs between db creation and
-            # execution of the CREATE TABLE statement
+            # execution of the CREATE TABLE statements
             fd, tmpfile = tempfile.mkstemp(dir=self.directory)
             # We'll be managing this file ourselves
             os.close(fd)
             with self.connect(db_path=tmpfile) as db:
                 db.executescript(
-                    'CREATE TABLE repos ('
-                    '    repo TEXT NOT NULL,'
-                    '    ref TEXT NOT NULL,'
-                    '    path TEXT NOT NULL,'
-                    '    PRIMARY KEY (repo, ref)'
+                    'CREATE TABLE configs ('
+                    '   path TEXT NOT NULL,'
+                    '   PRIMARY KEY (path)'
                     ');',
                 )
-                self._create_configs_table(db)
+                db.executescript(
+                    'CREATE TABLE manifests ('
+                    '    repo TEXT NOT NULL,'
+                    '    rev TEXT NOT NULL,'
+                    '    manifest TEXT NOT NULL,'
+                    '    PRIMARY KEY (repo, rev)'
+                    ');',
+                )
+                db.executescript(
+                    'CREATE TABLE clones ('
+                    '    repo TEXT NOT NULL,'
+                    '    rev TEXT NOT NULL,'
+                    '    path TEXT NOT NULL,'
+                    '    PRIMARY KEY (repo, rev)'
+                    ');',
+                )
+                db.executescript(
+                    'CREATE TABLE installs ('
+                    '    key TEXT NOT NULL,'
+                    '    path TEXT NOT NULL,'
+                    '    PRIMARY KEY (key)'
+                    ');',
+                )
 
             # Atomic file move
             os.replace(tmpfile, self.db_path)
@@ -122,29 +143,30 @@ class Store:
             with db:
                 yield db
 
-    @classmethod
-    def db_repo_name(cls, repo: str, deps: Sequence[str]) -> str:
-        if deps:
-            return f'{repo}:{",".join(deps)}'
-        else:
-            return repo
+    def _complete_clone(self, rev: str, git_cmd: Callable[..., None]) -> None:
+        """Perform a complete clone of a repository and its submodules """
 
-    def _new_repo(
-            self,
-            repo: str,
-            ref: str,
-            deps: Sequence[str],
-            make_strategy: Callable[[str], None],
-    ) -> str:
-        original_repo = repo
-        repo = self.db_repo_name(repo, deps)
+        git_cmd('fetch', 'origin', '--tags')
+        git_cmd('checkout', rev)
+        git_cmd('submodule', 'update', '--init', '--recursive')
 
+    def _shallow_clone(self, rev: str, git_cmd: Callable[..., None]) -> None:
+        """Perform a shallow clone of a repository and its submodules """
+
+        v2 = ('-c', 'protocol.version=2')
+        git_cmd(*v2, 'fetch', 'origin', rev, '--depth=1')
+        git_cmd('checkout', 'FETCH_HEAD')
+        git_cmd(
+            *v2, 'submodule', 'update', '--init', '--recursive',
+            '--depth=1',
+        )
+
+    def clone(self, repo: str, rev: str) -> str:
         def _get_result() -> str | None:
-            # Check if we already exist
             with self.connect() as db:
                 result = db.execute(
-                    'SELECT path FROM repos WHERE repo = ? AND ref = ?',
-                    (repo, ref),
+                    'SELECT path FROM clones WHERE repo = ? AND rev = ?',
+                    (repo, rev),
                 ).fetchone()
                 return result[0] if result else None
 
@@ -157,70 +179,64 @@ class Store:
             if result:  # pragma: no cover (race)
                 return result
 
-            logger.info(f'Initializing environment for {repo}.')
+            logger.info(f'Cloning {repo}...')
 
-            directory = tempfile.mkdtemp(prefix='repo', dir=self.directory)
+            directory = tempfile.mkdtemp(prefix='clone', dir=self.directory)
             with clean_path_on_failure(directory):
-                make_strategy(directory)
+                git.init_repo(directory, repo)
+                env = git.no_git_env()
+
+                def _git_cmd(*args: str) -> None:
+                    cmd_output_b('git', *args, cwd=directory, env=env)
+
+                try:
+                    self._shallow_clone(rev, _git_cmd)
+                except CalledProcessError:
+                    self._complete_clone(rev, _git_cmd)
+
+                manifest = clientlib.load_raw(
+                    os.path.join(directory, C.MANIFEST_FILE),
+                    display_filename=f'({repo})/{C.MANIFEST_FILE}',
+                    exc_tp=clientlib.InvalidManifestError,
+                )
 
             # Update our db with the created repo
             with self.connect() as db:
                 db.execute(
-                    'INSERT INTO repos (repo, ref, path) VALUES (?, ?, ?)',
-                    [repo, ref, directory],
+                    'INSERT INTO clones VALUES (?, ?, ?)',
+                    (repo, rev, directory),
+                )
+                db.execute(
+                    'INSERT INTO manifests VALUES (?, ?, ?)',
+                    (repo, rev, json.dumps(manifest)),
                 )
 
-            clientlib.warn_for_stages_on_repo_init(original_repo, directory)
+            clientlib.warn_for_stages_on_repo_init(repo, directory)
 
         return directory
 
-    def _complete_clone(self, ref: str, git_cmd: Callable[..., None]) -> None:
-        """Perform a complete clone of a repository and its submodules """
+    def maybe_manifest(
+            self,
+            repo: str,
+            rev: str,
+    ) -> dict[str, dict[str, Any]] | None:
+        with self.connect() as db:
+            result = db.execute(
+                'SELECT manifest FROM manifests WHERE repo = ? AND rev = ?',
+                (repo, rev),
+            ).fetchone()
+            if result is not None:
+                return clientlib.load_manifest_contents(repo, result[0])
+            else:
+                return None
 
-        git_cmd('fetch', 'origin', '--tags')
-        git_cmd('checkout', ref)
-        git_cmd('submodule', 'update', '--init', '--recursive')
-
-    def _shallow_clone(self, ref: str, git_cmd: Callable[..., None]) -> None:
-        """Perform a shallow clone of a repository and its submodules """
-
-        git_config = 'protocol.version=2'
-        git_cmd('-c', git_config, 'fetch', 'origin', ref, '--depth=1')
-        git_cmd('checkout', 'FETCH_HEAD')
-        git_cmd(
-            '-c', git_config, 'submodule', 'update', '--init', '--recursive',
-            '--depth=1',
-        )
-
-    def clone(self, repo: str, ref: str, deps: Sequence[str] = ()) -> str:
-        """Clone the given url and checkout the specific ref."""
-
-        def clone_strategy(directory: str) -> None:
-            git.init_repo(directory, repo)
-            env = git.no_git_env()
-
-            def _git_cmd(*args: str) -> None:
-                cmd_output_b('git', *args, cwd=directory, env=env)
-
-            try:
-                self._shallow_clone(ref, _git_cmd)
-            except CalledProcessError:
-                self._complete_clone(ref, _git_cmd)
-
-        return self._new_repo(repo, ref, deps, clone_strategy)
-
-    def make_local(self, deps: Sequence[str]) -> str:
-        return self._new_repo(
-            'local', C.LOCAL_REPO_VERSION, deps, _make_local_repo,
-        )
-
-    def _create_configs_table(self, db: sqlite3.Connection) -> None:
-        db.executescript(
-            'CREATE TABLE IF NOT EXISTS configs ('
-            '   path TEXT NOT NULL,'
-            '   PRIMARY KEY (path)'
-            ');',
-        )
+    def manifest(self, repo: str, rev: str) -> dict[str, dict[str, Any]]:
+        ret = self.maybe_manifest(repo, rev)
+        if ret is None:
+            self.clone(repo, rev)
+        ret = self.maybe_manifest(repo, rev)
+        assert ret is not None
+        return ret
 
     def mark_config_used(self, path: str) -> None:
         if self.readonly:  # pragma: win32 no cover
@@ -230,6 +246,4 @@ class Store:
         if not os.path.exists(path):
             return
         with self.connect() as db:
-            # TODO: eventually remove this and only create in _create
-            self._create_configs_table(db)
             db.execute('INSERT OR IGNORE INTO configs VALUES (?)', (path,))

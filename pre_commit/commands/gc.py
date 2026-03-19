@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import os.path
 from typing import Any
 
@@ -15,18 +16,21 @@ from pre_commit.store import Store
 from pre_commit.util import rmtree
 
 
-def _mark_used_repos(
-        store: Store,
-        all_repos: dict[tuple[str, str], str],
-        unused_repos: set[tuple[str, str]],
+def _mark_used(
+        config: dict[str, Any],
         repo: dict[str, Any],
+        manifests: dict[tuple[str, str], dict[str, Any]],
+        unused_manifests: set[tuple[str, str]],
+        unused_installs: set[str],
 ) -> None:
     if repo['repo'] == META:
         return
     elif repo['repo'] == LOCAL:
         for hook in repo['hooks']:
-            deps = hook.get('additional_dependencies')
-            unused_repos.discard((
+            deps = hook['additional_dependencies']
+            unused_installs.discard((
+                repo['repo'], C.LOCAL_REPO_VERSION,
+                repo['language'],
                 store.db_repo_name(repo['repo'], deps),
                 C.LOCAL_REPO_VERSION,
             ))
@@ -60,11 +64,16 @@ def _mark_used_repos(
 
 def _gc(store: Store) -> int:
     with store.exclusive_lock(), store.connect() as db:
-        store._create_configs_table(db)
+        installs_rows = db.execute('SELECT key, path FROM installs').fetchall()
+        all_installs = dict(installs_rows)
+        unused_installs = set(all_installs)
 
-        repos = db.execute('SELECT repo, ref, path FROM repos').fetchall()
-        all_repos = {(repo, ref): path for repo, ref, path in repos}
-        unused_repos = set(all_repos)
+        manifests_query = 'SELECT repo, rev, manifest FROM manifests'
+        manifests = {
+            (repo, rev): json.loads(manifest)
+            for repo, rev, manifest in db.execute(manifests_query).fetchall()
+        }
+        unused_manifests = set(manifests)
 
         configs_rows = db.execute('SELECT path FROM configs').fetchall()
         configs = [path for path, in configs_rows]
@@ -78,7 +87,13 @@ def _gc(store: Store) -> int:
                 continue
             else:
                 for repo in config['repos']:
-                    _mark_used_repos(store, all_repos, unused_repos, repo)
+                    _mark_used(
+                        config,
+                        repo,
+                        manifests,
+                        unused_manifests,
+                        unused_installs,
+                    )
 
         paths = [(path,) for path in dead_configs]
         db.executemany('DELETE FROM configs WHERE path = ?', paths)
@@ -94,5 +109,7 @@ def _gc(store: Store) -> int:
 
 
 def gc(store: Store) -> int:
-    output.write_line(f'{_gc(store)} repo(s) removed.')
+    installs, clones = _gc(store)
+    output.write_line(f'{clones} clone(s) removed.')
+    output.write_line(f'{installs} installs(s) removed.')
     return 0

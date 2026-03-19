@@ -1,18 +1,28 @@
 from __future__ import annotations
 
+import json
 import logging
 from collections.abc import Sequence
 from typing import Any
 from typing import NamedTuple
 
-from pre_commit.prefix import Prefix
-
 logger = logging.getLogger('pre_commit')
 
 
+class InstallKey(NamedTuple):
+    repo: str
+    rev: str
+    language: str
+    language_version: str
+    additional_dependencies: tuple[str, ...]
+
+    def keystr(self) -> str:
+        return json.dumps(self, separators=(',', ':'))
+
+
 class Hook(NamedTuple):
-    src: str
-    prefix: Prefix
+    repo: str
+    rev: str
     id: str
     name: str
     entry: str
@@ -37,24 +47,25 @@ class Hook(NamedTuple):
     verbose: bool
 
     @property
-    def install_key(self) -> tuple[Prefix, str, str, tuple[str, ...]]:
-        return (
-            self.prefix,
-            self.language,
-            self.language_version,
-            tuple(self.additional_dependencies),
+    def install_key(self) -> InstallKey:
+        return InstallKey(
+            repo=self.repo,
+            rev=self.rev,
+            language=self.language,
+            language_version=self.language_version,
+            additional_dependencies=tuple(self.additional_dependencies),
         )
 
     @classmethod
-    def create(cls, src: str, prefix: Prefix, dct: dict[str, Any]) -> Hook:
+    def create(cls, repo: str, rev: str, dct: dict[str, Any]) -> Hook:
         # TODO: have cfgv do this (?)
         extra_keys = set(dct) - _KEYS
         if extra_keys:
             logger.warning(
-                f'Unexpected key(s) present on {src} => {dct["id"]}: '
+                f'Unexpected key(s) present on {repo} => {dct["id"]}: '
                 f'{", ".join(sorted(extra_keys))}',
             )
-        return cls(src=src, prefix=prefix, **{k: dct[k] for k in _KEYS})
+        return cls(repo=repo, rev=rev, **{k: dct[k] for k in _KEYS})
 
 
-_KEYS = frozenset(set(Hook._fields) - {'src', 'prefix'})
+_KEYS = frozenset(set(Hook._fields) - {'repo', 'rev'})
