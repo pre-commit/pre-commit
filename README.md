@@ -9,3 +9,6 @@ For more information see: https://pre-commit.com/
 
 
 <!-- fix-issue-2732: make `stages` and `hook-type` match -->
+
+
+<!-- fix-issue-1143: Support fail_fast on check level -->
