@@ -6,3 +6,6 @@
 A framework for managing and maintaining multi-language pre-commit hooks.
 
 For more information see: https://pre-commit.com/
+
+
+<!-- fix-issue-2732: make `stages` and `hook-type` match -->
