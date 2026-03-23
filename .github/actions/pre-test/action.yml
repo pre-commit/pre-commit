@@ -1,9 +1,0 @@
-inputs:
-  env:
-    default: ${{ matrix.env }}
-
-runs:
-  using: composite
-  steps:
-  - uses: asottile/workflows/.github/actions/latest-git@v1.4.0
-    if: inputs.env == 'py39' && runner.os == 'Linux'
