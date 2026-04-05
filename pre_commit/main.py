@@ -26,6 +26,7 @@ from pre_commit.commands.try_repo import try_repo
 from pre_commit.commands.validate_config import validate_config
 from pre_commit.commands.validate_manifest import validate_manifest
 from pre_commit.error_handler import error_handler
+from pre_commit.errors import FatalError
 from pre_commit.logging_handler import logging_handler
 from pre_commit.store import Store
 
@@ -185,7 +186,16 @@ def _adjust_args_and_chdir(args: argparse.Namespace) -> None:
     if args.command == 'try-repo' and os.path.exists(args.repo):
         args.repo = os.path.abspath(args.repo)
 
-    toplevel = git.get_root()
+    try:
+        toplevel = git.get_root()
+    except FatalError:
+        if args.command == 'run' and args.files:
+            logger.warning(
+                'pre-commit is running outside a git repository. '
+                'Only the files passed via `--files` will be checked.',
+            )
+            return
+        raise
     os.chdir(toplevel)
 
     args.config = os.path.relpath(args.config)
