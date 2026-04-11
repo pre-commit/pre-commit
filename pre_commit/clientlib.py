@@ -23,6 +23,22 @@ logger = logging.getLogger('pre_commit')
 
 check_string_regex = cfgv.check_and(cfgv.check_string, cfgv.check_regex)
 
+
+def _check_log_file(val: str) -> None:
+    if val == '':
+        return
+    if os.path.isabs(val):
+        raise cfgv.ValidationError(
+            f'log_file must be a relative path, got absolute path: {val!r}',
+        )
+    if os.path.normpath(val).startswith('..'):
+        raise cfgv.ValidationError(
+            f'log_file must not reference a parent directory: {val!r}',
+        )
+
+
+check_log_file = cfgv.check_and(cfgv.check_string, _check_log_file)
+
 HOOK_TYPES = (
     'commit-msg',
     'post-checkout',
@@ -258,7 +274,7 @@ MANIFEST_HOOK_DICT = cfgv.Map(
     cfgv.Optional('pass_filenames', cfgv.check_bool, True),
     cfgv.Optional('description', cfgv.check_string, ''),
     cfgv.Optional('language_version', cfgv.check_string, C.DEFAULT),
-    cfgv.Optional('log_file', cfgv.check_string, ''),
+    cfgv.Optional('log_file', check_log_file, ''),
     cfgv.Optional('require_serial', cfgv.check_bool, False),
     StagesMigration('stages', []),
     cfgv.Optional('verbose', cfgv.check_bool, False),

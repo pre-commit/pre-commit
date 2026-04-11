@@ -7,6 +7,7 @@ import cfgv
 import pytest
 
 import pre_commit.constants as C
+from pre_commit.clientlib import _check_log_file
 from pre_commit.clientlib import check_type_tag
 from pre_commit.clientlib import CONFIG_HOOK_DICT
 from pre_commit.clientlib import CONFIG_REPO_DICT
@@ -605,3 +606,22 @@ def test_manifest_v5_forward_compat(tmp_path):
         f'=====> pre-commit version 5 is required but version {C.VERSION} '
         f'is installed.  Perhaps run `pip install --upgrade pre-commit`.'
     )
+
+
+@pytest.mark.parametrize('value', ('output.log', 'logs/hook.log', ''))
+def test_check_log_file_valid(value):
+    _check_log_file(value)
+
+
+@pytest.mark.parametrize(
+    'value',
+    (
+        '/tmp/evil.log',
+        '/etc/cron.d/malicious',
+        '../../../etc/passwd',
+        '../outside.log',
+    ),
+)
+def test_check_log_file_invalid(value):
+    with pytest.raises(cfgv.ValidationError):
+        _check_log_file(value)
