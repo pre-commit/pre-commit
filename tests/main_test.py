@@ -89,6 +89,35 @@ def test_adjust_args_try_repo_repo_relative(in_git_dir):
         assert args.repo == 'foo'
 
 
+def test_try_relpath_returns_relpath_when_same_drive():
+    # Normal case: same drive / same filesystem -- should behave like relpath
+    result = main._try_relpath(os.path.abspath('.'))
+    assert result == os.path.relpath(os.path.abspath('.'))
+
+
+def test_try_relpath_returns_original_on_cross_drive_valueerror():
+    # On Windows, os.path.relpath raises ValueError when paths are on
+    # different drives (#2530).  _try_relpath must return the path unchanged.
+    abs_path = 'C:\\Users\\me\\.pre-commit-config.yaml'
+    with mock.patch('os.path.relpath', side_effect=ValueError('different mount')):
+        assert main._try_relpath(abs_path) == abs_path
+
+
+@pytest.mark.skipif(os.name != 'nt', reason='windows cross-drive only')
+def test_adjust_args_config_on_different_drive(in_git_dir):  # pragma: posix no cover
+    # Simulate a config whose absolute path is on a drive other than the git
+    # root so that os.path.relpath would raise ValueError.
+    abs_config = 'C:\\Users\\me\\.pre-commit-config.yaml'
+    with mock.patch('pre_commit.main.os.path.relpath', side_effect=ValueError('x')):
+        args = _args(config=abs_config)
+        # abspath is called before chdir, so mock exists to avoid a real chdir
+        with mock.patch('os.path.exists', return_value=False):
+            with mock.patch('pre_commit.git.get_root', return_value=str(in_git_dir)):
+                main._adjust_args_and_chdir(args)
+        # config must be preserved (not explode with ValueError)
+        assert args.config == abs_config
+
+
 FNS = (
     'autoupdate', 'clean', 'gc', 'hook_impl', 'install', 'install_hooks',
     'migrate_config', 'run', 'sample_config', 'uninstall',
