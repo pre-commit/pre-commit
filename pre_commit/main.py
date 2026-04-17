@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import contextlib
 import logging
 import os
 import sys
@@ -172,6 +173,14 @@ def _add_run_options(parser: argparse.ArgumentParser) -> None:
     )
 
 
+def _try_relpath(path: str) -> str:
+    # on windows, different drives raises ValueError
+    try:
+        return os.path.relpath(path)
+    except ValueError:
+        return path
+
+
 def _adjust_args_and_chdir(args: argparse.Namespace) -> None:
     # `--config` was specified relative to the non-root working directory
     if os.path.exists(args.config):
@@ -188,15 +197,23 @@ def _adjust_args_and_chdir(args: argparse.Namespace) -> None:
     toplevel = git.get_root()
     os.chdir(toplevel)
 
-    args.config = os.path.relpath(args.config)
+    with contextlib.suppress(ValueError):
+        # on windows, different drives raises ValueError
+        args.config = os.path.relpath(args.config)
     if args.command in {'run', 'try-repo'}:
-        args.files = [os.path.relpath(filename) for filename in args.files]
+        args.files = [
+            _try_relpath(filename) for filename in args.files
+        ]
         if args.commit_msg_filename is not None:
-            args.commit_msg_filename = os.path.relpath(
-                args.commit_msg_filename,
-            )
+            with contextlib.suppress(ValueError):
+                # on windows, different drives raises ValueError
+                args.commit_msg_filename = os.path.relpath(
+                    args.commit_msg_filename,
+                )
     if args.command == 'try-repo' and os.path.exists(args.repo):
-        args.repo = os.path.relpath(args.repo)
+        with contextlib.suppress(ValueError):
+            # on windows, different drives raises ValueError
+            args.repo = os.path.relpath(args.repo)
 
 
 def main(argv: Sequence[str] | None = None) -> int:

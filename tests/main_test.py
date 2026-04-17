@@ -78,6 +78,20 @@ def test_adjust_args_and_chdir_non_relative_config(in_git_dir):
         assert args.config == C.CONFIG_FILE
 
 
+def test_adjust_args_and_chdir_relpath_valueerror_cross_drive(in_git_dir):
+    # regression test for https://github.com/pre-commit/pre-commit/issues/2530
+    # on windows, different drives raises ValueError from relpath
+    with in_git_dir.join('foo').ensure_dir().as_cwd():
+        # use an absolute config path (simulates config on different drive)
+        args = _args(config=str(in_git_dir.join(C.CONFIG_FILE)))
+        with mock.patch.object(os.path, 'relpath', side_effect=ValueError):
+            # should not raise, should keep absolute path
+            main._adjust_args_and_chdir(args)
+        assert os.getcwd() == in_git_dir
+        # config should still be an absolute path (not relative)
+        assert os.path.isabs(args.config)
+
+
 def test_adjust_args_try_repo_repo_relative(in_git_dir):
     with in_git_dir.join('foo').ensure_dir().as_cwd():
         args = _args(command='try-repo', repo='../foo', files=[])
