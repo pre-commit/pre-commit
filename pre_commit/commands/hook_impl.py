@@ -16,7 +16,7 @@ Z40 = '0' * 40
 
 def _run_legacy(
         hook_type: str,
-        hook_dir: str,
+        hook_dir: str | None,
         args: Sequence[str],
 ) -> tuple[int, bytes]:
     if os.environ.get('PRE_COMMIT_RUNNING_LEGACY'):
@@ -32,6 +32,9 @@ def _run_legacy(
         stdin = sys.stdin.buffer.read()
     else:
         stdin = b''
+
+    if hook_dir is None:  # git 2.54+ hooks
+        return 0, stdin
 
     # not running in legacy mode
     legacy_hook = os.path.join(hook_dir, f'{hook_type}.legacy')
@@ -259,7 +262,7 @@ def hook_impl(
         config: str,
         color: bool,
         hook_type: str,
-        hook_dir: str,
+        hook_dir: str | None,
         skip_on_missing_config: bool,
         args: Sequence[str],
 ) -> int:
