@@ -357,7 +357,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     hook_impl_parser = subparsers.add_parser('hook-impl')
     add_color_option(hook_impl_parser)
     _add_config_option(hook_impl_parser)
-    hook_impl_parser.add_argument('--hook-type')
+    hook_impl_parser.add_argument('--hook-type', required=True)
     hook_impl_parser.add_argument('--hook-dir')
     hook_impl_parser.add_argument(
         '--skip-on-missing-config', action='store_true',
