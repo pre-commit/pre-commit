@@ -63,6 +63,11 @@ def test_run_legacy_does_not_exist(tmpdir):
     assert (retv, stdin) == (0, b'')
 
 
+def test_run_legacy_git_2_54():
+    retv, stdin = hook_impl._run_legacy('pre-commit', None, ())
+    assert (retv, stdin) == (0, b'')
+
+
 def test_run_legacy_executes_legacy_script(tmpdir, capfd):
     hook = tmpdir.join('pre-commit.legacy')
     hook.write('#!/usr/bin/env bash\necho hi "$@"\nexit 1\n')
