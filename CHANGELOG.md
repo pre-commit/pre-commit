@@ -1,3 +1,15 @@
+4.6.0 - 2026-04-21
+==================
+
+### Features
+- `pre-commit hook-impl`: allow `--hook-dir` to be missing to enable easier
+  usage with `git` 2.54+ git hooks.
+    - #3662 PR by @asottile.
+
+### Fixes
+- `pre-commit hook-impl`: `--hook-type` is required.
+    - #3661 PR by @asottile.
+
 4.5.1 - 2025-12-16
 ==================
 
