@@ -90,7 +90,7 @@ def test_adjust_args_try_repo_repo_relative(in_git_dir):
 
 
 FNS = (
-    'autoupdate', 'clean', 'gc', 'hook_impl', 'install', 'install_hooks',
+    'autoupdate', 'clean', 'gc', 'install', 'install_hooks',
     'migrate_config', 'run', 'sample_config', 'uninstall',
     'validate_config', 'validate_manifest',
 )
@@ -167,6 +167,12 @@ def test_hazmat(mock_store_dir):
     assert arg.tool == 'cd'
     assert arg.subdir == 'subdir'
     assert arg.cmd == ['cmd', '--', 'f1', 'f2']
+
+
+def test_hook_impl(mock_store_dir):
+    with mock.patch.object(main, 'hook_impl') as mck:
+        main.main(('hook-impl', '--hook-type', 'pre-commit'))
+    assert mck.call_count == 1
 
 
 def test_try_repo(mock_store_dir):
