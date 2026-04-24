@@ -34,7 +34,6 @@ def _get_object_format(remote_url: str) -> str:
     return 'sha1'
 
 
-
 def _run_legacy(
         hook_type: str,
         hook_dir: str | None,
