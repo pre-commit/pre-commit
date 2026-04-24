@@ -12,6 +12,27 @@ from pre_commit.parse_shebang import normalize_cmd
 from pre_commit.store import Store
 
 Z40 = '0' * 40
+ZERO_SHA_256 = '0' * 64  # SHA-256 zero OID
+
+
+def _get_object_format(remote_url: str) -> str:
+    """Detect git object format (sha1 or sha256) from the remote HEAD ref."""
+    try:
+        result = subprocess.run(
+            ['git', 'ls-remote', '--symref', remote_url, 'HEAD'],
+            capture_output=True,
+            text=True,
+            timeout=15,
+        )
+        for line in result.stdout.splitlines():
+            if 'object-format=' in line:
+                for part in line.split():
+                    if part.startswith('object-format='):
+                        return part.split('=')[1].rstrip(',')
+    except (subprocess.TimeoutExpired, OSError):
+        pass
+    return 'sha1'
+
 
 
 def _run_legacy(
@@ -125,12 +146,16 @@ def _pre_push_ns(
     remote_name = args[0]
     remote_url = args[1]
 
+    # Detect the object format of the remote to use the correct zero OID
+    obj_fmt = _get_object_format(remote_url)
+    zero_sha = ZERO_SHA_256 if obj_fmt == 'sha256' else Z40
+
     for line in stdin.decode().splitlines():
         parts = line.rsplit(maxsplit=3)
         local_branch, local_sha, remote_branch, remote_sha = parts
-        if local_sha == Z40:
+        if local_sha == zero_sha:
             continue
-        elif remote_sha != Z40 and _rev_exists(remote_sha):
+        elif remote_sha != zero_sha and _rev_exists(remote_sha):
             return _ns(
                 'pre-push', color,
                 from_ref=remote_sha, to_ref=local_sha,
