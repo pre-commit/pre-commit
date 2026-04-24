@@ -188,15 +188,24 @@ def _adjust_args_and_chdir(args: argparse.Namespace) -> None:
     toplevel = git.get_root()
     os.chdir(toplevel)
 
-    args.config = os.path.relpath(args.config)
+    def _safe_relpath(path: str) -> str:
+        try:
+            return os.path.relpath(path)
+        except ValueError:
+            # On Windows, relpath raises ValueError when paths are on
+            # different drives (e.g. config on C:, repo on D:). Fall back
+            # to abspath so pre-commit still functions.
+            return os.path.abspath(path)
+
+    args.config = _safe_relpath(args.config)
     if args.command in {'run', 'try-repo'}:
-        args.files = [os.path.relpath(filename) for filename in args.files]
+        args.files = [_safe_relpath(filename) for filename in args.files]
         if args.commit_msg_filename is not None:
-            args.commit_msg_filename = os.path.relpath(
+            args.commit_msg_filename = _safe_relpath(
                 args.commit_msg_filename,
             )
     if args.command == 'try-repo' and os.path.exists(args.repo):
-        args.repo = os.path.relpath(args.repo)
+        args.repo = _safe_relpath(args.repo)
 
 
 def main(argv: Sequence[str] | None = None) -> int:
