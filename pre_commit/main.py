@@ -185,6 +185,7 @@ def _adjust_args_and_chdir(args: argparse.Namespace) -> None:
     if args.command == 'try-repo' and os.path.exists(args.repo):
         args.repo = os.path.abspath(args.repo)
 
+
 def make_relative(path: str) -> str:
     # On Windows, os.path.relpath fails when path is on a different drive
     # than the current directory (e.g. config on D:, repo on C:)
@@ -193,7 +194,6 @@ def make_relative(path: str) -> str:
     except ValueError:
         # Fall back to absolute path when relpath fails (cross-drive on Windows)
         return os.path.abspath(path)
-
 
     toplevel = git.get_root()
     os.chdir(toplevel)
