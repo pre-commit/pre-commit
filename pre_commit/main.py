@@ -185,18 +185,26 @@ def _adjust_args_and_chdir(args: argparse.Namespace) -> None:
     if args.command == 'try-repo' and os.path.exists(args.repo):
         args.repo = os.path.abspath(args.repo)
 
+def make_relative(path: str) -> str:
+    # On Windows, os.path.relpath fails when path is on a different drive
+    # than the current directory (e.g. config on D:, repo on C:)
+    try:
+        return os.path.relpath(path)
+    except ValueError:
+        # Fall back to absolute path when relpath fails (cross-drive on Windows)
+        return os.path.abspath(path)
+
+
     toplevel = git.get_root()
     os.chdir(toplevel)
 
-    args.config = os.path.relpath(args.config)
+    args.config = make_relative(args.config)
     if args.command in {'run', 'try-repo'}:
-        args.files = [os.path.relpath(filename) for filename in args.files]
+        args.files = [make_relative(filename) for filename in args.files]
         if args.commit_msg_filename is not None:
-            args.commit_msg_filename = os.path.relpath(
-                args.commit_msg_filename,
-            )
+            args.commit_msg_filename = make_relative(args.commit_msg_filename)
     if args.command == 'try-repo' and os.path.exists(args.repo):
-        args.repo = os.path.relpath(args.repo)
+        args.repo = make_relative(args.repo)
 
 
 def main(argv: Sequence[str] | None = None) -> int:
