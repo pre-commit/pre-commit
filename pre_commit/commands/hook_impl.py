@@ -11,6 +11,7 @@ from pre_commit.envcontext import envcontext
 from pre_commit.parse_shebang import normalize_cmd
 from pre_commit.store import Store
 
+
 def _is_zero_oid(oid: str) -> bool:
     return len(oid) in (40, 64) and set(oid) == {'0'}
 
