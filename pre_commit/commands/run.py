@@ -254,7 +254,7 @@ def _all_filenames(args: argparse.Namespace) -> Iterable[str]:
     # these hooks do not operate on files
     if args.hook_stage in {
         'post-checkout', 'post-commit', 'post-merge', 'post-rewrite',
-        'pre-rebase',
+        'pre-rebase', 'pre-push',
     }:
         return ()
     elif args.hook_stage in {'prepare-commit-msg', 'commit-msg'}:
@@ -417,7 +417,7 @@ def run(
     environ['PRE_COMMIT'] = '1'
 
     with contextlib.ExitStack() as exit_stack:
-        if stash:
+        if stash and args.hook_stage != 'pre-push':
             exit_stack.enter_context(staged_files_only(store.directory))
 
         config = load_config(config_file)
