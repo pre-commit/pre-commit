@@ -18,6 +18,8 @@ from testing.fixtures import write_config
 from testing.util import cwd
 from testing.util import git_commit
 
+Z64 = '0' * 64
+
 
 def test_validate_config_file_exists(tmpdir):
     cfg = tmpdir.join(C.CONFIG_FILE).ensure()
@@ -347,10 +349,43 @@ def test_run_ns_pre_push_deleting_branch(push_example):
     assert ns is None
 
 
+def test_run_ns_pre_push_deleting_branch_sha256_zero_oid(push_example):
+    src, src_head, clone, _ = push_example
+
+    with cwd(clone):
+        args = ('origin', src)
+        stdin = f'(delete) {Z64} refs/heads/b {src_head}'.encode()
+        ns = hook_impl._run_ns('pre-push', False, args, stdin)
+
+    assert ns is None
+
+
 def test_hook_impl_main_noop_pre_push(cap_out, store, push_example):
     src, src_head, clone, _ = push_example
 
     stdin = f'(delete) {hook_impl.Z40} refs/heads/b {src_head}'.encode()
+    with mock.patch.object(sys.stdin.buffer, 'read', return_value=stdin):
+        with cwd(clone):
+            write_config('.', sample_local_config())
+            ret = hook_impl.hook_impl(
+                store,
+                config=C.CONFIG_FILE,
+                color=False,
+                hook_type='pre-push',
+                hook_dir='.git/hooks',
+                skip_on_missing_config=False,
+                args=('origin', src),
+            )
+    assert ret == 0
+    assert cap_out.get() == ''
+
+
+def test_hook_impl_main_noop_pre_push_sha256_zero_oid(
+        cap_out, store, push_example,
+):
+    src, src_head, clone, _ = push_example
+
+    stdin = f'(delete) {Z64} refs/heads/b {src_head}'.encode()
     with mock.patch.object(sys.stdin.buffer, 'read', return_value=stdin):
         with cwd(clone):
             write_config('.', sample_local_config())
