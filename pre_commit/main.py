@@ -64,6 +64,10 @@ def _add_hook_type_option(parser: argparse.ArgumentParser) -> None:
 def _add_run_options(parser: argparse.ArgumentParser) -> None:
     parser.add_argument('hook', nargs='?', help='A single hook-id to run')
     parser.add_argument('--verbose', '-v', action='store_true')
+    parser.add_argument(
+        '--quiet', '-q', action='store_true',
+        help='Only print output for failed hooks.',
+    )
     mutex_group = parser.add_mutually_exclusive_group(required=False)
     mutex_group.add_argument(
         '--all-files', '-a', action='store_true',

@@ -108,6 +108,7 @@ def _ns(
         files=(),
         hook=None,
         verbose=False,
+        quiet=False,
         show_diff_on_failure=False,
         fail_fast=False,
     )

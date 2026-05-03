@@ -147,35 +147,38 @@ def _run_single_hook(
         diff_before: bytes,
         verbose: bool,
         use_color: bool,
+        quiet: bool = False,
 ) -> tuple[bool, bytes]:
     filenames = tuple(classifier.filenames_for_hook(hook))
 
     if hook.id in skips or hook.alias in skips:
-        output.write(
-            _full_msg(
-                start=hook.name,
-                end_msg=SKIPPED,
-                end_color=color.YELLOW,
-                use_color=use_color,
-                cols=cols,
-            ),
-        )
+        if not quiet:
+            output.write(
+                _full_msg(
+                    start=hook.name,
+                    end_msg=SKIPPED,
+                    end_color=color.YELLOW,
+                    use_color=use_color,
+                    cols=cols,
+                ),
+            )
         duration = None
         retcode = 0
         diff_after = diff_before
         files_modified = False
         out = b''
     elif not filenames and not hook.always_run:
-        output.write(
-            _full_msg(
-                start=hook.name,
-                postfix=NO_FILES,
-                end_msg=SKIPPED,
-                end_color=color.TURQUOISE,
-                use_color=use_color,
-                cols=cols,
-            ),
-        )
+        if not quiet:
+            output.write(
+                _full_msg(
+                    start=hook.name,
+                    postfix=NO_FILES,
+                    end_msg=SKIPPED,
+                    end_color=color.TURQUOISE,
+                    use_color=use_color,
+                    cols=cols,
+                ),
+            )
         duration = None
         retcode = 0
         diff_after = diff_before
@@ -183,7 +186,8 @@ def _run_single_hook(
         out = b''
     else:
         # print hook and dots first in case the hook takes a while to run
-        output.write(_start_msg(start=hook.name, end_len=6, cols=cols))
+        if not quiet:
+            output.write(_start_msg(start=hook.name, end_len=6, cols=cols))
 
         if not hook.pass_filenames:
             filenames = ()
@@ -212,9 +216,21 @@ def _run_single_hook(
             print_color = color.GREEN
             status = 'Passed'
 
-        output.write_line(color.format_color(status, print_color, use_color))
+        if quiet:
+            if retcode or files_modified:
+                output.write(
+                    _full_msg(
+                        start=hook.name,
+                        end_msg=status,
+                        end_color=print_color,
+                        use_color=use_color,
+                        cols=cols,
+                    ),
+                )
+        else:
+            output.write_line(color.format_color(status, print_color, use_color))
 
-    if verbose or hook.verbose or retcode or files_modified:
+    if retcode or files_modified or (not quiet and (verbose or hook.verbose)):
         _subtle_line(f'- hook id: {hook.id}', use_color)
 
         if (verbose or hook.verbose) and duration is not None:
@@ -295,7 +311,7 @@ def _run_hooks(
     for hook in hooks:
         current_retval, prior_diff = _run_single_hook(
             classifier, hook, skips, cols, prior_diff,
-            verbose=args.verbose, use_color=args.color,
+            verbose=args.verbose, use_color=args.color, quiet=args.quiet,
         )
         retval |= current_retval
         fail_fast = (config['fail_fast'] or hook.fail_fast or args.fail_fast)

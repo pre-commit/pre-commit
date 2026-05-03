@@ -678,6 +678,52 @@ def test_skip_alias_bypasses_installation(
     assert ret == 0
 
 
+def test_quiet_hides_passed_hook(cap_out, store, repo_with_passing_hook):
+    ret, printed = _do_run(
+        cap_out, store, repo_with_passing_hook, run_opts(quiet=True),
+    )
+    assert ret == 0
+    assert b'Passed' not in printed
+    assert b'Bash hook' not in printed
+
+
+def test_quiet_hides_no_files_skipped(cap_out, store, repo_with_passing_hook):
+    ret, printed = _do_run(
+        cap_out, store, repo_with_passing_hook, run_opts(quiet=True),
+    )
+    assert ret == 0
+    assert b'Skipped' not in printed
+
+
+def test_quiet_hides_skip_env_skipped(cap_out, store, repo_with_passing_hook):
+    ret, printed = _do_run(
+        cap_out, store, repo_with_passing_hook, run_opts(quiet=True),
+        {'SKIP': 'bash_hook'},
+    )
+    assert ret == 0
+    assert b'Skipped' not in printed
+
+
+def test_quiet_shows_failed_hook(cap_out, store, repo_with_failing_hook):
+    stage_a_file()
+    ret, printed = _do_run(
+        cap_out, store, repo_with_failing_hook, run_opts(quiet=True),
+    )
+    assert ret != 0
+    assert b'Failed' in printed
+    assert b'Failing hook' in printed
+
+
+def test_quiet_hides_verbose_details_for_passing(
+        cap_out, store, repo_with_passing_hook,
+):
+    ret, printed = _do_run(
+        cap_out, store, repo_with_passing_hook, run_opts(quiet=True, verbose=True),
+    )
+    assert ret == 0
+    assert b'- hook id:' not in printed
+
+
 def test_hook_id_not_in_non_verbose_output(
         cap_out, store, repo_with_passing_hook,
 ):

@@ -2,6 +2,9 @@
 ==================
 
 ### Features
+- Add `--quiet` / `-q` flag to `pre-commit run`: suppresses per-hook output
+  for passing and skipped hooks; failed hooks still print in full.
+    - #823 issue by many contributors, PR by @nitzan-shaked.
 - `pre-commit hook-impl`: allow `--hook-dir` to be missing to enable easier
   usage with `git` 2.54+ git hooks.
     - #3662 PR by @asottile.
