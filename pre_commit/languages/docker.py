@@ -6,6 +6,7 @@ import hashlib
 import json
 import os
 import re
+import shutil
 from collections.abc import Sequence
 
 from pre_commit import lang_base
@@ -31,6 +32,19 @@ _HOSTNAME_MOUNT_RE = re.compile(
 )
 
 
+@functools.lru_cache(maxsize=1)
+def _get_container_cmd() -> str:
+    if shutil.which('docker') is not None:
+        return 'docker'
+    elif shutil.which('podman') is not None:
+        return 'podman'
+    else:
+        raise SystemExit(
+            'docker (or podman) is required for the docker language.\n'
+            'Install docker or podman to continue.',
+        )
+
+
 def _get_container_id() -> str | None:
     with contextlib.suppress(FileNotFoundError):
         with open('/proc/1/mountinfo', 'rb') as f:
@@ -48,7 +62,7 @@ def _get_docker_path(path: str) -> str:
         return path
 
     try:
-        _, out, _ = cmd_output_b('docker', 'inspect', container_id)
+        _, out, _ = cmd_output_b(_get_container_cmd(), 'inspect', container_id)
     except CalledProcessError:
         # self-container was not visible from here (perhaps docker-in-docker)
         return path
@@ -81,7 +95,7 @@ def build_docker_image(
         pull: bool,
 ) -> None:  # pragma: win32 no cover
     cmd: tuple[str, ...] = (
-        'docker', 'build',
+        _get_container_cmd(), 'build',
         '--tag', docker_tag(prefix),
         '--label', PRE_COMMIT_LABEL,
     )
@@ -109,7 +123,7 @@ def install_environment(
 @functools.lru_cache(maxsize=1)
 def _is_rootless() -> bool:  # pragma: win32 no cover
     retcode, out, _ = cmd_output_b(
-        'docker', 'system', 'info', '--format', 'json',
+        _get_container_cmd(), 'system', 'info', '--format', 'json',
     )
     if retcode != 0:
         return False
@@ -144,7 +158,7 @@ def get_docker_tty(*, color: bool) -> tuple[str, ...]:  # pragma: win32 no cover
 
 def docker_cmd(*, color: bool) -> tuple[str, ...]:  # pragma: win32 no cover
     return (
-        'docker', 'run',
+        _get_container_cmd(), 'run',
         '--rm',
         *get_docker_tty(color=color),
         *get_docker_user(),
