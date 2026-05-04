@@ -109,7 +109,7 @@ def install_environment(
 @functools.lru_cache(maxsize=1)
 def _is_rootless() -> bool:  # pragma: win32 no cover
     retcode, out, _ = cmd_output_b(
-        'docker', 'system', 'info', '--format', '{{ json . }}',
+        'docker', 'system', 'info', '--format', 'json',
     )
     if retcode != 0:
         return False
