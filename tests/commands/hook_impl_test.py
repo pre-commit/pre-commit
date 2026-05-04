@@ -336,21 +336,23 @@ def test_pushing_orphan_branch(push_example):
     assert ns.all_files is True
 
 
-def test_run_ns_pre_push_deleting_branch(push_example):
+@pytest.mark.parametrize('zero_oid', (hook_impl.Z40, hook_impl.Z64))
+def test_run_ns_pre_push_deleting_branch(push_example, zero_oid):
     src, src_head, clone, _ = push_example
 
     with cwd(clone):
         args = ('origin', src)
-        stdin = f'(delete) {hook_impl.Z40} refs/heads/b {src_head}'.encode()
+        stdin = f'(delete) {zero_oid} refs/heads/b {src_head}'.encode()
         ns = hook_impl._run_ns('pre-push', False, args, stdin)
 
     assert ns is None
 
 
-def test_hook_impl_main_noop_pre_push(cap_out, store, push_example):
+@pytest.mark.parametrize('zero_oid', (hook_impl.Z40, hook_impl.Z64))
+def test_hook_impl_main_noop_pre_push(cap_out, store, push_example, zero_oid):
     src, src_head, clone, _ = push_example
 
-    stdin = f'(delete) {hook_impl.Z40} refs/heads/b {src_head}'.encode()
+    stdin = f'(delete) {zero_oid} refs/heads/b {src_head}'.encode()
     with mock.patch.object(sys.stdin.buffer, 'read', return_value=stdin):
         with cwd(clone):
             write_config('.', sample_local_config())

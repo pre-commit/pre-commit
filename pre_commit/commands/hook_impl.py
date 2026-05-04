@@ -12,6 +12,8 @@ from pre_commit.parse_shebang import normalize_cmd
 from pre_commit.store import Store
 
 Z40 = '0' * 40
+Z64 = '0' * 64
+ZERO_OIDS = frozenset((Z40, Z64))
 
 
 def _run_legacy(
@@ -128,9 +130,9 @@ def _pre_push_ns(
     for line in stdin.decode().splitlines():
         parts = line.rsplit(maxsplit=3)
         local_branch, local_sha, remote_branch, remote_sha = parts
-        if local_sha == Z40:
+        if local_sha in ZERO_OIDS:
             continue
-        elif remote_sha != Z40 and _rev_exists(remote_sha):
+        elif remote_sha not in ZERO_OIDS and _rev_exists(remote_sha):
             return _ns(
                 'pre-push', color,
                 from_ref=remote_sha, to_ref=local_sha,
