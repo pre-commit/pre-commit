@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -euxo pipefail
 
 if [ "$OSTYPE" = msys ]; then
     URL='https://github.com/coursier/coursier/releases/download/v2.1.0-RC4/cs-x86_64-pc-win32.zip'
