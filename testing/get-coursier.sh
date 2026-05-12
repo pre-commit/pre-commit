@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-if [ "$OSTYPE" = msys ]; then
+if [ "$OSTYPE" = cygwin ]; then
     URL='https://github.com/coursier/coursier/releases/download/v2.1.0-RC4/cs-x86_64-pc-win32.zip'
     SHA256='0d07386ff0f337e3e6264f7dde29d137dda6eaa2385f29741435e0b93ccdb49d'
     TARGET='/tmp/coursier/cs.zip'
