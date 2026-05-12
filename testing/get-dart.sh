@@ -3,7 +3,7 @@ set -euo pipefail
 
 VERSION=2.19.6
 
-if [ "$OSTYPE" = msys ]; then
+if [ "$OSTYPE" = cygwin ]; then
     URL="https://storage.googleapis.com/dart-archive/channels/stable/release/${VERSION}/sdk/dartsdk-windows-x64-release.zip"
     cygpath -w /tmp/dart-sdk/bin >> "$GITHUB_PATH"
 else
