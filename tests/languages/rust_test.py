@@ -1,13 +1,18 @@
 from __future__ import annotations
 
+import io
+import os.path
+import urllib.request
 from unittest import mock
 
 import pytest
 
 import pre_commit.constants as C
-from pre_commit import parse_shebang
+from pre_commit.envcontext import Var
 from pre_commit.languages import rust
+from pre_commit.prefix import Prefix
 from pre_commit.store import _make_local_repo
+from pre_commit.util import win_exe
 from testing.language_helpers import run_language
 from testing.util import cwd
 
@@ -38,6 +43,195 @@ def test_selects_system_even_if_rust_toolchain_toml(tmp_path):
         assert ACTUAL_GET_DEFAULT_VERSION() == 'system'
 
 
+def test_get_env_patch_non_system():
+    envdir = os.path.join('path', 'to', 'envdir')
+    patch = rust.get_env_patch(envdir, '1.87.0')
+    assert patch == (
+        ('PATH', (os.path.join(envdir, 'bin'), os.pathsep, Var('PATH'))),
+        ('RUSTUP_HOME', os.path.join(envdir, 'rustup')),
+        ('RUSTUP_TOOLCHAIN', '1.87.0'),
+    )
+
+
+def test_get_env_patch_default_resolves_to_stable():
+    envdir = os.path.join('path', 'to', 'envdir')
+    patch = rust.get_env_patch(envdir, C.DEFAULT)
+    assert patch == (
+        ('PATH', (os.path.join(envdir, 'bin'), os.pathsep, Var('PATH'))),
+        ('RUSTUP_HOME', os.path.join(envdir, 'rustup')),
+        ('RUSTUP_TOOLCHAIN', 'stable'),
+    )
+
+
+def test_get_env_patch_system_only_sets_path():
+    envdir = os.path.join('path', 'to', 'envdir')
+    patch = rust.get_env_patch(envdir, 'system')
+    assert patch == (
+        ('PATH', (os.path.join(envdir, 'bin'), os.pathsep, Var('PATH'))),
+    )
+
+
+def test_install_rust_with_toolchain_argv(tmp_path):
+    # Pre-create envdir/bin/rustup so we skip the rustup-init download
+    # branch and only check the toolchain-install argv.
+    envdir = str(tmp_path)
+    bin_dir = tmp_path.joinpath('bin')
+    bin_dir.mkdir()
+    bin_dir.joinpath(win_exe('rustup')).write_text('')
+
+    with mock.patch.object(rust, 'cmd_output_b') as cmd_mck:
+        rust.install_rust_with_toolchain('1.87.0', envdir)
+
+    assert cmd_mck.call_args_list == [
+        mock.call(
+            'rustup', 'toolchain', 'install', '--no-self-update',
+            '--profile', 'default', '1.87.0',
+        ),
+    ]
+
+
+def test_install_rust_with_toolchain_rejects_system(tmp_path):
+    # The function's self-envcontext would silently degrade to PATH-only
+    # for 'system' (since `get_env_patch` skips RUSTUP_HOME there) and
+    # let rustup-init write into the user's `~/.rustup`.  Defend against
+    # a future caller forgetting to gate on `version != 'system'`.
+    with pytest.raises(ValueError, match='does not support'):
+        rust.install_rust_with_toolchain('system', str(tmp_path))
+
+
+def test_install_rust_with_toolchain_bootstrap_argv(tmp_path):
+    # Covers the rustup-init download branch (stubs `urllib.request.urlopen`
+    # so this stays fast).  Without it, the bootstrap argv is only checked
+    # transitively by the heavy integration test below.
+    envdir = str(tmp_path)
+    fake_payload = io.BytesIO(b'fake rustup-init binary')
+
+    with mock.patch.object(
+            urllib.request, 'urlopen', return_value=fake_payload,
+    ), mock.patch.object(rust, 'cmd_output_b') as cmd_mck:
+        rust.install_rust_with_toolchain('1.87.0', envdir)
+
+    assert cmd_mck.call_args_list == [
+        mock.call(
+            mock.ANY, '-y', '--quiet', '--no-modify-path',
+            '--default-toolchain', 'none',
+        ),
+        mock.call(
+            'rustup', 'toolchain', 'install', '--no-self-update',
+            '--profile', 'default', '1.87.0',
+        ),
+    ]
+    init_path = cmd_mck.call_args_list[0].args[0]
+    assert os.path.basename(init_path) == win_exe('rustup-init')
+
+
+def test_install_rust_with_toolchain_pins_rustup_home(tmp_path):
+    # The original bug was about *where* rustup writes -- argv tests
+    # don't catch a regression where `RUSTUP_HOME` is dropped from
+    # `get_env_patch`.  Capture `os.environ` per cmd_output_b call and
+    # assert every rustup invocation sees our env-local RUSTUP_HOME.
+    envdir = str(tmp_path)
+    bin_dir = tmp_path.joinpath('bin')
+    bin_dir.mkdir()
+    bin_dir.joinpath(win_exe('rustup')).write_text('')
+
+    seen: list[dict[str, str | None]] = []
+
+    def capture(*args, **kwargs):
+        seen.append({
+            'RUSTUP_HOME': os.environ.get('RUSTUP_HOME'),
+            'RUSTUP_TOOLCHAIN': os.environ.get('RUSTUP_TOOLCHAIN'),
+            'PATH_HEAD': os.environ['PATH'].split(os.pathsep)[0],
+        })
+        return (0, b'', b'')
+
+    with mock.patch.object(rust, 'cmd_output_b', side_effect=capture):
+        rust.install_rust_with_toolchain('1.87.0', envdir)
+
+    assert seen
+    for entry in seen:
+        assert entry['RUSTUP_HOME'] == os.path.join(envdir, 'rustup')
+        assert entry['RUSTUP_TOOLCHAIN'] == '1.87.0'
+        assert entry['PATH_HEAD'] == os.path.join(envdir, 'bin')
+
+
+def test_install_rust_scopes_cargo_home_to_rustup_init(tmp_path):
+    # `CARGO_HOME=envdir` must be set ONLY for the rustup-init invocation
+    # (so rustup's proxy binaries land in envdir/bin/).  All other rustup
+    # invocations must inherit the caller's CARGO_HOME so cargo can read
+    # the user's `~/.cargo/{config,credentials}.toml` and the shared
+    # registry cache.  Catches the regression where someone re-introduces
+    # a global `CARGO_HOME=envdir` in `get_env_patch`.
+    envdir = str(tmp_path)
+    user_cargo_home = '/tmp/test-user-cargo-home'
+    fake_payload = io.BytesIO(b'fake rustup-init binary')
+
+    seen: list[dict[str, str | None]] = []
+
+    def capture(*args, **kwargs):
+        seen.append({
+            'cmd': os.path.basename(args[0]),
+            'CARGO_HOME': os.environ.get('CARGO_HOME'),
+            'RUSTUP_HOME': os.environ.get('RUSTUP_HOME'),
+        })
+        return (0, b'', b'')
+
+    with mock.patch.dict(
+            os.environ, {'CARGO_HOME': user_cargo_home}, clear=False,
+    ), mock.patch.object(
+            urllib.request, 'urlopen', return_value=fake_payload,
+    ), mock.patch.object(
+            rust, 'cmd_output_b', side_effect=capture,
+    ):
+        rust.install_rust_with_toolchain('1.87.0', envdir)
+
+    assert [e['cmd'] for e in seen] == [win_exe('rustup-init'), 'rustup']
+    assert seen[0]['CARGO_HOME'] == envdir
+    assert seen[1]['CARGO_HOME'] == user_cargo_home
+    assert seen[0]['RUSTUP_HOME'] == os.path.join(envdir, 'rustup')
+    assert seen[1]['RUSTUP_HOME'] == os.path.join(envdir, 'rustup')
+
+
+def _populate_v1_envdir(tmp_path, version):
+    # Mimic an env built by the no-system-rustup branch of the previous
+    # layout: rustup-init dropped `rustup`, `cargo`, `rustc` proxies into
+    # envdir/bin/, but the toolchain went to a temp dir that's now gone.
+    envdir = tmp_path.joinpath(f'rustenv-{version}')
+    bin_dir = envdir.joinpath('bin')
+    bin_dir.mkdir(parents=True)
+    for exe in ('rustup', 'cargo', 'rustc'):
+        bin_dir.joinpath(win_exe(exe)).write_text('')
+    return envdir
+
+
+def test_health_check_detects_old_layout(tmp_path):
+    # Migration cover: envs built by the previous layout have envdir/bin/
+    # populated but no `envdir/rustup/`.  Without this check, pre-commit
+    # would reuse them and the rustup proxy would silently auto-install
+    # the toolchain into our (newly-pinned but empty) RUSTUP_HOME with
+    # the user's default profile -- exactly the bug class this PR fixes.
+    _populate_v1_envdir(tmp_path, '1.87.0')
+    # NOTE: envdir/rustup/ deliberately absent.
+
+    err = rust.health_check(Prefix(str(tmp_path)), '1.87.0')
+    assert err is not None and 'missing rust toolchain' in err
+
+
+def test_health_check_detects_wrong_toolchain(tmp_path):
+    # If the user changes `language_version` after install (e.g. 1.87.0
+    # -> stable), the env has *a* toolchain but not the configured one.
+    # Without this check the rustup proxy would auto-install the requested
+    # toolchain at runtime with the user's globally-set profile, dropping
+    # rustfmt/clippy on CI images that default to `minimal`.
+    envdir = _populate_v1_envdir(tmp_path, '1.87.0')
+    envdir.joinpath(
+        'rustup', 'toolchains', 'stable-x86_64-unknown-linux-gnu',
+    ).mkdir(parents=True)
+
+    err = rust.health_check(Prefix(str(tmp_path)), '1.87.0')
+    assert err is not None and 'missing rust toolchain 1.87.0' in err
+
+
 def _make_hello_world(tmp_path):
     src_dir = tmp_path.joinpath('src')
     src_dir.mkdir()
@@ -54,34 +248,27 @@ def _make_hello_world(tmp_path):
     )
 
 
-def test_installs_rust_missing_rustup(tmp_path):
+def test_bootstrapped_rustfmt_runs(tmp_path):
+    # End-to-end bug repro: a `language: rust` + `rustfmt` hook on a
+    # machine with no rust must bootstrap a toolchain that persists past
+    # install and is reachable at hook-run time.
     _make_hello_world(tmp_path)
 
-    # pretend like `rustup` doesn't exist so it gets bootstrapped
-    calls = []
-    orig = parse_shebang.find_executable
+    bad_rs = tmp_path.joinpath('src', 'main.rs')
+    bad_rs.write_text('fn main() {\nprintln!("hi");\n}\n')
 
-    def mck(exe, env=None):
-        calls.append(exe)
-        if len(calls) == 1:
-            assert exe == 'rustup'
-            return None
-        return orig(exe, env=env)
+    ret = run_language(
+        tmp_path, rust, 'rustfmt',
+        version='1.87.0', file_args=(str(bad_rs),),
+    )
+    assert ret == (0, b'')
+    assert bad_rs.read_text() == 'fn main() {\n    println!("hi");\n}\n'
 
-    with mock.patch.object(parse_shebang, 'find_executable', side_effect=mck):
-        ret = run_language(tmp_path, rust, 'hello_world', version='1.56.0')
-    assert calls == ['rustup', 'rustup', 'cargo', 'hello_world']
-    assert ret == (0, b'Hello, world!\n')
-
-
-@pytest.mark.parametrize('version', (C.DEFAULT, '1.56.0'))
-def test_language_version_with_rustup(tmp_path, version):
-    assert parse_shebang.find_executable('rustup') is not None
-
-    _make_hello_world(tmp_path)
-
-    ret = run_language(tmp_path, rust, 'hello_world', version=version)
-    assert ret == (0, b'Hello, world!\n')
+    envdir = tmp_path.joinpath('rustenv-1.87.0')
+    assert envdir.joinpath('bin', win_exe('rustup')).is_file()
+    toolchains = list(envdir.joinpath('rustup', 'toolchains').iterdir())
+    assert len(toolchains) == 1, toolchains
+    assert toolchains[0].joinpath('bin', win_exe('rustfmt')).exists()
 
 
 @pytest.mark.parametrize('dep', ('cli:shellharden:4.2.0', 'cli:shellharden'))
