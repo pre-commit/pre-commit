@@ -247,7 +247,7 @@ def test_sub_something_unstaged(sub_staged, patch_dir):
     _test_sub_state(sub_staged, 'rev2', 'AM')
 
     with staged_files_only(patch_dir):
-        # This is different from others, we don't want to touch subs
+        # This is different from other cases; we don't want to touch submodules.
         _test_sub_state(sub_staged, 'rev2', 'AM')
 
     _test_sub_state(sub_staged, 'rev2', 'AM')
