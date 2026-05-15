@@ -13,6 +13,12 @@ from testing.util import cwd
 
 ACTUAL_GET_DEFAULT_VERSION = rust.get_default_version.__wrapped__
 
+def requires_locally_installed_cargo():
+    return pytest.mark.skipif(
+        parse_shebang.find_executable('cargo') is None,
+        reason = "Cargo is not installed in the local environment"
+    )
+
 
 @pytest.fixture
 def cmd_output_b_mck():
@@ -20,16 +26,19 @@ def cmd_output_b_mck():
         yield mck
 
 
+@requires_locally_installed_cargo()
 def test_sets_system_when_rust_is_available(cmd_output_b_mck):
     cmd_output_b_mck.return_value = (0, b'', b'')
     assert ACTUAL_GET_DEFAULT_VERSION() == 'system'
 
 
+@requires_locally_installed_cargo()
 def test_uses_default_when_rust_is_not_available(cmd_output_b_mck):
     cmd_output_b_mck.return_value = (127, b'', b'error: not found')
     assert ACTUAL_GET_DEFAULT_VERSION() == C.DEFAULT
 
 
+@requires_locally_installed_cargo()
 def test_selects_system_even_if_rust_toolchain_toml(tmp_path):
     toolchain_toml = '[toolchain]\nchannel = "wtf"\n'
     tmp_path.joinpath('rust-toolchain.toml').write_text(toolchain_toml)
@@ -84,6 +93,7 @@ def test_language_version_with_rustup(tmp_path, version):
     assert ret == (0, b'Hello, world!\n')
 
 
+@requires_locally_installed_cargo()
 @pytest.mark.parametrize('dep', ('cli:shellharden:4.2.0', 'cli:shellharden'))
 def test_rust_cli_additional_dependencies(tmp_path, dep):
     _make_local_repo(str(tmp_path))
@@ -102,6 +112,7 @@ def test_rust_cli_additional_dependencies(tmp_path, dep):
     assert ret == (0, b'echo "$hi"\n')
 
 
+@requires_locally_installed_cargo()
 def test_run_lib_additional_dependencies(tmp_path):
     _make_hello_world(tmp_path)
 
