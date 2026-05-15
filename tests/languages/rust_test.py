@@ -13,10 +13,11 @@ from testing.util import cwd
 
 ACTUAL_GET_DEFAULT_VERSION = rust.get_default_version.__wrapped__
 
+
 def requires_locally_installed_cargo():
     return pytest.mark.skipif(
         parse_shebang.find_executable('cargo') is None,
-        reason = "Cargo is not installed in the local environment"
+        reason='Cargo is not installed in the local environment',
     )
 
 
