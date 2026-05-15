@@ -20,10 +20,11 @@ def requires_locally_installed_cargo():
         reason='Cargo is not installed in the local environment',
     )
 
+
 def requires_locally_installed_rustup():
     return pytest.mark.skipif(
         parse_shebang.find_executable('rustup') is None,
-        reason = "Cargo is not installed in the local environment"
+        reason='Cargo is not installed in the local environment',
     )
 
 
@@ -88,6 +89,7 @@ def test_installs_rust_missing_rustup(tmp_path):
         ret = run_language(tmp_path, rust, 'hello_world', version='1.56.0')
     assert calls == ['rustup', 'rustup', 'cargo', 'hello_world']
     assert ret == (0, b'Hello, world!\n')
+
 
 @requires_locally_installed_rustup()
 @pytest.mark.parametrize('version', (C.DEFAULT, '1.56.0'))
