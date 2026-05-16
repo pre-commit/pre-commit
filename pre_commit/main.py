@@ -47,6 +47,13 @@ COMMANDS_NO_GIT = {
 }
 
 
+def _relpath(path: str) -> str:
+    try:
+        return os.path.relpath(path)
+    except ValueError:  # Windows paths on different drives.
+        return path
+
+
 def _add_config_option(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         '-c', '--config', default=C.CONFIG_FILE,
@@ -188,15 +195,13 @@ def _adjust_args_and_chdir(args: argparse.Namespace) -> None:
     toplevel = git.get_root()
     os.chdir(toplevel)
 
-    args.config = os.path.relpath(args.config)
+    args.config = _relpath(args.config)
     if args.command in {'run', 'try-repo'}:
-        args.files = [os.path.relpath(filename) for filename in args.files]
+        args.files = [_relpath(filename) for filename in args.files]
         if args.commit_msg_filename is not None:
-            args.commit_msg_filename = os.path.relpath(
-                args.commit_msg_filename,
-            )
+            args.commit_msg_filename = _relpath(args.commit_msg_filename)
     if args.command == 'try-repo' and os.path.exists(args.repo):
-        args.repo = os.path.relpath(args.repo)
+        args.repo = _relpath(args.repo)
 
 
 def main(argv: Sequence[str] | None = None) -> int:

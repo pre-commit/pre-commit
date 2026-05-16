@@ -78,6 +78,19 @@ def test_adjust_args_and_chdir_non_relative_config(in_git_dir):
         assert args.config == C.CONFIG_FILE
 
 
+@pytest.mark.skipif(os.name != 'nt', reason='windows feature')
+def test_adjust_args_and_chdir_config_on_different_drive(in_git_dir):
+    drive, _ = os.path.splitdrive(str(in_git_dir))
+    other_drive = 'Z:' if drive.upper() != 'Z:' else 'Y:'
+    config = other_drive + r'\cfg.yaml'
+
+    args = _args(config=config)
+    main._adjust_args_and_chdir(args)
+
+    assert os.getcwd() == in_git_dir
+    assert args.config == config
+
+
 def test_adjust_args_try_repo_repo_relative(in_git_dir):
     with in_git_dir.join('foo').ensure_dir().as_cwd():
         args = _args(command='try-repo', repo='../foo', files=[])
