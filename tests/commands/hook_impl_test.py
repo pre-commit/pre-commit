@@ -10,6 +10,7 @@ import pre_commit.constants as C
 from pre_commit import git
 from pre_commit.commands import hook_impl
 from pre_commit.envcontext import envcontext
+from pre_commit.util import CalledProcessError
 from pre_commit.util import cmd_output
 from pre_commit.util import make_executable
 from testing.fixtures import git_dir
@@ -342,6 +343,86 @@ def test_run_ns_pre_push_deleting_branch(push_example):
     with cwd(clone):
         args = ('origin', src)
         stdin = f'(delete) {hook_impl.Z40} refs/heads/b {src_head}'.encode()
+        ns = hook_impl._run_ns('pre-push', False, args, stdin)
+
+    assert ns is None
+
+
+def test_is_zero_oid_sha1():
+    assert hook_impl._is_zero_oid('0' * 40) is True
+
+
+def test_is_zero_oid_sha256():
+    assert hook_impl._is_zero_oid('0' * 64) is True
+
+
+@pytest.mark.parametrize(
+    'oid',
+    (
+        '',
+        '0' * 39,
+        '0' * 41,
+        '0' * 63,
+        '0' * 65,
+        '0' * 80,
+        '1' * 40,
+        '1' * 64,
+        '0' * 39 + '1',
+        'a' * 40,
+        'deadbeef' * 5,
+        'deadbeef' * 8,
+    ),
+)
+def test_is_zero_oid_rejects_non_zero(oid):
+    assert hook_impl._is_zero_oid(oid) is False
+
+
+@pytest.fixture
+def sha256_push_example(tempdir_factory):
+    src = tempdir_factory.get()
+    try:
+        cmd_output('git', 'init', '--object-format=sha256', '--quiet', src)
+    except CalledProcessError:
+        pytest.skip('git does not support --object-format=sha256')
+    git_commit(cwd=src)
+    src_head = git.head_rev(src)
+
+    clone = tempdir_factory.get()
+    cmd_output('git', 'clone', src, clone)
+    git_commit(cwd=clone)
+    clone_head = git.head_rev(clone)
+    return (src, src_head, clone, clone_head)
+
+
+def test_run_ns_pre_push_sha256_new_branch(sha256_push_example):
+    # regression test for #3664: the hardcoded 40-char Z40 sentinel did not
+    # match the 64-char zero oid emitted by git on sha256 repos, causing
+    # branch creation to fall through to a `git diff <real>..<64-zeros>`
+    # which produced `fatal: Invalid revision range`.
+    src, src_head, clone, clone_head = sha256_push_example
+    zero64 = '0' * 64
+    assert len(src_head) == 64
+
+    with cwd(clone):
+        args = ('origin', src)
+        stdin = f'HEAD {clone_head} refs/heads/b {zero64}\n'.encode()
+        ns = hook_impl._run_ns('pre-push', False, args, stdin)
+
+    assert ns is not None
+    assert ns.from_ref == src_head
+    assert ns.to_ref == clone_head
+
+
+def test_run_ns_pre_push_sha256_deleting_branch(sha256_push_example):
+    # regression test for #3664: `git push origin --delete <branch>` on a
+    # sha256 repo emits a 64-char zero oid for local_sha, which previously
+    # did not match Z40 and caused a CalledProcessError exit.
+    src, src_head, clone, _ = sha256_push_example
+    zero64 = '0' * 64
+
+    with cwd(clone):
+        args = ('origin', src)
+        stdin = f'(delete) {zero64} refs/heads/b {src_head}'.encode()
         ns = hook_impl._run_ns('pre-push', False, args, stdin)
 
     assert ns is None

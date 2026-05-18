@@ -14,6 +14,14 @@ from pre_commit.store import Store
 Z40 = '0' * 40
 
 
+def _is_zero_oid(oid: str) -> bool:
+    # git's pre-push protocol uses an all-zero object id to indicate
+    # branch creation (old) or deletion (new).  the length depends on the
+    # repository's object format: 40 for sha1 (default) and 64 for sha256
+    # (`git init --object-format=sha256`).
+    return len(oid) in (40, 64) and set(oid) == {'0'}
+
+
 def _run_legacy(
         hook_type: str,
         hook_dir: str | None,
@@ -128,9 +136,9 @@ def _pre_push_ns(
     for line in stdin.decode().splitlines():
         parts = line.rsplit(maxsplit=3)
         local_branch, local_sha, remote_branch, remote_sha = parts
-        if local_sha == Z40:
+        if _is_zero_oid(local_sha):
             continue
-        elif remote_sha != Z40 and _rev_exists(remote_sha):
+        elif not _is_zero_oid(remote_sha) and _rev_exists(remote_sha):
             return _ns(
                 'pre-push', color,
                 from_ref=remote_sha, to_ref=local_sha,
