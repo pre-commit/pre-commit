@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import concurrent.futures
+import logging
 import os.path
 import re
 import tempfile
@@ -23,6 +24,8 @@ from pre_commit.util import cmd_output
 from pre_commit.util import cmd_output_b
 from pre_commit.yaml import yaml_dump
 from pre_commit.yaml import yaml_load
+
+logger = logging.getLogger('pre_commit')
 
 
 class RevInfo(NamedTuple):
@@ -175,6 +178,14 @@ def autoupdate(
         repo for repo in load_config(config_file)['repos']
         if repo['repo'] not in {LOCAL, META}
     ]
+
+    missing_repos = set(repos) - {r['repo'] for r in config_repos}
+    if missing_repos:
+        logger.warning(
+            f'repos {", ".join(sorted(missing_repos))!r} were '
+            f'not found in {config_file}. this will return '
+            'an error in a future release.',
+        )
 
     rev_infos: list[RevInfo | None] = [None] * len(config_repos)
     jobs = jobs or xargs.cpu_count()  # 0 => number of cpus
