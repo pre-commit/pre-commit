@@ -175,6 +175,13 @@ def autoupdate(
         repo for repo in load_config(config_file)['repos']
         if repo['repo'] not in {LOCAL, META}
     ]
+    missing_repos = set(repos) - {r['repo'] for r in config_repos}
+    if missing_repos:
+        output.write_line(
+            f'repos ({", ".join(sorted(missing_repos))}) were '
+            f'not found in {config_file}',
+        )
+        return 1
 
     rev_infos: list[RevInfo | None] = [None] * len(config_repos)
     jobs = jobs or xargs.cpu_count()  # 0 => number of cpus
