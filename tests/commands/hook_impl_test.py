@@ -253,6 +253,14 @@ def test_run_ns_post_checkout():
     assert ns.checkout_type == 'c'
 
 
+def test_is_zero_oid():
+    assert hook_impl._is_zero_oid(hook_impl.Z40)
+    assert hook_impl._is_zero_oid('0' * 64)
+    assert not hook_impl._is_zero_oid('0' * 39)
+    assert not hook_impl._is_zero_oid('0' * 63)
+    assert not hook_impl._is_zero_oid('1'.zfill(40))
+
+
 @pytest.fixture
 def push_example(tempdir_factory):
     src = git_dir(tempdir_factory)
@@ -342,6 +350,17 @@ def test_run_ns_pre_push_deleting_branch(push_example):
     with cwd(clone):
         args = ('origin', src)
         stdin = f'(delete) {hook_impl.Z40} refs/heads/b {src_head}'.encode()
+        ns = hook_impl._run_ns('pre-push', False, args, stdin)
+
+    assert ns is None
+
+
+def test_run_ns_pre_push_deleting_branch_sha256(push_example):
+    src, src_head, clone, _ = push_example
+
+    with cwd(clone):
+        args = ('origin', src)
+        stdin = f'(delete) {"0" * 64} refs/heads/b {src_head}'.encode()
         ns = hook_impl._run_ns('pre-push', False, args, stdin)
 
     assert ns is None
