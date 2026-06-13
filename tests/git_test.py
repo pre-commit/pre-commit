@@ -225,6 +225,13 @@ def test_all_files_non_ascii(non_ascii_repo):
     assert ret == ['интервью']
 
 
+def test_all_files_deduplicates_in_merge_conflict(in_merge_conflict):
+    # git ls-files lists each unmerged path once per stage; #3706
+    ret = git.get_all_files()
+    assert ret == ['conflict_file']
+
+
+
 def test_staged_files_non_ascii(non_ascii_repo):
     non_ascii_repo.join('интервью').write('hi')
     cmd_output('git', 'add', '.')
