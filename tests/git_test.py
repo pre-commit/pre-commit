@@ -231,7 +231,6 @@ def test_all_files_deduplicates_in_merge_conflict(in_merge_conflict):
     assert ret == ['conflict_file']
 
 
-
 def test_staged_files_non_ascii(non_ascii_repo):
     non_ascii_repo.join('интервью').write('hi')
     cmd_output('git', 'add', '.')
