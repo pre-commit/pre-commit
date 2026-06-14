@@ -94,7 +94,7 @@ def install_environment(
 
         local_install_cmd = (
             'npm', 'install', '--include=dev', '--include=prod',
-            '--ignore-prepublish', '--no-progress', '--no-save',
+            '--no-progress', '--no-save',
         )
         lang_base.setup_cmd(prefix, local_install_cmd)
 
