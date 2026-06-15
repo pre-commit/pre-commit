@@ -77,9 +77,14 @@ def _add_run_options(parser: argparse.ArgumentParser) -> None:
         '--show-diff-on-failure', action='store_true',
         help='When hooks fail, run `git diff` directly afterward.',
     )
-    parser.add_argument(
+    fail_fast_group = parser.add_mutually_exclusive_group(required=False)
+    fail_fast_group.add_argument(
         '--fail-fast', action='store_true',
         help='Stop after the first failing hook.',
+    )
+    fail_fast_group.add_argument(
+        '--no-fail-fast', action='store_true',
+        help="Don't stop after the first failing hook.",
     )
     parser.add_argument(
         '--hook-stage',

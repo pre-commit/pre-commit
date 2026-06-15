@@ -1117,6 +1117,32 @@ def test_fail_fast_run_arg(cap_out, store, repo_with_failing_hook):
     assert printed.count(b'Failing hook') == 1
 
 
+def test_no_fail_fast_config_override(cap_out, store, repo_with_failing_hook):
+    with modify_config() as config:
+        config['fail_fast'] = True
+        config['repos'][0]['hooks'] *= 2
+    stage_a_file()
+
+    ret, printed = _do_run(
+        cap_out, store, repo_with_failing_hook, run_opts(no_fail_fast=True),
+    )
+    # it should run both hooks because of the no-fail-fast override
+    assert printed.count(b'Failing hook') == 2
+
+
+def test_no_fail_fast_hook_override(cap_out, store, repo_with_failing_hook):
+    with modify_config() as config:
+        config['repos'][0]['hooks'] *= 2
+        config['repos'][0]['hooks'][0]['fail_fast'] = True
+    stage_a_file()
+
+    ret, printed = _do_run(
+        cap_out, store, repo_with_failing_hook, run_opts(no_fail_fast=True),
+    )
+    # it should run both hooks because of the no-fail-fast override
+    assert printed.count(b'Failing hook') == 2
+
+
 def test_classifier_removes_dne():
     classifier = Classifier(('this_file_does_not_exist',))
     assert classifier.filenames == []

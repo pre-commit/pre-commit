@@ -384,3 +384,19 @@ def test_hook_impl_main_runs_hooks(cap_out, tempdir_factory, store):
 Block if "DO NOT COMMIT" is found....................(no files to check)Skipped
 '''
     assert cap_out.get() == expected
+
+
+def test_hook_impl_with_fail_fast(cap_out, tempdir_factory, store):
+    with cwd(git_dir(tempdir_factory)):
+        config = {'fail_fast': True, 'repos': [sample_local_config()]}
+        write_config('.', config)
+        ret = hook_impl.hook_impl(
+            store,
+            config=C.CONFIG_FILE,
+            color=False,
+            hook_type='pre-commit',
+            hook_dir='.git/hooks',
+            skip_on_missing_config=False,
+            args=(),
+        )
+    assert ret == 0

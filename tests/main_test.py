@@ -239,3 +239,8 @@ def test_hook_stage_migration(mock_store_dir):
     with mock.patch.object(main, 'run') as mck:
         main.main(('run', '--hook-stage', 'commit'))
     assert mck.call_args[0][2].hook_stage == 'pre-commit'
+
+
+def test_fail_fast_mutual_exclusion(mock_store_dir):
+    with pytest.raises(SystemExit):
+        main.main(('run', '--fail-fast', '--no-fail-fast'))

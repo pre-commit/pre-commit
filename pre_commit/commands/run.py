@@ -298,7 +298,10 @@ def _run_hooks(
             verbose=args.verbose, use_color=args.color,
         )
         retval |= current_retval
-        fail_fast = (config['fail_fast'] or hook.fail_fast or args.fail_fast)
+        fail_fast = (
+            (config['fail_fast'] or hook.fail_fast or args.fail_fast) and
+            not args.no_fail_fast
+        )
         if current_retval and fail_fast:
             break
     if retval and args.show_diff_on_failure and prior_diff:

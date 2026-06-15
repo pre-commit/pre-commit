@@ -41,6 +41,7 @@ def run_opts(
         verbose=False,
         hook=None,
         fail_fast=False,
+        no_fail_fast=False,
         remote_branch='',
         local_branch='',
         from_ref='',
@@ -60,6 +61,7 @@ def run_opts(
 ):
     # These are mutually exclusive
     assert not (all_files and files)
+    assert not (fail_fast and no_fail_fast)
     return auto_namedtuple(
         all_files=all_files,
         files=files,
@@ -67,6 +69,7 @@ def run_opts(
         verbose=verbose,
         hook=hook,
         fail_fast=fail_fast,
+        no_fail_fast=no_fail_fast,
         remote_branch=remote_branch,
         local_branch=local_branch,
         from_ref=from_ref,
