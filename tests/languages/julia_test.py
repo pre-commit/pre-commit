@@ -3,7 +3,9 @@ from __future__ import annotations
 import os
 from unittest import mock
 
+from pre_commit import constants as C
 from pre_commit.languages import julia
+from pre_commit.prefix import Prefix
 from testing.language_helpers import run_language
 from testing.util import cwd
 
@@ -40,6 +42,19 @@ def test_julia_hook_with_startup(tmp_path):
     depo_path_var = f'{depot_path}{os.pathsep}'
     with mock.patch.dict(os.environ, {'JULIA_DEPOT_PATH': depo_path_var}):
         test_julia_hook(tmp_path)
+
+
+def test_julia_hook_installs_into_env_local_depot(tmp_path):
+    code = """
+    using Example
+    println("Hello, world!")
+    """
+    _make_hook(tmp_path, code)
+
+    julia.install_environment(Prefix(str(tmp_path)), C.DEFAULT, ())
+
+    d = tmp_path.joinpath('juliaenv-default', 'depot', 'packages', 'Example')
+    assert d.is_dir()
 
 
 def test_julia_hook_manifest(tmp_path):
