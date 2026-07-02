@@ -139,6 +139,24 @@ def test_node_with_user_config_set(tmp_path):
         test_node_hook_system(tmp_path)
 
 
+def test_local_install_does_not_use_ignore_prepublish(tmp_path):
+    tmp_path.joinpath('package.json').write_text('{"name": "t"}')
+    prefix = Prefix(str(tmp_path))
+
+    with mock.patch.object(node, 'cmd_output_b'), mock.patch.object(
+            node.lang_base, 'setup_cmd',
+    ) as setup_cmd, mock.patch.object(
+            node, 'cmd_output', return_value=(0, 'package.tgz\n', ''),
+    ), mock.patch.object(node.os, 'remove'):
+        node.install_environment(prefix, 'system', ())
+
+    local_install_cmd = setup_cmd.call_args_list[0].args[1]
+    assert local_install_cmd == (
+        'npm', 'install', '--include=dev', '--include=prod',
+        '--no-progress', '--no-save',
+    )
+
+
 @pytest.mark.parametrize('version', (C.DEFAULT, '18.14.0'))
 def test_node_hook_versions(tmp_path, version):
     _make_hello_world(tmp_path)
