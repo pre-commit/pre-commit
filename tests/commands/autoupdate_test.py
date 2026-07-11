@@ -277,8 +277,31 @@ def test_autoupdate_out_of_date_repo_with_wrong_repo_name(
     )
     with open(C.CONFIG_FILE) as f:
         after = f.read()
-    assert ret == 0
+    assert ret == 1
     assert before == after
+
+
+def test_autoupdate_with_some_matched_some_unmatched_repos(
+        out_of_date, in_tmpdir,
+):
+    repo_name = f'file://{out_of_date.path}'
+    config = make_config_from_repo(
+        out_of_date.path, rev=out_of_date.original_rev, check=False,
+    )
+    write_config('.', config)
+
+    with open(C.CONFIG_FILE) as f:
+        before = f.read()
+    # 'dne' does not match any repo but repo_name does, so update proceeds
+    ret = autoupdate(
+        C.CONFIG_FILE, freeze=False, tags_only=False,
+        repos=(repo_name, 'dne'),
+    )
+    with open(C.CONFIG_FILE) as f:
+        after = f.read()
+    assert ret == 0
+    assert before != after
+    assert out_of_date.head_rev in after
 
 
 def test_does_not_reformat(tmpdir, out_of_date):

@@ -180,6 +180,15 @@ def autoupdate(
     jobs = jobs or xargs.cpu_count()  # 0 => number of cpus
     jobs = min(jobs, len(repos) or len(config_repos))  # max 1-per-thread
     jobs = max(jobs, 1)  # at least one thread
+
+    if repos:
+        config_repo_urls = {repo['repo'] for repo in config_repos}
+        unmatched = [repo for repo in repos if repo not in config_repo_urls]
+        for repo in unmatched:
+            output.write_line(f'[{repo}] not found in {config_file}')
+        if unmatched and not (set(repos) & config_repo_urls):
+            return 1
+
     with concurrent.futures.ThreadPoolExecutor(jobs) as exe:
         futures = [
             exe.submit(
