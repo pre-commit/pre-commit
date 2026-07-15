@@ -15,7 +15,9 @@ from pre_commit.languages import node
 from pre_commit.prefix import Prefix
 from pre_commit.store import _make_local_repo
 from pre_commit.util import cmd_output
+from pre_commit.util import cmd_output_b
 from testing.language_helpers import run_language
+from testing.util import git_commit
 from testing.util import xfailif_windows
 
 
@@ -40,6 +42,12 @@ def find_exe_mck():
         yield mck
 
 
+def _make_repo(r):
+    cmd_output_b('git', 'init', r)
+    cmd_output_b('git', 'add', '.', cwd=r)
+    git_commit(cwd=r)
+
+
 @pytest.mark.usefixtures('is_linux')
 def test_sets_system_when_node_and_npm_are_available(find_exe_mck):
     find_exe_mck.return_value = '/path/to/exe'
@@ -61,6 +69,7 @@ def test_sets_default_on_windows(find_exe_mck):
 @xfailif_windows  # pragma: win32 no cover
 def test_healthy_system_node(tmpdir):
     tmpdir.join('package.json').write('{"name": "t", "version": "1.0.0"}')
+    _make_repo(str(tmpdir))
 
     prefix = Prefix(str(tmpdir))
     node.install_environment(prefix, 'system', ())
@@ -75,6 +84,7 @@ def test_unhealthy_if_system_node_goes_missing(tmpdir):
 
     prefix_dir = tmpdir.join('prefix').ensure_dir()
     prefix_dir.join('package.json').write('{"name": "t", "version": "1.0.0"}')
+    _make_repo(str(prefix_dir))
 
     path = ('PATH', (str(bin_dir), os.pathsep, envcontext.Var('PATH')))
     with envcontext.envcontext((path,)):
@@ -101,6 +111,7 @@ def test_installs_without_links_outside_env(tmpdir):
             'dependencies': {'lodash': '*'},
         }),
     )
+    _make_repo(str(tmpdir))
 
     prefix = Prefix(str(tmpdir))
     node.install_environment(prefix, 'system', ())
@@ -124,6 +135,7 @@ def _make_hello_world(tmp_path):
         '#!/usr/bin/env node\n'
         'console.log("Hello World");\n',
     )
+    _make_repo(str(tmp_path))
 
 
 def test_node_hook_system(tmp_path):
