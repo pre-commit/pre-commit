@@ -176,6 +176,11 @@ def autoupdate(
         if repo['repo'] not in {LOCAL, META}
     ]
 
+    if repos:
+        config_repo_names = {repo['repo'] for repo in config_repos}
+        for repo in sorted(set(repos) - config_repo_names):
+            output.write_line(f"repo '{repo}' is not in the config")
+
     rev_infos: list[RevInfo | None] = [None] * len(config_repos)
     jobs = jobs or xargs.cpu_count()  # 0 => number of cpus
     jobs = min(jobs, len(repos) or len(config_repos))  # max 1-per-thread

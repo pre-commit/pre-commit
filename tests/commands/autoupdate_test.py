@@ -261,7 +261,7 @@ def test_autoupdate_out_of_date_repo_with_correct_repo_name(
 
 
 def test_autoupdate_out_of_date_repo_with_wrong_repo_name(
-        out_of_date, in_tmpdir,
+        out_of_date, in_tmpdir, cap_out,
 ):
     config = make_config_from_repo(
         out_of_date.path, rev=out_of_date.original_rev, check=False,
@@ -279,6 +279,29 @@ def test_autoupdate_out_of_date_repo_with_wrong_repo_name(
         after = f.read()
     assert ret == 0
     assert before == after
+    assert cap_out.get() == "repo 'dne' is not in the config\n"
+
+
+def test_autoupdate_out_of_date_repo_with_some_wrong_repo_names(
+        up_to_date, out_of_date, in_tmpdir, cap_out,
+):
+    stale_config = make_config_from_repo(
+        out_of_date.path, rev=out_of_date.original_rev, check=False,
+    )
+    up_to_date_config = make_config_from_repo(
+        up_to_date, rev=git.head_rev(up_to_date), check=False,
+    )
+    write_config('.', {'repos': [stale_config, up_to_date_config]})
+
+    ret = autoupdate(
+        C.CONFIG_FILE, freeze=False, tags_only=False,
+        repos=(f'file://{up_to_date}', 'dne', 'other'),
+    )
+    assert ret == 0
+    out = cap_out.get()
+    assert "repo 'dne' is not in the config\n" in out
+    assert "repo 'other' is not in the config\n" in out
+    assert f'[file://{up_to_date}] already up to date!' in out
 
 
 def test_does_not_reformat(tmpdir, out_of_date):
