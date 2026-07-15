@@ -51,6 +51,13 @@ def get_env_patch(target_dir: str, version: str) -> PatchesT:
         ('JULIA_LOAD_PATH', target_dir),
         # May be set, remove it to not interfer with LOAD_PATH
         ('JULIA_PROJECT', UNSET),
+        # Keep the package depot inside the hook environment so installed
+        # packages and precompile caches persist with the env instead of
+        # leaking into a shared depot. The trailing separator leaves an empty
+        # entry, which julia expands to its default depots. This keeps the
+        # bundled stdlib resources (and their precompile caches) available so
+        # hooks don't recompile from scratch on first run.
+        ('JULIA_DEPOT_PATH', os.path.join(target_dir, 'depot') + os.pathsep),
     )
 
 
