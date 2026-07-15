@@ -17,7 +17,6 @@ from pre_commit.languages.python import bin_dir
 from pre_commit.prefix import Prefix
 from pre_commit.util import cmd_output
 from pre_commit.util import cmd_output_b
-from pre_commit.util import rmtree
 
 ENVIRONMENT_DIR = 'node_env'
 run_hook = lang_base.basic_run_hook
@@ -77,7 +76,18 @@ def health_check(prefix: Prefix, version: str) -> str | None:
 def install_environment(
         prefix: Prefix, version: str, additional_dependencies: Sequence[str],
 ) -> None:
-    assert prefix.exists('package.json')
+    if prefix.exists('.git') and prefix.exists('package.json'):
+        # this requires a new-enough npm (2019ish?)
+        pkgs = (f'git+file://{prefix.prefix_dir}', *additional_dependencies)
+    else:
+        pkgs = (*additional_dependencies,)
+
+    if not pkgs:
+        raise AssertionError(
+            '`language: node` must have package.json or '
+            'additional_dependencies',
+        )
+
     envdir = lang_base.environment_dir(prefix, ENVIRONMENT_DIR, version)
 
     # https://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx?f=255&MSPPError=-2147217396#maxpath
@@ -89,22 +99,5 @@ def install_environment(
     cmd_output_b(*cmd)
 
     with in_env(prefix, version):
-        # https://npm.community/t/npm-install-g-git-vs-git-clone-cd-npm-install-g/5449
-        # install as if we installed from git
-
-        local_install_cmd = (
-            'npm', 'install', '--include=dev', '--include=prod',
-            '--ignore-prepublish', '--no-progress', '--no-save',
-        )
-        lang_base.setup_cmd(prefix, local_install_cmd)
-
-        _, pkg, _ = cmd_output('npm', 'pack', cwd=prefix.prefix_dir)
-        pkg = prefix.path(pkg.strip())
-
-        install = ('npm', 'install', '-g', pkg, *additional_dependencies)
+        install = ('npm', 'install', '--allow-git=root', '-g', *pkgs)
         lang_base.setup_cmd(prefix, install)
-
-        # clean these up after installation
-        if prefix.exists('node_modules'):  # pragma: win32 no cover
-            rmtree(prefix.path('node_modules'))
-        os.remove(pkg)
