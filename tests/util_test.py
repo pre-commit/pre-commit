@@ -13,8 +13,8 @@ from pre_commit.util import cmd_output
 from pre_commit.util import cmd_output_b
 from pre_commit.util import cmd_output_p
 from pre_commit.util import make_executable
-from pre_commit.util import rmtree
 from pre_commit.util import resource_text
+from pre_commit.util import rmtree
 
 
 def test_CalledProcessError_str():
