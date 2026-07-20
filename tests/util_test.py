@@ -3,6 +3,7 @@ from __future__ import annotations
 import os.path
 import stat
 import subprocess
+from unittest import mock
 
 import pytest
 
@@ -13,6 +14,7 @@ from pre_commit.util import cmd_output_b
 from pre_commit.util import cmd_output_p
 from pre_commit.util import make_executable
 from pre_commit.util import rmtree
+from pre_commit.util import resource_text
 
 
 def test_CalledProcessError_str():
@@ -106,3 +108,15 @@ def test_rmtree_read_only_directories(tmpdir):
     tmpdir.join('x/y/z').chmod(mode_no_w)
     tmpdir.join('x/y/z').chmod(mode_no_w)
     rmtree(str(tmpdir.join('x')))
+
+
+def test_resource_text_uses_utf8():
+    resource = mock.Mock()
+    resource.read_text.return_value = 'héllo'
+
+    with mock.patch('importlib.resources.files') as files:
+        files.return_value.joinpath.return_value = resource
+
+        assert resource_text('resource.txt') == 'héllo'
+
+    resource.read_text.assert_called_once_with(encoding='UTF-8')
