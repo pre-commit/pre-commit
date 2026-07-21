@@ -1,3 +1,24 @@
+4.6.1 - 2026-07-21
+==================
+
+### Fixes
+- Install `language: node` hooks via `git`.
+    - Fixes npm 12.x compatibility
+    - #3719 PR by @asottile.
+    - #3517 issue by @ojob.
+- Set `JULIA_DEPOT_PATH` for `language: julia`.
+    - #3711 PR by @damonbayer.
+    - pre-commit-ci/runner-image#335 issue by @damonbayer.
+- Produce error on mistyped `--repo` for `pre-commit autoupdate`.
+    - #3701 PR by @mxr.
+    - #3695 issue by @mxr.
+- Improve performance of commit existence check in `pre-push`.
+    - #3726 PR by @asottile.
+    - #3604 issue by @ptarjan.
+- Avoid duplicating conflicted filenames during `pre-commit run --all-files`.
+    - #3727 PR by @asottile.
+    - #3706 issue by @RomanValov.
+
 4.6.0 - 2026-04-21
 ==================
 
