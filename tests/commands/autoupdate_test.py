@@ -260,8 +260,8 @@ def test_autoupdate_out_of_date_repo_with_correct_repo_name(
     assert 'local' in after
 
 
-def test_autoupdate_out_of_date_repo_with_wrong_repo_name(
-        out_of_date, in_tmpdir,
+def test_autoupdate_missing_repo_name(
+        out_of_date, in_tmpdir, cap_out,
 ):
     config = make_config_from_repo(
         out_of_date.path, rev=out_of_date.original_rev, check=False,
@@ -270,15 +270,17 @@ def test_autoupdate_out_of_date_repo_with_wrong_repo_name(
 
     with open(C.CONFIG_FILE) as f:
         before = f.read()
-    # It will not update it, because the name doesn't match
     ret = autoupdate(
         C.CONFIG_FILE, freeze=False, tags_only=False,
-        repos=('dne',),
+        repos=('dne', 'foo'),
     )
     with open(C.CONFIG_FILE) as f:
         after = f.read()
-    assert ret == 0
+    assert ret == 1
     assert before == after
+    assert cap_out.get() == (
+        f"repos (dne, foo) were not found in {C.CONFIG_FILE}\n"
+    )
 
 
 def test_does_not_reformat(tmpdir, out_of_date):
