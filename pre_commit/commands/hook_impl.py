@@ -12,6 +12,14 @@ from pre_commit.parse_shebang import normalize_cmd
 from pre_commit.store import Store
 
 Z40 = '0' * 40
+# Git may emit a 40-char (SHA-1) or 64-char (SHA-256) all-zero OID for
+# "no object" on pre-push stdin (new branch / deletion). Treat either as zero.
+Z64 = '0' * 64
+
+
+def _is_zero_oid(sha: str) -> bool:
+    """Return True for the all-zero OID of any supported hash length."""
+    return bool(sha) and set(sha) <= {'0'}
 
 
 def _run_legacy(
@@ -128,9 +136,9 @@ def _pre_push_ns(
     for line in stdin.decode().splitlines():
         parts = line.rsplit(maxsplit=3)
         local_branch, local_sha, remote_branch, remote_sha = parts
-        if local_sha == Z40:
+        if _is_zero_oid(local_sha):
             continue
-        elif remote_sha != Z40 and _rev_exists(remote_sha):
+        elif not _is_zero_oid(remote_sha) and _rev_exists(remote_sha):
             return _ns(
                 'pre-push', color,
                 from_ref=remote_sha, to_ref=local_sha,
