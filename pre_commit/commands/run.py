@@ -88,6 +88,11 @@ class Classifier:
         types = frozenset(types)
         types_or = frozenset(types_or)
         exclude_types = frozenset(exclude_types)
+        if not types and not types_or and not exclude_types:
+            # We're not filtering on types, just return all filenames.
+            for filename in names:
+                yield filename
+            return
         for filename in names:
             tags = self._types_for_file(filename)
             if (
