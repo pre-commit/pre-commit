@@ -152,7 +152,7 @@ def intent_to_add_files() -> list[str]:
 
 
 def get_all_files() -> list[str]:
-    return zsplit(cmd_output('git', 'ls-files', '-z')[1])
+    return zsplit(cmd_output('git', 'ls-files', '-z', '--deduplicate')[1])
 
 
 def get_changed_files(old: str, new: str) -> list[str]:

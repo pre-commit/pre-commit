@@ -225,6 +225,17 @@ def test_all_files_non_ascii(non_ascii_repo):
     assert ret == ['интервью']
 
 
+def test_all_files_merge_conflict(in_merge_conflict):
+    ret = git.get_all_files()
+    assert sorted(ret) == sorted([
+        '.pre-commit-config.yaml',
+        'bar_only_file',
+        'conflict_file',
+        'foo_only_file',
+        'placeholder',
+    ])
+
+
 def test_staged_files_non_ascii(non_ascii_repo):
     non_ascii_repo.join('интервью').write('hi')
     cmd_output('git', 'add', '.')
