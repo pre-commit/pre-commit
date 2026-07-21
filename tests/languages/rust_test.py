@@ -44,13 +44,19 @@ def _make_hello_world(tmp_path):
     src_dir.joinpath('main.rs').write_text(
         'fn main() {\n'
         '    println!("Hello, world!");\n'
+        '    if cfg!(feature = "foo") {\n'
+        '        println!("With feature foo");\n'
+        '    }\n'
         '}\n',
     )
     tmp_path.joinpath('Cargo.toml').write_text(
         '[package]\n'
         'name = "hello_world"\n'
         'version = "0.1.0"\n'
-        'edition = "2021"\n',
+        'edition = "2021"\n'
+        '\n'
+        '[features]\n'
+        'foo = []\n',
     )
 
 
@@ -113,3 +119,12 @@ def test_run_lib_additional_dependencies(tmp_path):
     assert bin_dir.is_dir()
     assert not bin_dir.joinpath('shellharden').exists()
     assert not bin_dir.joinpath('shellharden.exe').exists()
+
+
+def test_run_features_additional_dependencies(tmp_path):
+    _make_hello_world(tmp_path)
+
+    deps = ('shellharden:4.2.0', 'git-version')
+    cargo_params = ('--', '--features', 'foo')
+    ret = run_language(tmp_path, rust, 'hello_world', deps=deps + cargo_params)
+    assert ret == (0, b'Hello, world!\nWith feature foo\n')
