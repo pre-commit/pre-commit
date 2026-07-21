@@ -1160,6 +1160,20 @@ def test_classifier_empty_types_or(tmpdir):
         assert tuple(for_file) == ('bar',)
 
 
+def test_classifier_no_types(tmpdir):
+    tmpdir.join('bar').ensure()
+    os.symlink(tmpdir.join('bar'), tmpdir.join('foo'))
+    with tmpdir.as_cwd():
+        classifier = Classifier(('foo', 'bar'))
+        res = classifier.by_types(
+            classifier.filenames,
+            types=[],
+            types_or=[],
+            exclude_types=[],
+        )
+        assert tuple(res) == ('foo', 'bar')
+
+
 @pytest.fixture
 def some_filenames():
     return (
