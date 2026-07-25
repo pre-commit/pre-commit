@@ -1,11 +1,41 @@
 from __future__ import annotations
 
+from unittest import mock
+
 import pytest
 
+import pre_commit.constants as C
+from pre_commit import lang_base
 from pre_commit.errors import FatalError
 from pre_commit.languages import haskell
+from pre_commit.prefix import Prefix
 from pre_commit.util import win_exe
 from testing.language_helpers import run_language
+
+
+def test_install_uses_env_local_store(tmp_path):
+    hook_dir = tmp_path.joinpath('hook dir')
+    hook_dir.mkdir()
+    hook_dir.joinpath('example.cabal').touch()
+    prefix = Prefix(str(hook_dir))
+    envdir = hook_dir.joinpath('hs_env-default')
+
+    with mock.patch.object(lang_base, 'setup_cmd') as setup_cmd:
+        haskell.install_environment(prefix, C.DEFAULT, ())
+
+    assert setup_cmd.call_args_list == [
+        mock.call(prefix, ('cabal', 'update')),
+        mock.call(
+            prefix,
+            (
+                'cabal', '--store-dir', str(envdir.joinpath('store')),
+                'install',
+                '--install-method', 'copy',
+                '--installdir', str(envdir.joinpath('bin')),
+                'example.cabal',
+            ),
+        ),
+    ]
 
 
 def test_run_example_executable(tmp_path):
@@ -41,6 +71,7 @@ main = putStrLn "Hello, Haskell!"
 def test_run_dep(tmp_path):
     result = run_language(tmp_path, haskell, 'hello', deps=['hello'])
     assert result == (0, b'Hello, World!\n')
+    assert tmp_path.joinpath('hs_env-default', 'store').is_dir()
 
 
 def test_run_empty(tmp_path):

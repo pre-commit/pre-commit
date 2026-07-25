@@ -43,12 +43,13 @@ def install_environment(
         raise FatalError('Expected .cabal files or additional_dependencies')
 
     bindir = os.path.join(envdir, 'bin')
+    storedir = os.path.join(envdir, 'store')
     os.makedirs(bindir, exist_ok=True)
     lang_base.setup_cmd(prefix, ('cabal', 'update'))
     lang_base.setup_cmd(
         prefix,
         (
-            'cabal', 'install',
+            'cabal', '--store-dir', storedir, 'install',
             '--install-method', 'copy',
             '--installdir', bindir,
             *pkgs,
