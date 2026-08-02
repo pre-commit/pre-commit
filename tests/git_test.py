@@ -302,3 +302,10 @@ def test_no_git_env():
 def test_init_repo_no_hooks(tmpdir):
     git.init_repo(str(tmpdir), remote='dne')
     assert not tmpdir.join('.git/hooks').exists()
+
+
+def test_get_best_candidate_tag(in_git_dir):
+    git_commit()
+    cmd_output('git', 'tag', 'v1')
+    cmd_output('git', 'tag', 'v1.0.1')
+    assert git.get_best_candidate_tag('v1', in_git_dir) == 'v1.0.1'
