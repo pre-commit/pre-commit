@@ -308,4 +308,12 @@ def test_get_best_candidate_tag(in_git_dir):
     git_commit()
     cmd_output('git', 'tag', 'v1')
     cmd_output('git', 'tag', 'v1.0.1')
+    commit = cmd_output(
+        'git', 'rev-list', '-n', '1', 'v1', cwd=in_git_dir,
+    )[1].strip()
+    tags = cmd_output(
+        'git', *git.NO_FS_MONITOR, 'tag',
+        '--points-at', commit, cwd=in_git_dir,
+    )[1].splitlines()
+    assert tags == ['v1', 'v1.0.1']
     assert git.get_best_candidate_tag('v1', in_git_dir) == 'v1.0.1'
