@@ -236,8 +236,11 @@ def get_best_candidate_tag(rev: str, git_repo: str) -> str:
     Multiple tags can exist on a SHA. Sometimes a moving tag is attached
     to a version tag. Try to pick the tag that looks like a version.
     """
+    commit = cmd_output(
+        'git', 'rev-list', '-n', '1', rev, cwd=git_repo,
+    )[1].strip()
     tags = cmd_output(
-        'git', *NO_FS_MONITOR, 'tag', '--points-at', rev, cwd=git_repo,
+        'git', *NO_FS_MONITOR, 'tag', '--points-at', commit, cwd=git_repo,
     )[1].splitlines()
     for tag in tags:
         if '.' in tag:

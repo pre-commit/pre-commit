@@ -50,6 +50,13 @@ def tagged(out_of_date):
 
 
 @pytest.fixture
+def multiple_tagged(out_of_date):
+    cmd_output('git', 'tag', 'v1', cwd=out_of_date.path)
+    cmd_output('git', 'tag', 'v1.2.3', cwd=out_of_date.path)
+    yield out_of_date
+
+
+@pytest.fixture
 def hook_disappearing(tempdir_factory):
     path = make_repo(tempdir_factory, 'python_hooks_repo')
     original_rev = git.head_rev(path)
@@ -97,6 +104,17 @@ def test_rev_info_update_tags_even_if_not_tags_only(tagged):
 def test_rev_info_update_tags_only_does_not_pick_tip(tagged):
     git_commit(cwd=tagged.path)
     config = make_config_from_repo(tagged.path, rev=tagged.original_rev)
+    info = RevInfo.from_config(config)
+    new_info = info.update(tags_only=True, freeze=False)
+    assert new_info.rev == 'v1.2.3'
+
+
+def test_rev_info_update_tags_prefers_semver_tag(multiple_tagged):
+    git_commit(cwd=multiple_tagged.path)
+    config = make_config_from_repo(
+        multiple_tagged.path,
+        rev=multiple_tagged.original_rev,
+    )
     info = RevInfo.from_config(config)
     new_info = info.update(tags_only=True, freeze=False)
     assert new_info.rev == 'v1.2.3'
