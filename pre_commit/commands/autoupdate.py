@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import concurrent.futures
 import os.path
 import re
 import tempfile
@@ -8,9 +7,11 @@ from collections.abc import Sequence
 from typing import Any
 from typing import NamedTuple
 
+from tqdm import tqdm
+from tqdm.contrib.concurrent import thread_map
+
 import pre_commit.constants as C
 from pre_commit import git
-from pre_commit import output
 from pre_commit import xargs
 from pre_commit.clientlib import InvalidManifestError
 from pre_commit.clientlib import load_config
@@ -100,19 +101,6 @@ def _check_hooks_still_exist_at_rev(
         )
 
 
-def _update_one(
-        i: int,
-        repo: dict[str, Any],
-        *,
-        tags_only: bool,
-        freeze: bool,
-) -> tuple[int, RevInfo, RevInfo]:
-    old = RevInfo.from_config(repo)
-    new = old.update(tags_only=tags_only, freeze=freeze)
-    _check_hooks_still_exist_at_rev(repo, new)
-    return i, old, new
-
-
 REV_LINE_RE = re.compile(r'^(\s+)rev:(\s*)([\'"]?)([^\s#]+)(.*)(\r?\n)$')
 
 
@@ -168,55 +156,45 @@ def autoupdate(
 ) -> int:
     """Auto-update the pre-commit config to the latest versions of repos."""
     migrate_config(config_file, quiet=True)
-    changed = False
-    retv = 0
+    changed_retv = [False, 0]
 
     config_repos = [
         repo for repo in load_config(config_file)['repos']
         if repo['repo'] not in {LOCAL, META}
     ]
-    missing_repos = set(repos) - {r['repo'] for r in config_repos}
-    if missing_repos:
-        output.write_line(
-            f'repos ({", ".join(sorted(missing_repos))}) were '
-            f'not found in {config_file}',
-        )
-        return 1
 
     rev_infos: list[RevInfo | None] = [None] * len(config_repos)
     jobs = jobs or xargs.cpu_count()  # 0 => number of cpus
     jobs = min(jobs, len(repos) or len(config_repos))  # max 1-per-thread
     jobs = max(jobs, 1)  # at least one thread
-    with concurrent.futures.ThreadPoolExecutor(jobs) as exe:
-        futures = [
-            exe.submit(
-                _update_one,
-                i, repo, tags_only=tags_only, freeze=freeze,
-            )
-            for i, repo in enumerate(config_repos)
-            if not repos or repo['repo'] in repos
-        ]
-        for future in concurrent.futures.as_completed(futures):
-            try:
-                i, old, new = future.result()
-            except RepositoryCannotBeUpdatedError as e:
-                output.write_line(str(e))
-                retv = 1
-            else:
-                if new.rev != old.rev:
-                    changed = True
-                    if new.frozen:
-                        new_s = f'{new.frozen} (frozen)'
-                    else:
-                        new_s = new.rev
-                    msg = f'updating {old.rev} -> {new_s}'
-                    rev_infos[i] = new
+
+    def _update_one(i: int, repo: dict[str, Any]) -> None:
+        try:
+            old = RevInfo.from_config(repo)
+            new = old.update(tags_only=tags_only, freeze=freeze)
+            _check_hooks_still_exist_at_rev(repo, new)
+        except RepositoryCannotBeUpdatedError as e:
+            tqdm.write(str(e))
+            changed_retv[1] = 1
+        else:
+            if new.rev != old.rev:
+                changed_retv[0] = True
+                if new.frozen:
+                    new_s = f'{new.frozen} (frozen)'
                 else:
-                    msg = 'already up to date!'
+                    new_s = new.rev
+                msg = f'updating {old.rev} -> {new_s}'
+                rev_infos[i] = new
+            else:
+                msg = 'already up to date!'
+            tqdm.write(f'[{old.repo}] {msg}')
 
-                output.write_line(f'[{old.repo}] {msg}')
-
-    if changed:
+    list(
+        thread_map(
+            _update_one, range(len(config_repos)), config_repos,
+            unit='repo', desc='Updating', leave=False, max_workers=jobs,
+        ),
+    )
+    if changed_retv[0]:
         _write_new_config(config_file, rev_infos)
-
-    return retv
+    return changed_retv[1]
