@@ -247,11 +247,7 @@ def test_autoupdate_out_of_date_repo_with_correct_repo_name(
 
     with open(C.CONFIG_FILE) as f:
         before = f.read()
-    repo_name = f'file://{out_of_date.path}'
-    ret = autoupdate(
-        C.CONFIG_FILE, freeze=False, tags_only=False,
-        repos=(repo_name,),
-    )
+    ret = autoupdate(C.CONFIG_FILE, freeze=False, tags_only=False)
     with open(C.CONFIG_FILE) as f:
         after = f.read()
     assert ret == 0
@@ -270,10 +266,7 @@ def test_autoupdate_missing_repo_name(
 
     with open(C.CONFIG_FILE) as f:
         before = f.read()
-    ret = autoupdate(
-        C.CONFIG_FILE, freeze=False, tags_only=False,
-        repos=('dne', 'foo'),
-    )
+    ret = autoupdate(C.CONFIG_FILE, freeze=False, tags_only=False)
     with open(C.CONFIG_FILE) as f:
         after = f.read()
     assert ret == 1

@@ -3,7 +3,6 @@ from __future__ import annotations
 import os.path
 import re
 import tempfile
-from collections.abc import Sequence
 from typing import Any
 from typing import NamedTuple
 
@@ -12,7 +11,6 @@ from tqdm.contrib.concurrent import thread_map
 
 import pre_commit.constants as C
 from pre_commit import git
-from pre_commit import xargs
 from pre_commit.clientlib import InvalidManifestError
 from pre_commit.clientlib import load_config
 from pre_commit.clientlib import load_manifest
@@ -151,8 +149,7 @@ def autoupdate(
         config_file: str,
         tags_only: bool,
         freeze: bool,
-        repos: Sequence[str] = (),
-        jobs: int = 1,
+        jobs: int | None = None,
 ) -> int:
     """Auto-update the pre-commit config to the latest versions of repos."""
     migrate_config(config_file, quiet=True)
@@ -164,9 +161,6 @@ def autoupdate(
     ]
 
     rev_infos: list[RevInfo | None] = [None] * len(config_repos)
-    jobs = jobs or xargs.cpu_count()  # 0 => number of cpus
-    jobs = min(jobs, len(repos) or len(config_repos))  # max 1-per-thread
-    jobs = max(jobs, 1)  # at least one thread
 
     def _update_one(i: int, repo: dict[str, Any]) -> None:
         try:

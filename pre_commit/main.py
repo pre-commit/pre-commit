@@ -238,8 +238,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         help='Only update this repository -- may be specified multiple times.',
     )
     autoupdate_parser.add_argument(
-        '-j', '--jobs', type=int, default=1,
-        help='Number of threads to use.  (default %(default)s).',
+        '-j', '--jobs', type=int,
+        help='Number of threads to use.  (default: automatic).',
     )
 
     _add_cmd('clean', help='Clean out pre-commit files.')
@@ -388,7 +388,6 @@ def main(argv: Sequence[str] | None = None) -> int:
                 args.config,
                 tags_only=not args.bleeding_edge,
                 freeze=args.freeze,
-                repos=args.repos,
                 jobs=args.jobs,
             )
         elif args.command == 'clean':
