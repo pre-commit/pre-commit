@@ -4,6 +4,7 @@ from pre_commit.lang_base import Language
 from pre_commit.languages import conda
 from pre_commit.languages import coursier
 from pre_commit.languages import dart
+from pre_commit.languages import deno
 from pre_commit.languages import docker
 from pre_commit.languages import docker_image
 from pre_commit.languages import dotnet
@@ -28,6 +29,7 @@ languages: dict[str, Language] = {
     'conda': conda,
     'coursier': coursier,
     'dart': dart,
+    'deno': deno,
     'docker': docker,
     'docker_image': docker_image,
     'dotnet': dotnet,
