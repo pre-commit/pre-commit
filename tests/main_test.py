@@ -89,6 +89,20 @@ def test_adjust_args_try_repo_repo_relative(in_git_dir):
         assert args.repo == 'foo'
 
 
+def test_relpath_falls_back_on_cross_drive_valueerror():
+    # On Windows, os.path.relpath raises ValueError when path and cwd are on
+    # different drives.  _relpath must return the original path unchanged.
+    abs_path = 'C:\\configs\\pre-commit-config.yaml'
+    with mock.patch('os.path.relpath', side_effect=ValueError('different drives')):
+        assert main._relpath(abs_path) == abs_path
+
+
+def test_relpath_returns_relative_path_on_same_drive():
+    # Normal case: os.path.relpath succeeds and the result is returned.
+    with mock.patch('os.path.relpath', return_value=os.path.join('foo', 'bar')):
+        assert main._relpath('/any/path') == os.path.join('foo', 'bar')
+
+
 FNS = (
     'autoupdate', 'clean', 'gc', 'install', 'install_hooks',
     'migrate_config', 'run', 'sample_config', 'uninstall',
