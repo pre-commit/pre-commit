@@ -99,5 +99,8 @@ def install_environment(
     cmd_output_b(*cmd)
 
     with in_env(prefix, version):
-        install = ('npm', 'install', '--allow-git=root', '-g', *pkgs)
+        install = (
+            'npm', 'install', '--allow-git=root', '--install-links', '-g',
+            *pkgs,
+        )
         lang_base.setup_cmd(prefix, install)
