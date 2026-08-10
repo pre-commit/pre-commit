@@ -188,7 +188,13 @@ def _adjust_args_and_chdir(args: argparse.Namespace) -> None:
     toplevel = git.get_root()
     os.chdir(toplevel)
 
-    args.config = os.path.relpath(args.config)
+    try:
+        args.config = os.path.relpath(args.config)
+    except ValueError:
+        # on windows, relpath raises ValueError when `args.config` and the
+        # current working directory are on different drives / mounts --
+        # fall back to the (already absolute) path in that case
+        pass
     if args.command in {'run', 'try-repo'}:
         args.files = [os.path.relpath(filename) for filename in args.files]
         if args.commit_msg_filename is not None:

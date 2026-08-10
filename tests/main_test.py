@@ -37,6 +37,29 @@ def test_adjust_args_and_chdir_noop(in_git_dir):
     assert args.files == ['f1', 'f2']
 
 
+def test_adjust_args_and_chdir_cross_drive_config(in_git_dir):
+    # on windows, `os.path.relpath` raises `ValueError` when the two
+    # paths are on different drives/mounts (e.g. config on `C:`, repo on
+    # `D:`) -- simulate that here so the test doesn't require an actual
+    # second drive to exist
+    in_git_dir.join(C.CONFIG_FILE).ensure()
+    args = _args(command='run', files=[])
+    abs_config = os.path.abspath(args.config)
+
+    real_relpath = os.path.relpath
+
+    def relpath(path, *args, **kwargs):
+        if path == abs_config:
+            raise ValueError("path is on mount 'C:', start on mount 'D:'")
+        return real_relpath(path, *args, **kwargs)
+
+    with mock.patch.object(os.path, 'relpath', side_effect=relpath):
+        main._adjust_args_and_chdir(args)
+
+    assert os.getcwd() == in_git_dir
+    assert args.config == abs_config
+
+
 def test_adjust_args_and_chdir_relative_things(in_git_dir):
     in_git_dir.join('foo/cfg.yaml').ensure()
     with in_git_dir.join('foo').as_cwd():
