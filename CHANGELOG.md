@@ -1,3 +1,13 @@
+4.6.2 - 2026-08-10
+==================
+
+### Fixes
+- Fix `language: node` hooks that contain `"scripts": {"build": ...}` with
+  npm 11.x.
+    - Regressed in 4.6.1.
+    - #3737 issue by @mheiges.
+    - #3743 PR by @asottile.
+
 4.6.1 - 2026-07-21
 ==================
 
