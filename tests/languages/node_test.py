@@ -158,6 +158,21 @@ def test_node_hook_versions(tmp_path, version):
     assert ret == (0, b'Hello World\n')
 
 
+def test_npm_install_succeeds_with_build(tmp_path):
+    _make_hello_world(tmp_path)
+
+    with open(tmp_path.joinpath('package.json')) as f:
+        contents = json.load(f)
+    contents['scripts'] = {'build': 'echo hello hello'}
+    with open(tmp_path.joinpath('package.json'), 'w') as f:
+        json.dump(contents, f)
+    _make_repo(tmp_path)
+
+    # node version chosen to be npm 11.19.0 with this particular bug
+    ret = run_language(tmp_path, node, 'node-hello', version='26.7.0')
+    assert ret == (0, b'Hello World\n')
+
+
 def test_node_additional_deps(tmp_path):
     _make_local_repo(str(tmp_path))
     ret, out = run_language(tmp_path, node, 'npm ls -g', deps=('lodash',))
