@@ -103,12 +103,16 @@ def test_installs_without_links_outside_env(tmpdir):
         '#!/usr/bin/env node\n'
         '_ = require("lodash"); console.log("success!")\n',
     )
+    tmpdir.join('packages/bar/package.json').ensure().write(
+        json.dumps({'name': 'bar', 'version': '0.0.1'}),
+    )
     tmpdir.join('package.json').write(
         json.dumps({
             'name': 'foo',
             'version': '0.0.1',
             'bin': {'foo': './bin/main.js'},
             'dependencies': {'lodash': '*'},
+            'workspaces': ['packages/*'],
         }),
     )
     _make_repo(str(tmpdir))
