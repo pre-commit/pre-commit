@@ -60,6 +60,53 @@ def test_adjust_args_and_chdir_cross_drive_config(in_git_dir):
     assert args.config == abs_config
 
 
+def test_adjust_args_and_chdir_cross_drive_files(in_git_dir):
+    # `args.files` and `args.commit_msg_filename` go through the same
+    # `os.path.relpath` call and share the same cross-drive failure mode
+    # as `args.config` -- make sure they fall back to the absolute path
+    # too (e.g. `pre-commit run --files <path-on-other-drive>`)
+    f1 = in_git_dir.join('f1').ensure()
+    args = _args(
+        command='run',
+        files=[str(f1)],
+        commit_msg_filename=str(f1),
+    )
+    abs_f1 = os.path.abspath(str(f1))
+
+    real_relpath = os.path.relpath
+
+    def relpath(path, *args, **kwargs):
+        if path == abs_f1:
+            raise ValueError("path is on mount 'C:', start on mount 'D:'")
+        return real_relpath(path, *args, **kwargs)
+
+    with mock.patch.object(os.path, 'relpath', side_effect=relpath):
+        main._adjust_args_and_chdir(args)
+
+    assert args.files == [abs_f1]
+    assert args.commit_msg_filename == abs_f1
+
+
+def test_adjust_args_try_repo_cross_drive_repo(in_git_dir):
+    # `args.repo` shares the same cross-drive failure mode too (e.g.
+    # `pre-commit try-repo` with a repo on another drive)
+    with in_git_dir.join('foo').ensure_dir().as_cwd():
+        args = _args(command='try-repo', repo='../foo', files=[])
+        abs_repo = os.path.abspath(args.repo)
+
+        real_relpath = os.path.relpath
+
+        def relpath(path, *args, **kwargs):
+            if path == abs_repo:
+                raise ValueError("path is on mount 'C:', start on mount 'D:'")
+            return real_relpath(path, *args, **kwargs)
+
+        with mock.patch.object(os.path, 'relpath', side_effect=relpath):
+            main._adjust_args_and_chdir(args)
+
+        assert args.repo == abs_repo
+
+
 def test_adjust_args_and_chdir_relative_things(in_git_dir):
     in_git_dir.join('foo/cfg.yaml').ensure()
     with in_git_dir.join('foo').as_cwd():
