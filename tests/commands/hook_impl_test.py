@@ -18,6 +18,8 @@ from testing.fixtures import write_config
 from testing.util import cwd
 from testing.util import git_commit
 
+ZERO_OID = '0' * 40
+
 
 def test_validate_config_file_exists(tmpdir):
     cfg = tmpdir.join(C.CONFIG_FILE).ensure()
@@ -284,12 +286,14 @@ def test_run_ns_pre_push_updating_branch(push_example):
     assert ns.all_files is False
 
 
-def test_run_ns_pre_push_new_branch(push_example):
+@pytest.mark.parametrize('zero_oid_length', (40, 64))
+def test_run_ns_pre_push_new_branch(push_example, zero_oid_length):
     src, src_head, clone, clone_head = push_example
 
     with cwd(clone):
         args = ('origin', src)
-        stdin = f'HEAD {clone_head} refs/heads/b {hook_impl.Z40}\n'.encode()
+        zero_oid = '0' * zero_oid_length
+        stdin = f'HEAD {clone_head} refs/heads/b {zero_oid}\n'.encode()
         ns = hook_impl._run_ns('pre-push', False, args, stdin)
 
     assert ns is not None
@@ -302,7 +306,7 @@ def test_run_ns_pre_push_new_branch_existing_rev(push_example):
 
     with cwd(clone):
         args = ('origin', src)
-        stdin = f'HEAD {src_head} refs/heads/b2 {hook_impl.Z40}\n'.encode()
+        stdin = f'HEAD {src_head} refs/heads/b2 {ZERO_OID}\n'.encode()
         ns = hook_impl._run_ns('pre-push', False, args, stdin)
 
     assert ns is None
@@ -313,7 +317,7 @@ def test_run_ns_pre_push_ref_with_whitespace(push_example):
 
     with cwd(clone):
         args = ('origin', src)
-        line = f'HEAD^{{/ }} {src_head} refs/heads/b2 {hook_impl.Z40}\n'
+        line = f'HEAD^{{/ }} {src_head} refs/heads/b2 {ZERO_OID}\n'
         stdin = line.encode()
         ns = hook_impl._run_ns('pre-push', False, args, stdin)
 
@@ -329,19 +333,21 @@ def test_pushing_orphan_branch(push_example):
 
     with cwd(clone):
         args = ('origin', src)
-        stdin = f'HEAD {clone_rev} refs/heads/b2 {hook_impl.Z40}\n'.encode()
+        stdin = f'HEAD {clone_rev} refs/heads/b2 {ZERO_OID}\n'.encode()
         ns = hook_impl._run_ns('pre-push', False, args, stdin)
 
     assert ns is not None
     assert ns.all_files is True
 
 
-def test_run_ns_pre_push_deleting_branch(push_example):
+@pytest.mark.parametrize('zero_oid_length', (40, 64))
+def test_run_ns_pre_push_deleting_branch(push_example, zero_oid_length):
     src, src_head, clone, _ = push_example
 
     with cwd(clone):
         args = ('origin', src)
-        stdin = f'(delete) {hook_impl.Z40} refs/heads/b {src_head}'.encode()
+        zero_oid = '0' * zero_oid_length
+        stdin = f'(delete) {zero_oid} refs/heads/b {src_head}'.encode()
         ns = hook_impl._run_ns('pre-push', False, args, stdin)
 
     assert ns is None
@@ -350,7 +356,7 @@ def test_run_ns_pre_push_deleting_branch(push_example):
 def test_hook_impl_main_noop_pre_push(cap_out, store, push_example):
     src, src_head, clone, _ = push_example
 
-    stdin = f'(delete) {hook_impl.Z40} refs/heads/b {src_head}'.encode()
+    stdin = f'(delete) {ZERO_OID} refs/heads/b {src_head}'.encode()
     with mock.patch.object(sys.stdin.buffer, 'read', return_value=stdin):
         with cwd(clone):
             write_config('.', sample_local_config())
