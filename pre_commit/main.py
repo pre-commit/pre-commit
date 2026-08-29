@@ -188,7 +188,12 @@ def _adjust_args_and_chdir(args: argparse.Namespace) -> None:
     toplevel = git.get_root()
     os.chdir(toplevel)
 
-    args.config = os.path.relpath(args.config)
+    try:
+        args.config = os.path.relpath(args.config)
+    except ValueError:
+        # A config file on a different drive cannot be made relative to the
+        # repository. Keep the absolute path so it remains usable.
+        pass
     if args.command in {'run', 'try-repo'}:
         args.files = [os.path.relpath(filename) for filename in args.files]
         if args.commit_msg_filename is not None:

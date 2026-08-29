@@ -78,6 +78,15 @@ def test_adjust_args_and_chdir_non_relative_config(in_git_dir):
         assert args.config == C.CONFIG_FILE
 
 
+def test_adjust_args_and_chdir_config_on_different_drive(in_git_dir):
+    args = _args(config=r'C:\config\.pre-commit-config.yaml')
+
+    with mock.patch.object(main.os.path, 'relpath', side_effect=ValueError):
+        main._adjust_args_and_chdir(args)
+
+    assert args.config == r'C:\config\.pre-commit-config.yaml'
+
+
 def test_adjust_args_try_repo_repo_relative(in_git_dir):
     with in_git_dir.join('foo').ensure_dir().as_cwd():
         args = _args(command='try-repo', repo='../foo', files=[])
