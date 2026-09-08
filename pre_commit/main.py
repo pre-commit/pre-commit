@@ -47,6 +47,13 @@ COMMANDS_NO_GIT = {
 }
 
 
+def _nonnegative_int(s: str) -> int:
+    ret = int(s)
+    if ret < 0:
+        raise argparse.ArgumentTypeError('expected a non-negative integer')
+    return ret
+
+
 def _add_config_option(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         '-c', '--config', default=C.CONFIG_FILE,
@@ -244,7 +251,14 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     _add_cmd('clean', help='Clean out pre-commit files.')
 
-    _add_cmd('gc', help='Clean unused cached repos.')
+    gc_parser = _add_cmd('gc', help='Clean unused cached repos.')
+    gc_parser.add_argument(
+        '--keep', type=_nonnegative_int, default=0, metavar='N',
+        help=(
+            'Keep up to N recently used revisions of each repo.  '
+            '(default %(default)s).'
+        ),
+    )
 
     hazmat_parser = _add_cmd(
         'hazmat', help='Composable tools for rare use in hook `entry`.',
@@ -394,7 +408,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         elif args.command == 'clean':
             return clean(store)
         elif args.command == 'gc':
-            return gc(store)
+            return gc(store, args.keep)
         elif args.command == 'hazmat':
             return hazmat.impl(args)
         elif args.command == 'hook-impl':

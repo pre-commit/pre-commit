@@ -158,6 +158,17 @@ def test_all_cmds(command, mock_commands, mock_store_dir):
     assert_only_one_mock_called(mock_commands)
 
 
+def test_gc_keep_must_be_nonnegative(mock_commands):
+    with pytest.raises(SystemExit):
+        main.main(('gc', '--keep', '-1'))
+
+
+def test_gc_keep(mock_commands, mock_store_dir):
+    main.main(('gc', '--keep', '1'))
+
+    assert mock_commands.gc.call_args.args[1] == 1
+
+
 def test_hazmat(mock_store_dir):
     with mock.patch.object(hazmat, 'impl') as mck:
         main.main(('hazmat', 'cd', 'subdir', '--', 'cmd', '--', 'f1', 'f2'))

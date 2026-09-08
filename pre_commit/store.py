@@ -96,6 +96,7 @@ class Store:
                     ');',
                 )
                 self._create_configs_table(db)
+                self._create_repos_used_table(db)
 
             # Atomic file move
             os.replace(tmpfile, self.db_path)
@@ -219,6 +220,16 @@ class Store:
             'CREATE TABLE IF NOT EXISTS configs ('
             '   path TEXT NOT NULL,'
             '   PRIMARY KEY (path)'
+            ');',
+        )
+
+    def _create_repos_used_table(self, db: sqlite3.Connection) -> None:
+        db.executescript(
+            'CREATE TABLE IF NOT EXISTS repos_used ('
+            '   repo TEXT NOT NULL,'
+            '   ref TEXT NOT NULL,'
+            '   gc_gen INTEGER NOT NULL,'
+            '   PRIMARY KEY (repo, ref)'
             ');',
         )
 
