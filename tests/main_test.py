@@ -88,11 +88,12 @@ def test_adjust_args_and_chdir_config_on_different_drive(in_git_dir):
             raise ValueError("path is on mount 'C:', start on mount 'D:'")
         return real_relpath(path, start)
 
-    args = _args(config=config)
+    args = _args(command='run', config=config, files=['f1'])
     with mock.patch.object(os.path, 'relpath', side_effect=relpath):
         main._adjust_args_and_chdir(args)
 
     assert args.config == config
+    assert args.files == ['f1']
 
 
 def test_adjust_args_try_repo_repo_relative(in_git_dir):
