@@ -384,3 +384,10 @@ def test_hook_impl_main_runs_hooks(cap_out, tempdir_factory, store):
 Block if "DO NOT COMMIT" is found....................(no files to check)Skipped
 '''
     assert cap_out.get() == expected
+
+
+def test_null_oid_accepts_sha1_and_sha256_zeros():
+    assert hook_impl._is_null_oid('0' * 40)
+    assert hook_impl._is_null_oid('0' * 64)
+    assert not hook_impl._is_null_oid('0' * 39)
+    assert not hook_impl._is_null_oid('a' * 40)
