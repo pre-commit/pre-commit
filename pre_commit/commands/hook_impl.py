@@ -21,7 +21,6 @@ def _is_null_oid(sha: str) -> bool:
     return sha in NULL_OIDS
 
 
-
 def _run_legacy(
         hook_type: str,
         hook_dir: str | None,
