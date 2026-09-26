@@ -188,7 +188,13 @@ def _adjust_args_and_chdir(args: argparse.Namespace) -> None:
     toplevel = git.get_root()
     os.chdir(toplevel)
 
-    args.config = os.path.relpath(args.config)
+    # `os.path.relpath` raises when the config and repository are on
+    # different drives on Windows.  An absolute config path is still valid
+    # after changing to the repository root, so keep it in that case.
+    try:
+        args.config = os.path.relpath(args.config)
+    except ValueError:
+        pass
     if args.command in {'run', 'try-repo'}:
         args.files = [os.path.relpath(filename) for filename in args.files]
         if args.commit_msg_filename is not None:
