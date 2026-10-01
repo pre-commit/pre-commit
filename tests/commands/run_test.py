@@ -362,7 +362,7 @@ def test_show_diff_on_failure(
             {'hook': 'nope', 'hook_stage': 'pre-push'},
             (b'No hook with id `nope` in stage `pre-push`',),
             1,
-            True,
+            False,
         ),
         (
             {'all_files': True, 'verbose': True},
@@ -828,7 +828,7 @@ def test_stages(cap_out, store, repo_with_passing_hook):
                 'language': 'pygrep',
                 'stages': [stage],
             }
-            for i, stage in enumerate(('pre-commit', 'pre-push', 'manual'), 1)
+            for i, stage in enumerate(('pre-commit', 'manual'), 1)
         ],
     }
     add_config_to_repo(repo_with_passing_hook, config)
@@ -844,8 +844,7 @@ def test_stages(cap_out, store, repo_with_passing_hook):
         return printed
 
     assert _run_for_stage('pre-commit').startswith(b'hook 1...')
-    assert _run_for_stage('pre-push').startswith(b'hook 2...')
-    assert _run_for_stage('manual').startswith(b'hook 3...')
+    assert _run_for_stage('manual').startswith(b'hook 2...')
 
 
 def test_commit_msg_hook(cap_out, store, commit_msg_repo):
@@ -1246,3 +1245,36 @@ def test_pre_commit_env_variable_set(cap_out, store, repo_with_passing_hook):
         cap_out, store, repo_with_passing_hook, args, environ,
     )
     assert environ['PRE_COMMIT'] == '1'
+
+
+def test_pre_push_fails_if_staged_files(
+        cap_out, store, repo_with_passing_hook,
+):
+    config = {
+        'repo': 'local',
+        'hooks': [{
+            'id': 'no-todo',
+            'name': 'No TODO',
+            'entry': 'sh -c "! grep -iI todo $@" --',
+            'language': 'system',
+            'stage': 'pre-push',
+        }],
+    }
+    add_config_to_repo(repo_with_passing_hook, config)
+
+    with open('placeholder.py', 'w') as staged_file:
+        staged_file.write('"""TODO: something"""\n')
+    cmd_output('git', 'add', 'placeholder.py')
+    git_commit()
+    with open('placeholder.py', 'w') as staged_file:
+        staged_file.write('"""Ok"""\n')
+
+    cmd_output('git', 'add', 'placeholder.py')
+
+    args = run_opts(hook_stage='pre-push')
+    ret, printed = _do_run(cap_out, store, repo_with_passing_hook, args)
+    assert ret == 1
+    assert printed == (
+        b'[ERROR] Staged files found.'
+        b' Please commit before pushing\n'
+    )
