@@ -1123,20 +1123,24 @@ def test_classifier_removes_dne():
 
 
 def test_classifier_normalizes_filenames_on_windows_to_forward_slashes(tmpdir):
-    with tmpdir.as_cwd():
-        tmpdir.join('a/b/c').ensure()
-        with mock.patch.object(os, 'altsep', '/'):
-            with mock.patch.object(os, 'sep', '\\'):
-                classifier = Classifier.from_config((r'a\b\c',), '', '^$')
-                assert classifier.filenames == ['a/b/c']
+    tmpdir.join('a/b/c').ensure()
+    with (
+            tmpdir.as_cwd(),
+            mock.patch.object(os, 'altsep', '/'),
+            mock.patch.object(os, 'sep', '\\'),
+    ):
+        classifier = Classifier.from_config((r'a\b\c',), '', '^$')
+        assert classifier.filenames == ['a/b/c']
 
 
 def test_classifier_does_not_normalize_backslashes_non_windows(tmpdir):
-    with mock.patch.object(os.path, 'lexists', return_value=True):
-        with mock.patch.object(os, 'altsep', None):
-            with mock.patch.object(os, 'sep', '/'):
-                classifier = Classifier.from_config((r'a/b\c',), '', '^$')
-                assert classifier.filenames == [r'a/b\c']
+    with (
+            mock.patch.object(os.path, 'lexists', return_value=True),
+            mock.patch.object(os, 'altsep', None),
+            mock.patch.object(os, 'sep', '/'),
+    ):
+        classifier = Classifier.from_config((r'a/b\c',), '', '^$')
+        assert classifier.filenames == [r'a/b\c']
 
 
 def test_classifier_empty_types_or(tmpdir):
