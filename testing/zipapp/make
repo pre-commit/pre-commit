@@ -44,7 +44,7 @@ def _add_shim(dest: str) -> None:
     with tempfile.TemporaryDirectory() as tmpdir:
         _exit_if_retv(
             'podman', 'run', '--rm', '--volume', f'{tmpdir}:/out:rw', IMG,
-            'cp', '/venv/lib/python3.10/site-packages/distlib/t32.exe', '/out',
+            'cp', '/venv/lib/python3.12/site-packages/distlib/t32.exe', '/out',
         )
 
         with open(os.path.join(dest, 'python.exe'), 'wb') as f:
