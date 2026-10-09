@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 import logging
 import os.path
 import shlex
@@ -17,7 +18,6 @@ from pre_commit.store import Store
 from pre_commit.util import CalledProcessError
 from pre_commit.util import cmd_output
 from testing.fixtures import git_dir
-from testing.util import cwd
 from testing.util import git_commit
 from testing.util import xfailif_windows
 
@@ -81,7 +81,7 @@ def test_store_init(store):
 
 def test_clone(store, tempdir_factory, caplog):
     path = git_dir(tempdir_factory)
-    with cwd(path):
+    with contextlib.chdir(path):
         git_commit()
         rev = git.head_rev(path)
         git_commit()
@@ -201,7 +201,7 @@ def test_clone_shallow_failure_fallback_to_complete(
     caplog,
 ):
     path = git_dir(tempdir_factory)
-    with cwd(path):
+    with contextlib.chdir(path):
         git_commit()
         rev = git.head_rev(path)
         git_commit()
@@ -233,7 +233,7 @@ def test_clone_shallow_failure_fallback_to_complete(
 
 def test_clone_tag_not_on_mainline(store, tempdir_factory):
     path = git_dir(tempdir_factory)
-    with cwd(path):
+    with contextlib.chdir(path):
         git_commit()
         cmd_output('git', 'checkout', 'master', '-b', 'branch')
         git_commit()

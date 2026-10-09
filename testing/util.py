@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import contextlib
 import os.path
 import subprocess
 import sys
@@ -84,16 +83,6 @@ def run_opts(
         is_squash_merge=is_squash_merge,
         rewrite_command=rewrite_command,
     )
-
-
-@contextlib.contextmanager
-def cwd(path):
-    original_cwd = os.getcwd()
-    os.chdir(path)
-    try:
-        yield
-    finally:
-        os.chdir(original_cwd)
 
 
 def git_commit(*args, fn=cmd_output, msg='commit!', all_files=True, **kwargs):

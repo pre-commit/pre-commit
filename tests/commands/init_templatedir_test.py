@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 import os.path
 from unittest import mock
 
@@ -12,7 +13,6 @@ from pre_commit.util import cmd_output
 from testing.fixtures import git_dir
 from testing.fixtures import make_consuming_repo
 from testing.util import cmd_output_mocked_pre_commit_home
-from testing.util import cwd
 from testing.util import git_commit
 
 
@@ -31,7 +31,7 @@ def test_init_templatedir(tmpdir, tempdir_factory, store, cap_out):
     with envcontext((('GIT_TEMPLATE_DIR', target),)):
         path = make_consuming_repo(tempdir_factory, 'script_hooks_repo')
 
-        with cwd(path):
+        with contextlib.chdir(path):
             retcode, output = git_commit(
                 fn=cmd_output_mocked_pre_commit_home,
                 tempdir_factory=tempdir_factory,
@@ -43,7 +43,7 @@ def test_init_templatedir(tmpdir, tempdir_factory, store, cap_out):
 def test_init_templatedir_already_set(tmpdir, tempdir_factory, store, cap_out):
     target = str(tmpdir.join('tmpl'))
     tmp_git_dir = git_dir(tempdir_factory)
-    with cwd(tmp_git_dir):
+    with contextlib.chdir(tmp_git_dir):
         cmd_output('git', 'config', 'init.templateDir', target)
         init_templatedir(
             C.CONFIG_FILE, store, target, hook_types=['pre-commit'],
@@ -73,7 +73,7 @@ def test_init_templatedir_not_set(tmpdir, store, cap_out):
 def test_init_templatedir_expanduser(tmpdir, tempdir_factory, store, cap_out):
     target = str(tmpdir.join('tmpl'))
     tmp_git_dir = git_dir(tempdir_factory)
-    with cwd(tmp_git_dir):
+    with contextlib.chdir(tmp_git_dir):
         cmd_output('git', 'config', 'init.templateDir', '~/templatedir')
         with mock.patch.object(os.path, 'expanduser', return_value=target):
             init_templatedir(
@@ -88,7 +88,7 @@ def test_init_templatedir_expanduser(tmpdir, tempdir_factory, store, cap_out):
 def test_init_templatedir_hookspath_set(tmpdir, tempdir_factory, store):
     target = tmpdir.join('tmpl')
     tmp_git_dir = git_dir(tempdir_factory)
-    with cwd(tmp_git_dir):
+    with contextlib.chdir(tmp_git_dir):
         cmd_output('git', 'config', '--local', 'core.hooksPath', 'hooks')
         init_templatedir(
             C.CONFIG_FILE, store, target, hook_types=['pre-commit'],
@@ -114,7 +114,7 @@ def test_init_templatedir_skip_on_missing_config(
 ):
     target = str(tmpdir.join('tmpl'))
     init_git_dir = git_dir(tempdir_factory)
-    with cwd(init_git_dir):
+    with contextlib.chdir(init_git_dir):
         cmd_output('git', 'config', 'init.templateDir', target)
         init_templatedir(
             C.CONFIG_FILE,
@@ -131,7 +131,7 @@ def test_init_templatedir_skip_on_missing_config(
     with envcontext((('GIT_TEMPLATE_DIR', target),)):
         verify_git_dir = git_dir(tempdir_factory)
 
-    with cwd(verify_git_dir):
+    with contextlib.chdir(verify_git_dir):
         retcode, output = git_commit(
             fn=cmd_output_mocked_pre_commit_home,
             tempdir_factory=tempdir_factory,

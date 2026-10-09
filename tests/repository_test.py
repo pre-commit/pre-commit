@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 import os.path
 import shlex
 import shutil
@@ -27,7 +28,6 @@ from pre_commit.util import cmd_output_b
 from testing.fixtures import make_config_from_repo
 from testing.fixtures import make_repo
 from testing.language_helpers import run_language
-from testing.util import cwd
 from testing.util import get_resource_path
 
 
@@ -300,7 +300,7 @@ def test_really_long_file_paths(tempdir_factory, store):
     path = make_repo(tempdir_factory, 'python_hooks_repo')
     config = make_config_from_repo(path)
 
-    with cwd(really_long_path):
+    with contextlib.chdir(really_long_path):
         _get_hook(config, store, 'foo')
 
 

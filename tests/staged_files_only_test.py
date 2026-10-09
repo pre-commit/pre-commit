@@ -14,7 +14,6 @@ from pre_commit.staged_files_only import staged_files_only
 from pre_commit.util import cmd_output
 from testing.auto_namedtuple import auto_namedtuple
 from testing.fixtures import git_dir
-from testing.util import cwd
 from testing.util import get_resource_path
 from testing.util import git_commit
 from testing.util import xfailif_windows
@@ -189,7 +188,7 @@ def test_img_conflict(img_staged, patch_dir):
 @pytest.fixture
 def repo_with_commits(tempdir_factory):
     path = git_dir(tempdir_factory)
-    with cwd(path):
+    with contextlib.chdir(path):
         open('foo', 'a+').close()
         cmd_output('git', 'add', 'foo')
         git_commit()
@@ -206,7 +205,7 @@ def checkout_submodule(rev):
 @pytest.fixture
 def sub_staged(repo_with_commits, tempdir_factory):
     path = git_dir(tempdir_factory)
-    with cwd(path):
+    with contextlib.chdir(path):
         open('bar', 'a+').close()
         cmd_output('git', 'add', 'bar')
         git_commit()
@@ -224,7 +223,7 @@ def sub_staged(repo_with_commits, tempdir_factory):
 
 def _test_sub_state(path, rev='rev1', status='A'):
     assert os.path.exists(path.sub_path)
-    with cwd(path.sub_path):
+    with contextlib.chdir(path.sub_path):
         actual_rev = cmd_output('git', 'rev-parse', 'HEAD')[1].strip()
     assert actual_rev == getattr(path.submodule, rev)
     actual_status = get_short_git_status()['sub']

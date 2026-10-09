@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 import functools
 import io
 import os.path
@@ -16,7 +17,6 @@ from pre_commit.util import make_executable
 from testing.fixtures import git_dir
 from testing.fixtures import make_consuming_repo
 from testing.fixtures import write_config
-from testing.util import cwd
 from testing.util import git_commit
 
 
@@ -38,7 +38,7 @@ def tempdir_factory(tmpdir):
 @pytest.fixture
 def in_tmpdir(tempdir_factory):
     path = tempdir_factory.get()
-    with cwd(path):
+    with contextlib.chdir(path):
         yield path
 
 
@@ -79,7 +79,7 @@ def in_merge_conflict(tempdir_factory):
 
     conflict_path = tempdir_factory.get()
     cmd_output('git', 'clone', path, conflict_path)
-    with cwd(conflict_path):
+    with contextlib.chdir(conflict_path):
         _make_conflict()
         yield os.path.join(conflict_path)
 
@@ -90,7 +90,7 @@ def in_conflicting_submodule(tempdir_factory):
     git_dir_2 = git_dir(tempdir_factory)
     git_commit(msg=in_conflicting_submodule.__name__, cwd=git_dir_2)
     cmd_output('git', 'submodule', 'add', git_dir_2, 'sub', cwd=git_dir_1)
-    with cwd(os.path.join(git_dir_1, 'sub')):
+    with contextlib.chdir(os.path.join(git_dir_1, 'sub')):
         _make_conflict()
         yield
 
@@ -109,7 +109,7 @@ def commit_msg_repo(tempdir_factory):
         }],
     }
     write_config(path, config)
-    with cwd(path):
+    with contextlib.chdir(path):
         cmd_output('git', 'add', '.')
         git_commit(msg=commit_msg_repo.__name__)
         yield path
@@ -130,7 +130,7 @@ def prepare_commit_msg_repo(tempdir_factory):
         }],
     }
     write_config(path, config)
-    with cwd(path):
+    with contextlib.chdir(path):
         with open(script_name, 'w') as script_file:
             script_file.write(
                 '#!/usr/bin/env bash\n'
@@ -157,7 +157,7 @@ def failing_prepare_commit_msg_repo(tempdir_factory):
         }],
     }
     write_config(path, config)
-    with cwd(path):
+    with contextlib.chdir(path):
         cmd_output('git', 'add', '.')
         git_commit(msg=failing_prepare_commit_msg_repo.__name__)
         yield path

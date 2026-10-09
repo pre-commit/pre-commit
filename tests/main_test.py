@@ -13,7 +13,6 @@ from pre_commit.commands import hazmat
 from pre_commit.errors import FatalError
 from pre_commit.util import cmd_output
 from testing.auto_namedtuple import auto_namedtuple
-from testing.util import cwd
 
 
 def _args(**kwargs):
@@ -64,7 +63,7 @@ def test_install_on_subst(in_git_dir, store):  # pragma: posix no cover
     assert not os.path.exists('Z:')
     cmd_output('subst', 'Z:', str(in_git_dir))
     try:
-        with cwd('Z:'):
+        with contextlib.chdir('Z:'):
             test_adjust_args_and_chdir_noop('Z:\\')
     finally:
         cmd_output('subst', '/d', 'Z:')
