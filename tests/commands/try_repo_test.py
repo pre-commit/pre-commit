@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 import os.path
 import re
 import time
@@ -14,7 +15,6 @@ from testing.auto_namedtuple import auto_namedtuple
 from testing.fixtures import git_dir
 from testing.fixtures import make_repo
 from testing.fixtures import modify_manifest
-from testing.util import cwd
 from testing.util import git_commit
 from testing.util import run_opts
 
@@ -37,7 +37,7 @@ def _add_test_file():
 
 def _run_try_repo(tempdir_factory, **kwargs):
     repo = make_repo(tempdir_factory, 'modified_file_returns_zero_repo')
-    with cwd(git_dir(tempdir_factory)):
+    with contextlib.chdir(git_dir(tempdir_factory)):
         _add_test_file()
         assert not try_repo(try_repo_opts(repo, **kwargs))
 
@@ -91,7 +91,7 @@ Bash hook............................................(no files to check)Skipped
 
 def test_try_repo_relative_path(cap_out, tempdir_factory):
     repo = make_repo(tempdir_factory, 'modified_file_returns_zero_repo')
-    with cwd(git_dir(tempdir_factory)):
+    with contextlib.chdir(git_dir(tempdir_factory)):
         _add_test_file()
         relative_repo = os.path.relpath(repo, '.')
         # previously crashed on cloning a relative path
@@ -100,7 +100,7 @@ def test_try_repo_relative_path(cap_out, tempdir_factory):
 
 def test_try_repo_bare_repo(cap_out, tempdir_factory):
     repo = make_repo(tempdir_factory, 'modified_file_returns_zero_repo')
-    with cwd(git_dir(tempdir_factory)):
+    with contextlib.chdir(git_dir(tempdir_factory)):
         _add_test_file()
         bare_repo = os.path.join(repo, '.git')
         # previously crashed attempting modification changes
@@ -111,7 +111,7 @@ def test_try_repo_specific_revision(cap_out, tempdir_factory):
     repo = make_repo(tempdir_factory, 'script_hooks_repo')
     ref = git.head_rev(repo)
     git_commit(cwd=repo)
-    with cwd(git_dir(tempdir_factory)):
+    with contextlib.chdir(git_dir(tempdir_factory)):
         _add_test_file()
         assert not try_repo(try_repo_opts(repo, ref=ref))
 
@@ -125,7 +125,7 @@ def test_try_repo_uncommitted_changes(cap_out, tempdir_factory):
     with modify_manifest(repo, commit=False) as manifest:
         manifest[0]['name'] = 'modified name!'
 
-    with cwd(git_dir(tempdir_factory)):
+    with contextlib.chdir(git_dir(tempdir_factory)):
         open('test-fie', 'a').close()
         cmd_output('git', 'add', '.')
         assert not try_repo(try_repo_opts(repo))
@@ -146,10 +146,10 @@ def test_try_repo_uncommitted_changes(cap_out, tempdir_factory):
 def test_try_repo_staged_changes(tempdir_factory):
     repo = make_repo(tempdir_factory, 'modified_file_returns_zero_repo')
 
-    with cwd(repo):
+    with contextlib.chdir(repo):
         open('staged-file', 'a').close()
         open('second-staged-file', 'a').close()
         cmd_output('git', 'add', '.')
 
-    with cwd(git_dir(tempdir_factory)):
+    with contextlib.chdir(git_dir(tempdir_factory)):
         assert not try_repo(try_repo_opts(repo, hook='bash_hook'))

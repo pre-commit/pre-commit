@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 from unittest import mock
 
 import pytest
@@ -17,7 +18,6 @@ from testing.fixtures import add_config_to_repo
 from testing.fixtures import make_config_from_repo
 from testing.language_helpers import run_language
 from testing.util import cmd_output_mocked_pre_commit_home
-from testing.util import cwd
 from testing.util import git_commit
 
 
@@ -223,7 +223,7 @@ func main() {}
     main_file = test_dir.joinpath('main.go')
     main_file.write_text(main_go)
 
-    with cwd(test_dir):
+    with contextlib.chdir(test_dir):
         ret, out = run_language(
             path=hook_dir,
             language=golang,

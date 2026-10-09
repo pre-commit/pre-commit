@@ -1,12 +1,12 @@
 from __future__ import annotations
 
+import contextlib
 import sys
 
 import pytest
 
 from pre_commit.commands.hazmat import _cmd_filenames
 from pre_commit.commands.hazmat import main
-from testing.util import cwd
 
 
 def test_cmd_filenames_no_dash_dash():
@@ -51,7 +51,7 @@ def test_cd(tmp_path, capfd):
     subdir.joinpath('a').write_text('a')
     subdir.joinpath('b').write_text('b')
 
-    with cwd(tmp_path):
+    with contextlib.chdir(tmp_path):
         ret = main((
             'cd', 'subdir',
             sys.executable, '-c',

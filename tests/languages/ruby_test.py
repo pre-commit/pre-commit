@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 import tarfile
 from unittest import mock
 
@@ -12,7 +13,6 @@ from pre_commit.languages import ruby
 from pre_commit.languages.ruby import _resource_bytesio
 from pre_commit.store import _make_local_repo
 from testing.language_helpers import run_language
-from testing.util import cwd
 from testing.util import xfailif_windows
 
 
@@ -134,6 +134,6 @@ def test_ruby_with_bundle_disable_shared_gems(tmp_path):
         'BUNDLE_PATH: vendor/gem\n',
     )
 
-    with cwd(workdir):
+    with contextlib.chdir(workdir):
         # `3.2.0` has new enough `gem` reading `.bundle`
         test_ruby_hook_language_version(tmp_path)

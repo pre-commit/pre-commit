@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 import os
 from unittest import mock
 
@@ -7,7 +8,6 @@ from pre_commit import constants as C
 from pre_commit.languages import julia
 from pre_commit.prefix import Prefix
 from testing.language_helpers import run_language
-from testing.util import cwd
 
 
 def _make_hook(tmp_path, julia_code):
@@ -117,7 +117,7 @@ def test_julia_repo_local(tmp_path):
     local_dir.joinpath('local.jl').write_text(
         'using TOML; foreach(println, ARGS)',
     )
-    with cwd(local_dir):
+    with contextlib.chdir(local_dir):
         deps = ('TOML=fa267f1f-6049-4f14-aa54-33bafae1ed76',)
         expected = (0, b'--local-arg1\n--local-arg2\n')
         assert run_language(

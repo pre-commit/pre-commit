@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 import subprocess
 import sys
 from unittest import mock
@@ -15,7 +16,6 @@ from pre_commit.util import make_executable
 from testing.fixtures import git_dir
 from testing.fixtures import sample_local_config
 from testing.fixtures import write_config
-from testing.util import cwd
 from testing.util import git_commit
 
 
@@ -269,7 +269,7 @@ def push_example(tempdir_factory):
 def test_run_ns_pre_push_updating_branch(push_example):
     src, src_head, clone, clone_head = push_example
 
-    with cwd(clone):
+    with contextlib.chdir(clone):
         args = ('origin', src)
         stdin = f'HEAD {clone_head} refs/heads/b {src_head}\n'.encode()
         ns = hook_impl._run_ns('pre-push', False, args, stdin)
@@ -287,7 +287,7 @@ def test_run_ns_pre_push_updating_branch(push_example):
 def test_run_ns_pre_push_new_branch(push_example):
     src, src_head, clone, clone_head = push_example
 
-    with cwd(clone):
+    with contextlib.chdir(clone):
         args = ('origin', src)
         stdin = f'HEAD {clone_head} refs/heads/b {hook_impl.Z40}\n'.encode()
         ns = hook_impl._run_ns('pre-push', False, args, stdin)
@@ -300,7 +300,7 @@ def test_run_ns_pre_push_new_branch(push_example):
 def test_run_ns_pre_push_new_branch_existing_rev(push_example):
     src, src_head, clone, _ = push_example
 
-    with cwd(clone):
+    with contextlib.chdir(clone):
         args = ('origin', src)
         stdin = f'HEAD {src_head} refs/heads/b2 {hook_impl.Z40}\n'.encode()
         ns = hook_impl._run_ns('pre-push', False, args, stdin)
@@ -311,7 +311,7 @@ def test_run_ns_pre_push_new_branch_existing_rev(push_example):
 def test_run_ns_pre_push_ref_with_whitespace(push_example):
     src, src_head, clone, _ = push_example
 
-    with cwd(clone):
+    with contextlib.chdir(clone):
         args = ('origin', src)
         line = f'HEAD^{{/ }} {src_head} refs/heads/b2 {hook_impl.Z40}\n'
         stdin = line.encode()
@@ -327,7 +327,7 @@ def test_pushing_orphan_branch(push_example):
     git_commit(cwd=clone, msg='something else to get unique hash')
     clone_rev = git.head_rev(clone)
 
-    with cwd(clone):
+    with contextlib.chdir(clone):
         args = ('origin', src)
         stdin = f'HEAD {clone_rev} refs/heads/b2 {hook_impl.Z40}\n'.encode()
         ns = hook_impl._run_ns('pre-push', False, args, stdin)
@@ -339,7 +339,7 @@ def test_pushing_orphan_branch(push_example):
 def test_run_ns_pre_push_deleting_branch(push_example):
     src, src_head, clone, _ = push_example
 
-    with cwd(clone):
+    with contextlib.chdir(clone):
         args = ('origin', src)
         stdin = f'(delete) {hook_impl.Z40} refs/heads/b {src_head}'.encode()
         ns = hook_impl._run_ns('pre-push', False, args, stdin)
@@ -352,7 +352,7 @@ def test_hook_impl_main_noop_pre_push(cap_out, store, push_example):
 
     stdin = f'(delete) {hook_impl.Z40} refs/heads/b {src_head}'.encode()
     with mock.patch.object(sys.stdin.buffer, 'read', return_value=stdin):
-        with cwd(clone):
+        with contextlib.chdir(clone):
             write_config('.', sample_local_config())
             ret = hook_impl.hook_impl(
                 store,
@@ -368,7 +368,7 @@ def test_hook_impl_main_noop_pre_push(cap_out, store, push_example):
 
 
 def test_hook_impl_main_runs_hooks(cap_out, tempdir_factory, store):
-    with cwd(git_dir(tempdir_factory)):
+    with contextlib.chdir(git_dir(tempdir_factory)):
         write_config('.', sample_local_config())
         ret = hook_impl.hook_impl(
             store,

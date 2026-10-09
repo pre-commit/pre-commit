@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 from unittest import mock
 
 import pytest
@@ -9,7 +10,6 @@ from pre_commit import parse_shebang
 from pre_commit.languages import rust
 from pre_commit.store import _make_local_repo
 from testing.language_helpers import run_language
-from testing.util import cwd
 
 ACTUAL_GET_DEFAULT_VERSION = rust.get_default_version.__wrapped__
 
@@ -34,7 +34,7 @@ def test_selects_system_even_if_rust_toolchain_toml(tmp_path):
     toolchain_toml = '[toolchain]\nchannel = "wtf"\n'
     tmp_path.joinpath('rust-toolchain.toml').write_text(toolchain_toml)
 
-    with cwd(tmp_path):
+    with contextlib.chdir(tmp_path):
         assert ACTUAL_GET_DEFAULT_VERSION() == 'system'
 
 

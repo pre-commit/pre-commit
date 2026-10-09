@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 import os.path
 import shlex
 import sys
@@ -31,7 +32,6 @@ from testing.fixtures import read_config
 from testing.fixtures import sample_meta_config
 from testing.fixtures import write_config
 from testing.util import cmd_output_mocked_pre_commit_home
-from testing.util import cwd
 from testing.util import git_commit
 from testing.util import run_opts
 
@@ -107,21 +107,21 @@ def test_full_msg_postfix_not_colored():
 @pytest.fixture
 def repo_with_passing_hook(tempdir_factory):
     git_path = make_consuming_repo(tempdir_factory, 'script_hooks_repo')
-    with cwd(git_path):
+    with contextlib.chdir(git_path):
         yield git_path
 
 
 @pytest.fixture
 def repo_with_failing_hook(tempdir_factory):
     git_path = make_consuming_repo(tempdir_factory, 'failing_hook_repo')
-    with cwd(git_path):
+    with contextlib.chdir(git_path):
         yield git_path
 
 
 @pytest.fixture
 def aliased_repo(tempdir_factory):
     git_path = make_consuming_repo(tempdir_factory, 'script_hooks_repo')
-    with cwd(git_path):
+    with contextlib.chdir(git_path):
         with modify_config() as config:
             config['repos'][0]['hooks'].append(
                 {'id': 'bash_hook', 'alias': 'foo_bash'},
@@ -136,7 +136,7 @@ def stage_a_file(filename='foo.py'):
 
 
 def _do_run(cap_out, store, repo, args, environ={}, config_file=C.CONFIG_FILE):
-    with cwd(repo):  # replicates `main._adjust_args_and_chdir` behaviour
+    with contextlib.chdir(repo):  # replicates `main._adjust_args_and_chdir`
         ret = run(config_file, store, args, environ=environ)
     printed = cap_out.get_bytes()
     return ret, printed
@@ -175,7 +175,7 @@ def test_run_all_hooks_failing(cap_out, store, repo_with_failing_hook):
 
 def test_arbitrary_bytes_hook(cap_out, store, tempdir_factory):
     git_path = make_consuming_repo(tempdir_factory, 'arbitrary_bytes_repo')
-    with cwd(git_path):
+    with contextlib.chdir(git_path):
         _test_run(
             cap_out, store, git_path, {}, (b'\xe2\x98\x83\xb2\n',), 1, True,
         )
@@ -185,7 +185,7 @@ def test_hook_that_modifies_but_returns_zero(cap_out, store, tempdir_factory):
     git_path = make_consuming_repo(
         tempdir_factory, 'modified_file_returns_zero_repo',
     )
-    with cwd(git_path):
+    with contextlib.chdir(git_path):
         stage_a_file('bar.py')
         _test_run(
             cap_out,
@@ -212,7 +212,7 @@ def test_hook_that_modifies_but_returns_zero(cap_out, store, tempdir_factory):
 
 def test_types_hook_repository(cap_out, store, tempdir_factory):
     git_path = make_consuming_repo(tempdir_factory, 'types_repo')
-    with cwd(git_path):
+    with contextlib.chdir(git_path):
         stage_a_file('bar.py')
         stage_a_file('bar.notpy')
         ret, printed = _do_run(cap_out, store, git_path, run_opts())
@@ -223,7 +223,7 @@ def test_types_hook_repository(cap_out, store, tempdir_factory):
 
 def test_types_or_hook_repository(cap_out, store, tempdir_factory):
     git_path = make_consuming_repo(tempdir_factory, 'types_or_repo')
-    with cwd(git_path):
+    with contextlib.chdir(git_path):
         stage_a_file('bar.notpy')
         stage_a_file('bar.pxd')
         stage_a_file('bar.py')
@@ -236,7 +236,7 @@ def test_types_or_hook_repository(cap_out, store, tempdir_factory):
 
 def test_exclude_types_hook_repository(cap_out, store, tempdir_factory):
     git_path = make_consuming_repo(tempdir_factory, 'exclude_types_repo')
-    with cwd(git_path):
+    with contextlib.chdir(git_path):
         with open('exe', 'w') as exe:
             exe.write('#!/usr/bin/env python3\n')
         make_executable('exe')
@@ -335,7 +335,7 @@ def test_show_diff_on_failure(
     git_path = make_consuming_repo(
         tempdir_factory, 'modified_file_returns_zero_repo',
     )
-    with cwd(git_path):
+    with contextlib.chdir(git_path):
         stage_a_file('bar.py')
         _test_run(
             cap_out, store, git_path, args,
@@ -406,7 +406,7 @@ def test_run_output_logfile(cap_out, store, tempdir_factory):
     )
 
     git_path = make_consuming_repo(tempdir_factory, 'logfile_repo')
-    with cwd(git_path):
+    with contextlib.chdir(git_path):
         _test_run(
             cap_out,
             store,
@@ -695,7 +695,7 @@ def test_hook_id_in_verbose_output(cap_out, store, repo_with_passing_hook):
 
 
 def test_multiple_hooks_same_id(cap_out, store, repo_with_passing_hook):
-    with cwd(repo_with_passing_hook):
+    with contextlib.chdir(repo_with_passing_hook):
         # Add bash hook on there again
         with modify_config() as config:
             config['repos'][0]['hooks'].append({'id': 'bash_hook'})
@@ -725,7 +725,7 @@ def test_aliased_hook_run(cap_out, store, aliased_repo):
 
 
 def test_non_ascii_hook_id(repo_with_passing_hook, tempdir_factory):
-    with cwd(repo_with_passing_hook):
+    with contextlib.chdir(repo_with_passing_hook):
         _, stdout, _ = cmd_output_mocked_pre_commit_home(
             sys.executable, '-m', 'pre_commit.main', 'run', '☃',
             check=False, tempdir_factory=tempdir_factory,
@@ -736,7 +736,7 @@ def test_non_ascii_hook_id(repo_with_passing_hook, tempdir_factory):
 
 
 def test_stdout_write_bug_py26(repo_with_failing_hook, store, tempdir_factory):
-    with cwd(repo_with_failing_hook):
+    with contextlib.chdir(repo_with_failing_hook):
         with modify_config() as config:
             config['repos'][0]['hooks'][0]['args'] = ['☃']
         stage_a_file()
@@ -758,7 +758,7 @@ def test_lots_of_files(store, tempdir_factory):
     # windows xargs seems to have a bug, here's a regression test for
     # our workaround
     git_path = make_consuming_repo(tempdir_factory, 'script_hooks_repo')
-    with cwd(git_path):
+    with contextlib.chdir(git_path):
         # Override files so we run against them
         with modify_config() as config:
             config['repos'][0]['hooks'][0]['files'] = ''
@@ -873,7 +873,7 @@ def test_post_checkout_hook(cap_out, store, tempdir_factory):
     }
     add_config_to_repo(path, config)
 
-    with cwd(path):
+    with contextlib.chdir(path):
         _test_run(
             cap_out,
             store,
@@ -1024,12 +1024,12 @@ def test_no_unstaged_error_with_all_files_or_files(
 
 
 def test_files_running_subdir(repo_with_passing_hook, tempdir_factory):
-    with cwd(repo_with_passing_hook):
+    with contextlib.chdir(repo_with_passing_hook):
         os.mkdir('subdir')
         open('subdir/foo.py', 'w').close()
         cmd_output('git', 'add', 'subdir/foo.py')
 
-        with cwd('subdir'):
+        with contextlib.chdir('subdir'):
             # Use subprocess to demonstrate behaviour in main
             _, stdout, _ = cmd_output_mocked_pre_commit_home(
                 sys.executable, '-m', 'pre_commit.main', 'run', '-v',
