@@ -144,6 +144,29 @@ def test_node_hook_system(tmp_path):
     assert ret == (0, b'Hello World\n')
 
 
+def test_node_hook_install_does_not_write_callers_index(tmp_path):
+    # git sets GIT_DIR / GIT_INDEX_FILE to absolute paths when running hooks
+    # in a submodule, `npm install git+file://...` must not inherit them
+    hook_repo = tmp_path.joinpath('hook')
+    hook_repo.mkdir()
+    _make_hello_world(hook_repo)
+
+    user_repo = tmp_path.joinpath('user')
+    cmd_output_b('git', 'init', user_repo)
+    user_repo.joinpath('f').touch()
+    cmd_output_b('git', 'add', 'f', cwd=user_repo)
+
+    git_dir = user_repo.joinpath('.git')
+    with envcontext.envcontext((
+            ('GIT_DIR', str(git_dir)),
+            ('GIT_INDEX_FILE', str(git_dir.joinpath('index'))),
+    )):
+        ret = run_language(hook_repo, node, 'node-hello')
+    assert ret == (0, b'Hello World\n')
+
+    assert cmd_output('git', 'ls-files', cwd=user_repo)[1] == 'f\n'
+
+
 def test_node_with_user_config_set(tmp_path):
     cfg = tmp_path.joinpath('cfg')
     cfg.write_text('cache=/dne\n')
