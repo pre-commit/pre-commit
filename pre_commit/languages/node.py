@@ -13,6 +13,7 @@ from pre_commit.envcontext import envcontext
 from pre_commit.envcontext import PatchesT
 from pre_commit.envcontext import UNSET
 from pre_commit.envcontext import Var
+from pre_commit.git import no_git_env
 from pre_commit.languages.python import bin_dir
 from pre_commit.prefix import Prefix
 from pre_commit.util import cmd_output
@@ -103,4 +104,4 @@ def install_environment(
             'npm', 'install', '--allow-git=root', '--install-links', '-g',
             *pkgs,
         )
-        lang_base.setup_cmd(prefix, install)
+        lang_base.setup_cmd(prefix, install, env=no_git_env())
