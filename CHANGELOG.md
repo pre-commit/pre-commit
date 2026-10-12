@@ -1,3 +1,12 @@
+4.7.0 - 2026-10-12
+==================
+
+### Fixes
+- Fix `language: node` hooks during commit with `-a` or inside a submodule.
+    - Regressed in 4.6.1.
+    - #3773 issue by @cbirkhold.
+    - #3774 PR by @cbirkhold.
+
 4.6.2 - 2026-08-10
 ==================
 
