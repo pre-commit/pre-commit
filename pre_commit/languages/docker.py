@@ -9,6 +9,7 @@ import re
 from collections.abc import Sequence
 
 from pre_commit import lang_base
+from pre_commit.errors import FatalError
 from pre_commit.prefix import Prefix
 from pre_commit.util import CalledProcessError
 from pre_commit.util import cmd_output_b
@@ -18,6 +19,8 @@ PRE_COMMIT_LABEL = 'PRE_COMMIT'
 get_default_version = lang_base.basic_get_default_version
 health_check = lang_base.basic_health_check
 in_env = lang_base.no_env  # no special environment for docker
+
+CONTAINER_RUNTIMES = ('docker', 'podman')
 
 _HOSTNAME_MOUNT_RE = re.compile(
     rb"""
@@ -29,6 +32,20 @@ _HOSTNAME_MOUNT_RE = re.compile(
     """,
     re.VERBOSE,
 )
+
+
+def _docker_exe() -> str:
+    runtime = os.environ.get('PRE_COMMIT_CONTAINER_RUNTIME', '')
+    runtime = runtime.strip().lower()
+    if not runtime:
+        return 'docker'
+    elif runtime in CONTAINER_RUNTIMES:
+        return runtime
+    else:
+        raise FatalError(
+            f'PRE_COMMIT_CONTAINER_RUNTIME={runtime!r} is not supported, '
+            f'expected one of: {", ".join(CONTAINER_RUNTIMES)}',
+        )
 
 
 def _get_container_id() -> str | None:
@@ -48,7 +65,7 @@ def _get_docker_path(path: str) -> str:
         return path
 
     try:
-        _, out, _ = cmd_output_b('docker', 'inspect', container_id)
+        _, out, _ = cmd_output_b(_docker_exe(), 'inspect', container_id)
     except CalledProcessError:
         # self-container was not visible from here (perhaps docker-in-docker)
         return path
@@ -81,7 +98,7 @@ def build_docker_image(
         pull: bool,
 ) -> None:  # pragma: win32 no cover
     cmd: tuple[str, ...] = (
-        'docker', 'build',
+        _docker_exe(), 'build',
         '--tag', docker_tag(prefix),
         '--label', PRE_COMMIT_LABEL,
     )
@@ -109,7 +126,7 @@ def install_environment(
 @functools.lru_cache(maxsize=1)
 def _is_rootless() -> bool:  # pragma: win32 no cover
     retcode, out, _ = cmd_output_b(
-        'docker', 'system', 'info', '--format', '{{ json . }}',
+        _docker_exe(), 'system', 'info', '--format', '{{ json . }}',
     )
     if retcode != 0:
         return False
@@ -144,7 +161,7 @@ def get_docker_tty(*, color: bool) -> tuple[str, ...]:  # pragma: win32 no cover
 
 def docker_cmd(*, color: bool) -> tuple[str, ...]:  # pragma: win32 no cover
     return (
-        'docker', 'run',
+        _docker_exe(), 'run',
         '--rm',
         *get_docker_tty(color=color),
         *get_docker_user(),

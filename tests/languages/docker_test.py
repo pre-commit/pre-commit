@@ -9,6 +9,8 @@ from unittest import mock
 
 import pytest
 
+from pre_commit import envcontext
+from pre_commit.errors import FatalError
 from pre_commit.languages import docker
 from pre_commit.util import CalledProcessError
 from testing.language_helpers import run_language
@@ -193,6 +195,59 @@ def test_docker_fallback_user():
             getgid=invalid_attribute,
     ):
         assert docker.get_docker_user() == ()
+
+
+@pytest.mark.parametrize(
+    ('value', 'expected'),
+    (
+        pytest.param(envcontext.UNSET, 'docker', id='unset'),
+        pytest.param('', 'docker', id='empty'),
+        pytest.param('   ', 'docker', id='whitespace-only'),
+        pytest.param('docker', 'docker', id='docker'),
+        pytest.param('podman', 'podman', id='podman'),
+        pytest.param('PODMAN', 'podman', id='uppercase'),
+        pytest.param(' Podman ', 'podman', id='trimmed-and-lowercased'),
+    ),
+)
+def test_docker_exe(value, expected):
+    ctx = (('PRE_COMMIT_CONTAINER_RUNTIME', value),)
+    with envcontext.envcontext(ctx):
+        assert docker._docker_exe() == expected
+
+
+@pytest.mark.parametrize(
+    'value',
+    ('nerdctl', '/usr/bin/podman', 'podman --remote', 'docker;podman'),
+)
+def test_docker_exe_unsupported_runtime(value):
+    ctx = (('PRE_COMMIT_CONTAINER_RUNTIME', value),)
+    with envcontext.envcontext(ctx):
+        with pytest.raises(FatalError) as excinfo:
+            docker._docker_exe()
+    msg, = excinfo.value.args
+    assert 'PRE_COMMIT_CONTAINER_RUNTIME' in msg
+    assert 'docker, podman' in msg
+
+
+@pytest.mark.parametrize('runtime', ('docker', 'podman'))
+def test_docker_cmd_uses_runtime(runtime):
+    ctx = (('PRE_COMMIT_CONTAINER_RUNTIME', runtime),)
+    with envcontext.envcontext(ctx), mock.patch.object(
+        docker, 'get_docker_user', return_value=(),
+    ):
+        assert docker.docker_cmd(color=False)[:2] == (runtime, 'run')
+
+
+@pytest.mark.parametrize('runtime', ('docker', 'podman'))
+def test_docker_rootless_check_uses_runtime(runtime):
+    ctx = (('PRE_COMMIT_CONTAINER_RUNTIME', runtime),)
+    ret = (0, b'{}', b'')
+    with envcontext.envcontext(ctx):
+        with mock.patch.object(
+            docker, 'cmd_output_b', return_value=ret,
+        ) as mck:
+            docker._is_rootless()
+    assert mck.call_args[0][0] == runtime
 
 
 @pytest.fixture(autouse=True)
