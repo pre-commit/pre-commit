@@ -384,3 +384,27 @@ def test_hook_impl_main_runs_hooks(cap_out, tempdir_factory, store):
 Block if "DO NOT COMMIT" is found....................(no files to check)Skipped
 '''
     assert cap_out.get() == expected
+
+
+def test_is_zero_oid():
+    assert hook_impl._is_zero_oid('0' * 40)
+    assert hook_impl._is_zero_oid('0' * 64)
+    assert not hook_impl._is_zero_oid('0' * 39)
+    assert not hook_impl._is_zero_oid('0' * 41)
+    assert not hook_impl._is_zero_oid('0' * 63)
+    assert not hook_impl._is_zero_oid('0' * 65)
+    assert not hook_impl._is_zero_oid('1' + '0' * 39)
+    assert not hook_impl._is_zero_oid('')
+
+
+def test_run_ns_pre_push_deleting_branch_sha256(push_example):
+    """Deletion pushes use a 64-zero OID on SHA-256 repos (#3664)."""
+    src, src_head, clone, _ = push_example
+    z64 = '0' * 64
+
+    with contextlib.chdir(clone):
+        args = ('origin', src)
+        stdin = f'(delete) {z64} refs/heads/b {src_head}'.encode()
+        ns = hook_impl._run_ns('pre-push', False, args, stdin)
+
+    assert ns is None
