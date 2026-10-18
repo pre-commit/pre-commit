@@ -34,7 +34,7 @@ Running a specific test with the environment activated is as easy as:
 
 ### Running all the tests
 
-Running all the tests can be done by running `tox -e py37` (or your
+Running all the tests can be done by running `tox -e py` (or your
 interpreter version of choice).  These often take a long time and consume
 significant cpu while running the slower node / ruby integration tests.
 
