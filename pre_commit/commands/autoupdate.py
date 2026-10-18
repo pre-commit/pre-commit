@@ -113,7 +113,7 @@ def _update_one(
     return i, old, new
 
 
-REV_LINE_RE = re.compile(r'^(\s+)rev:(\s*)([\'"]?)([^\s#]+)(.*)(\r?\n)$')
+REV_LINE_RE = re.compile(r'^(\s+)rev:(\s*)([\'"]?)([^\s#]+)(.*)(\r?\n|)$')
 
 
 def _original_lines(
