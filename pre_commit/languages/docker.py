@@ -60,7 +60,7 @@ def _get_docker_path(path: str) -> str:
         if os.path.commonpath((path, to_path)) == to_path:
             # So there is something in common,
             # and we can proceed remapping it
-            return path.replace(to_path, src_path)
+            return path.replace(to_path, src_path, 1)
     # we're in Docker, but the path is not mounted, cannot really do anything,
     # so fall back to original path
     return path

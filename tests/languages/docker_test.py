@@ -312,6 +312,16 @@ def test_get_docker_path_in_docker_binds_path_complex(in_docker):
         assert docker._get_docker_path(path) == '/opt/my_code/test/something'
 
 
+def test_get_docker_path_preserves_repeated_destination(in_docker):
+    binds_list = [{'Source': '/opt/my_code', 'Destination': '/project'}]
+    docker_out = json.dumps([{'Mounts': binds_list}]).encode()
+
+    with _linux_commonpath(), _docker_output(docker_out):
+        path = '/project/cache/project/repo'
+        expected = '/opt/my_code/cache/project/repo'
+        assert docker._get_docker_path(path) == expected
+
+
 def test_get_docker_path_in_docker_no_substring(in_docker):
     binds_list = [{'Source': '/opt/my_code', 'Destination': '/project'}]
     docker_out = json.dumps([{'Mounts': binds_list}]).encode()
