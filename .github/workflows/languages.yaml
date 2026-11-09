@@ -51,6 +51,8 @@ jobs:
     - run: testing/get-dart.sh
       shell: bash
       if: matrix.language == 'dart'
+    - uses: julia-actions/setup-julia@v3
+      if: matrix.language == 'julia'
     - run: |
         sudo apt-get update
         sudo apt-get install -y --no-install-recommends \
