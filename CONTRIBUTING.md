@@ -150,4 +150,4 @@ This is usually the easiest to implement, most of them look the same as the
 
 https://github.com/pre-commit/pre-commit/blob/160238220f022035c8ef869c9a8642f622c02118/pre_commit/languages/node.py#L72-L74
 
-[activation instructions]: https://virtualenv.pypa.io/en/latest/user_guide.html#activators
+[activation instructions]: https://virtualenv.pypa.io/en/latest/how-to/usage.html#activate-a-virtual-environment
