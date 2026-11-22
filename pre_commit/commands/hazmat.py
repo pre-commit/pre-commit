@@ -50,7 +50,11 @@ def cd(subdir: str, cmd: tuple[str, ...]) -> int:
         if not filename.startswith(prefix):
             raise SystemExit(f'unexpected file without {prefix=}: {filename}')
         else:
-            new_filenames.append(filename.removeprefix(prefix))
+            filename = filename.removeprefix(prefix)
+            if filename.startswith('-'):
+                # keep dash-leading filenames from looking like options
+                filename = f'./{filename}'
+            new_filenames.append(filename)
 
     cmd = normalize_cmd(cmd)
     return subprocess.call((*cmd, *new_filenames), cwd=subdir)

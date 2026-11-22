@@ -67,6 +67,27 @@ def test_cd(tmp_path, capfd):
     assert err == ''
 
 
+def test_cd_dash_filename(tmp_path, capfd):
+    subdir = tmp_path.joinpath('subdir')
+    subdir.mkdir()
+    subdir.joinpath('--fix').write_text('x')
+
+    with contextlib.chdir(tmp_path):
+        ret = main((
+            'cd', 'subdir',
+            sys.executable, '-c',
+            'import sys; print(sys.argv[1:]);'
+            'print(open(sys.argv[1]).read())',
+            '--',
+            'subdir/--fix',
+        ))
+
+    assert ret == 0
+    out, err = capfd.readouterr()
+    assert _norm(out) == "['./--fix']\nx\n"
+    assert err == ''
+
+
 def test_ignore_exit_code(capfd):
     ret = main((
         'ignore-exit-code', sys.executable, '-c', 'raise SystemExit("bye")',
