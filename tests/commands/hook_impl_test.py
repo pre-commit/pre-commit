@@ -384,3 +384,11 @@ def test_hook_impl_main_runs_hooks(cap_out, tempdir_factory, store):
 Block if "DO NOT COMMIT" is found....................(no files to check)Skipped
 '''
     assert cap_out.get() == expected
+
+
+def test_pre_push_delete_sha256_zero_sha():
+    from pre_commit.commands.hook_impl import _run_ns
+    z64 = '0' * 64
+    stdin = f'(delete) {z64} refs/heads/feat abcdef\n'.encode()
+    ret = _run_ns('pre-push', False, ('origin', 'https://example.com'), stdin)
+    assert ret is None

@@ -128,9 +128,9 @@ def _pre_push_ns(
     for line in stdin.decode().splitlines():
         parts = line.rsplit(maxsplit=3)
         local_branch, local_sha, remote_branch, remote_sha = parts
-        if local_sha == Z40:
+        if set(local_sha) == {'0'}:
             continue
-        elif remote_sha != Z40 and _rev_exists(remote_sha):
+        elif set(remote_sha) != {'0'} and _rev_exists(remote_sha):
             return _ns(
                 'pre-push', color,
                 from_ref=remote_sha, to_ref=local_sha,
