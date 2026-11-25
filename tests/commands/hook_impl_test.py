@@ -347,6 +347,18 @@ def test_run_ns_pre_push_deleting_branch(push_example):
     assert ns is None
 
 
+def test_run_ns_pre_push_deleting_branch_sha256(push_example):
+    src, src_head, clone, _ = push_example
+
+    with contextlib.chdir(clone):
+        args = ('origin', src)
+        z64 = '0' * 64
+        stdin = f'(delete) {z64} refs/heads/b {src_head}'.encode()
+        ns = hook_impl._run_ns('pre-push', False, args, stdin)
+
+    assert ns is None
+
+
 def test_hook_impl_main_noop_pre_push(cap_out, store, push_example):
     src, src_head, clone, _ = push_example
 
